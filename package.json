@@ -11,6 +11,6 @@
   "dependencies": {
     "@netlify/functions": "^2.6.0",
     "groq-sdk": "^0.3.2",
-    "netlify-cache": "^1.1.0"
+    "@netlify/cache": "^1.1.0" 
   }
 }
