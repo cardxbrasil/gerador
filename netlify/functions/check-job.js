@@ -1,23 +1,30 @@
-// netlify/functions/start-job.js
-const { invoke } = require('@netlify/functions');
+// netlify/functions/check-job.js
+const cache = require('netlify-cache');
+const path = require('path');
+const os = require('os');
+const fs = require('fs');
 
 exports.handler = async (event) => {
-    try {
-        const body = JSON.parse(event.body);
-        const jobId = Date.now() + '-' + Math.random().toString(36).substring(2);
+    const { jobId } = event.queryStringParameters;
+    if (!jobId) {
+        return { statusCode: 400, body: "jobId ausente." };
+    }
 
-        // Dispara a função de background, passando o pedido E o número de controle
-        await invoke('groq-background', {
-            body: JSON.stringify({ ...body, jobId })
-        });
+    const cacheDir = path.join(os.tmpdir(), 'results');
+    const resultPath = path.join(cacheDir, `${jobId}.json`);
 
-        // Retorna o número de controle IMEDIATAMENTE para o cliente
+    // Verifica se a "estante" existe
+    if (await cache.restore(cacheDir) && fs.existsSync(resultPath)) {
+        console.log(`Resultado encontrado para o job ${jobId}.`);
+        const result = fs.readFileSync(resultPath, 'utf-8');
         return {
-            statusCode: 202, // "Pedido Aceito"
-            body: JSON.stringify({ jobId }),
+            statusCode: 200, // "Pizza Pronta!"
+            body: result,
         };
-    } catch (error) {
-        console.error("Erro ao iniciar o job:", error);
-        return { statusCode: 500, body: JSON.stringify({ error: "Falha ao iniciar a tarefa." }) };
+    } else {
+        console.log(`Resultado para o job ${jobId} ainda não está pronto.`);
+        return {
+            statusCode: 202, // "Ainda preparando..."
+        };
     }
 };
