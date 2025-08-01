@@ -1,25 +1,33 @@
-// netlify/functions/start-job.js
+// netlify/functions/check-job.js
 
-const { invoke } = require('@netlify/functions');
+const cache = require('@netlify/cache'); // <-- CORREÇÃO APLICADA AQUI
+const path = require('path');
+const os = require('os');
+const fs = require('fs');
 
 exports.handler = async (event) => {
-    try {
-        const body = JSON.parse(event.body);
-        // Gera um ID único para o trabalho, combinando tempo e um número aleatório
-        const jobId = Date.now() + '-' + Math.random().toString(36).substring(2);
+    const { jobId } = event.queryStringParameters;
+    if (!jobId) {
+        return { statusCode: 400, body: "ID do job ausente." };
+    }
 
-        // Dispara a função de background, passando o pedido E o número de controle
-        await invoke('groq-background', {
-            body: JSON.stringify({ ...body, jobId })
-        });
+    const cacheDir = path.join(os.tmpdir(), 'results');
+    const resultPath = path.join(cacheDir, `${jobId}.json`);
 
-        // Retorna o número de controle IMEDIATAMENTE para o cliente
+    // Tenta restaurar a "estante" de entrega do cache
+    if (await cache.restore(cacheDir) && fs.existsSync(resultPath)) {
+        // Se a pizza está na estante, entrega!
+        console.log(`Resultado encontrado para o job ${jobId}. Entregando...`);
+        const result = fs.readFileSync(resultPath, 'utf-8');
         return {
-            statusCode: 202, // Código HTTP para "Pedido Aceito"
-            body: JSON.stringify({ jobId }),
+            statusCode: 200, // Código HTTP para "OK, aqui está o resultado"
+            body: result,
         };
-    } catch (error) {
-        console.error("ERRO CRÍTICO AO INICIAR O JOB:", error);
-        return { statusCode: 500, body: JSON.stringify({ error: "Falha ao iniciar a tarefa de geração." }) };
+    } else {
+        // Se a pizza ainda não está na estante, avisa que está sendo preparada
+        console.log(`Resultado para o job ${jobId} ainda não está pronto.`);
+        return {
+            statusCode: 202, // Código HTTP para "Pedido aceito, ainda processando"
+        };
     }
 };
