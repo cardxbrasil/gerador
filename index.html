@@ -3602,74 +3602,82 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
 };
 
     
-// =========================================================================
-// >>>>> SUBSTITUA SUA FUNÇÃO cleanGeneratedText PELA VERSÃO "SUPER-CIRURGIÃ v3" <<<<<
-// =========================================================================
+// ============================
+// >>>>> FILTRO PARA JSON <<<<<
+// ============================
 const cleanGeneratedText = (text, expectJson = false) => {
-    if (!text || !expectJson) {
-        return removeMetaComments(text || "");
+    if (!text || typeof text !== 'string') {
+        return null;
     }
 
-    // PASSO 1: Limpeza prévia e isolamento do bloco JSON
-    let cleanedText = text.replace(/```json\n?|\n?```/g, '').trim(); // Remove marcações de código
-    
-    const startIndex = cleanedText.search(/[\{\[]/);
+    if (!expectJson) {
+        return text.trim();
+    }
+
+    // --- ETAPA 1: ISOLAMENTO DO BLOCO JSON ---
+    const startIndex = text.search(/[\{\[]/);
     if (startIndex === -1) {
         throw new Error("A IA não retornou um formato JSON reconhecível.");
     }
-    
-    const firstChar = cleanedText[startIndex];
+    const firstChar = text[startIndex];
     const matchingLastChar = firstChar === '{' ? '}' : ']';
-    
-    let endIndex = cleanedText.lastIndexOf(matchingLastChar);
+    let endIndex = text.lastIndexOf(matchingLastChar);
     if (endIndex < startIndex) {
-        throw new Error("A IA retornou um JSON com estrutura de abertura/fechamento inválida.");
+        endIndex = text.length -1; // Fallback
     }
-    
-    let jsonString = cleanedText.substring(startIndex, endIndex + 1);
+    let jsonString = text.substring(startIndex, endIndex + 1);
 
-    // PASSO 2: Tentar o parse direto na string isolada
+    // --- ETAPA 2: SANITIZAÇÃO BÁSICA ---
+    let sanitizedJsonString = jsonString.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\uFEFF]/g, '');
+
+    // --- ETAPA 3: TENTATIVA INICIAL ---
     try {
-        return JSON.parse(jsonString);
-    } catch (e) {
-        console.warn("Parse inicial falhou. INICIANDO CIRURGIA AVANÇADA NO JSON... Erro:", e.message);
+        return JSON.parse(sanitizedJsonString);
+    } catch (initialError) {
+        console.warn("Parse inicial falhou. Iniciando reparos...", initialError.message);
+        
+        // --- ETAPA 4: CIRURGIAS ---
+        // >>>>> CORREÇÃO CRÍTICA: Declaramos 'repairedString' aqui, no escopo correto! <<<<<
+        let repairedString = sanitizedJsonString; 
 
-        // PASSO 3: A CIRURGIA
         try {
-            let repairedString = jsonString;
+            // CIRURGIA 1: Aspas em Chaves
+            repairedString = repairedString.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
+            repairedString = repairedString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
 
-            // CIRURGIA 1: Escapar quebras de linha dentro das strings.
-            // Isso previne que uma quebra de linha no meio de uma "description" quebre o JSON.
-            repairedString = repairedString.replace(/(?<!\\)\n/g, "\\n");
+            // CIRURGIA 2: Aspas em Valores
+            repairedString = repairedString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
 
-            // CIRURGIA 2: Corrigir o erro mais comum -> vírgulas faltando entre objetos.
-            // Ex: } {  -> se torna -> },{
-            repairedString = repairedString.replace(/}\s*(\r?\n)?\s*{/g, '},{');
+            // CIRURGIA 3: Vírgulas Fantasmas
+            repairedString = repairedString.replace(/,\s*([}\]])/g, '$1');
 
-            // CIRURGIA 3: Corrigir vírgulas faltando em outras situações.
-            repairedString = repairedString.replace(/}\s*"/g, '},"');   // obj + string
-            repairedString = repairedString.replace(/]\s*"/g, '],"');   // array + string
-            repairedString = repairedString.replace(/]\s*{/g, '],{');   // array + obj
+            // CIRURGIA 3.5: Pontuação Rebelde
+            repairedString = repairedString.replace(/"\s*[;.,]\s*([,}\]])/g, '"$1');
 
-            // CIRURGIA 4: Remover vírgulas extras no final (causa comum de erro).
-            // Ex: { "a": 1, } -> se torna -> { "a": 1 }
-            repairedString = repairedString.replace(/,\s*([}\]])/g, "$1");
-
-            // CIRURGIA 5 (NOVA E PODEROSA): Remover caracteres de controle invisíveis.
-            // Às vezes a IA insere caracteres como "zero-width space" que são invisíveis mas quebram o parser.
-            repairedString = repairedString.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
-
-            console.log("Cirurgia concluída. Tentando novo parse...");
+            // CIRURGIA 4 (Complexa): Tenta escapar aspas duplas dentro de valores de string
+            // Esta é uma operação arriscada, mas pode salvar alguns casos.
+            repairedString = repairedString.replace(/:\s*"([^"]*)"/g, (match, content) => {
+                if (content.includes('"')) {
+                    const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
+                    return `: "${escapedContent}"`;
+                }
+                return match;
+            });
+            
+            // --- ETAPA 5: TENTATIVA FINAL ---
             return JSON.parse(repairedString);
 
-        } catch (finalError) {
-            console.error("FALHA CRÍTICA: A cirurgia no JSON não foi bem-sucedida.", finalError.message);
+        } catch (surgeryError) {
+            console.error("FALHA CRÍTICA: A cirurgia no JSON não foi bem-sucedida.", surgeryError.message);
             console.error("JSON Problemático (Original):", text);
-            console.error("JSON Pós-Cirurgia (Falhou):", jsonString); // Mostra a string que falhou
-            throw new Error("A IA retornou um JSON com sintaxe inválida que não pôde ser corrigida automaticamente.");
+            console.error("JSON Pós-Cirurgia (Falhou):", repairedString);
+            throw new Error(`A IA retornou um JSON com sintaxe inválida que não pôde ser corrigido.`);
         }
     }
 };
+// ============================
+// >>>>> FILTRO PARA JSON <<<<<
+// ============================
 
 
 // =========================================================================
@@ -3948,11 +3956,8 @@ const updateMainTooltip = () => {
 
 
 // =========================================================================
-// >>>>> BLOCO 1: SUBSTITUA SUA FUNÇÃO getBasePromptContext INTEIRA POR ESTA <<<<<
+// >>>>> SUBSTITUA SUA FUNÇÃO getBasePromptContext INTEIRA POR ESTA <<<<<
 // =========================================================================
-/**
- * Constrói o contexto base do prompt, agora incluindo o gancho emocional e dados de pesquisa.
- */
 const getBasePromptContext = () => {
     // Coleta todos os valores dos campos do formulário
     const channelName = document.getElementById('channelName')?.value.trim() || "";
@@ -3964,17 +3969,19 @@ const getBasePromptContext = () => {
     const speakingPace = document.getElementById('speakingPace')?.value || "";
     const narrativeStructure = document.getElementById('narrativeStructure')?.value || "";
     const narrativeTheme = document.getElementById('narrativeTheme')?.value.trim() || "";
-    const narrativeTone = document.getElementById('narrativeTone')?.value || ""; // Crucial para a nova lógica
+    const narrativeTone = document.getElementById('narrativeTone')?.value || "";
     const narrativeVoice = document.getElementById('narrativeVoice')?.value.trim() || "";
     const shockingEndingHook = document.getElementById('shockingEndingHook')?.value.trim() || "";
-    const videoDescription = document.getElementById('videoDescription')?.value.trim() || "";
-    const centralQuestion = document.getElementById('centralQuestion')?.value.trim() || "";
-    const emotionalArc = document.getElementById('emotionalArc')?.value.trim() || "";
-    const imageDescriptionEngine = document.getElementById('imageDescriptionEngine')?.value.trim() || "";
     const imageStyleSelect = document.getElementById('imageStyleSelect')?.value || "";
     const customImageStyle = document.getElementById('customImageStyle')?.value.trim() || "";
-    const researchData = document.getElementById('researchData')?.value.trim() || "";
-    const emotionalHook = document.getElementById('emotionalHook')?.value.trim() || "";
+
+    // DIETA DOS INPUTS: Limita o tamanho dos campos de texto livre para evitar sobrecarga.
+    const videoDescription = (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000);
+    const centralQuestion = (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500);
+    const emotionalArc = (document.getElementById('emotionalArc')?.value.trim() || "").slice(0, 500);
+    const imageDescriptionEngine = (document.getElementById('imageDescriptionEngine')?.value.trim() || "").slice(0, 500);
+    const researchData = (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500);
+    const emotionalHook = (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000);
 
     // Monta o prompt base
     let context = `
@@ -4000,26 +4007,21 @@ const getBasePromptContext = () => {
     if (centralQuestion) { context += `\n- Central Question to guide the entire script: "${centralQuestion}"`; }
     if (emotionalArc) { context += `\n- Desired Emotional Arc: "${emotionalArc}"`; }
 
-    // <<< AQUI ESTÁ A LÓGICA CONDICIONAL INTELIGENTE (v6.0) >>>
     if (emotionalHook) {
         if (narrativeTone === 'inspirador') {
-            // Nova instrução poderosa para histórias inspiradoras
             context += `
-
 **PROFUNDIDADE EMOCIONAL (REGRA MAIS IMPORTANTE):**
 A história a seguir é a âncora emocional do nosso roteiro. Para que ela não pareça superficial, você DEVE "mostrar, não apenas contar".
 - **Crie 'Cenas' Vívidas:** Ao longo do roteiro, em vez de apenas citar o personagem, descreva pequenos momentos e cenas.
-- **Mostre a Dificuldade:** Inclua uma pequena cena ou descrição do personagem enfrentando um obstáculo real. (Ex: estudando até tarde, recebendo uma notícia ruim).
-- **Mostre a Superação:** Inclua uma pequena cena ou descrição do momento de virada ou pequena vitória do personagem. (Ex: recebendo o e-mail de aprovação, vendo o primeiro resultado positivo).
+- **Mostre a Dificuldade:** Inclua uma pequena cena ou descrição do personagem enfrentando um obstáculo real.
+- **Mostre a Superação:** Inclua uma pequena cena ou descrição do momento de virada ou pequena vitória do personagem.
 - **Conecte o Micro ao Macro:** Use essas pequenas cenas para ilustrar os grandes temas do roteiro.
 
 **Âncora Emocional:** "${emotionalHook}"
 ---
 `;
         } else {
-            // Instrução original, que funciona bem para drama e outros tons
             context += `
-
 **CRITICAL NARRATIVE ANCHOR (THE MOST IMPORTANT RULE):**
 You MUST use the following personal story as the emotional core and recurring 'human anchor' for the entire script. Weave references to this character/story throughout the introduction, development, and conclusion to make the grand historical narrative feel personal and relatable. This is the guiding thread of the story.
 ---
@@ -4352,37 +4354,37 @@ Sua tarefa é gerar uma descrição otimizada de ALTO IMPACTO para um vídeo do 
          * @returns {Promise<string>} A resposta bruta da IA.
          * @throws {Error} Se a chamada à API falhar.
          */
-// =========================================================================
-// >>>>> SUBSTITUA A FUNÇÃO callGroqAPI INTEIRA POR ESTA VERSÃO FINAL <<<<<
-// =========================================================================
+
 // =========================================================================
 // >>>>> SUBSTITUA A FUNÇÃO callGroqAPI PELA VERSÃO SIMPLES E DIRETA <<<<<
 // =========================================================================
+// index.html - Versão final com Cloudflare Worker
 const callGroqAPI = async (prompt, maxTokens) => {
-    const proxyUrl = "/.netlify/functions/groq"; // <-- Aponta para a nossa ÚNICA função
+    // >>> COLE A URL DO SEU WORKER AQUI <<<
+    const workerUrl = "https://royal-bird-81cb.david-souzan.workers.dev/"; 
 
     const payload = { prompt, maxTokens };
-    const request = {
+    const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     };
 
     try {
-        const response = await fetch(proxyUrl, request);
+        const response = await fetch(workerUrl, requestOptions);
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: { message: 'Erro desconhecido do servidor.' } }));
-            throw new Error(`Erro da API: ${errorData.error?.message || response.statusText}`);
+            const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido do servidor.' }));
+            throw new Error(`Erro da API: ${errorData.error || response.statusText}`);
         }
         const result = await response.json();
         const rawContent = result.choices?.[0]?.message?.content;
         if (rawContent) {
             return rawContent;
         } else {
-            throw new Error("Resposta inesperada da API Groq.");
+            throw new Error("Resposta inesperada da API.");
         }
     } catch (error) {
-        console.error("Fetch da API falhou:", error);
+        console.error("Falha na chamada à API via Worker:", error);
         window.showToast(`Falha na API: ${error.message}`);
         throw error;
    }
@@ -4694,7 +4696,7 @@ window.analyzeSectionRetention = async (button, sectionId) => {
     try {
         const paragraphsWithIndexes = paragraphs.map((p, index) => ({ index: index, text: p.textContent.trim() }));
         
-        // >>> PROMPT BLINDADO COM A NOVA REGRA DE ASPAS INTERNAS <<<
+        // >>> ANALISE DE RETENÇÃO <<<
         const prompt = `Você é uma API de análise de retenção que retorna um array JSON.
 
 **REGRAS CRÍTICAS DE SINTAXE (INEGOCIÁVEIS):**
@@ -5545,17 +5547,17 @@ const selectIdea = (idea) => {
 
 
 // =========================================================================
-// >>>>> AÇÃO 2: SUBSTITUA A FUNÇÃO handleGenerateSection COMPLETA <<<<<
+// >>>>> SUBSTITUA SUA FUNÇÃO handleGenerateSection INTEIRA POR ESTA <<<<<
 // =========================================================================
 const handleGenerateSection = async (button, sectionName, sectionTitle, elementId) => {
     if (!validateInputs()) return;
-    if (!strategicOutline && sectionName !== 'intro') { // A intro pode ser gerada sem esboço se necessário
+    if (!strategicOutline && sectionName !== 'intro') {
         window.showToast("Crie o Esboço Estratégico primeiro!");
         return;
     }
-    
+
     showButtonLoading(button);
-    
+
     const targetSectionElement = document.getElementById(`${elementId}Section`);
     if (targetSectionElement) {
         const analysisOutput = targetSectionElement.querySelector('.section-analysis-output');
@@ -5585,42 +5587,35 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
                 previousSectionsContent.push(requiredWrapper.textContent.trim());
             }
             let fullContext = previousSectionsContent.join('\n\n---\n\n');
-// >>> A MUDANÇA ESTÁ AQUI <<<
-// Pega apenas os últimos 4000 caracteres do contexto.
-// Isso é suficiente para a IA entender o que veio antes, sem sobrecarregá-la.
-contextText = fullContext.slice(-4000);
+            // DIETA DO CONTEXTO: Pega apenas os últimos 3500 caracteres para evitar sobrecarga.
+            contextText = fullContext.slice(-3500);
         }
 
         const keyMap = { intro: 'introduction', development: 'development', climax: 'climax', conclusion: 'conclusion' };
         const outlineKey = keyMap[sectionName];
         const directive = strategicOutline ? strategicOutline[outlineKey] : null;
-        
+
         const { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
-        
+
         let rawResult = await callGroqAPI(prompt, maxTokens);
         let cleanedResult = removeMetaComments(rawResult.trim());
 
         const paragraphs = cleanedResult.split('\n').filter(p => p.trim() !== '');
-        const contentWithDivs = paragraphs.map((p, index) => 
+        const contentWithDivs = paragraphs.map((p, index) =>
             `<div id="${elementId}-p-${index}">${p}</div>`
         ).join('');
-        
+
         if (targetSectionElement) {
-            // <<< AQUI ESTÁ A CORREÇÃO CRÍTICA >>>
-            // Chamamos nossa função segura que retorna um ELEMENTO, não uma string.
             const sectionElement = generateSectionHtmlContent(elementId, sectionTitle, contentWithDivs);
-            
-            // Limpamos o container e adicionamos o novo elemento usando appendChild.
-            targetSectionElement.innerHTML = ''; 
+            targetSectionElement.innerHTML = '';
             targetSectionElement.appendChild(sectionElement);
-            
             targetSectionElement.classList.remove('card', 'card-placeholder', 'flex', 'justify-between', 'items-center');
         } else {
             console.error(`Elemento alvo com ID '${elementId}Section' não encontrado.`);
             window.showToast("Erro interno: Seção do roteiro não encontrada.");
             return;
         }
-        
+
         if (projectState.hasOwnProperty(sectionName)) {
             projectState[sectionName] = true;
         }
