@@ -1,25 +1,16 @@
 // netlify/functions/start-job.js
-const fetch = require('node-fetch'); // Usaremos o fetch para chamar a outra função
+const { invoke } = require('@netlify/functions');
 
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
     try {
         const body = JSON.parse(event.body);
         const jobId = Date.now() + '-' + Math.random().toString(36).substring(2);
 
-        // O URL da nossa função de background. A Netlify nos dá essa variável.
-        const backgroundFunctionUrl = `${process.env.URL}/.netlify/functions/groq-background`;
-
-        // Ligação direta para a função de background
-        // O `X-Nf-Token` é uma chave de segurança para funções se comunicarem
-        fetch(backgroundFunctionUrl, {
-            method: 'POST',
-            headers: {
-                'X-Nf-Token': context.clientContext.token,
-            },
-            body: JSON.stringify({ ...body, jobId }),
+        // Dispara a função de background usando a ferramenta oficial da Netlify
+        await invoke('groq-background', {
+            body: JSON.stringify({ ...body, jobId })
         });
-        
-        // Retorna o jobId imediatamente, SEM esperar a resposta do fetch
+
         return {
             statusCode: 202,
             body: JSON.stringify({ jobId }),
