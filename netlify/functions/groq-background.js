@@ -1,6 +1,6 @@
 // netlify/functions/groq-background.js
 const Groq = require('groq-sdk');
-const cache = require('netlify-cache');
+cache = require('@netlify/cache');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
