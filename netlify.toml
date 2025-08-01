@@ -1,0 +1,7 @@
+[build]
+  publish = "/"
+  functions = "netlify/functions"
+  command = ""
+
+[functions."groq-background"]
+  schedule = "@yearly"
