@@ -4355,72 +4355,37 @@ Sua tarefa é gerar uma descrição otimizada de ALTO IMPACTO para um vídeo do 
 // =========================================================================
 // >>>>> SUBSTITUA A FUNÇÃO callGroqAPI INTEIRA POR ESTA VERSÃO FINAL <<<<<
 // =========================================================================
-const callGroqAPI = (prompt, maxTokens) => {
-    // Retorna uma Promise, para que o resto do seu código continue funcionando com `await`
-    return new Promise(async (resolve, reject) => {
-        try {
-            // 1. FAZ O PEDIDO
-            console.log("Iniciando job...");
-            const startResponse = await fetch("/.netlify/functions/start-job", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt, maxTokens }),
-            });
-            if (!startResponse.ok) throw new Error("Falha ao iniciar a tarefa no servidor.");
+// =========================================================================
+// >>>>> SUBSTITUA A FUNÇÃO callGroqAPI PELA VERSÃO SIMPLES E DIRETA <<<<<
+// =========================================================================
+const callGroqAPI = async (prompt, maxTokens) => {
+    const proxyUrl = "/.netlify/functions/groq"; // <-- Aponta para a nossa ÚNICA função
 
-            const { jobId } = await startResponse.json();
-            console.log(`Job iniciado com ID: ${jobId}`);
-            window.showToast("Tarefa recebida! A IA já está trabalhando nisso...");
+    const payload = { prompt, maxTokens };
+    const request = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    };
 
-            // 2. COMEÇA A VERIFICAR A CADA 5 SEGUNDOS
-            const pollInterval = 5000;
-            const maxPollTime = 180000; // Desiste depois de 3 minutos
-            let elapsedTime = 0;
-
-            const poll = setInterval(async () => {
-                try {
-                    elapsedTime += pollInterval;
-
-                    if (elapsedTime >= maxPollTime) {
-                        clearInterval(poll);
-                        reject(new Error("A tarefa demorou muito para responder."));
-                        return;
-                    }
-
-                    // 3. LIGA PARA A PIZZARIA PARA VER SE O PEDIDO ESTÁ PRONTO
-                    console.log(`Verificando status do job ${jobId}...`);
-                    const checkResponse = await fetch(`/.netlify/functions/check-job?jobId=${jobId}`);
-
-                    if (checkResponse.status === 200) { // Pizza pronta!
-                        clearInterval(poll);
-                        const result = await checkResponse.json();
-                        console.log("Job concluído! Resultado recebido.", result);
-                        
-                        const rawContent = result.choices?.[0]?.message?.content;
-                        if (rawContent) {
-                            resolve(rawContent); // Entrega o resultado!
-                        } else {
-                            reject(new Error("Resposta da IA em formato inesperado."));
-                        }
-                    }
-                    // Se o status for 202, não faz nada e espera a próxima verificação.
-                    // Se for outro status, indica um erro.
-                    else if (checkResponse.status !== 202) {
-                         clearInterval(poll);
-                         reject(new Error("Ocorreu um erro ao verificar o status da tarefa."));
-                    }
-                } catch (pollError) {
-                    clearInterval(poll);
-                    reject(pollError);
-                }
-            }, pollInterval);
-
-        } catch (error) {
-            console.error("Erro em callGroqAPI:", error);
-            window.showToast(`Erro: ${error.message}`);
-            reject(error);
+    try {
+        const response = await fetch(proxyUrl, request);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: { message: 'Erro desconhecido do servidor.' } }));
+            throw new Error(`Erro da API: ${errorData.error?.message || response.statusText}`);
         }
-    });
+        const result = await response.json();
+        const rawContent = result.choices?.[0]?.message?.content;
+        if (rawContent) {
+            return rawContent;
+        } else {
+            throw new Error("Resposta inesperada da API Groq.");
+        }
+    } catch (error) {
+        console.error("Fetch da API falhou:", error);
+        window.showToast(`Falha na API: ${error.message}`);
+        throw error;
+   }
 };
 
         /**
