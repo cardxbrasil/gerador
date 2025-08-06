@@ -5232,6 +5232,7 @@ ${researchData}
  * @param {string|null} contextText - O texto das seções anteriores para dar contexto à IA.
  * @returns {{prompt: string, maxTokens: number}} O prompt e o limite de tokens.
  */
+
 const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
     const baseContext = getBasePromptContext();
     const videoDuration = document.getElementById('videoDuration').value;
@@ -5260,50 +5261,40 @@ Sua tarefa é continuar a narrativa a partir daqui, sem repetições.`;
         prompt += `\n\n**DIRETRIZ ESTRATÉGICA OBRIGATÓRIA:** Siga este plano: "${outlineDirective}"`;
     }
     
-    // <<< A GRANDE MUDANÇA: AGORA PEDIMOS UM ARRAY JSON DE PARÁGRAFOS >>>
+    // <<< A EVOLUÇÃO ESTÁ AQUI >>>
     prompt += `
 \n**REGRAS CRÍTICAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
 1.  **RESPOSTA EM JSON:** Sua resposta DEVE ser um array JSON válido, onde cada item do array é uma string representando um parágrafo do roteiro.
-2.  **PARÁGRAFOS CURTOS:** Cada string no array deve ser um parágrafo curto (2-4 frases).
-3.  **CONTEÚDO PURO:** As strings devem conter APENAS o texto a ser narrado. É PROIBIDO incluir anotações como 'Narrador:', '(Cena: ...)', ou '## Título ##'.
+2.  **QUALIDADE DOS PARÁGRAFOS:** Cada string no array deve ser um parágrafo coeso e bem desenvolvido, agrupando uma ideia completa (idealmente de 3 a 5 frases). **EVITE PARÁGRAFOS COM UMA ÚNICA FRASE**, a menos que seja para um efeito dramático extremo e intencional. A fragmentação excessiva é uma falha.
+3.  **CONTEÚDO PURO:** As strings devem conter APENAS o texto a ser narrado. É PROIBIDO incluir anotações como 'Narrador:', '(Cena: ...)', etc.
 4.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
 
 **EXEMPLO DE FORMATO DE RESPOSTA PERFEITO:**
 [
-  "Este é o primeiro parágrafo, curto e direto.",
-  "O segundo parágrafo desenvolve a ideia, mantendo o engajamento.",
-  "E um terceiro parágrafo pode criar um gancho ou uma transição."
+  "Este é o primeiro parágrafo, que introduz a ideia principal de forma completa. Ele contém múltiplas frases que se conectam para formar um pensamento coeso.",
+  "O segundo parágrafo desenvolve essa ideia com mais detalhes, fornecendo exemplos ou aprofundando o argumento. Ele também é substancial e não apenas uma única linha."
 ]
 
-**AÇÃO FINAL:** Escreva agora a seção "${sectionTitle}", seguindo todas as diretrizes. Responda APENAS com o array JSON de parágrafos.`;
+**AÇÃO FINAL:** Escreva agora a seção "${sectionTitle}", seguindo todas as diretrizes. Responda APENAS com o array JSON de parágrafos bem desenvolvidos.`;
 
-    let maxTokens = 4000; // Aumentar um pouco para acomodar a formatação JSON
+    let maxTokens = 4000;
 
-    // A lógica para 'outline', 'titles_thumbnails' e 'description' permanece a mesma,
-    // pois eles já têm seus próprios prompts específicos que funcionam bem.
+    // A lógica para 'outline', 'titles_thumbnails' e 'description' permanece a mesma.
     switch (sectionName) {
         case 'outline':
             prompt = `${baseContext}
 Você é uma API de geração de JSON que segue regras com precisão cirúrgica. Sua única tarefa é criar um esboço estratégico para um vídeo.
-**REGRAS ABSOLUTAMENTE INEGOCIÁVEIS (A VIOLAÇÃO RESULTARÁ EM FALHA):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um objeto JSON válido, começando com \`{\` e terminando com \`}\`. Nenhum outro texto ou comentário é permitido.
-2.  **ESTRUTURA EXATA E OBRIGATÓRIA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".
-3.  **VALORES DEVEM SER STRINGS SIMPLES:** O valor para CADA chave DEVE ser uma única string de texto (1-2 frases). É ESTRITAMENTE PROIBIDO usar objetos aninhados ou arrays como valor.
-**EXEMPLO DO ÚNICO FORMATO ACEITÁVEL:**
-{
-  "introduction": "Começar com um gancho forte que apresente o mistério central.",
-  "development": "Desenvolver a narrativa em três atos: a descoberta, a busca e o confronto.",
-  "climax": "Atingir o pico de tensão onde o protagonista tem uma revelação.",
-  "conclusion": "Resolver o conflito e apresentar a lição aprendida.",
-  "cta": "Convidar a audiência a compartilhar suas próprias histórias."
-}
-**TAREFA FINAL:** Gere AGORA o objeto JSON perfeito, seguindo EXATAMENTE o formato e as regras.`;
+**REGRAS INEGOCIÁVEIS:**
+1.  **JSON PURO:** Responda APENAS com um objeto JSON válido.
+2.  **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".
+3.  **VALORES:** O valor para CADA chave DEVE ser uma única string de texto (1-2 frases).
+**TAREFA:** Gere o objeto JSON perfeito.`;
             maxTokens = 2000;
             break;
-
+            
         case 'titles_thumbnails':
             prompt = `${baseContext}
-**TAREFA:** Gerar 5 sugestões de títulos e thumbnails para um vídeo do YouTube.
+**TAREFA:** Gerar 5 sugestões de títulos e thumbnails.
 **REGRAS:**
 1. **FORMATO:** Responda APENAS com um array JSON.
 2. **ESTRUTURA:** Cada objeto no array deve ter 3 chaves: "suggested_title", "thumbnail_title", e "thumbnail_description".
@@ -5315,12 +5306,7 @@ Você é uma API de geração de JSON que segue regras com precisão cirúrgica.
             const languageName = new Intl.DisplayNames([selectedLanguage], { type: 'language' }).of(selectedLanguage);
             prompt = `${baseContext}
 **TAREFA:** Gerar uma descrição otimizada e hashtags no idioma ${languageName}.
-**REGRAS DE FORMATAÇÃO:**
-1.  **GANCHO INICIAL:** Comece com 2-3 frases magnéticas que resumam o vídeo.
-2.  **APROFUNDAMENTO:** Em um parágrafo, detalhe o que o espectador aprenderá.
-3.  **CTA FINAL:** Chame para a ação de forma clara.
-4.  **SEPARAÇÃO:** Use uma linha em branco antes de "Hashtags:".
-5.  **HASHTAGS:** Liste 10 hashtags relevantes.
+**REGRAS:** Comece com um gancho, detalhe o conteúdo, finalize com CTA e liste 10 hashtags.
 **AÇÃO:** Responda APENAS com a descrição e hashtags.`;
             maxTokens = 1000;
             break;
