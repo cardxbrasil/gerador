@@ -527,7 +527,7 @@
     gap: 0.5rem;
 }
 .direction-script { /* Renomeado de .shot-script */
-    font-family: 'Source Serif Pro', serif;
+    font-family: 'Roboto', serif;
     font-size: 1.1rem;
     line-height: 1.7;
     margin-bottom: 1rem;
@@ -535,6 +535,7 @@
     border-left: 2px solid var(--secondary);
 }
 .direction-details { /* Renomeado de .shot-details */
+    ont-family: 'Roboto', sans-serif;
     font-size: 0.85rem;
     color: var(--dark-text-muted);
 }
@@ -781,7 +782,7 @@
     }
 
     h1, .print-section-title {
-        font-family: 'Source Serif Pro', sans-serif; /* Fonte para títulos */
+        font-family: 'Roboto', sans-serif; /* Fonte para títulos */
     }
     
     .print-section {
@@ -4141,6 +4142,9 @@ Escreva agora o texto puro para o Call to Action, garantindo que seja bem estrut
             }
         };
 
+
+
+
         /**
  * Renderiza a página correta de prompts para uma determinada seção. (VERSÃO CORRIGIDA)
  * @param {string} sectionElementId - O ID da seção (ex: 'introSection').
@@ -4152,12 +4156,11 @@ const renderPaginatedPrompts = (sectionElementId) => {
     const sectionElement = document.getElementById(sectionElementId);
     if (!sectionElement) return;
 
-    // --- Lógica de setup ---
     const itemsPerPage = 4;
-    const prompts = allImagePrompts[sectionElementId] || [];
+    const prompts = AppState.generated.imagePrompts[sectionElementId] || [];
     if (prompts.length === 0) return;
     
-    const currentPage = promptPaginationState[sectionElementId] || 0;
+    const currentPage = AppState.ui.promptPaginationState[sectionElementId] || 0;
     const totalPages = Math.ceil(prompts.length / itemsPerPage);
     const promptItemsContainer = sectionElement.querySelector('.prompt-items-container');
     const navContainer = sectionElement.querySelector('.prompt-nav-container');
@@ -4165,78 +4168,75 @@ const renderPaginatedPrompts = (sectionElementId) => {
     if (!promptItemsContainer || !navContainer) return;
     promptItemsContainer.innerHTML = '';
 
-    // --- Lógica da Memória Contínua (para o Tempo) ---
+    // ... (toda a lógica de cálculo de tempo e cena continua a mesma) ...
     let cumulativeSeconds = 0;
     const sectionOrder = ['introSection', 'developmentSection', 'climaxSection', 'conclusionSection', 'ctaSection'];
     const currentSectionIndex = sectionOrder.indexOf(sectionElementId);
-    
     for (let i = 0; i < currentSectionIndex; i++) {
-        const previousSectionId = sectionOrder[i];
-        const previousPrompts = allImagePrompts[previousSectionId] || [];
-        previousPrompts.forEach(p => {
-            cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
-        });
+        const previousPrompts = AppState.generated.imagePrompts[sectionOrder[i]] || [];
+        previousPrompts.forEach(p => cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0);
     }
-
     const startIndex = currentPage * itemsPerPage;
     if (startIndex > 0) {
-        const previousPagePrompts = prompts.slice(0, startIndex);
-        previousPagePrompts.forEach(p => {
-            cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
-        });
+        prompts.slice(0, startIndex).forEach(p => cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0);
     }
-
-    // --- Lógica da Numeração de Cena (Global) ---
-    let globalSceneCounter = 1; // Começa a contar do 1
+    let globalSceneCounter = 1;
     for (let i = 0; i < currentSectionIndex; i++) {
-        const previousSectionId = sectionOrder[i];
-        globalSceneCounter += (allImagePrompts[previousSectionId] || []).length;
+        globalSceneCounter += (AppState.generated.imagePrompts[sectionOrder[i]] || []).length;
     }
-    // Adiciona as cenas das páginas anteriores da seção atual
     globalSceneCounter += startIndex;
-    // ---------------------------------------------
     
     const promptsToShow = prompts.slice(startIndex, startIndex + itemsPerPage);
 
     promptsToShow.forEach((promptData, index) => {
-        // --- Cálculo e Renderização ---
-        const globalIndex = startIndex + index; // Índice para IDs de elementos
-
-        // Tempo
+        const globalIndex = startIndex + index;
         const minutes = Math.floor(cumulativeSeconds / 60);
         const seconds = cumulativeSeconds % 60;
         const timestamp = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        
-        // Número da Cena
         const sceneNumber = globalSceneCounter + index;
 
-        // Montagem do HTML
+        // <<< A EVOLUÇÃO ESTÁ AQUI >>>
+        // 1. Preparamos o conteúdo do bloco de estilo para ser exibido e copiado
         const styleBlockContent = promptData.styleBlock || '';
+        const isCinematicStyleApplied = styleBlockContent.trim() !== '';
+
+        // 2. Montamos o novo HTML com o botão de cópia e a área para o estilo
         const promptHtml = `
-            <div class="prompt-item card !p-3 animate-fade-in">
+            <div class="prompt-item card !p-4 animate-fade-in">
                 <div class="prompt-header">
                     <span class="tag tag-scene"><i class="fas fa-film mr-2"></i>Cena ${String(sceneNumber).padStart(2, '0')}</span>
                     <span class="tag tag-time"><i class="fas fa-clock mr-2"></i>${timestamp}</span>
-                    <button class="copy-btn-small" onclick="copyTextToClipboard(document.getElementById('prompt-content-${sectionElementId}-${globalIndex}')?.textContent + ' ' + document.getElementById('style-block-${sectionElementId}-${globalIndex}')?.textContent); window.showCopyFeedback(this)" title="Copiar Prompt">
+                    <!-- O novo botão de cópia que copia DESCRIÇÃO + ESTILO -->
+                    <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
+                            onclick="
+                                const desc = document.getElementById('prompt-content-${sectionElementId}-${globalIndex}').innerText;
+                                const style = document.getElementById('style-block-${sectionElementId}-${globalIndex}').innerText;
+                                window.copyTextToClipboard(desc + ' ' + style);
+                                window.showToast('Prompt completo copiado!');
+                            "
+                            title="Copiar prompt completo (descrição + estilo)">
                         <i class="fas fa-copy"></i>
                     </button>
                 </div>
                 <p class="paragraph-preview">"${DOMPurify.sanitize(promptData.scriptPhrase)}"</p>
-                <div class="prompt-details">
-                    <p class="prompt-label">${imageDescriptionLabels[elements.languageSelect.value] || 'Image Description:'}</p>
-                    <p id="prompt-content-${sectionElementId}-${globalIndex}">${DOMPurify.sanitize(promptData.imageDescription)}</p>
-                    ${styleBlockContent ? `<p class="style-block-indicator">[Estilo Cinematográfico Aplicado]</p>` : ''}
-                    <pre id="style-block-${sectionElementId}-${globalIndex}" class="hidden">${styleBlockContent}</pre>
+                <div class="prompt-details space-y-2 mt-2">
+                    <p class="font-semibold text-sm">Descrição da Imagem:</p>
+                    <p id="prompt-content-${sectionElementId}-${globalIndex}" class="text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded-md">${DOMPurify.sanitize(promptData.imageDescription)}</p>
+                    
+                    ${isCinematicStyleApplied ? `
+                        <div>
+                            <p class="font-semibold text-sm mt-3">Estilo Aplicado:</p>
+                            <pre id="style-block-${sectionElementId}-${globalIndex}" class="text-xs p-2 rounded-md bg-gray-100 dark:bg-gray-800 whitespace-pre-wrap font-mono">${DOMPurify.sanitize(styleBlockContent)}</pre>
+                        </div>
+                    ` : `<pre id="style-block-${sectionElementId}-${globalIndex}" class="hidden"></pre>`}
                 </div>
             </div>
         `;
         promptItemsContainer.innerHTML += promptHtml;
-
-        // Atualiza o tempo para a próxima iteração
         cumulativeSeconds += parseInt(promptData.estimated_duration, 10) || 0;
     });
     
-    // --- Renderização da Navegação ---
+    // A navegação continua a mesma
     navContainer.innerHTML = `
         <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', -1)" ${currentPage === 0 ? 'disabled' : ''}>
             <i class="fas fa-chevron-left"></i>
@@ -4247,6 +4247,9 @@ const renderPaginatedPrompts = (sectionElementId) => {
         </button>
     `;
 };
+
+
+
 
 /**
  * Valida se o array de prompts recebido da IA tem a estrutura correta.
