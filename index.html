@@ -1865,7 +1865,6 @@ window.verifyFact = async (button) => {
         console.error("Erro detalhado em verifyFact:", error);
         outputContainer.innerHTML = `<p class="text-red-500 p-4">${error.message}</p>`;
     } finally {
-        contentWrapper.classList.remove('is-analyzing');
         hideButtonLoading(button);
 
     }
