@@ -51,7 +51,7 @@
     /* ======================= ESTILOS GLOBAIS ======================= */
     /* ================================================================= */
     body { 
-        font-family: 'Inter', sans-serif; 
+        font-family: 'Roboto', sans-serif;
         background-color: var(--dark-bg); 
         color: var(--dark-text-body); 
         transition: var(--transition); 
@@ -6547,8 +6547,8 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
         }
 
         const contentWithDivs = paragraphs.map((p, index) =>
-            `<div id="${elementId}-p-${index}">${DOMPurify.sanitize(p)}</div>`
-        ).join('');
+    `<div id="${elementId}-p-${index}" class="direction-script">${DOMPurify.sanitize(p)}</div>`
+).join('');
         
         const fullText = paragraphs.join('\n\n');
 
