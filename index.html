@@ -3653,118 +3653,89 @@ const getTranscriptOnly = () => {
 
 
 // =========================================================================
-// >>>>> VERSÃO FINAL E CORRIGIDA de 'generateDirectorSheet' <<<<<
+// >>>>> VERSÃO FINAL E DEFINITIVA de 'resetApplicationState' <<<<<
 // =========================================================================
-const generateDirectorSheet = async (button) => {
-    // Validação
-    const { script, imagePrompts } = AppState.generated;
-    const isScriptReady = script.intro.text && script.development.text && script.climax.text;
-    const arePromptsReady = imagePrompts['introSection'] && imagePrompts['developmentSection'] && imagePrompts['climaxSection'];
+const resetApplicationState = async () => {
+    console.log("--- Executando Reset Completo da Aplicação ---");
 
-    if (!isScriptReady || !arePromptsReady) {
-        window.showToast("Gere o roteiro principal e os prompts de imagem primeiro.");
-        return;
-    }
+    // ----- ETAPA 1: Resetar o "Cérebro" AppState para o estado inicial -----
+    Object.assign(AppState, {
+        inputs: {},
+        generated: {
+            investigationReport: null, ideas: [], strategicOutline: null,
+            script: {
+                intro: { html: null, text: null }, development: { html: null, text: null },
+                climax: { html: null, text: null }, conclusion: { html: null, text: null },
+                cta: { html: null, text: null }
+            },
+            titlesAndThumbnails: null, description: null, soundtrack: null,
+            emotionalMap: null, imagePrompts: {}
+        },
+        ui: { isSettingStrategy: false, promptPaginationState: {} }
+    });
 
-    showButtonLoading(button);
-    const outputContainer = document.getElementById('directorSheetContent');
-    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções e ritmo...</p>`;
+    // ----- ETAPA 2: Limpar TODOS os Outputs da UI (AGORA INCLUINDO A FOLHA DE DIREÇÃO) -----
+    const outputContainers = [
+        'factCheckOutput', 'ideasOutput', 'scriptSectionsContainer', 'outlineContent',
+        'titlesThumbnailsContent', 'videoDescriptionContent', 'soundtrackContent',
+        'directorSheetContent', // <<< ADICIONADO AQUI
+        'analysisReportContainer', 'hooksReportContainer', 'viralSuggestionsContainer'
+    ];
+    outputContainers.forEach(id => {
+        const container = document.getElementById(id);
+        if (container) container.innerHTML = '';
+    });
 
-    try {
-        // --- ETAPA A: Gerar o Mapa Emocional ---
-        const fullTranscript = getTranscriptOnly();
-        const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
-        
-        // >>> PROMPT MAIS ROBUSTO PARA GARANTIR A RESPOSTA CORRETA
-        const prompt = `Você é uma API de análise que retorna JSON. Para os ${paragraphs.length} parágrafos fornecidos, sua resposta DEVE ser um array JSON com ${paragraphs.length} objetos. Cada objeto deve ter exatamente três chaves: "paragraph_index" (número), "emotion" (string, ex: 'Mistério', 'Esperança'), e "pace" (string, ex: 'Lento', 'Rápido'). Retorne APENAS o array JSON puro e perfeito. Contexto: """${fullTranscript.slice(0, 7000)}"""`;
-        
-        const rawMapResult = await callGroqAPI(prompt, 3000);
-        const emotionalMap = cleanGeneratedText(rawMapResult, true);
+    // ----- ETAPA 3: Resetar Placeholders e Estruturas Iniciais -----
+    document.getElementById('outlineContent').innerHTML = '<div class="asset-card-placeholder">Clique para gerar o esboço.</div>';
+    
+    // <<< ADICIONADO AQUI (para garantir que o placeholder correto seja restaurado)
+    document.getElementById('directorSheetContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro completo e os prompts de imagem para habilitar.</div>';
+    
+    document.getElementById('titlesThumbnailsContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>';
+    document.getElementById('videoDescriptionContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>';
+    document.getElementById('soundtrackContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>';
 
-        // >>> SALVA O RESULTADO (OU O FALLBACK) DIRETAMENTE NO AppState
-        if (!emotionalMap || !Array.isArray(emotionalMap) || emotionalMap.length < paragraphs.length) {
-            console.warn("Falha ao gerar mapa emocional, usando fallback.");
-            AppState.generated.emotionalMap = paragraphs.map((p, i) => ({ paragraph_index: i, emotion: 'Neutro', pace: 'Normal' }));
-        } else {
-            AppState.generated.emotionalMap = emotionalMap;
-        }
-        
-        outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Montando a folha de direção...</p>`;
+    // ----- ETAPA 4: Limpar TODOS os Inputs do Formulário -----
+    const inputIdsToReset = [
+        'factCheckQuery', 'videoTheme', 'videoDescription', 'targetAudience', 'narrativeTheme', 
+        'centralQuestion', 'emotionalHook', 'narrativeVoice', 'emotionalArc', 'shockingEndingHook', 
+        'researchData', 'imageDescriptionEngine', 'customImageStyle', 'conclusionSpecifics', 'ctaSpecifics'
+    ];
+    inputIdsToReset.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+    });
+    // Mantém o nome do canal como padrão, se desejar
+    document.getElementById('channelName').value = 'The Biblical Unveiling'; 
 
-        // --- ETAPA B: Montar a Folha de Direção por SEÇÕES ---
-        outputContainer.innerHTML = '';
-        
-        const sectionOrder = [
-            { id: 'intro', title: 'Introdução' },
-            { id: 'development', title: 'Desenvolvimento' },
-            { id: 'climax', title: 'Clímax' },
-            { id: 'conclusion', title: 'Conclusão' },
-            { id: 'cta', title: 'Call to Action (CTA)' }
-        ];
+    // ----- ETAPA 5: Resetar Selects e Rádios para o Padrão -----
+    document.getElementById('languageSelect').value = 'en';
+    document.getElementById('videoDuration').value = '';
+    document.getElementById('visualPacing').value = '';
+    document.getElementById('narrativeGoal').value = 'storytelling';
+    document.getElementById('narrativeTone').value = 'inspirador';
+    document.getElementById('languageStyle').value = 'inspirador';
+    document.getElementById('videoObjective').value = 'informar';
+    document.getElementById('speakingPace').value = 'moderate';
+    document.getElementById('imageStyleSelect').value = 'cinematic';
+    
+    const lessonRadio = document.querySelector('input[name="conclusionType"][value="lesson"]');
+    if (lessonRadio) lessonRadio.checked = true;
 
-        let globalParagraphIndex = 0;
+    // ----- ETAPA 6: GARANTE que a UI volte ao estado inicial visual -----
+    updateNarrativeStructureOptions();
+    toggleCustomImageStyleVisibility();
+    document.getElementById('ideaGenerationSection').classList.add('hidden');
+    document.getElementById('projectDashboard').classList.add('hidden');
+    document.getElementById('conclusionStrategyModule').classList.add('hidden');
+    document.getElementById('scriptAnalysisSection').classList.add('hidden');
 
-        sectionOrder.forEach(sectionInfo => {
-            const sectionScript = AppState.generated.script[sectionInfo.id];
-            if (!sectionScript || !sectionScript.text) return;
-
-            const sectionParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim());
-            const sectionPrompts = AppState.generated.imagePrompts[`${sectionInfo.id}Section`] || [];
-
-            // Adiciona um título para cada seção na Folha de Direção
-            const sectionTitleElement = document.createElement('h3');
-            sectionTitleElement.className = 'text-xl font-bold mt-8 mb-4 border-b-2 border-primary pb-2';
-            sectionTitleElement.textContent = sectionInfo.title;
-            outputContainer.appendChild(sectionTitleElement);
-
-            sectionParagraphs.forEach((p, indexInSection) => {
-                // >>> LÊ SEMPRE DO AppState, A FONTE CORRETA DA VERDADE
-                const emotionData = AppState.generated.emotionalMap[globalParagraphIndex] || { emotion: 'N/A', pace: 'N/A' };
-                const promptData = sectionPrompts[indexInSection] || { imageDescription: 'Visual não encontrado.', styleBlock: '' };
-                const fullPromptText = `${promptData.imageDescription} ${promptData.styleBlock || ''}`;
-
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'direction-item mb-4';
-                
-                // O HTML gerado é um pouco mais limpo e usa um <pre> escondido para o texto a ser copiado
-                itemDiv.innerHTML = `
-                    <div class="direction-header">
-                        <div class="tags-group">
-                            <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${DOMPurify.sanitize(emotionData.emotion)}</span>
-                            <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${DOMPurify.sanitize(emotionData.pace)}</span>
-                        </div>
-                        <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
-                                onclick="window.copyTextToClipboard(this.closest('.direction-item').querySelector('.full-prompt-hidden').textContent);"
-                                title="Copiar prompt completo (descrição + estilo)">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                    </div>
-                    <p class="direction-script">"${DOMPurify.sanitize(p)}"</p>
-                    <div class="direction-details">
-                        <p>
-                            <i class="fas fa-palette fa-fw mr-2"></i>
-                            <strong>Visual:</strong>
-                            <span>${DOMPurify.sanitize(promptData.imageDescription)}</span>
-                        </p>
-                        ${promptData.styleBlock.trim() ? `<p class="mt-2 text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</p>` : ''}
-                        <pre class="full-prompt-hidden hidden">${DOMPurify.sanitize(fullPromptText)}</pre>
-                    </div>
-                `;
-                
-                outputContainer.appendChild(itemDiv);
-                globalParagraphIndex++;
-            });
-        });
-        
-        window.showToast("Folha de Direção gerada com sucesso!");
-        markButtonAsCompleted(button.id);
-
-    } catch (error) {
-        console.error("Erro ao gerar a Folha de Direção:", error);
-        outputContainer.innerHTML = `<p class="text-red-500">${error.message}</p>`;
-    } finally {
-        hideButtonLoading(button);
-    }
+    // ----- ETAPA 7: Atualiza o resto da UI -----
+    updateProgressBar();
+    localStorage.removeItem('viralScriptGeneratorProject');
+    window.showToast("Pronto para um novo projeto!");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 
