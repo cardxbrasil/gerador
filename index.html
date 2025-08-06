@@ -1345,20 +1345,45 @@
     
         // Bloco de estilo cinematográfico para prompts de imagem
         const CINEMATIC_STYLE_BLOCK = `
+            
+# DIRETRIZES DE ESTILO CINEMATOGRÁFICO PARA IMAGENS DE ALTA RESOLUÇÃO
+
 Ultra-realistic, high-resolution photographic image captured with masterfully rendered natural or artificial lighting and cinematic composition. The aesthetic should be of a modern cinematic film, with meticulous attention to physical and sensory details.
-**Essential Visual Characteristics:**
+
+## CARACTERÍSTICAS VISUAIS ESSENCIAIS
+
+### Qualidade Técnica
 - **Rich & Organic Textures:** Surfaces must display tactile authenticity — visible skin pores, individual fabric threads, weathered materials (wood, metal, stone), realistic reflections, and organic imperfections that add depth and believability.
 - **Focus & Depth of Field:** Employ selective sharp focus with subtle depth of field (slightly blurred background or foreground) to guide the viewer's attention and create a sense of three-dimensionality.
 - **Color Palette & Contrast:** Colors should be "true-to-life" but with a refined, cinematic tonal range. Avoid super-saturated or artificially vibrant hues. Favor contrasts that create visual drama and natural modeling, typical of good cinematography.
 - **Lighting & Atmosphere:** Lighting must be complex and naturalistic, with multiple light sources creating soft shadows, half-tones, and highlights. Include subtle atmospheric elements like dust, mist, or light rays (god rays) when appropriate to enhance the sense of a living environment.
+
+### Composição Visual
 - **Visual Composition:** Apply classic cinematic composition principles (rule of thirds, leading lines, broken symmetry, depth) to create visually appealing frames that tell a story.
+- **Camera Perspective:** Use appropriate focal lengths and camera angles that enhance the emotional impact of the scene (wide shots for epic scale, close-ups for intimate moments).
+- **Movement Sensation:** Even in still images, create a sense of potential movement or captured moment that suggests cinematic timing.
+
+### Estilo Geral
 - **Overall Style:** The final result must be indistinguishable from a high-quality photograph taken with professional equipment, intended to illustrate a film scene. Nothing should look artificial, "3D rendered," or overly polished. The goal is physical and emotional authenticity.
-**Stylistic Constraints (WHAT NOT TO DO):**
-- NO exaggerated or distorted features (facial features, proportions).
-- NO artificial "glow" or excessive smoothing (airbrushing).
-- NO visible 3D render or CGI look.
-- NO super-saturated colors or unreal hues.
-- NO element that breaks the illusion of a photorealistic capture.`;
+- **Post-Production Elements:** Include subtle film grain appropriate to the style, natural lens characteristics (slight vignetting, chromatic aberration when appropriate), and color grading that enhances the mood without appearing artificial.
+
+## REFERÊNCIAS DE ESTILO (INSPIRAÇÃO CINEMATOGRÁFICA)
+
+Para diferentes gêneros e atmosferas, considere estas referências:
+- **Drama Intenso:** Estilo de Emmanuel Lubezki em "The Revenant" - iluminação natural, texturas orgânicas, movimento contínuo
+- **Suspense/Thriller:** Estilo de Roger Deakins em "Blade Runner 2049" - composição precisa, cores controladas, iluminação dramática
+- **Épico/Histórico:** Estilo of Rodrigo Prieto em "The Irishman" - paleta de cores específica do período, iluminação naturalista, detalhes autênticos
+- **Contemporâneo/Realista:** Estilo de Greig Fraser em "The Mandalorian" - iluminação prática, texturas realistas, composição dinâmica
+
+## RESTRIÇÕES DE ESTILO (O QUE EVITAR)
+
+- **NO** exaggerated or distorted features (facial features, proportions).
+- **NO** artificial "glow" or excessive smoothing (airbrushing).
+- **NO** visible 3D render or CGI look.
+- **NO** super-saturated colors or unreal hues.
+- **NO** element that breaks the illusion of a photorealistic capture.
+- **NO** inconsistent lighting that doesn't match the described environment.
+- **NO** modern digital artifacts that break the cinematic immersion.`;
         // Labels para descrição de imagem em diferentes idiomas
         const imageDescriptionLabels = { 'pt-br': 'Descrição da Imagem:', 'pt-pt': 'Descrição da Imagem:', 'en': 'Image Description:' };
 
@@ -7949,4 +7974,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 </body>
+
 </html>
