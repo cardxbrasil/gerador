@@ -3570,7 +3570,7 @@ const updateButtonStates = () => {
                 const arePromptsReady = AppState.generated.imagePrompts['introSection'] &&
                                         AppState.generated.imagePrompts['developmentSection'] &&
                                         AppState.generated.imagePrompts['climaxSection'];
-                btn.disabled = !isFullScriptGenerated || !arePromptsReady;
+                btn.disabled = !allMainScriptGenerated || !arePromptsReady;
             } else {
                 btn.disabled = !allMainScriptGenerated;
             }
