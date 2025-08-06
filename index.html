@@ -850,17 +850,12 @@ html, body {
 
 
 /* ========================================================== */
-/*           ESTILO SIMPLIFICADO PARA SKELETON LOADERS        */
+/*           ANIMAÇÃO DE ANÁLISE NO PRÓPRIO TEXTO             */
 /* ========================================================== */
-@keyframes pulse {
-  50% { opacity: .5; }
-}
-
-.skeleton-card {
-    background-color: var(--dark-border); /* A cor cinza clara correta */
-    border-radius: 12px; /* Para combinar com o estilo dos seus cards */
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-    height: 80px; /* Uma altura fixa para o placeholder */
+.is-analyzing {
+    opacity: 0.5;
+    transition: opacity 0.3s ease-in-out;
+    pointer-events: none; /* Impede que o usuário edite o texto durante a análise */
 }
 
 
