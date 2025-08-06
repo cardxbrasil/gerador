@@ -7363,15 +7363,14 @@ const getProjectStateForExport = () => {
     const stateToExport = JSON.parse(JSON.stringify(AppState));
 
     // 2. Itera sobre todos os campos de formulário e salva seus valores atuais
-    // ESTA LINHA FOI ATUALIZADA para incluir os textareas do módulo de conclusão
     const formElements = document.querySelectorAll('#inputTabContent input, #inputTabContent select, #inputTabContent textarea, #factCheckQuery, #languageSelect, #conclusionStrategyModule textarea');
     formElements.forEach(el => {
-        if (el.type !== 'radio') { // Ignora os rádios por enquanto
+        if (el.type !== 'radio') {
             stateToExport.inputs[el.id] = el.value;
         }
     });
 
-    // <<< A EVOLUÇÃO CRÍTICA ESTÁ AQUI: LÓGICA ESPECIAL PARA SALVAR O RÁDIO SELECIONADO >>>
+    // Lógica especial para salvar o rádio selecionado
     const checkedConclusionType = document.querySelector('input[name="conclusionType"]:checked');
     if (checkedConclusionType) {
         stateToExport.inputs['conclusionType'] = checkedConclusionType.value;
@@ -7392,7 +7391,10 @@ const getProjectStateForExport = () => {
     stateToExport.generated.titlesAndThumbnailsHTML = document.getElementById('titlesThumbnailsContent')?.innerHTML;
     stateToExport.generated.descriptionHTML = document.getElementById('videoDescriptionContent')?.innerHTML;
     stateToExport.generated.soundtrackHTML = document.getElementById('soundtrackContent')?.innerHTML;
-    stateToExport.generated.emotionalMapHTML = document.getElementById('emotionalMapContent')?.innerHTML;
+    
+    // <<< CORREÇÃO APLICADA AQUI >>>
+    // Agora salva o conteúdo do novo container "directorSheetContent"
+    stateToExport.generated.emotionalMapHTML = document.getElementById('directorSheetContent')?.innerHTML;
 
     return stateToExport;
 };
@@ -7414,28 +7416,34 @@ const syncUiFromState = () => {
         }
     }
 
-    // <<< A CORREÇÃO ESTÁ AQUI: LÓGICA ESPECIAL PARA CARREGAR O RÁDIO CORRETO >>>
+    // Lógica especial para carregar o rádio correto
     if (state.inputs && state.inputs.conclusionType) {
         const radioToSelect = document.querySelector(`input[name="conclusionType"][value="${state.inputs.conclusionType}"]`);
         if (radioToSelect) {
             radioToSelect.checked = true;
         }
     } else {
-        // Se não houver estado salvo para o rádio, garante que o padrão "lesson" esteja marcado
         const defaultRadio = document.querySelector('input[name="conclusionType"][value="lesson"]');
         if (defaultRadio) defaultRadio.checked = true;
     }
 
-    // O resto da função continua o mesmo...
     updateNarrativeStructureOptions();
     toggleCustomImageStyleVisibility();
 
+    // Restaura o HTML dos painéis
     if (state.generated.strategicOutlineHTML) document.getElementById('outlineContent').innerHTML = state.generated.strategicOutlineHTML;
     if (state.generated.titlesAndThumbnailsHTML) document.getElementById('titlesThumbnailsContent').innerHTML = state.generated.titlesAndThumbnailsHTML;
     if (state.generated.descriptionHTML) document.getElementById('videoDescriptionContent').innerHTML = state.generated.descriptionHTML;
     if (state.generated.soundtrackHTML) document.getElementById('soundtrackContent').innerHTML = state.generated.soundtrackHTML;
-    if (state.generated.emotionalMapHTML) document.getElementById('emotionalMapContent').innerHTML = state.generated.emotionalMapHTML;
     
+    // <<< CORREÇÃO APLICADA AQUI >>>
+    // Agora carrega o conteúdo para dentro do novo container "directorSheetContent"
+    if (state.generated.emotionalMapHTML) {
+        const directorSheet = document.getElementById('directorSheetContent');
+        if (directorSheet) directorSheet.innerHTML = state.generated.emotionalMapHTML;
+    }
+    
+    // Reconstrói as seções de roteiro
     const scriptContainer = document.getElementById('scriptSectionsContainer');
     scriptContainer.innerHTML = '';
     const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
@@ -7461,10 +7469,10 @@ const syncUiFromState = () => {
         document.getElementById('projectDashboard').classList.remove('hidden');
     }
 
+    // Sincroniza as variáveis legadas para compatibilidade
     if (AppState.generated.emotionalMap) {
         window.emotionalMap = AppState.generated.emotionalMap;
     }
-
     if (AppState.generated.imagePrompts) {
         window.allImagePrompts = AppState.generated.imagePrompts;
     }
