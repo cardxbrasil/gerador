@@ -3951,7 +3951,7 @@ const generateConclusion = async (button) => {
     const prompt = `${basePromptContext}
 
 # TAREFA
-Você é um especialista em conclusões narrativas. Sua missão é escrever APENAS o texto da conclusão para o vídeo, continuando de onde o roteiro parou.
+Você é um especialista em conclusões narrativas impactantes. Sua missão é escrever o texto da conclusão para o vídeo, estruturado em parágrafos coesos e bem desenvolvidos.
 
 # CONTEXTO
 ## Roteiro existente:
@@ -3959,17 +3959,18 @@ Você é um especialista em conclusões narrativas. Sua missão é escrever APEN
 ${fullContext}
 ---
 
-# DIRETRIZ ESTRATÉGica
+# DIRETRIZ ESTRATÉGICA
 ${strategyDirective}
 
 # REGRAS ESSENCIAIS
-1. **FORMATO**: Responda APENAS com o texto narrativo. 
+1. **FORMATO**: Responda APENAS com o texto narrativo. Separe os parágrafos com uma quebra de linha dupla.
    - Proibido: títulos, cabeçalhos, anotações como "Narrador:", "(Cena: ...)", etc.
    - Proibido: incluir qualquer Call to Action (CTA).
-2. **CONTINUIDADE**: A conclusão deve fluir naturalmente do conteúdo anterior.
-3. **IMPACTO**: A conclusão deve ser memorável e alinhada com a estratégia.
+2. **QUALIDADE DOS PARÁGRAFOS**: Cada parágrafo deve agrupar uma ideia completa (idealmente de 4 a 6 frases). Evite a fragmentação excessiva.
+3. **CONTINUIDADE**: A conclusão deve fluir naturalmente do conteúdo anterior.
+4. **IMPACTO**: A conclusão deve ser memorável e alinhada com a estratégia.
 
-Escreva agora o texto puro da conclusão.`;
+Escreva agora o texto puro da conclusão, seguindo a estrutura de parágrafos bem desenvolvidos.`;
 
     try {
         const rawResult = await callGroqAPI(prompt, 3000);
@@ -4016,14 +4017,12 @@ Escreva agora o texto puro da conclusão.`;
 
 
 
-// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// >>>>> VERSÃO FINAL E MODERNIZADA de 'generateStrategicCta' (Usa AppState) <<<<<
-// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
+// =================================================================================
+// >>>>> VERSÃO FINAL E PADRONIZADA de 'generateStrategicCta' <<<<<
+// =================================================================================
 const generateStrategicCta = async (button) => {
     showButtonLoading(button);
 
-    // Garante que o container da seção CTA exista.
     const scriptContainer = document.getElementById('scriptSectionsContainer');
     let ctaSection = document.getElementById('ctaSection');
     if (scriptContainer && !ctaSection) {
@@ -4033,7 +4032,6 @@ const generateStrategicCta = async (button) => {
         scriptContainer.appendChild(ctaSection);
     }
 
-    // Coleta o contexto e a diretiva específica para o CTA.
     const ctaSpecifics = document.getElementById('ctaSpecifics').value.trim();
     const fullContext = getTranscriptOnly();
     const basePromptContext = getBasePromptContext();
@@ -4043,10 +4041,11 @@ const generateStrategicCta = async (button) => {
         ctaDirective = `Crie um Call to Action (CTA) altamente específico e persuasivo. Instrução do usuário: "${ctaSpecifics}". Conecte esta instrução ao tema geral do vídeo de forma natural e convincente.`;
     }
 
+    // <<< A EVOLUÇÃO ESTÁ AQUI, NO PROMPT >>>
     const prompt = `${basePromptContext}
 
 # TAREFA
-Você é um especialista em criar Call to Action (CTA) estratégicos. Sua missão é escrever APENAS o texto do CTA para o final do vídeo, mantendo continuidade com o conteúdo anterior.
+Você é um especialista em criar Call to Action (CTA) estratégicos e persuasivos. Sua missão é escrever o texto do CTA para o final do vídeo, estruturado em um ou mais parágrafos coesos.
 
 # CONTEXTO
 ## Roteiro completo:
@@ -4058,12 +4057,13 @@ ${fullContext}
 ${ctaDirective}
 
 # REGRAS ESSENCIAIS
-1. **FORMATO**: Responda APENAS com o texto narrativo.
-   - Proibido: rótulos como "Narrador:", descrições de cena, títulos ou cabeçalhos.
-2. **CONTINUIDADE**: O CTA deve soar como uma conclusão natural e integrada.
-3. **CONSISTÊNCIA**: Mantenha o mesmo tom e estilo do roteiro.
+1. **FORMATO**: Responda APENAS com o texto narrativo. Separe os parágrafos com uma quebra de linha dupla, se houver mais de um.
+   - Proibido: rótulos como "Narrador:", descrições de cena, títulos, etc.
+2. **QUALIDADE DO PARÁGRAFO**: O CTA deve ser um parágrafo coeso e bem formulado, contendo idealmente de 3 a 5 frases claras e motivadoras. O objetivo é ser direto e impactante, **evitando fragmentos de uma única linha.**
+3. **CONTINUIDADE**: O CTA deve soar como uma conclusão natural e integrada ao vídeo.
+4. **CONSISTÊNCIA**: Mantenha o mesmo tom e estilo do roteiro.
 
-Escreva agora o texto puro para o Call to Action.`;
+Escreva agora o texto puro para o Call to Action, garantindo que seja bem estruturado.`;
 
     try {
         let result = await callGroqAPI(prompt, 400);
@@ -4072,7 +4072,6 @@ Escreva agora o texto puro para o Call to Action.`;
         const contentWithSpans = paragraphs.map((p, index) => `<div id="cta-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
         const fullText = paragraphs.join('\n\n');
 
-        // <<< CORREÇÃO CRÍTICA AQUI: Atualiza o AppState, não o projectState >>>
         AppState.generated.script.cta = {
             html: contentWithSpans,
             text: fullText
@@ -4084,14 +4083,12 @@ Escreva agora o texto puro para o Call to Action.`;
         ctaSection.appendChild(ctaElement);
         ctaSection.classList.remove('hidden');
         
-        // Desabilita os inputs do módulo de conclusão, pois o trabalho está feito
         const ctaSpecificsElement = document.getElementById('ctaSpecifics');
         ctaSpecificsElement.disabled = true;
         ctaSpecificsElement.parentElement.classList.add('opacity-50');
         
         window.showToast("Roteiro finalizado! Seção de Análise liberada.");
         
-        // A função updateButtonStates vai esconder o módulo e mostrar a seção de análise
         const analysisSection = document.getElementById('scriptAnalysisSection');
         if (analysisSection) {
             analysisSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -4105,7 +4102,6 @@ Escreva agora o texto puro para o Call to Action.`;
         updateButtonStates();
     }
 };
-
 
 
 
