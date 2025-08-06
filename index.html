@@ -3499,31 +3499,35 @@ const isScriptComplete = () => {
 const updateButtonStates = () => {
     const script = AppState.generated.script;
 
-    // Define os estados chave da geração do roteiro
+    // Define os estados chave
     const allMainScriptGenerated = !!script.intro.text && !!script.development.text && !!script.climax.text;
     const isConclusionGenerated = !!script.conclusion.text;
     const isCtaGenerated = !!script.cta.text;
     const isFullScriptGenerated = allMainScriptGenerated && isConclusionGenerated && isCtaGenerated;
 
-    // Habilita/desabilita botões de metadados
-    const metadataButtons = ['generateTitlesAndThumbnailsBtn', 'generateDescriptionBtn', 'generateSoundtrackBtn', 'mapEmotionsBtn'];
+    // Habilita/desabilita botões de recursos
+    const metadataButtons = ['generateDirectorSheetBtn', 'generateTitlesAndThumbnailsBtn', 'generateDescriptionBtn', 'generateSoundtrackBtn'];
     metadataButtons.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) {
-            // Todos os recursos agora dependem apenas do roteiro principal (Intro, Dev, Climax)
-            btn.disabled = !allMainScriptGenerated;
+            // A Folha de Direção precisa dos prompts de imagem, os outros não.
+            if (id === 'generateDirectorSheetBtn') {
+                const arePromptsReady = AppState.generated.imagePrompts['introSection'] &&
+                                        AppState.generated.imagePrompts['developmentSection'] &&
+                                        AppState.generated.imagePrompts['climaxSection'];
+                btn.disabled = !isFullScriptGenerated || !arePromptsReady;
+            } else {
+                btn.disabled = !allMainScriptGenerated;
+            }
         }
     });
 
-    // <<< A CORREÇÃO ESTÁ AQUI: LÓGICA REFINADA PARA O MÓDULO DE CONCLUSÃO >>>
+    // Controla o módulo de Conclusão/CTA
     const conclusionModule = document.getElementById('conclusionStrategyModule');
     if (conclusionModule) {
-        // A condição para mostrar o módulo agora é:
-        // O roteiro principal está pronto? E AINDA FALTA gerar a Conclusão OU o CTA?
         const shouldShowConclusionModule = allMainScriptGenerated && (!isConclusionGenerated || !isCtaGenerated);
         conclusionModule.classList.toggle('hidden', !shouldShowConclusionModule);
 
-        // Lógica interna do módulo: mostra o botão de CTA se a conclusão já foi feita
         const btnGenerateConclusion = document.getElementById('generateConclusionBtn');
         const btnGenerateCta = document.getElementById('generateCtaBtn');
         if (btnGenerateConclusion && btnGenerateCta) {
@@ -3532,21 +3536,11 @@ const updateButtonStates = () => {
         }
     }
     
-    // Mostra/esconde a seção de análise quando TUDO estiver pronto
- const directorPanel = document.getElementById('directorPanelSection');
-    if (directorPanel) {
-        // Verifica se o roteiro completo e o mapa emocional estão prontos
-        const coreAssetsReady = isFullScriptGenerated && AppState.generated.emotionalMap;
-        
-        // Verifica se temos prompts para as 3 seções principais do roteiro
-        const promptsReady = AppState.generated.imagePrompts['introSection'] &&
-                             AppState.generated.imagePrompts['developmentSection'] &&
-                             AppState.generated.imagePrompts['climaxSection'];
-
-        // O painel só aparece se AMBAS as condições forem verdadeiras
-        const isReadyForDirector = coreAssetsReady && promptsReady;
-        
-        directorPanel.classList.toggle('hidden', !isReadyForDirector);
+    // <<< A CORREÇÃO ESTÁ AQUI >>>
+    // Mostra/esconde a seção de análise assim que o roteiro completo é gerado
+    const analysisSection = document.getElementById('scriptAnalysisSection');
+    if (analysisSection) {
+        analysisSection.classList.toggle('hidden', !isFullScriptGenerated);
     }
 };
 
@@ -6537,12 +6531,7 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
         return;
     }
     
-    // <<< CORREÇÃO 1: Lê do AppState, com fallback para a variável antiga >>>
-    const emotionalMap = AppState.generated.emotionalMap || window.emotionalMap;
-    if (!emotionalMap || emotionalMap.length === 0) {
-        window.showToast("Gere o Mapa Emocional primeiro para criar prompts contextuais.");
-        return;
-    }
+    // <<< A CORREÇÃO ESTÁ AQUI: REMOVEMOS A VERIFICAÇÃO DO MAPA EMOCIONAL >>>
 
     showButtonLoading(button);
     promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
@@ -6561,17 +6550,6 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
 
         if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
 
-        const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
-        let baseIndex = 0;
-        const currentSectionName = sectionElementId.replace('Section', '');
-        for (const sectionName of sectionOrder) {
-            if (sectionName === currentSectionName) break;
-            const scriptText = AppState.generated.script[sectionName]?.text;
-            if (scriptText) {
-                baseIndex += scriptText.split('\n\n').filter(p => p.trim()).length;
-            }
-        }
-        
         const batchSize = 3;
         const apiPromises = [];
         const visualPacing = document.getElementById('visualPacing').value;
@@ -6583,9 +6561,8 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
             let promptContextForAI = '';
             batch.forEach((item, indexInBatch) => {
                 const globalIndex = i + indexInBatch;
-                const mapIndex = baseIndex + globalIndex;
-                const emotionalContext = emotionalMap[mapIndex] || { emotion: 'Neutro', pace: 'Normal' };
-                promptContextForAI += `\nParágrafo ${globalIndex}:\n- Título do Capítulo (Guia Temático): "${item.chapter}"\n- Texto do Parágrafo: "${item.text}"\n- Contexto Emocional: (Emoção: ${emotionalContext.emotion}, Ritmo: ${emotionalContext.pace})`;
+                // <<< CORREÇÃO: Removemos a referência ao emotionalMap daqui >>>
+                promptContextForAI += `\nParágrafo ${globalIndex}:\n- Título do Capítulo (Guia Temático): "${item.chapter}"\n- Texto do Parágrafo: "${item.text}"`;
             });
             
              // <<< ESTE É O PROMPT HÍBRIDO, COM SUA LISTA DETALHADA E A ESTRUTURA BLINDADA >>>
@@ -6658,12 +6635,11 @@ ${promptContextForAI}
 
 Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
 
-      apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true)));
+          apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true)));
         }
 
         const allBatchResults = await Promise.all(apiPromises);
         let allGeneratedPrompts = allBatchResults.flat();
-
         if (!Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length < paragraphsWithContext.length) {
             throw new Error("A IA não retornou um prompt para cada parágrafo.");
         }
@@ -6674,19 +6650,15 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
             estimated_duration: promptData.estimated_duration || 5
         }));
 
-        // <<< CORREÇÃO 2: A SINCRONIZAÇÃO ACONTECE AQUI >>>
-        // 1. Salva no "cérebro" central
+        // Salva no AppState
         AppState.generated.imagePrompts[sectionElementId] = curatedPrompts.map((p) => ({ ...p, styleBlock: CINEMATIC_STYLE_BLOCK }));
         AppState.ui.promptPaginationState[sectionElementId] = 0;
 
-        // 2. ATUALIZA AS VARIÁVEIS ANTIGAS para garantir compatibilidade
-        // (Primeiro, definimos as variáveis globais se elas ainda não existirem)
+        // Sincroniza as variáveis legadas
         if (typeof window.allImagePrompts === 'undefined') window.allImagePrompts = {};
         if (typeof window.promptPaginationState === 'undefined') window.promptPaginationState = {};
-        
         window.allImagePrompts[sectionElementId] = AppState.generated.imagePrompts[sectionElementId];
         window.promptPaginationState[sectionElementId] = AppState.ui.promptPaginationState[sectionElementId];
-        // <<< FIM DA SINCRONIZAÇÃO >>>
 
         promptContainer.innerHTML = `
             <div class="prompt-pagination-wrapper space-y-4">
@@ -6701,6 +6673,8 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
         console.error("Erro detalhado em generatePromptsForSection:", error);
     } finally {
         hideButtonLoading(button);
+        // Chama o updateButtonStates para verificar se a Folha de Direção pode ser habilitada
+        updateButtonStates();
     }
 };
 
