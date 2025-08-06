@@ -497,7 +497,10 @@
 /* ========================================================== */
 /*           ESTILOS PARA A FOLHA DE DIREÇÃO (FUSÃO)          */
 /* ========================================================== */
-.direction-item { /* Renomeado de .shot-item */
+/* ========================================================== */
+/*           ESTILOS PARA A FOLHA DE DIREÇÃO (VERSÃO FINAL)     */
+/* ========================================================== */
+.direction-item {
     border-left: 4px solid var(--primary);
     background-color: color-mix(in srgb, var(--dark-bg) 50%, var(--dark-surface));
     padding: 1rem;
@@ -508,42 +511,46 @@
     box-shadow: var(--shadow);
     transform: translateY(-2px);
 }
-.direction-header { /* Renomeado de .shot-header */
-    font-family: 'Roboto', serif;
+.direction-header {
     display: flex;
     align-items: center;
     gap: 1rem;
     padding-bottom: 0.75rem;
     margin-bottom: 0.75rem;
     border-bottom: 1px dashed var(--dark-border);
+    /* Garante a fonte correta para o cabeçalho */
+    font-family: 'Roboto', sans-serif;
 }
-.direction-header .scene-tag { /* Renomeado de .shot-header .scene-tag */
+.direction-header .scene-tag {
     font-weight: 700;
     font-size: 1.1rem;
     color: var(--dark-text-header);
 }
-.direction-header .tags-group { /* Renomeado de .shot-header .tags-group */
-    font-family: 'Roboto', sans-serif;
+.direction-header .tags-group {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
 }
-.direction-script { /* Renomeado de .shot-script */
-    font-family: 'Roboto', serif;
-    font-weight: 400;
+
+/* O TEXTO DO ROTEIRO (SERIFADO, COMO NAS SEÇÕES DE CRIAÇÃO) */
+.direction-script {
+    font-family: 'Source Serif Pro', serif;
+    font-weight: 400; /* Peso normal, sem negrito */
+    font-size: 1rem;  /* Tamanho padrão do corpo do texto */
     line-height: 1.7;
     margin-bottom: 1rem;
     padding-left: 1rem;
-    /* border-left: 2px solid var(--secondary);
 }
-.direction-details { /* Renomeado de .shot-details */
-    ont-family: 'Roboto', sans-serif;
+
+/* OS DETALHES VISUAIS (ROBOTO, COMO O RESTO DA UI) */
+.direction-details {
+    font-family: 'Roboto', sans-serif;
     font-size: 0.9rem;
     color: var(--dark-text-muted);
 }
 .direction-details strong {
     color: var(--dark-text-body);
-    font-weight: 600;
+    font-weight: 600; /* Negrito apenas na palavra "Visual:" */
 }
 
 
@@ -3701,16 +3708,14 @@ const generateDirectorSheet = async (button) => {
                     </div>
                     <p class="direction-script">"${DOMPurify.sanitize(p)}"</p>
                     <div class="direction-details">
-                        <p><strong><i class="fas fa-palette fa-fw mr-2"></i>Visual:</strong> ${DOMPurify.sanitize(promptData.imageDescription)}</p>
-                        
+                        <!-- CORREÇÃO: Ícone e texto fora do <strong> -->
+                        <p><i class="fas fa-palette fa-fw mr-2"></i><strong>Visual:</strong> ${DOMPurify.sanitize(promptData.imageDescription)}</p>
                         
                         ${promptData.styleBlock ? `
                             <p class="mt-2">
-                                <strong>Estilo Aplicado:</strong>
                                 <span class="text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</span>
                             </p>
                         ` : ''}
-
                     </div>
                 </div>
             `;
