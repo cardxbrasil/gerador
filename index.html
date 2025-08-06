@@ -841,12 +841,6 @@
 /* >>>>> SOLUÇÃO DEFINITIVA (CONSIDERANDO O TAILWINDCSS) <<<<< */
 /* ================================================================= */
 
-/* 
-  Aqui está o segredo: Aplicamos a fonte Roboto diretamente ao
-  HTML e ao BODY. Isso tem uma prioridade maior e garante que
-  a fonte padrão de TODO o documento seja a Roboto,
-  sobrescrevendo o padrão do Tailwind.
-*/
 html, body { 
     font-family: 'Roboto', sans-serif; 
     background-color: var(--dark-bg); 
@@ -854,17 +848,7 @@ html, body {
     transition: var(--transition); 
 }
 
-/* 
-  Esta é nossa "apólice de seguro". Mesmo que algo dê errado,
-  esta regra GARANTE que os parágrafos do roteiro (os divs com id tipo "intro-p-0")
-  sejam renderizados com a Roboto normal (peso 400).
-*/
-.generated-content-wrapper div[id*="-p-"] {
-    font-family: 'Roboto', sans-serif;
-    font-weight: 400; /* Força o peso normal, eliminando qualquer distorção */
-    font-size: 1rem;  /* Garante o tamanho padrão da fonte */
-    line-height: 1.7;
-}
+
 
 </style>
 
