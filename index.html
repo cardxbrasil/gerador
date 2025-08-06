@@ -6716,7 +6716,10 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
         window.showToast("Gere o conteúdo do roteiro desta seção primeiro.");
         return;
     }
-    if (!window.emotionalMap || window.emotionalMap.length === 0) {
+    
+    // <<< CORREÇÃO 1: Lê do AppState, com fallback para a variável antiga >>>
+    const emotionalMap = AppState.generated.emotionalMap || window.emotionalMap;
+    if (!emotionalMap || emotionalMap.length === 0) {
         window.showToast("Gere o Mapa Emocional primeiro para criar prompts contextuais.");
         return;
     }
@@ -6732,21 +6735,25 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
             if (child.classList.contains('font-bold') && child.textContent.includes('Capítulo:')) {
                 currentChapterTitle = child.textContent.replace('Capítulo:', '').trim();
             } else if (child.id && child.id.includes('-p-')) {
-                paragraphsWithContext.push({
-                    text: child.textContent.trim().replace(/\[.*?\]/g, '').trim(),
-                    chapter: currentChapterTitle,
-                    originalId: child.id
-                });
+                paragraphsWithContext.push({ text: child.textContent.trim().replace(/\[.*?\]/g, ''), chapter: currentChapterTitle, originalId: child.id });
             }
         });
 
         if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
 
-        const baseIndexMatch = paragraphsWithContext[0]?.originalId.match(/-p-(\d+)$/);
-        const baseIndex = baseIndexMatch ? parseInt(baseIndexMatch[1], 10) : 0;
+        const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
+        let baseIndex = 0;
+        const currentSectionName = sectionElementId.replace('Section', '');
+        for (const sectionName of sectionOrder) {
+            if (sectionName === currentSectionName) break;
+            const scriptText = AppState.generated.script[sectionName]?.text;
+            if (scriptText) {
+                baseIndex += scriptText.split('\n\n').filter(p => p.trim()).length;
+            }
+        }
+        
         const batchSize = 3;
         const apiPromises = [];
-
         const visualPacing = document.getElementById('visualPacing').value;
         const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
         const durationRange = durationMap[visualPacing] || '3 e 8';
@@ -6757,7 +6764,7 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
             batch.forEach((item, indexInBatch) => {
                 const globalIndex = i + indexInBatch;
                 const mapIndex = baseIndex + globalIndex;
-                const emotionalContext = window.emotionalMap[mapIndex] || { emotion: 'Neutro', pace: 'Normal' };
+                const emotionalContext = emotionalMap[mapIndex] || { emotion: 'Neutro', pace: 'Normal' };
                 promptContextForAI += `\nParágrafo ${globalIndex}:\n- Título do Capítulo (Guia Temático): "${item.chapter}"\n- Texto do Parágrafo: "${item.text}"\n- Contexto Emocional: (Emoção: ${emotionalContext.emotion}, Ritmo: ${emotionalContext.pace})`;
             });
             
@@ -6831,7 +6838,7 @@ ${promptContextForAI}
 
 Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
 
-apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true)));
+      apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true)));
         }
 
         const allBatchResults = await Promise.all(apiPromises);
@@ -6843,12 +6850,23 @@ apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, t
 
         const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
             scriptPhrase: paragraphsWithContext[index].text,
-            imageDescription: promptData.imageDescription || "Falha ao gerar descrição. Tente re-gerar.",
+            imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
             estimated_duration: promptData.estimated_duration || 5
         }));
 
-        allImagePrompts[sectionElementId] = curatedPrompts.map((p) => ({ ...p, styleBlock: CINEMATIC_STYLE_BLOCK }));
-        promptPaginationState[sectionElementId] = 0;
+        // <<< CORREÇÃO 2: A SINCRONIZAÇÃO ACONTECE AQUI >>>
+        // 1. Salva no "cérebro" central
+        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts.map((p) => ({ ...p, styleBlock: CINEMATIC_STYLE_BLOCK }));
+        AppState.ui.promptPaginationState[sectionElementId] = 0;
+
+        // 2. ATUALIZA AS VARIÁVEIS ANTIGAS para garantir compatibilidade
+        // (Primeiro, definimos as variáveis globais se elas ainda não existirem)
+        if (typeof window.allImagePrompts === 'undefined') window.allImagePrompts = {};
+        if (typeof window.promptPaginationState === 'undefined') window.promptPaginationState = {};
+        
+        window.allImagePrompts[sectionElementId] = AppState.generated.imagePrompts[sectionElementId];
+        window.promptPaginationState[sectionElementId] = AppState.ui.promptPaginationState[sectionElementId];
+        // <<< FIM DA SINCRONIZAÇÃO >>>
 
         promptContainer.innerHTML = `
             <div class="prompt-pagination-wrapper space-y-4">
@@ -7447,7 +7465,8 @@ const resetApplicationState = async () => {
 
 
     window.emotionalMap = [];
-    
+    window.allImagePrompts = {};
+    window.promptPaginationState = {};
 
     // ----- ETAPA 2: Limpar TODOS os Outputs da UI -----
     const outputContainers = [
@@ -7625,6 +7644,13 @@ const syncUiFromState = () => {
 
     if (AppState.generated.emotionalMap) {
         window.emotionalMap = AppState.generated.emotionalMap;
+    }
+
+    if (AppState.generated.imagePrompts) {
+        window.allImagePrompts = AppState.generated.imagePrompts;
+    }
+    if (AppState.ui.promptPaginationState) {
+        window.promptPaginationState = AppState.ui.promptPaginationState;
     }
     
     setTimeout(() => {
