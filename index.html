@@ -1695,6 +1695,7 @@ Reescreva o bloco de texto acima, corrigindo o problema e integrando-o perfeitam
         if (sectionElement) {
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
+            invalidateDirectorSheet();
         }
 
         window.showToast("Bloco de parágrafos otimizado!");
@@ -1900,6 +1901,7 @@ const applyHookSuggestion = (button) => {
                     invalidateAndClearPerformance(sectionElement);
                     invalidateAndClearPrompts(sectionElement);
                     updateAllReadingTimes();
+                    invalidateDirectorSheet();
                 }
 
                 replaced = true;
@@ -2525,6 +2527,7 @@ const insertViralSuggestion = (button) => {
                 invalidateAndClearPerformance(sectionElement);
                 invalidateAndClearPrompts(sectionElement);
                 updateAllReadingTimes();
+                invalidateDirectorSheet();
             }
             
             inserted = true;
@@ -2968,6 +2971,7 @@ ${selectedText}
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
             updateAllReadingTimes();
+            invalidateDirectorSheet();
         }
         
         window.showToast(`Texto refinado com sucesso!`);
@@ -5265,6 +5269,32 @@ const createScriptSectionPlaceholder = (sectionId, title, buttonId, actionName) 
 
 
 
+// =========================================================================
+// >>>>> NOVA FUNÇÃO DE INVALIDAÇÃO PARA A FOLHA DE DIREÇÃO <<<<<
+// =========================================================================
+/**
+ * Invalida a Folha de Direção quando o roteiro é alterado,
+ * limpando o conteúdo e resetando o estado.
+ */
+const invalidateDirectorSheet = () => {
+    // 1. Limpa a memória
+    AppState.generated.emotionalMap = null;
+    window.emotionalMap = []; // Sincroniza a variável legada
+
+    // 2. Limpa a UI
+    const directorSheetContent = document.getElementById('directorSheetContent');
+    if (directorSheetContent) {
+        directorSheetContent.innerHTML = `
+            <div class="asset-card-placeholder text-yellow-600 dark:text-yellow-400 !border-l-yellow-400">
+                Atenção: O roteiro foi modificado.<br>
+                Gere a Folha de Direção novamente para obter a versão atualizada.
+            </div>
+        `;
+    }
+    console.log("Folha de Direção invalidada devido a alterações no roteiro.");
+};
+
+
 
 // =========================================================================
 // >>>>> VERSÃO FINAL E BLINDADA DE 'addDevelopmentChapter' <<<<<
@@ -5391,6 +5421,12 @@ ${existingText}
              throw new Error("O conteúdo do capítulo não pôde ser dividido em parágrafos.");
         }
 
+
+         if (sectionElement) {
+            invalidateDirectorSheet(); // <<< ADICIONE A CHAMADA AQUI
+        }
+
+
         const newContentWithDivs = newParagraphs.map((p, index) => 
             `<div id="development-p-${existingParagraphsCount + index}">${DOMPurify.sanitize(p)}</div>`
         ).join('');
@@ -5483,7 +5519,6 @@ ${existingText}
 
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // >>>>> ANALISE DE RETENÇÃO <<<<<
-// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 window.analyzeSectionRetention = async (button, sectionId) => {
     const sectionElement = document.getElementById(sectionId);
@@ -5800,6 +5835,7 @@ window.refineSectionStyle = async (buttonElement) => {
     if (!sectionElement) {
         window.showToast("Erro: Seção do roteiro não encontrada.");
         hideButtonLoading(buttonElement);
+        invalidateDirectorSheet();
         return;
     }
 
@@ -5962,6 +5998,10 @@ window.applySuggestion = (button) => {
         window.showToast("Não foi possível aplicar a sugestão. O texto pode ter sido muito alterado.");
         return;
     }
+
+    if (sectionElement) {
+    invalidateDirectorSheet(); // <<< ADICIONE A CHAMADA AQUI
+        }
     
     window.showToast("Sugestão aplicada com sucesso!");
     
@@ -7896,6 +7936,28 @@ document.addEventListener('click', function(event) {
     }
 });
 
+
+// ==========================================================
+// >>>>> LISTENER PARA EDIÇÕES MANUAIS NO ROTEIRO <<<<<
+// ==========================================================
+document.addEventListener('input', function(event) {
+    // Verifica se a edição aconteceu dentro de um container de roteiro gerado
+    const contentWrapper = event.target.closest('.generated-content-wrapper');
+    if (contentWrapper) {
+        console.log("Edição manual detectada no roteiro.");
+        
+        const sectionElement = contentWrapper.closest('.script-section');
+        if (sectionElement) {
+            // Invalida todos os recursos que dependem do texto
+            invalidateAndClearPerformance(sectionElement);
+            invalidateAndClearPrompts(sectionElement);
+            invalidateDirectorSheet();
+            updateAllReadingTimes(); // Atualiza o tempo de leitura em tempo real
+        }
+    }
+});
+
+
 // ==========================================================
 // >>>>> LÓGICA ATUALIZADA E FINAL PARA O MENU DE EDIÇÃO <<<<<
 // ==========================================================
@@ -7920,6 +7982,7 @@ document.addEventListener('selectionchange', () => {
         }
     }
 });
+
 
 // Listener de clique para o próprio menu
 editingMenu.addEventListener('click', (event) => {
