@@ -533,7 +533,7 @@
     line-height: 1.7;
     margin-bottom: 1rem;
     padding-left: 1rem;
-    border-left: 2px solid var(--secondary);
+    /* border-left: 2px solid var(--secondary);
 }
 .direction-details { /* Renomeado de .shot-details */
     ont-family: 'Roboto', sans-serif;
@@ -3698,8 +3698,10 @@ const generateDirectorSheet = async (button) => {
                             <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
                         </div>
                     </div>
+                    
                     <p class="direction-script">"${DOMPurify.sanitize(p)}"</p>
                     <div class="direction-details">
+                        
                         <p><strong><i class="fas fa-palette fa-fw mr-2"></i>Visual:</strong> ${DOMPurify.sanitize(promptData.imageDescription)}</p>
                     </div>
                 </div>
