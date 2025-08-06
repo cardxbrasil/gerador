@@ -857,6 +857,14 @@ html, body {
     opacity: .5;
   }
 }
+
+/* <<< ADICIONE ESTA NOVA CLASSE AQUI >>> */
+.skeleton-container {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+}
+
 .skeleton {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     background-color: var(--dark-border);
@@ -5649,15 +5657,15 @@ window.analyzeSectionRetention = async (button, sectionId) => {
     // <<< AQUI ESTÁ A MÁGICA >>>
     // Injetamos o HTML do esqueleto pulsante na área de resultado
     const skeletonHtml = `
-        <div class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 space-y-3">
-            <div class="skeleton skeleton-line"></div>
-            <div class="skeleton skeleton-line skeleton-line-short"></div>
-        </div>
-        <div class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 space-y-3 mt-2">
-            <div class="skeleton skeleton-line"></div>
-            <div class="skeleton skeleton-line skeleton-line-short"></div>
-        </div>
-    `;
+        <div class="skeleton-container space-y-3">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line skeleton-line-short"></div>
+    </div>
+    <div class="skeleton-container space-y-3 mt-4">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line skeleton-line-short"></div>
+    </div>
+`;
     analysisOutput.innerHTML = skeletonHtml;
     // <<< FIM DA MÁGICA >>>
 
