@@ -3641,7 +3641,7 @@ const getTranscriptOnly = () => {
 
 
 // =========================================================================
-// >>>>> VERSÃO FINAL E COMPLETA de 'generateDirectorSheet' <<<<<
+// >>>>> VERSÃO FINAL E CORRIGIDA de 'generateDirectorSheet' <<<<<
 // =========================================================================
 const generateDirectorSheet = async (button) => {
     // Validação
@@ -3659,7 +3659,7 @@ const generateDirectorSheet = async (button) => {
     outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções e ritmo do roteiro...</p>`;
 
     try {
-        // --- ETAPA A: Gerar o Mapa Emocional (nos bastidores) ---
+        // ETAPA A: Gerar o Mapa Emocional
         const fullTranscript = getTranscriptOnly();
         const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
         
@@ -3676,7 +3676,7 @@ const generateDirectorSheet = async (button) => {
         window.emotionalMap = emotionalMap;
         outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Montando a folha de direção...</p>`;
 
-        // --- ETAPA B: Montar a Folha de Direção (Fusão) ---
+        // ETAPA B: Montar a Folha de Direção
         const allPrompts = [
             ...(imagePrompts.introSection || []), ...(imagePrompts.developmentSection || []),
             ...(imagePrompts.climaxSection || []), ...(imagePrompts.conclusionSection || []),
@@ -3692,7 +3692,7 @@ const generateDirectorSheet = async (button) => {
             const styleBlockContent = promptData.styleBlock || '';
             const isCinematicStyleApplied = styleBlockContent.trim() !== '';
 
-            // <<< A EVOLUÇÃO COMPLETA ESTÁ AQUI >>>
+            // <<< A CORREÇÃO FINAL ESTÁ AQUI >>>
             const itemHtml = `
                 <div class="direction-item">
                     <div class="direction-header">
@@ -3701,7 +3701,7 @@ const generateDirectorSheet = async (button) => {
                             <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${emotionData.emotion}</span>
                             <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
                         </div>
-                        <!-- Botão de Cópia que pega o prompt visual completo -->
+                        <!-- Botão de Cópia idêntico ao dos Prompts -->
                         <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
                                 onclick="
                                     const desc = document.getElementById('visual-desc-${index}').innerText;
@@ -3720,9 +3720,7 @@ const generateDirectorSheet = async (button) => {
                             <strong>Visual:</strong>
                             <span id="visual-desc-${index}">${DOMPurify.sanitize(promptData.imageDescription)}</span>
                         </p>
-                        <!-- Elemento escondido com o estilo, para ser usado pelo botão de cópia -->
                         <pre id="visual-style-${index}" class="hidden">${DOMPurify.sanitize(styleBlockContent)}</pre>
-                        
                         ${isCinematicStyleApplied ? `
                             <p class="mt-2 text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</p>
                         ` : ''}
