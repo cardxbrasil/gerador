@@ -495,9 +495,6 @@
 
 
 /* ========================================================== */
-/*           ESTILOS PARA A FOLHA DE DIREÇÃO (FUSÃO)          */
-/* ========================================================== */
-/* ========================================================== */
 /*           ESTILOS PARA A FOLHA DE DIREÇÃO (VERSÃO FINAL)     */
 /* ========================================================== */
 .direction-item {
@@ -518,7 +515,6 @@
     padding-bottom: 0.75rem;
     margin-bottom: 0.75rem;
     border-bottom: 1px dashed var(--dark-border);
-    /* Garante a fonte correta para o cabeçalho */
     font-family: 'Roboto', sans-serif;
 }
 .direction-header .scene-tag {
@@ -536,8 +532,8 @@
 .direction-script {
     font-family: 'Source Serif Pro', serif;
     font-weight: 400; /* Peso normal, sem negrito */
-    font-size: 1rem;  /* Tamanho padrão do corpo do texto */
-    line-height: 1.7;
+    /* Tamanho e altura de linha herdados do body para consistência total */
+    line-height: 1.7; 
     margin-bottom: 1rem;
     padding-left: 1rem;
 }
@@ -550,7 +546,7 @@
 }
 .direction-details strong {
     color: var(--dark-text-body);
-    font-weight: 600; /* Negrito apenas na palavra "Visual:" */
+    font-weight: 600;
 }
 
 
@@ -3645,10 +3641,10 @@ const getTranscriptOnly = () => {
 
 
 // =========================================================================
-// >>>>> NOVA FUNÇÃO UNIFICADA: Gerador da Folha de Direção <<<<<
+// >>>>> VERSÃO FINAL E COMPLETA de 'generateDirectorSheet' <<<<<
 // =========================================================================
 const generateDirectorSheet = async (button) => {
-    // 1. Validação: Verifica se o roteiro completo e os prompts de imagem estão prontos
+    // Validação
     const { script, imagePrompts } = AppState.generated;
     const isScriptReady = script.intro.text && script.development.text && script.climax.text;
     const arePromptsReady = imagePrompts['introSection'] && imagePrompts['developmentSection'] && imagePrompts['climaxSection'];
@@ -3667,36 +3663,36 @@ const generateDirectorSheet = async (button) => {
         const fullTranscript = getTranscriptOnly();
         const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
         
-        const mapPrompt = `Você é uma API de análise emocional e rítmica de roteiro. Sua resposta DEVE ser um array JSON com EXATAMENTE ${paragraphs.length} objetos. Cada objeto deve ter 3 chaves: "paragraph_index" (número), "emotion" (string, ex: "Inspirador", "Reflexivo"), e "pace" (string, ex: "Lento", "Rápido"). Retorne APENAS o array JSON.`;
+        const mapPrompt = `Você é uma API de análise emocional e rítmica. Sua resposta DEVE ser um array JSON com EXATAMENTE ${paragraphs.length} objetos. Cada objeto deve ter 3 chaves: "paragraph_index", "emotion" e "pace". Retorne APENAS o array JSON.`;
         
         const rawMapResult = await callGroqAPI(mapPrompt, 3000);
         const emotionalMap = cleanGeneratedText(rawMapResult, true);
 
-        if (!emotionalMap || !Array.isArray(emotionalMap) || emotionalMap.length !== paragraphs.length) {
+        if (!emotionalMap || !Array.isArray(emotionalMap) || emotionalMap.length > paragraphs.length) {
             throw new Error("A IA falhou ao gerar o mapa emocional. Tente novamente.");
         }
         
-        // Salva o mapa gerado no estado central
         AppState.generated.emotionalMap = emotionalMap;
-        window.emotionalMap = emotionalMap; // Sincroniza a variável legada
+        window.emotionalMap = emotionalMap;
         outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Montando a folha de direção...</p>`;
 
         // --- ETAPA B: Montar a Folha de Direção (Fusão) ---
         const allPrompts = [
-            ...(imagePrompts.introSection || []),
-            ...(imagePrompts.developmentSection || []),
-            ...(imagePrompts.climaxSection || []),
-            ...(imagePrompts.conclusionSection || []),
+            ...(imagePrompts.introSection || []), ...(imagePrompts.developmentSection || []),
+            ...(imagePrompts.climaxSection || []), ...(imagePrompts.conclusionSection || []),
             ...(imagePrompts.ctaSection || [])
         ];
 
-        outputContainer.innerHTML = ''; // Limpa o container para a renderização final
+        outputContainer.innerHTML = '';
         let sceneCounter = 1;
 
         paragraphs.forEach((p, index) => {
             const emotionData = emotionalMap[index] || { emotion: 'N/A', pace: 'N/A' };
-            const promptData = allPrompts[index] || { imageDescription: 'Prompt visual não encontrado.' };
+            const promptData = allPrompts[index] || { imageDescription: 'Visual não encontrado.' };
+            const styleBlockContent = promptData.styleBlock || '';
+            const isCinematicStyleApplied = styleBlockContent.trim() !== '';
 
+            // <<< A EVOLUÇÃO COMPLETA ESTÁ AQUI >>>
             const itemHtml = `
                 <div class="direction-item">
                     <div class="direction-header">
@@ -3705,16 +3701,30 @@ const generateDirectorSheet = async (button) => {
                             <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${emotionData.emotion}</span>
                             <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
                         </div>
+                        <!-- Botão de Cópia que pega o prompt visual completo -->
+                        <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
+                                onclick="
+                                    const desc = document.getElementById('visual-desc-${index}').innerText;
+                                    const style = document.getElementById('visual-style-${index}').innerText;
+                                    window.copyTextToClipboard(desc + ' ' + style);
+                                    window.showToast('Prompt visual completo copiado!');
+                                "
+                                title="Copiar prompt visual completo (descrição + estilo)">
+                            <i class="fas fa-copy"></i>
+                        </button>
                     </div>
                     <p class="direction-script">"${DOMPurify.sanitize(p)}"</p>
                     <div class="direction-details">
-                        <!-- CORREÇÃO: Ícone e texto fora do <strong> -->
-                        <p><i class="fas fa-palette fa-fw mr-2"></i><strong>Visual:</strong> ${DOMPurify.sanitize(promptData.imageDescription)}</p>
+                        <p>
+                            <i class="fas fa-palette fa-fw mr-2"></i>
+                            <strong>Visual:</strong>
+                            <span id="visual-desc-${index}">${DOMPurify.sanitize(promptData.imageDescription)}</span>
+                        </p>
+                        <!-- Elemento escondido com o estilo, para ser usado pelo botão de cópia -->
+                        <pre id="visual-style-${index}" class="hidden">${DOMPurify.sanitize(styleBlockContent)}</pre>
                         
-                        ${promptData.styleBlock ? `
-                            <p class="mt-2">
-                                <span class="text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</span>
-                            </p>
+                        ${isCinematicStyleApplied ? `
+                            <p class="mt-2 text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</p>
                         ` : ''}
                     </div>
                 </div>
