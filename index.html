@@ -495,20 +495,20 @@
 
 
 /* ========================================================== */
-/*           ESTILOS PARA O PAINEL DO DIRETOR                 */
+/*           ESTILOS PARA A FOLHA DE DIREÇÃO (FUSÃO)          */
 /* ========================================================== */
-.shot-item {
+.direction-item { /* Renomeado de .shot-item */
     border-left: 4px solid var(--primary);
     background-color: color-mix(in srgb, var(--dark-bg) 50%, var(--dark-surface));
     padding: 1rem;
     border-radius: 8px;
     transition: var(--transition);
 }
-.shot-item:hover {
+.direction-item:hover {
     box-shadow: var(--shadow);
     transform: translateY(-2px);
 }
-.shot-header {
+.direction-header { /* Renomeado de .shot-header */
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -516,17 +516,17 @@
     margin-bottom: 0.75rem;
     border-bottom: 1px dashed var(--dark-border);
 }
-.shot-header .scene-tag {
+.direction-header .scene-tag { /* Renomeado de .shot-header .scene-tag */
     font-weight: 700;
     font-size: 1.1rem;
     color: var(--dark-text-header);
 }
-.shot-header .tags-group {
+.direction-header .tags-group { /* Renomeado de .shot-header .tags-group */
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
 }
-.shot-script {
+.direction-script { /* Renomeado de .shot-script */
     font-family: 'Source Serif Pro', serif;
     font-size: 1.1rem;
     line-height: 1.7;
@@ -534,11 +534,11 @@
     padding-left: 1rem;
     border-left: 2px solid var(--secondary);
 }
-.shot-details {
+.direction-details { /* Renomeado de .shot-details */
     font-size: 0.85rem;
     color: var(--dark-text-muted);
 }
-.shot-details strong {
+.direction-details strong {
     color: var(--dark-text-body);
     font-weight: 600;
 }
@@ -1189,13 +1189,17 @@
     <section>
         <div class="section-title"><h2 class="text-xl font-bold">3. Recursos e Metadados</h2></div>
         
-        <div class="card card-placeholder mb-6">
-             <div class="flex justify-between items-center mb-3">
-                <h3 class="font-semibold text-lg">Mapa Emocional</h3>
-                <button id="mapEmotionsBtn" data-action="mapEmotions" class="btn btn-secondary btn-small">Mapear</button>
-            </div>
-            <div id="emotionalMapContent"><div class="asset-card-placeholder">Gere o roteiro completo para habilitar.</div></div>
+   <div class="card card-placeholder mb-6">
+         <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold text-lg">Folha de Direção (Mapa Emocional + Visuais)</h3>
+            <!-- O botão agora vai chamar a nova função que vamos criar -->
+            <button id="generateDirectorSheetBtn" data-action="generateDirectorSheet" class="btn btn-secondary btn-small">Gerar Folha de Direção</button>
         </div>
+        <!-- O conteúdo da folha de direção será injetado aqui -->
+        <div id="directorSheetContent" class="space-y-6">
+            <div class="asset-card-placeholder">Gere o roteiro, o mapa emocional e os prompts de imagem para habilitar.</div>
+        </div>
+    </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="card card-placeholder">
@@ -1246,19 +1250,7 @@
         </div>
     </section>
 
-    <!-- SEÇÃO 5: PAINEL DO DIRETOR (ORDEM CORRIGIDA) -->
-    <section id="directorPanelSection" class="mt-10 hidden">
-        <div class="section-title"><h2 class="text-xl font-bold">5. Painel do Diretor</h2></div>
-        <div class="card text-center">
-            <p class="mb-4 text-gray-600 dark:text-gray-400">Quando o roteiro completo, o mapa emocional e os prompts de imagem estiverem prontos, clique abaixo para gerar uma folha de direção completa.</p>
-            <div class="flex flex-wrap justify-center gap-4">
-                <button id="generateDirectorPanelBtn" data-action="generateDirectorPanel" class="btn btn-primary">
-                    <i class="fas fa-clipboard-list mr-2"></i> Gerar Folha de Direção
-                </button>
-            </div>
-            <div id="directorPanelOutput" class="mt-6 text-left space-y-6"></div>
-        </div>
-    </section>
+ 
 
     <!-- SEÇÃO 6: GERENCIAMENTO DO PROJETO (ORDEM CORRIGIDA) -->
     <section class="mt-10">
@@ -3644,80 +3636,82 @@ const getTranscriptOnly = () => {
 
 
 // =========================================================================
-// >>>>> VERSÃO REATORADA de 'mapEmotionsAndPacing' <<<<<
+// >>>>> NOVA FUNÇÃO UNIFICADA: Gerador da Folha de Direção <<<<<
 // =========================================================================
-const mapEmotionsAndPacing = async (button) => {
-    // --- MUDANÇA AQUI: Usamos getTranscriptOnly, que já lê do AppState ---
-    const fullTranscript = getTranscriptOnly();
-    if (!fullTranscript) {
-        window.showToast("Gere o roteiro completo primeiro para criar o mapa emocional.");
+const generateDirectorSheet = async (button) => {
+    // 1. Validação: Verifica se o roteiro completo e os prompts de imagem estão prontos
+    const { script, imagePrompts } = AppState.generated;
+    const isScriptReady = script.intro.text && script.development.text && script.climax.text;
+    const arePromptsReady = imagePrompts['introSection'] && imagePrompts['developmentSection'] && imagePrompts['climaxSection'];
+
+    if (!isScriptReady || !arePromptsReady) {
+        window.showToast("Gere o roteiro principal e os prompts de imagem primeiro.");
         return;
     }
-    // --- FIM DA MUDANÇA ---
 
-    const outputContainer = document.getElementById('emotionalMapContent');
     showButtonLoading(button);
-    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
-
-    const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
-        const prompt = `Você é uma API ESPECIALISTA EM ANÁLISE EMOCIONAL E RÍTMICA DE TEXTO NARRATIVO. Sua função ÚNICA E CRÍTICA é analisar uma série de parágrafos de roteiro e retornar, para CADA UM, uma análise precisa de sua carga emocional e seu ritmo narrativo.
-
-**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
-Você é o ANALISTA ABSOLUTO de EMOTION e PACE em textos narrativos. Sua única função é identificar e classificar a emoção e o ritmo de cada parágrafo com precisão cirúrgica.
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
-2.  **ESTRUTURA COMPLETA:** Cada objeto no array DEVE conter EXATAMENTE estas três chaves: "paragraph_index", "emotion", e "pace".
-3.  **QUANTIDADE EXATA DE OBJETOS:** O array DEVE conter EXATAMENTE ${paragraphs.length} objetos, um para cada parágrafo fornecido.
-4.  **SINTAXE DAS STRINGS:** Todas as chaves e valores string DEVEM usar aspas duplas (""). Cada objeto, EXCETO o último, DEVE ser seguido por uma vírgula (,).
-
-**MANUAL DE ANÁLISE E CLASSIFICAÇÃO (SIGA EXATAMENTE):**
-- **Análise Individual:** Gere uma análise para CADA parágrafo listado.
-- **"paragraph_index" (Índice do Parágrafo):** Um número inteiro representando a posição do parágrafo na lista original (0, 1, 2, ...).
-- **"emotion" (Emoção Dominante):** Escolha EXATAMENTE UM dos seguintes valores: "Inspirador", "Reflexivo", "Emocional", "Motivador", "Informativo", "Curioso", "Empático", "Urgente", "Calmo", "Neutro".
-- **"pace" (Ritmo Sugerido):** Escolha EXATAMENTE UM dos seguintes valores: "Muito Lento", "Lento", "Normal", "Rápido", "Muito Rápido".
-
-**ROTEIRO PARA ANÁLISE DETALHADA:**
-${paragraphs.map((p, index) => `PARAGRAFO ${index}: "${p}"`).join('\n\n')}
-
-**AÇÃO FINAL:** Analise AGORA cada parágrafo, gere a análise emocional/rítmica conforme as regras e responda APENAS com o array JSON perfeito.`;
+    const outputContainer = document.getElementById('directorSheetContent');
+    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções e ritmo do roteiro...</p>`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 3000);
-        const analysis = cleanGeneratedText(rawResult, true);
-
-        if (!analysis || !Array.isArray(analysis) || analysis.length !== paragraphs.length) {
-            throw new Error("A IA retornou um mapa emocional em formato inválido ou incompleto.");
-        }
-
-        // --- A MUDANÇA ESTÁ AQUI ---
-        // Gravamos o mapa emocional no nosso "cérebro" central.
-        AppState.generated.emotionalMap = analysis;
-        window.emotionalMap = analysis;
-        // --- FIM DA MUDANÇA ---
+        // --- ETAPA A: Gerar o Mapa Emocional (nos bastidores) ---
+        const fullTranscript = getTranscriptOnly();
+        const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
         
-        let mapHtml = '<div class="space-y-4">';
-        analysis.forEach(item => {
-            const paragraphText = paragraphs[item.paragraph_index];
-            if (!paragraphText) return;
-            mapHtml += `
-                <div class="emotional-map-item card !p-3">
-                    <p class="paragraph-preview">"${DOMPurify.sanitize(paragraphText)}"</p>
-                    <div class="analysis-tags">
-                        <span class="tag tag-emotion"><i class="fas fa-theater-masks mr-2"></i>${DOMPurify.sanitize(item.emotion)}</span>
-                        <span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${DOMPurify.sanitize(item.pace)}</span>
+        const mapPrompt = `Você é uma API de análise emocional e rítmica de roteiro. Sua resposta DEVE ser um array JSON com EXATAMENTE ${paragraphs.length} objetos. Cada objeto deve ter 3 chaves: "paragraph_index" (número), "emotion" (string, ex: "Inspirador", "Reflexivo"), e "pace" (string, ex: "Lento", "Rápido"). Retorne APENAS o array JSON.`;
+        
+        const rawMapResult = await callGroqAPI(mapPrompt, 3000);
+        const emotionalMap = cleanGeneratedText(rawMapResult, true);
+
+        if (!emotionalMap || !Array.isArray(emotionalMap) || emotionalMap.length !== paragraphs.length) {
+            throw new Error("A IA falhou ao gerar o mapa emocional. Tente novamente.");
+        }
+        
+        // Salva o mapa gerado no estado central
+        AppState.generated.emotionalMap = emotionalMap;
+        window.emotionalMap = emotionalMap; // Sincroniza a variável legada
+        outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Montando a folha de direção...</p>`;
+
+        // --- ETAPA B: Montar a Folha de Direção (Fusão) ---
+        const allPrompts = [
+            ...(imagePrompts.introSection || []),
+            ...(imagePrompts.developmentSection || []),
+            ...(imagePrompts.climaxSection || []),
+            ...(imagePrompts.conclusionSection || []),
+            ...(imagePrompts.ctaSection || [])
+        ];
+
+        outputContainer.innerHTML = ''; // Limpa o container para a renderização final
+        let sceneCounter = 1;
+
+        paragraphs.forEach((p, index) => {
+            const emotionData = emotionalMap[index] || { emotion: 'N/A', pace: 'N/A' };
+            const promptData = allPrompts[index] || { imageDescription: 'Prompt visual não encontrado.' };
+
+            const itemHtml = `
+                <div class="direction-item">
+                    <div class="direction-header">
+                        <span class="scene-tag">Cena ${String(sceneCounter++).padStart(2, '0')}</span>
+                        <div class="tags-group">
+                            <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${emotionData.emotion}</span>
+                            <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
+                        </div>
+                    </div>
+                    <p class="direction-script">"${DOMPurify.sanitize(p)}"</p>
+                    <div class="direction-details">
+                        <p><strong><i class="fas fa-palette fa-fw mr-2"></i>Visual:</strong> ${DOMPurify.sanitize(promptData.imageDescription)}</p>
                     </div>
                 </div>
             `;
+            outputContainer.innerHTML += itemHtml;
         });
-        mapHtml += '</div>';
         
-        outputContainer.innerHTML = mapHtml;
+        window.showToast("Folha de Direção gerada com sucesso!");
         markButtonAsCompleted(button.id);
 
     } catch (error) {
-        console.error("Erro detalhado em mapEmotionsAndPacing:", error);
-        outputContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar o mapa emocional: ${error.message}</p>`;
+        console.error("Erro ao gerar a Folha de Direção:", error);
+        outputContainer.innerHTML = `<p class="text-red-500">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
     }
@@ -4320,85 +4314,6 @@ const resetGeneratedScriptContent = (sourceId) => {
 
 };
 
-
-
-
-// ==========================================================
-// >>>>> EVOLUÇÃO 3: LÓGICA DO PAINEL DO DIRETOR <<<<<
-// ==========================================================
-
-/**
- * Reúne todos os dados gerados (roteiro, emoções, prompts) do AppState
- * e monta uma "Folha de Direção" (Shot List) completa.
- */
-const generateDirectorPanel = (button) => {
-    // 1. Validação: Verifica se todos os recursos necessários existem no AppState.
-    const { script, emotionalMap, imagePrompts } = AppState.generated;
-    const isReady = script.intro.text && script.development.text && script.climax.text &&
-                    emotionalMap && Object.keys(imagePrompts).length > 0;
-
-    if (!isReady) {
-        window.showToast("Gere o roteiro, o mapa emocional e os prompts de imagem primeiro.");
-        return;
-    }
-
-    showButtonLoading(button);
-    const outputContainer = document.getElementById('directorPanelOutput');
-    outputContainer.innerHTML = '';
-
-    try {
-        // 2. Unificação de Dados: Junta todos os parágrafos e prompts em uma única lista.
-        const allParagraphs = getTranscriptOnly().split('\n\n').filter(p => p.trim());
-        const allPrompts = [
-            ...(imagePrompts.introSection || []),
-            ...(imagePrompts.developmentSection || []),
-            ...(imagePrompts.climaxSection || []),
-            ...(imagePrompts.conclusionSection || []),
-            ...(imagePrompts.ctaSection || [])
-        ];
-
-        if (allParagraphs.length !== allPrompts.length || allParagraphs.length !== emotionalMap.length) {
-            console.warn("Discrepância nos dados:", {
-                paragraphs: allParagraphs.length,
-                prompts: allPrompts.length,
-                emotions: emotionalMap.length
-            });
-            window.showToast("Aviso: desalinhamento de dados. O painel pode estar incompleto.");
-        }
-
-        // 3. Renderização: Itera sobre cada parágrafo e monta o "shot item".
-        let sceneCounter = 1;
-        allParagraphs.forEach((p, index) => {
-            const emotionData = emotionalMap[index] || { emotion: 'N/A', pace: 'N/A' };
-            const promptData = allPrompts[index] || { imageDescription: 'Prompt de imagem não encontrado.' };
-
-            const shotHtml = `
-                <div class="shot-item">
-                    <div class="shot-header">
-                        <span class="scene-tag">Cena ${String(sceneCounter++).padStart(2, '0')}</span>
-                        <div class="tags-group">
-                            <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${emotionData.emotion}</span>
-                            <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
-                        </div>
-                    </div>
-                    <p class="shot-script">"${DOMPurify.sanitize(p)}"</p>
-                    <div class="shot-details">
-                        <p><strong><i class="fas fa-palette fa-fw mr-2"></i>Visual:</strong> ${DOMPurify.sanitize(promptData.imageDescription)}</p>
-                    </div>
-                </div>
-            `;
-            outputContainer.innerHTML += shotHtml;
-        });
-        
-        window.showToast("Folha de Direção gerada com sucesso!");
-
-    } catch (error) {
-        console.error("Erro ao gerar o Painel do Diretor:", error);
-        window.showToast(`Falha ao gerar o painel: ${error.message}`);
-    } finally {
-        hideButtonLoading(button);
-    }
-};
 
 
 
@@ -7864,7 +7779,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 4. O "GERENTE DE CLIQUES" (OBJETO 'actions' CORRIGIDO) ---
     const actions = {
         // Ações da Seção de Inspiração
-            'generateDirectorPanel': (btn) => generateDirectorPanel(btn),
+            'generateDirectorSheet': (btn) => generateDirectorSheet(btn),
             'investigate': (btn) => window.verifyFact(btn),
             'investigate': (btn) => window.verifyFact(btn),
     'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn),
@@ -7914,7 +7829,6 @@ document.addEventListener('DOMContentLoaded', () => {
         'addDevelopmentChapter': (btn) => window.addDevelopmentChapter(btn),
         
         // Ações do Painel do Projeto (Recursos)
-        'mapEmotions': (btn) => mapEmotionsAndPacing(btn),
         'generateTitlesAndThumbnails': (btn) => generateTitlesAndThumbnails(btn),
         'generateDescription': (btn) => generateVideoDescription(btn),
         'generateSoundtrack': (btn) => generateSoundtrack(btn),
