@@ -3678,9 +3678,13 @@ const generateDirectorSheet = async (button) => {
         const mapPrompt = `Você é uma API de análise. Sua resposta DEVE ser um array JSON com ${paragraphs.length} objetos. Cada objeto deve ter: "paragraph_index", "emotion", e "pace". Retorne APENAS o JSON.`;
         
         const rawMapResult = await callGroqAPI(mapPrompt, 3000);
-        const emotionalMap = cleanGeneratedText(rawResult, true);
+        
+        // ***** AQUI ESTÁ A CORREÇÃO CRÍTICA *****
+        // Usamos 'rawMapResult' em vez de 'rawResult'
+        const emotionalMap = cleanGeneratedText(rawMapResult, true);
+        // *****************************************
 
-        if (!emotionalMap || !Array.isArray(emotionalMap) || emotionalMap.length > paragraphs.length) {
+        if (!emotionalMap || !Array.isArray(emotionalMap) || emotionalMap.length < paragraphs.length) {
             // Se a IA falhar, criamos um mapa "burro" para não quebrar a UI
             console.warn("Falha ao gerar mapa emocional, usando fallback.");
             window.emotionalMap = paragraphs.map((p, i) => ({ paragraph_index: i, emotion: 'Neutro', pace: 'Normal' }));
@@ -3691,7 +3695,7 @@ const generateDirectorSheet = async (button) => {
         
         outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Montando a folha de direção...</p>`;
 
-        // --- ETAPA B: Montar a Folha de Direção por SEÇÕES ---
+        // --- ETAPA B: Montar a Folha de Direção por SEÇÕES (Lógica anterior mantida) ---
         outputContainer.innerHTML = '';
         
         const sectionOrder = [
@@ -3711,7 +3715,6 @@ const generateDirectorSheet = async (button) => {
             const sectionParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim());
             const sectionPrompts = AppState.generated.imagePrompts[`${sectionInfo.id}Section`] || [];
 
-            // Adiciona um título de seção à Folha de Direção
             const sectionTitleElement = document.createElement('h3');
             sectionTitleElement.className = 'text-lg font-bold mt-8 mb-4 border-b pb-2';
             sectionTitleElement.textContent = sectionInfo.title;
@@ -3722,17 +3725,13 @@ const generateDirectorSheet = async (button) => {
                 const promptData = sectionPrompts[indexInSection] || { imageDescription: 'Visual não encontrado.' };
                 const styleBlockContent = (promptData.styleBlock || '').trim();
 
-                // ***** AQUI ESTÁ A MÁGICA DA CORREÇÃO *****
-                // Criamos os elementos via DOM para garantir que as classes sejam aplicadas corretamente.
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'direction-item mb-4';
                 
-                // O parágrafo do roteiro com a classe correta!
                 const scriptParagraph = document.createElement('p');
-                scriptParagraph.className = 'direction-script'; // <--- CLASSE CORRETA APLICADA!
+                scriptParagraph.className = 'direction-script';
                 scriptParagraph.textContent = `"${p}"`;
 
-                // Montamos o restante do HTML
                 itemDiv.innerHTML = `
                     <div class="direction-header">
                         <div class="tags-group">
@@ -3747,7 +3746,7 @@ const generateDirectorSheet = async (button) => {
                     </div>
                 `;
                 
-                itemDiv.appendChild(scriptParagraph); // Adiciona o parágrafo do roteiro
+                itemDiv.appendChild(scriptParagraph);
 
                 const detailsDiv = document.createElement('div');
                 detailsDiv.className = 'direction-details';
@@ -3760,10 +3759,8 @@ const generateDirectorSheet = async (button) => {
                     ${styleBlockContent ? `<p class="mt-2 text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</p>` : ''}
                 `;
                 
-                itemDiv.appendChild(detailsDiv); // Adiciona os detalhes visuais
-                
-                outputContainer.appendChild(itemDiv); // Adiciona o item completo ao container
-
+                itemDiv.appendChild(detailsDiv);
+                outputContainer.appendChild(itemDiv);
                 globalParagraphIndex++;
             });
         });
