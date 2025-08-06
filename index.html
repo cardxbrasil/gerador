@@ -530,6 +530,7 @@
 }
 .direction-script { /* Renomeado de .shot-script */
     font-family: 'Roboto', serif;
+    font-weight: 400;
     line-height: 1.7;
     margin-bottom: 1rem;
     padding-left: 1rem;
@@ -3698,11 +3699,18 @@ const generateDirectorSheet = async (button) => {
                             <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
                         </div>
                     </div>
-                    
                     <p class="direction-script">"${DOMPurify.sanitize(p)}"</p>
                     <div class="direction-details">
-                        
                         <p><strong><i class="fas fa-palette fa-fw mr-2"></i>Visual:</strong> ${DOMPurify.sanitize(promptData.imageDescription)}</p>
+                        
+                        
+                        ${promptData.styleBlock ? `
+                            <p class="mt-2">
+                                <strong>Estilo Aplicado:</strong>
+                                <span class="text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</span>
+                            </p>
+                        ` : ''}
+
                     </div>
                 </div>
             `;
