@@ -839,31 +839,6 @@
 }
 
 
-/* ================================================================= */
-/* >>>>> SOLUÇÃO DEFINITIVA E À PROVA DE BALAS PARA A FONTE <<<<< */
-/* ================================================================= */
-
-/* 
-  Este é o nosso "míssil teleguiado". Ele mira em qualquer div 
-  DENTRO de .generated-content-wrapper que tenha um ID 
-  contendo "-p-", como "intro-p-0", "development-p-1", etc.
-  É a regra mais específica possível para o seu caso.
-*/
-.generated-content-wrapper div[id*="-p-"] {
-    font-family: 'Roboto', serif !important; /* !important garante a vitória */
-    font-size: 1.1rem;
-    line-height: 1.7;
-    color: var(--dark-text-body); /* Garante a cor correta do texto */
-}
-
-/* 
-  Esta regra garante que os títulos de capítulo (se houver) 
-  voltem a usar a fonte da interface, o Roboto.
-*/
-.generated-content-wrapper .font-bold {
-    font-family: 'Roboto', sans-serif !important;
-}
-
 </style>
 
 
