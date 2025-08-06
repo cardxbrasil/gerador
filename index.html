@@ -849,15 +849,6 @@ html, body {
 }
 
 
-/* ========================================================== */
-/*           ANIMAÇÃO DE ANÁLISE NO PRÓPRIO TEXTO             */
-/* ========================================================== */
-.is-analyzing {
-    opacity: 0.5;
-    transition: opacity 0.3s ease-in-out;
-    pointer-events: none; /* Impede que o usuário edite o texto durante a análise */
-}
-
 
 </style>
 
@@ -1509,39 +1500,18 @@ Para diferentes gêneros e atmosferas, considere estas referências:
         // ==========================================================
         // ================== FUNÇÕES DE UTILIDADE ==================
         // ==========================================================
-/**
- * Exibe uma notificação toast na parte inferior da tela com cores diferentes.
- * @param {string} message - A mensagem a ser exibida.
- * @param {string} [type='info'] - O tipo de notificação ('info', 'success', 'error').
- */
-window.showToast = (message, type = 'info') => { // Adicionamos o parâmetro 'type'
+        /**
+         * Exibe uma notificação toast na parte inferior da tela.
+         * @param {string} message - A mensagem a ser exibida.
+         */
+        window.showToast = (message) => {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
     if (!toast || !toastMessage) return;
-
-    // Remove classes de cor antigas para garantir que não se acumulem
-    toast.style.borderLeftColor = ''; 
-
-    // Aplica a nova cor da borda com base no tipo
-    switch (type) {
-        case 'success':
-            toast.style.borderLeftColor = 'var(--success)'; // Verde
-            break;
-        case 'error':
-            toast.style.borderLeftColor = 'var(--danger)'; // Vermelho
-            break;
-        default: // 'info' ou qualquer outro
-            toast.style.borderLeftColor = 'var(--primary)'; // Azul/Roxo padrão
-    }
-
     toastMessage.textContent = message;
     toast.classList.add('show');
-    setTimeout(() => { toast.classList.remove('show'); }, 5000);
-
+    setTimeout(() => { toast.classList.remove('show'); }, 8000);
 };
-
-
-
 
 
 
@@ -1825,7 +1795,6 @@ window.verifyFact = async (button) => {
 
     // 3. EXECUÇÃO: Mostra o loading e chama a IA.
     showButtonLoading(button);
-    contentWrapper.classList.add('is-analyzing');
     outputContainer.innerHTML = `<div class="text-center py-4"><div class="loading-spinner mx-auto"></div><p class="text-sm mt-2">Nossos agentes estão investigando...</p></div>`;
 
     try {
@@ -1866,7 +1835,6 @@ window.verifyFact = async (button) => {
         outputContainer.innerHTML = `<p class="text-red-500 p-4">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
-
     }
 };
 
@@ -3569,7 +3537,7 @@ const updateButtonStates = () => {
                 const arePromptsReady = AppState.generated.imagePrompts['introSection'] &&
                                         AppState.generated.imagePrompts['developmentSection'] &&
                                         AppState.generated.imagePrompts['climaxSection'];
-                btn.disabled = !allMainScriptGenerated || !arePromptsReady;
+                btn.disabled = !isFullScriptGenerated || !arePromptsReady;
             } else {
                 btn.disabled = !allMainScriptGenerated;
             }
@@ -3690,20 +3658,13 @@ const getTranscriptOnly = () => {
 const generateDirectorSheet = async (button) => {
     // Validação
     const { script, imagePrompts } = AppState.generated;
+    const isScriptReady = script.intro.text && script.development.text && script.climax.text;
+    const arePromptsReady = imagePrompts['introSection'] && imagePrompts['developmentSection'] && imagePrompts['climaxSection'];
 
-// Checagem 1: O roteiro principal está pronto?
-const isScriptReady = script.intro.text && script.development.text && script.climax.text;
-if (!isScriptReady) {
-    window.showToast("Gere as seções principais do roteiro (Intro, Dev, Clímax) primeiro.", 'error');
-    return;
-}
-
-// Checagem 2: Todos os prompts de imagem necessários estão prontos?
-const arePromptsReady = imagePrompts['introSection'] && imagePrompts['developmentSection'] && imagePrompts['climaxSection'];
-if (!arePromptsReady) {
-    window.showToast("O roteiro foi editado. Por favor, gere os Prompts de Imagem para todas as seções novamente.", 'error');
-    return;
-}
+    if (!isScriptReady || !arePromptsReady) {
+        window.showToast("Gere o roteiro principal e os prompts de imagem primeiro.");
+        return;
+    }
 
     showButtonLoading(button);
     const outputContainer = document.getElementById('directorSheetContent');
@@ -4286,10 +4247,6 @@ const renderPaginatedPrompts = (sectionElementId) => {
     
     const promptsToShow = prompts.slice(startIndex, startIndex + itemsPerPage);
 
-    // Checa a configuração de estilo UMA VEZ fora do loop
-    const imageStyleSelect = document.getElementById('imageStyleSelect');
-    const isCinematicStyleApplied = imageStyleSelect && (imageStyleSelect.value === 'cinematic' || imageStyleSelect.value === 'custom');
-
     promptsToShow.forEach((promptData, index) => {
         const globalIndex = startIndex + index;
         const minutes = Math.floor(cumulativeSeconds / 60);
@@ -4297,25 +4254,22 @@ const renderPaginatedPrompts = (sectionElementId) => {
         const timestamp = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         const sceneNumber = globalSceneCounter + index;
         
-        // Determina qual bloco de estilo usar para a cópia
-        let styleBlockForCopy = '';
-        if (isCinematicStyleApplied) {
-            styleBlockForCopy = imageStyleSelect.value === 'custom' 
-                ? (document.getElementById('customImageStyle')?.value || '') 
-                : CINEMATIC_STYLE_BLOCK;
-        }
+        // <<< A CORREÇÃO ESTÁ AQUI: VOLTAMOS AO COMPORTAMENTO ORIGINAL E CORRETO >>>
+        const styleBlockContent = promptData.styleBlock || '';
+        const isCinematicStyleApplied = styleBlockContent.trim() !== '';
 
         const promptHtml = `
             <div class="prompt-item card !p-3 animate-fade-in">
                 <div class="prompt-header">
                     <span class="tag tag-scene"><i class="fas fa-film mr-2"></i>Cena ${String(sceneNumber).padStart(2, '0')}</span>
                     <span class="tag tag-time"><i class="fas fa-clock mr-2"></i>${timestamp}</span>
+                    <!-- O botão de cópia continua poderoso, pegando o conteúdo escondido -->
                     <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
                             onclick="
                                 const desc = document.getElementById('prompt-content-${sectionElementId}-${globalIndex}').innerText;
                                 const style = document.getElementById('style-block-${sectionElementId}-${globalIndex}').innerText;
                                 window.copyTextToClipboard(desc + ' ' + style);
-                                window.showToast('Prompt completo copiado!', 'success');
+                                window.showToast('Prompt completo copiado!');
                             "
                             title="Copiar prompt completo (descrição + estilo)">
                         <i class="fas fa-copy"></i>
@@ -4326,8 +4280,9 @@ const renderPaginatedPrompts = (sectionElementId) => {
                     <p class="font-semibold text-sm">Descrição da Imagem:</p>
                     <p id="prompt-content-${sectionElementId}-${globalIndex}">${DOMPurify.sanitize(promptData.imageDescription)}</p>
                     
-                    ${isCinematicStyleApplied ? `<p class="text-xs italic text-gray-400 mt-2">[Estilo de Imagem Aplicado]</p>` : ''}
-                    <pre id="style-block-${sectionElementId}-${globalIndex}" class="hidden">${DOMPurify.sanitize(styleBlockForCopy)}</pre>
+                    <!-- A indicação de estilo é visual, mas o bloco de texto fica escondido -->
+                    ${isCinematicStyleApplied ? `<p class="text-xs italic text-gray-400 mt-2">[Estilo Cinematográfico Aplicado]</p>` : ''}
+                    <pre id="style-block-${sectionElementId}-${globalIndex}" class="hidden">${DOMPurify.sanitize(styleBlockContent)}</pre>
                 </div>
             </div>
         `;
@@ -5625,31 +5580,25 @@ ${existingText}
 window.analyzeSectionRetention = async (button, sectionId) => {
     const sectionElement = document.getElementById(sectionId);
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
-    const analysisOutput = sectionElement?.querySelector('.section-analysis-output');
 
-    if (!contentWrapper || !contentWrapper.textContent.trim() || !analysisOutput) {
-        window.showToast("Gere o roteiro desta seção antes de analisar.", 'error');
+    if (!contentWrapper || !contentWrapper.textContent.trim()) {
+        window.showToast("Gere o roteiro desta seção antes de analisar a retenção.");
         return;
     }
+
+    // Limpa os resultados de outras análises para evitar confusão na UI
+    invalidateAndClearPerformance(sectionElement);
+    const analysisOutput = sectionElement.querySelector('.section-analysis-output');
+    if(analysisOutput) analysisOutput.innerHTML = '';
+
 
     const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]'));
     if (paragraphs.length === 0) {
-        window.showToast("Não há parágrafos para analisar.", 'info');
+        window.showToast("Não há parágrafos para analisar nesta seção.");
         return;
     }
-    
+
     showButtonLoading(button);
-    invalidateAndClearPerformance(sectionElement);
-    
-    // ***** AQUI ESTÁ A CORREÇÃO QUE VAI FUNCIONAR *****
-    const skeletonHtml = `
-        <div class="space-y-3">
-            <div class="skeleton-card"></div>
-            <div class="skeleton-card" style="width: 80%;"></div>
-        </div>
-    `;
-    analysisOutput.innerHTML = skeletonHtml;
-    // *************************************************
 
     try {
         const paragraphsWithIndexes = paragraphs.map((p, index) => ({
@@ -5659,6 +5608,7 @@ window.analyzeSectionRetention = async (button, sectionId) => {
         
         const basePromptContext = getBasePromptContext();
 
+        // O NOVO PROMPT BLINDADO
         const prompt = `Você é uma API de análise de roteiro que retorna JSON.
 
 **CONTEXTO ESTRATÉGICO (A "ALMA" DO ROTEIRO):**
@@ -5687,15 +5637,12 @@ ${JSON.stringify(paragraphsWithIndexes, null, 2)}
 
         const rawResult = await callGroqAPI(prompt, 4000);
         const analysis = cleanGeneratedText(rawResult, true);
-        
-        // Limpa o esqueleto ANTES de mostrar o resultado real.
-        analysisOutput.innerHTML = ''; 
 
         if (!analysis || !Array.isArray(analysis)) {
             throw new Error("A análise da IA retornou um formato inválido.");
         }
         
-        // Seu código de agrupamento e renderização, que já está correto, continua aqui.
+        // A lógica de agrupamento e renderização continua a mesma, pois é robusta.
         if (analysis.length > 0) {
             let currentGroup = [];
             for (let i = 0; i < analysis.length; i++) {
@@ -5736,6 +5683,7 @@ ${JSON.stringify(paragraphsWithIndexes, null, 2)}
                     if (!previousItem || item.suggestion !== previousItem.suggestion || (analysis.filter(s => s.suggestion === item.suggestion).length === 1)) {
                         const scoreLabels = { yellow: "PONTO DE ATENÇÃO", red: "PONTO DE RISCO" };
                         const tooltipTitle = scoreLabels[item.retentionScore] || 'ANÁLISE';
+
                         const suggestionTextEscaped = item.suggestion.replace(/"/g, '\"');
                         const buttonsHtml = `
                             <div class="flex gap-2 mt-3">
@@ -5759,12 +5707,11 @@ ${JSON.stringify(paragraphsWithIndexes, null, 2)}
             }
         });
 
-        window.showToast("Análise de retenção concluída!", 'success');
+        window.showToast("Análise de retenção concluída!");
 
     } catch (error) {
         console.error("Erro detalhado em analyzeSectionRetention:", error);
-        window.showToast(`Falha na análise: ${error.message}`, 'error');
-        analysisOutput.innerHTML = `<p class="text-red-500 text-sm">Falha ao analisar: ${error.message}</p>`;
+        window.showToast(`Falha na análise: ${error.message}`);
     } finally {
         hideButtonLoading(button);
     }
@@ -6801,7 +6748,7 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
         }));
 
         // Salva no AppState
-        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts;
+        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts.map((p) => ({ ...p, styleBlock: CINEMATIC_STYLE_BLOCK }));
         AppState.ui.promptPaginationState[sectionElementId] = 0;
 
         // Sincroniza as variáveis legadas
