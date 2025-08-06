@@ -3641,7 +3641,7 @@ const getTranscriptOnly = () => {
 
 
 // =========================================================================
-// >>>>> VERSÃO FINAL E CORRIGIDA de 'generateDirectorSheet' <<<<<
+// >>>>> VERSÃO FINAL de 'generateDirectorSheet' (Organizada por Seções) <<<<<
 // =========================================================================
 const generateDirectorSheet = async (button) => {
     // Validação
@@ -3656,78 +3656,87 @@ const generateDirectorSheet = async (button) => {
 
     showButtonLoading(button);
     const outputContainer = document.getElementById('directorSheetContent');
-    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções e ritmo do roteiro...</p>`;
+    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções e ritmo...</p>`;
 
     try {
-        // ETAPA A: Gerar o Mapa Emocional
+        // --- ETAPA A: Gerar o Mapa Emocional ---
         const fullTranscript = getTranscriptOnly();
         const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
         
-        const mapPrompt = `Você é uma API de análise emocional e rítmica. Sua resposta DEVE ser um array JSON com EXATAMENTE ${paragraphs.length} objetos. Cada objeto deve ter 3 chaves: "paragraph_index", "emotion" e "pace". Retorne APENAS o array JSON.`;
+        const mapPrompt = `Você é uma API de análise. Sua resposta DEVE ser um array JSON com ${paragraphs.length} objetos. Cada objeto deve ter: "paragraph_index", "emotion", e "pace". Retorne APENAS o JSON.`;
         
         const rawMapResult = await callGroqAPI(mapPrompt, 3000);
         const emotionalMap = cleanGeneratedText(rawMapResult, true);
 
         if (!emotionalMap || !Array.isArray(emotionalMap) || emotionalMap.length > paragraphs.length) {
-            throw new Error("A IA falhou ao gerar o mapa emocional. Tente novamente.");
+            throw new Error("A IA falhou ao gerar o mapa emocional.");
         }
         
         AppState.generated.emotionalMap = emotionalMap;
         window.emotionalMap = emotionalMap;
         outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Montando a folha de direção...</p>`;
 
-        // ETAPA B: Montar a Folha de Direção
-        const allPrompts = [
-            ...(imagePrompts.introSection || []), ...(imagePrompts.developmentSection || []),
-            ...(imagePrompts.climaxSection || []), ...(imagePrompts.conclusionSection || []),
-            ...(imagePrompts.ctaSection || [])
+        // --- ETAPA B: Montar a Folha de Direção por SEÇÕES ---
+        outputContainer.innerHTML = '';
+        
+        const sectionOrder = [
+            { id: 'intro', title: 'Introdução' },
+            { id: 'development', title: 'Desenvolvimento' },
+            { id: 'climax', title: 'Clímax' },
+            { id: 'conclusion', title: 'Conclusão' },
+            { id: 'cta', title: 'Call to Action (CTA)' }
         ];
 
-        outputContainer.innerHTML = '';
-        let sceneCounter = 1;
+        let globalParagraphIndex = 0;
 
-        paragraphs.forEach((p, index) => {
-            const emotionData = emotionalMap[index] || { emotion: 'N/A', pace: 'N/A' };
-            const promptData = allPrompts[index] || { imageDescription: 'Visual não encontrado.' };
-            const styleBlockContent = promptData.styleBlock || '';
-            const isCinematicStyleApplied = styleBlockContent.trim() !== '';
+        sectionOrder.forEach(sectionInfo => {
+            const sectionScript = AppState.generated.script[sectionInfo.id];
+            if (!sectionScript || !sectionScript.text) return;
 
-            // <<< A CORREÇÃO FINAL ESTÁ AQUI >>>
-            const itemHtml = `
-                <div class="direction-item">
-                    <div class="direction-header">
-                        <span class="scene-tag">Cena ${String(sceneCounter++).padStart(2, '0')}</span>
-                        <div class="tags-group">
-                            <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${emotionData.emotion}</span>
-                            <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
+            const sectionParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim());
+            const sectionPrompts = AppState.generated.imagePrompts[`${sectionInfo.id}Section`] || [];
+
+            // Adiciona um título de seção à Folha de Direção
+            outputContainer.innerHTML += `<h3 class="text-lg font-bold mt-8 mb-4 border-b pb-2">${sectionInfo.title}</h3>`;
+
+            sectionParagraphs.forEach((p, indexInSection) => {
+                const emotionData = emotionalMap[globalParagraphIndex] || { emotion: 'N/A', pace: 'N/A' };
+                const promptData = sectionPrompts[indexInSection] || { imageDescription: 'Visual não encontrado.' };
+                const styleBlockContent = promptData.styleBlock || '';
+
+                const itemHtml = `
+                    <div class="direction-item mb-4">
+                        <div class="direction-header">
+                            <div class="tags-group">
+                                <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${emotionData.emotion}</span>
+                                <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
+                            </div>
+                            <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
+                                    onclick="
+                                        const desc = document.getElementById('visual-desc-${globalParagraphIndex}').innerText;
+                                        const style = document.getElementById('visual-style-${globalParagraphIndex}').innerText;
+                                        window.copyTextToClipboard(desc + ' ' + style);
+                                        window.showToast('Prompt visual completo copiado!');
+                                    "
+                                    title="Copiar prompt visual completo (descrição + estilo)">
+                                <i class="fas fa-copy"></i>
+                            </button>
                         </div>
-                        <!-- Botão de Cópia idêntico ao dos Prompts -->
-                        <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
-                                onclick="
-                                    const desc = document.getElementById('visual-desc-${index}').innerText;
-                                    const style = document.getElementById('visual-style-${index}').innerText;
-                                    window.copyTextToClipboard(desc + ' ' + style);
-                                    window.showToast('Prompt visual completo copiado!');
-                                "
-                                title="Copiar prompt visual completo (descrição + estilo)">
-                            <i class="fas fa-copy"></i>
-                        </button>
+                        <p class="direction-script">"${DOMPurify.sanitize(p)}"</p>
+                        <div class="direction-details">
+                            <p>
+                                <i class="fas fa-palette fa-fw mr-2"></i>
+                                <strong>Visual:</strong>
+                                <span id="visual-desc-${globalParagraphIndex}">${DOMPurify.sanitize(promptData.imageDescription)}</span>
+                            </p>
+                            <pre id="visual-style-${globalParagraphIndex}" class="hidden">${DOMPurify.sanitize(styleBlockContent)}</pre>
+                            ${styleBlockContent ? `<p class="mt-2 text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</p>` : ''}
+                        </div>
                     </div>
-                    <p class="direction-script">"${DOMPurify.sanitize(p)}"</p>
-                    <div class="direction-details">
-                        <p>
-                            <i class="fas fa-palette fa-fw mr-2"></i>
-                            <strong>Visual:</strong>
-                            <span id="visual-desc-${index}">${DOMPurify.sanitize(promptData.imageDescription)}</span>
-                        </p>
-                        <pre id="visual-style-${index}" class="hidden">${DOMPurify.sanitize(styleBlockContent)}</pre>
-                        ${isCinematicStyleApplied ? `
-                            <p class="mt-2 text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</p>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-            outputContainer.innerHTML += itemHtml;
+                `;
+                outputContainer.innerHTML += itemHtml;
+                globalParagraphIndex++;
+            });
         });
         
         window.showToast("Folha de Direção gerada com sucesso!");
