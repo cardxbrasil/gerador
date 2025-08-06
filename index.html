@@ -840,24 +840,23 @@
 
 
 /* ================================================================= */
-/* >>>>> COLE ESTE BLOCO NO SEU CSS PARA CORRIGIR A FONTE <<<<< */
+/* >>>>> CORREÇÃO DEFINITIVA PARA A FONTE DO ROTEIRO <<<<< */
 /* ================================================================= */
 
-.generated-content-wrapper { 
-    background-color: color-mix(in srgb, var(--dark-bg) 50%, var(--dark-surface)); 
-    border-left: 4px solid var(--primary); 
-    padding: 1rem 1.5rem; 
-    border-radius: 8px; 
-    
-    /* A MÁGICA ESTÁ AQUI: */
-    font-family: 'Source Serif Pro', serif; /* Define a fonte de roteiro */
-    font-size: 1.1rem;                      /* Aumenta um pouco para legibilidade */
-    line-height: 1.7;                       /* Melhora o espaçamento entre linhas */
+/* Aplica a fonte de roteiro a CADA parágrafo (div) dentro do container */
+.generated-content-wrapper > div {
+    font-family: 'Source Serif Pro', serif;
+    font-size: 1.1rem;      /* Tamanho ideal para leitura em tela */
+    line-height: 1.7;       /* Espaçamento generoso entre linhas */
+    margin-bottom: 0.75em;  /* Um pequeno respiro entre os parágrafos */
 }
 
-/* ================================================================= */
-/* ================================================================= */
-
+/* Garante que os títulos de capítulo adicionados (se houver) não peguem a fonte serifada */
+.generated-content-wrapper > .font-bold {
+    font-family: 'Inter', sans-serif; /* Volta para a fonte da UI */
+    font-size: 1rem; /* Tamanho normal */
+    line-height: 1.5;
+}
 
 </style>
 
