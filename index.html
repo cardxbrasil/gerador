@@ -3653,7 +3653,7 @@ const getTranscriptOnly = () => {
 
 
 // =========================================================================
-// >>>>> VERSÃO CORRIGIDA de 'generateDirectorSheet' <<<<<
+// >>>>> VERSÃO FINAL E CORRIGIDA de 'generateDirectorSheet' <<<<<
 // =========================================================================
 const generateDirectorSheet = async (button) => {
     // Validação
@@ -3675,27 +3675,23 @@ const generateDirectorSheet = async (button) => {
         const fullTranscript = getTranscriptOnly();
         const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
         
-        const mapPrompt = `Você é uma API de análise. Sua resposta DEVE ser um array JSON com ${paragraphs.length} objetos. Cada objeto deve ter: "paragraph_index", "emotion", e "pace". Retorne APENAS o JSON.`;
+        // >>> PROMPT MAIS ROBUSTO PARA GARANTIR A RESPOSTA CORRETA
+        const prompt = `Você é uma API de análise que retorna JSON. Para os ${paragraphs.length} parágrafos fornecidos, sua resposta DEVE ser um array JSON com ${paragraphs.length} objetos. Cada objeto deve ter exatamente três chaves: "paragraph_index" (número), "emotion" (string, ex: 'Mistério', 'Esperança'), e "pace" (string, ex: 'Lento', 'Rápido'). Retorne APENAS o array JSON puro e perfeito. Contexto: """${fullTranscript.slice(0, 7000)}"""`;
         
-        const rawMapResult = await callGroqAPI(mapPrompt, 3000);
-        
-        // ***** AQUI ESTÁ A CORREÇÃO CRÍTICA *****
-        // Usamos 'rawMapResult' em vez de 'rawResult'
+        const rawMapResult = await callGroqAPI(prompt, 3000);
         const emotionalMap = cleanGeneratedText(rawMapResult, true);
-        // *****************************************
 
+        // >>> SALVA O RESULTADO (OU O FALLBACK) DIRETAMENTE NO AppState
         if (!emotionalMap || !Array.isArray(emotionalMap) || emotionalMap.length < paragraphs.length) {
-            // Se a IA falhar, criamos um mapa "burro" para não quebrar a UI
             console.warn("Falha ao gerar mapa emocional, usando fallback.");
-            window.emotionalMap = paragraphs.map((p, i) => ({ paragraph_index: i, emotion: 'Neutro', pace: 'Normal' }));
+            AppState.generated.emotionalMap = paragraphs.map((p, i) => ({ paragraph_index: i, emotion: 'Neutro', pace: 'Normal' }));
         } else {
             AppState.generated.emotionalMap = emotionalMap;
-            window.emotionalMap = emotionalMap; // Sincroniza variável legada
         }
         
         outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Montando a folha de direção...</p>`;
 
-        // --- ETAPA B: Montar a Folha de Direção por SEÇÕES (Lógica anterior mantida) ---
+        // --- ETAPA B: Montar a Folha de Direção por SEÇÕES ---
         outputContainer.innerHTML = '';
         
         const sectionOrder = [
@@ -3715,51 +3711,46 @@ const generateDirectorSheet = async (button) => {
             const sectionParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim());
             const sectionPrompts = AppState.generated.imagePrompts[`${sectionInfo.id}Section`] || [];
 
+            // Adiciona um título para cada seção na Folha de Direção
             const sectionTitleElement = document.createElement('h3');
-            sectionTitleElement.className = 'text-lg font-bold mt-8 mb-4 border-b pb-2';
+            sectionTitleElement.className = 'text-xl font-bold mt-8 mb-4 border-b-2 border-primary pb-2';
             sectionTitleElement.textContent = sectionInfo.title;
             outputContainer.appendChild(sectionTitleElement);
 
             sectionParagraphs.forEach((p, indexInSection) => {
-                const emotionData = window.emotionalMap[globalParagraphIndex] || { emotion: 'N/A', pace: 'N/A' };
-                const promptData = sectionPrompts[indexInSection] || { imageDescription: 'Visual não encontrado.' };
-                const styleBlockContent = (promptData.styleBlock || '').trim();
+                // >>> LÊ SEMPRE DO AppState, A FONTE CORRETA DA VERDADE
+                const emotionData = AppState.generated.emotionalMap[globalParagraphIndex] || { emotion: 'N/A', pace: 'N/A' };
+                const promptData = sectionPrompts[indexInSection] || { imageDescription: 'Visual não encontrado.', styleBlock: '' };
+                const fullPromptText = `${promptData.imageDescription} ${promptData.styleBlock || ''}`;
 
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'direction-item mb-4';
                 
-                const scriptParagraph = document.createElement('p');
-                scriptParagraph.className = 'direction-script';
-                scriptParagraph.textContent = `"${p}"`;
-
+                // O HTML gerado é um pouco mais limpo e usa um <pre> escondido para o texto a ser copiado
                 itemDiv.innerHTML = `
                     <div class="direction-header">
                         <div class="tags-group">
-                            <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${emotionData.emotion}</span>
-                            <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
+                            <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${DOMPurify.sanitize(emotionData.emotion)}</span>
+                            <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${DOMPurify.sanitize(emotionData.pace)}</span>
                         </div>
                         <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
-                                onclick="window.copyTextToClipboard(this.closest('.direction-item').querySelector('.direction-details').innerText);"
-                                title="Copiar detalhes visuais completos">
+                                onclick="window.copyTextToClipboard(this.closest('.direction-item').querySelector('.full-prompt-hidden').textContent);"
+                                title="Copiar prompt completo (descrição + estilo)">
                             <i class="fas fa-copy"></i>
                         </button>
                     </div>
+                    <p class="direction-script">"${DOMPurify.sanitize(p)}"</p>
+                    <div class="direction-details">
+                        <p>
+                            <i class="fas fa-palette fa-fw mr-2"></i>
+                            <strong>Visual:</strong>
+                            <span>${DOMPurify.sanitize(promptData.imageDescription)}</span>
+                        </p>
+                        ${promptData.styleBlock.trim() ? `<p class="mt-2 text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</p>` : ''}
+                        <pre class="full-prompt-hidden hidden">${DOMPurify.sanitize(fullPromptText)}</pre>
+                    </div>
                 `;
                 
-                itemDiv.appendChild(scriptParagraph);
-
-                const detailsDiv = document.createElement('div');
-                detailsDiv.className = 'direction-details';
-                detailsDiv.innerHTML = `
-                    <p>
-                        <i class="fas fa-palette fa-fw mr-2"></i>
-                        <strong>Visual:</strong>
-                        <span>${DOMPurify.sanitize(promptData.imageDescription)}</span>
-                    </p>
-                    ${styleBlockContent ? `<p class="mt-2 text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</p>` : ''}
-                `;
-                
-                itemDiv.appendChild(detailsDiv);
                 outputContainer.appendChild(itemDiv);
                 globalParagraphIndex++;
             });
