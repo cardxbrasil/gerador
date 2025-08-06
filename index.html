@@ -5232,7 +5232,9 @@ ${researchData}
  * @param {string|null} contextText - O texto das seções anteriores para dar contexto à IA.
  * @returns {{prompt: string, maxTokens: number}} O prompt e o limite de tokens.
  */
-
+// ==========================================================================================
+// >>>>> VERSÃO REFINADA de 'constructScriptPrompt' (Pede Parágrafos Coesos) <<<<<
+// ==========================================================================================
 const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
     const baseContext = getBasePromptContext();
     const videoDuration = document.getElementById('videoDuration').value;
@@ -5265,7 +5267,7 @@ Sua tarefa é continuar a narrativa a partir daqui, sem repetições.`;
     prompt += `
 \n**REGRAS CRÍTICAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
 1.  **RESPOSTA EM JSON:** Sua resposta DEVE ser um array JSON válido, onde cada item do array é uma string representando um parágrafo do roteiro.
-2.  **QUALIDADE DOS PARÁGRAFOS:** Cada string no array deve ser um parágrafo coeso e bem desenvolvido, agrupando uma ideia completa (idealmente de 3 a 5 frases). **EVITE PARÁGRAFOS COM UMA ÚNICA FRASE**, a menos que seja para um efeito dramático extremo e intencional. A fragmentação excessiva é uma falha.
+2.  **QUALIDADE DOS PARÁGRAFOS:** Cada string no array deve ser um parágrafo coeso e bem desenvolvido, agrupando uma ideia completa (idealmente de 4 a 6 frases). **EVITE PARÁGRAFOS COM UMA ÚNICA FRASE**, a menos que seja para um efeito dramático extremo e intencional. A fragmentação excessiva é uma falha.
 3.  **CONTEÚDO PURO:** As strings devem conter APENAS o texto a ser narrado. É PROIBIDO incluir anotações como 'Narrador:', '(Cena: ...)', etc.
 4.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
 
