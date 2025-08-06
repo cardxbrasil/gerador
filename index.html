@@ -3641,7 +3641,7 @@ const getTranscriptOnly = () => {
 
 
 // =========================================================================
-// >>>>> VERSÃO FINAL de 'generateDirectorSheet' (Organizada por Seções) <<<<<
+// >>>>> VERSÃO CORRIGIDA de 'generateDirectorSheet' <<<<<
 // =========================================================================
 const generateDirectorSheet = async (button) => {
     // Validação
@@ -3666,14 +3666,17 @@ const generateDirectorSheet = async (button) => {
         const mapPrompt = `Você é uma API de análise. Sua resposta DEVE ser um array JSON com ${paragraphs.length} objetos. Cada objeto deve ter: "paragraph_index", "emotion", e "pace". Retorne APENAS o JSON.`;
         
         const rawMapResult = await callGroqAPI(mapPrompt, 3000);
-        const emotionalMap = cleanGeneratedText(rawMapResult, true);
+        const emotionalMap = cleanGeneratedText(rawResult, true);
 
         if (!emotionalMap || !Array.isArray(emotionalMap) || emotionalMap.length > paragraphs.length) {
-            throw new Error("A IA falhou ao gerar o mapa emocional.");
+            // Se a IA falhar, criamos um mapa "burro" para não quebrar a UI
+            console.warn("Falha ao gerar mapa emocional, usando fallback.");
+            window.emotionalMap = paragraphs.map((p, i) => ({ paragraph_index: i, emotion: 'Neutro', pace: 'Normal' }));
+        } else {
+            AppState.generated.emotionalMap = emotionalMap;
+            window.emotionalMap = emotionalMap; // Sincroniza variável legada
         }
         
-        AppState.generated.emotionalMap = emotionalMap;
-        window.emotionalMap = emotionalMap;
         outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Montando a folha de direção...</p>`;
 
         // --- ETAPA B: Montar a Folha de Direção por SEÇÕES ---
@@ -3697,44 +3700,58 @@ const generateDirectorSheet = async (button) => {
             const sectionPrompts = AppState.generated.imagePrompts[`${sectionInfo.id}Section`] || [];
 
             // Adiciona um título de seção à Folha de Direção
-            outputContainer.innerHTML += `<h3 class="text-lg font-bold mt-8 mb-4 border-b pb-2">${sectionInfo.title}</h3>`;
+            const sectionTitleElement = document.createElement('h3');
+            sectionTitleElement.className = 'text-lg font-bold mt-8 mb-4 border-b pb-2';
+            sectionTitleElement.textContent = sectionInfo.title;
+            outputContainer.appendChild(sectionTitleElement);
 
             sectionParagraphs.forEach((p, indexInSection) => {
-                const emotionData = emotionalMap[globalParagraphIndex] || { emotion: 'N/A', pace: 'N/A' };
+                const emotionData = window.emotionalMap[globalParagraphIndex] || { emotion: 'N/A', pace: 'N/A' };
                 const promptData = sectionPrompts[indexInSection] || { imageDescription: 'Visual não encontrado.' };
-                const styleBlockContent = promptData.styleBlock || '';
+                const styleBlockContent = (promptData.styleBlock || '').trim();
 
-                const itemHtml = `
-                    <div class="direction-item mb-4">
-                        <div class="direction-header">
-                            <div class="tags-group">
-                                <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${emotionData.emotion}</span>
-                                <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
-                            </div>
-                            <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
-                                    onclick="
-                                        const desc = document.getElementById('visual-desc-${globalParagraphIndex}').innerText;
-                                        const style = document.getElementById('visual-style-${globalParagraphIndex}').innerText;
-                                        window.copyTextToClipboard(desc + ' ' + style);
-                                        window.showToast('Prompt visual completo copiado!');
-                                    "
-                                    title="Copiar prompt visual completo (descrição + estilo)">
-                                <i class="fas fa-copy"></i>
-                            </button>
+                // ***** AQUI ESTÁ A MÁGICA DA CORREÇÃO *****
+                // Criamos os elementos via DOM para garantir que as classes sejam aplicadas corretamente.
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'direction-item mb-4';
+                
+                // O parágrafo do roteiro com a classe correta!
+                const scriptParagraph = document.createElement('p');
+                scriptParagraph.className = 'direction-script'; // <--- CLASSE CORRETA APLICADA!
+                scriptParagraph.textContent = `"${p}"`;
+
+                // Montamos o restante do HTML
+                itemDiv.innerHTML = `
+                    <div class="direction-header">
+                        <div class="tags-group">
+                            <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${emotionData.emotion}</span>
+                            <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
                         </div>
-                        <p class="direction-script">"${DOMPurify.sanitize(p)}"</p>
-                        <div class="direction-details">
-                            <p>
-                                <i class="fas fa-palette fa-fw mr-2"></i>
-                                <strong>Visual:</strong>
-                                <span id="visual-desc-${globalParagraphIndex}">${DOMPurify.sanitize(promptData.imageDescription)}</span>
-                            </p>
-                            <pre id="visual-style-${globalParagraphIndex}" class="hidden">${DOMPurify.sanitize(styleBlockContent)}</pre>
-                            ${styleBlockContent ? `<p class="mt-2 text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</p>` : ''}
-                        </div>
+                        <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
+                                onclick="window.copyTextToClipboard(this.closest('.direction-item').querySelector('.direction-details').innerText);"
+                                title="Copiar detalhes visuais completos">
+                            <i class="fas fa-copy"></i>
+                        </button>
                     </div>
                 `;
-                outputContainer.innerHTML += itemHtml;
+                
+                itemDiv.appendChild(scriptParagraph); // Adiciona o parágrafo do roteiro
+
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = 'direction-details';
+                detailsDiv.innerHTML = `
+                    <p>
+                        <i class="fas fa-palette fa-fw mr-2"></i>
+                        <strong>Visual:</strong>
+                        <span>${DOMPurify.sanitize(promptData.imageDescription)}</span>
+                    </p>
+                    ${styleBlockContent ? `<p class="mt-2 text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</p>` : ''}
+                `;
+                
+                itemDiv.appendChild(detailsDiv); // Adiciona os detalhes visuais
+                
+                outputContainer.appendChild(itemDiv); // Adiciona o item completo ao container
+
                 globalParagraphIndex++;
             });
         });
