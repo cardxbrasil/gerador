@@ -4289,6 +4289,10 @@ const renderPaginatedPrompts = (sectionElementId) => {
     
     const promptsToShow = prompts.slice(startIndex, startIndex + itemsPerPage);
 
+    // Checa a configuração de estilo UMA VEZ fora do loop
+    const imageStyleSelect = document.getElementById('imageStyleSelect');
+    const isCinematicStyleApplied = imageStyleSelect && (imageStyleSelect.value === 'cinematic' || imageStyleSelect.value === 'custom');
+
     promptsToShow.forEach((promptData, index) => {
         const globalIndex = startIndex + index;
         const minutes = Math.floor(cumulativeSeconds / 60);
@@ -4296,21 +4300,25 @@ const renderPaginatedPrompts = (sectionElementId) => {
         const timestamp = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         const sceneNumber = globalSceneCounter + index;
         
-        // <<< A CORREÇÃO ESTÁ AQUI: VOLTAMOS AO COMPORTAMENTO ORIGINAL E CORRETO >>>
-        const isCinematicStyleApplied = styleBlockContent.trim() !== '';
+        // Determina qual bloco de estilo usar para a cópia
+        let styleBlockForCopy = '';
+        if (isCinematicStyleApplied) {
+            styleBlockForCopy = imageStyleSelect.value === 'custom' 
+                ? (document.getElementById('customImageStyle')?.value || '') 
+                : CINEMATIC_STYLE_BLOCK;
+        }
 
         const promptHtml = `
             <div class="prompt-item card !p-3 animate-fade-in">
                 <div class="prompt-header">
                     <span class="tag tag-scene"><i class="fas fa-film mr-2"></i>Cena ${String(sceneNumber).padStart(2, '0')}</span>
                     <span class="tag tag-time"><i class="fas fa-clock mr-2"></i>${timestamp}</span>
-                    <!-- O botão de cópia continua poderoso, pegando o conteúdo escondido -->
                     <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
                             onclick="
                                 const desc = document.getElementById('prompt-content-${sectionElementId}-${globalIndex}').innerText;
                                 const style = document.getElementById('style-block-${sectionElementId}-${globalIndex}').innerText;
                                 window.copyTextToClipboard(desc + ' ' + style);
-                                window.showToast('Prompt completo copiado!');
+                                window.showToast('Prompt completo copiado!', 'success');
                             "
                             title="Copiar prompt completo (descrição + estilo)">
                         <i class="fas fa-copy"></i>
@@ -4321,9 +4329,8 @@ const renderPaginatedPrompts = (sectionElementId) => {
                     <p class="font-semibold text-sm">Descrição da Imagem:</p>
                     <p id="prompt-content-${sectionElementId}-${globalIndex}">${DOMPurify.sanitize(promptData.imageDescription)}</p>
                     
-                    <!-- A indicação de estilo é visual, mas o bloco de texto fica escondido -->
-                ${isCinematicStyleApplied ? `<p class="text-xs italic text-gray-400 mt-2">[Estilo Cinematográfico Aplicado]</p>` : ''}
-                <pre id="style-block-${sectionElementId}-${globalIndex}" class="hidden">${isCinematicStyleApplied ? DOMPurify.sanitize(CINEMATIC_STYLE_BLOCK) : ''}</pre>
+                    ${isCinematicStyleApplied ? `<p class="text-xs italic text-gray-400 mt-2">[Estilo de Imagem Aplicado]</p>` : ''}
+                    <pre id="style-block-${sectionElementId}-${globalIndex}" class="hidden">${DOMPurify.sanitize(styleBlockForCopy)}</pre>
                 </div>
             </div>
         `;
