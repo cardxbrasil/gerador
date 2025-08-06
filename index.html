@@ -6555,7 +6555,7 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
         }
 
         const contentWithDivs = paragraphs.map((p, index) =>
-    `<div id="${elementId}-p-${index}" class="direction-script">${DOMPurify.sanitize(p)}</div>`
+    `<div id="${elementId}-p-${index}">${DOMPurify.sanitize(p)}</div>`
 ).join('');
         
         const fullText = paragraphs.join('\n\n');
