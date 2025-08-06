@@ -3640,15 +3640,19 @@ const updateButtonStates = () => {
     }
     
     // Mostra/esconde a seção de análise quando TUDO estiver pronto
-    const analysisSection = document.getElementById('scriptAnalysisSection');
-    if (analysisSection) {
-        analysisSection.classList.toggle('hidden', !isFullScriptGenerated);
-    }
-
-    // Mostra/esconde o painel do diretor quando os recursos essenciais estiverem prontos
-    const directorPanel = document.getElementById('directorPanelSection');
+ const directorPanel = document.getElementById('directorPanelSection');
     if (directorPanel) {
-        const isReadyForDirector = isFullScriptGenerated && AppState.generated.emotionalMap && Object.keys(AppState.generated.imagePrompts).length > 0;
+        // Verifica se o roteiro completo e o mapa emocional estão prontos
+        const coreAssetsReady = isFullScriptGenerated && AppState.generated.emotionalMap;
+        
+        // Verifica se temos prompts para as 3 seções principais do roteiro
+        const promptsReady = AppState.generated.imagePrompts['introSection'] &&
+                             AppState.generated.imagePrompts['developmentSection'] &&
+                             AppState.generated.imagePrompts['climaxSection'];
+
+        // O painel só aparece se AMBAS as condições forem verdadeiras
+        const isReadyForDirector = coreAssetsReady && promptsReady;
+        
         directorPanel.classList.toggle('hidden', !isReadyForDirector);
     }
 };
