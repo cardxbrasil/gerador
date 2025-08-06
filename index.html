@@ -7449,7 +7449,7 @@ const resetApplicationState = async () => {
         'factCheckOutput', 'ideasOutput', 'scriptSectionsContainer', 'outlineContent',
         'titlesThumbnailsContent', 'videoDescriptionContent', 'soundtrackContent',
         'emotionalMapContent', 'analysisReportContainer', 'hooksReportContainer',
-        'viralSuggestionsContainer', 'directorPanelOutput' // Adicionado o painel do diretor
+        'viralSuggestionsContainer', 'directorPanelOutput'
     ];
     outputContainers.forEach(id => {
         const container = document.getElementById(id);
@@ -7473,8 +7473,7 @@ const resetApplicationState = async () => {
         const input = document.getElementById(id);
         if (input) input.value = '';
     });
-    // Opcional: manter um valor padrão
-    document.getElementById('channelName').value = 'The Biblical Unveiling'; 
+    document.getElementById('channelName').value = 'The Biblical Unveiling';
 
     // ----- ETAPA 5: Resetar Selects e Rádios para o Padrão -----
     document.getElementById('languageSelect').value = 'en';
@@ -7486,17 +7485,19 @@ const resetApplicationState = async () => {
     document.getElementById('videoObjective').value = 'informar';
     document.getElementById('speakingPace').value = 'moderate';
     document.getElementById('imageStyleSelect').value = 'cinematic';
-    document.querySelector('input[name="conclusionType"][value="lesson"]').checked = true;
+    
+    // <<< A CORREÇÃO ESTÁ AQUI >>>
+    const lessonRadio = document.querySelector('input[name="conclusionType"][value="lesson"]');
+    if (lessonRadio) lessonRadio.checked = true;
 
     // ----- ETAPA 6: GARANTE que a UI volte ao estado inicial visual -----
-    updateNarrativeStructureOptions(); // Precisa ser chamado para resetar as estruturas
+    updateNarrativeStructureOptions();
     toggleCustomImageStyleVisibility();
     document.getElementById('ideaGenerationSection').classList.add('hidden');
-    document.getElementById('projectDashboard').classList.add('hidden'); // << CORREÇÃO CRÍTICA
+    document.getElementById('projectDashboard').classList.add('hidden');
     document.getElementById('conclusionStrategyModule').classList.add('hidden');
     document.getElementById('scriptAnalysisSection').classList.add('hidden');
     document.getElementById('directorPanelSection').classList.add('hidden');
-
 
     // ----- ETAPA 7: Atualiza o resto da UI -----
     updateProgressBar();
