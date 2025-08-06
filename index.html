@@ -3691,13 +3691,20 @@ const getTranscriptOnly = () => {
 const generateDirectorSheet = async (button) => {
     // Validação
     const { script, imagePrompts } = AppState.generated;
-    const isScriptReady = script.intro.text && script.development.text && script.climax.text;
-    const arePromptsReady = imagePrompts['introSection'] && imagePrompts['developmentSection'] && imagePrompts['climaxSection'];
 
-    if (!isScriptReady || !arePromptsReady) {
-        window.showToast("Gere o roteiro principal e os prompts de imagem primeiro.");
-        return;
-    }
+// Checagem 1: O roteiro principal está pronto?
+const isScriptReady = script.intro.text && script.development.text && script.climax.text;
+if (!isScriptReady) {
+    window.showToast("Gere as seções principais do roteiro (Intro, Dev, Clímax) primeiro.", 'error');
+    return;
+}
+
+// Checagem 2: Todos os prompts de imagem necessários estão prontos?
+const arePromptsReady = imagePrompts['introSection'] && imagePrompts['developmentSection'] && imagePrompts['climaxSection'];
+if (!arePromptsReady) {
+    window.showToast("O roteiro foi editado. Por favor, gere os Prompts de Imagem para todas as seções novamente.", 'error');
+    return;
+}
 
     showButtonLoading(button);
     const outputContainer = document.getElementById('directorSheetContent');
