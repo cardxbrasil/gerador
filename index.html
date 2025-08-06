@@ -1825,6 +1825,7 @@ window.verifyFact = async (button) => {
 
     // 3. EXECUÇÃO: Mostra o loading e chama a IA.
     showButtonLoading(button);
+    contentWrapper.classList.add('is-analyzing');
     outputContainer.innerHTML = `<div class="text-center py-4"><div class="loading-spinner mx-auto"></div><p class="text-sm mt-2">Nossos agentes estão investigando...</p></div>`;
 
     try {
@@ -1864,7 +1865,9 @@ window.verifyFact = async (button) => {
         console.error("Erro detalhado em verifyFact:", error);
         outputContainer.innerHTML = `<p class="text-red-500 p-4">${error.message}</p>`;
     } finally {
+        contentWrapper.classList.remove('is-analyzing');
         hideButtonLoading(button);
+
     }
 };
 
