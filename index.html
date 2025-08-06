@@ -840,22 +840,28 @@
 
 
 /* ================================================================= */
-/* >>>>> CORREÇÃO DEFINITIVA PARA A FONTE DO ROTEIRO <<<<< */
+/* >>>>> SOLUÇÃO DEFINITIVA E À PROVA DE BALAS PARA A FONTE <<<<< */
 /* ================================================================= */
 
-/* Aplica a fonte de roteiro a CADA parágrafo (div) dentro do container */
-.generated-content-wrapper > div {
-    font-family: 'Source Serif Pro', serif;
-    font-size: 1.1rem;      /* Tamanho ideal para leitura em tela */
-    line-height: 1.7;       /* Espaçamento generoso entre linhas */
-    margin-bottom: 0.75em;  /* Um pequeno respiro entre os parágrafos */
+/* 
+  Este é o nosso "míssil teleguiado". Ele mira em qualquer div 
+  DENTRO de .generated-content-wrapper que tenha um ID 
+  contendo "-p-", como "intro-p-0", "development-p-1", etc.
+  É a regra mais específica possível para o seu caso.
+*/
+.generated-content-wrapper div[id*="-p-"] {
+    font-family: 'Roboto', serif !important; /* !important garante a vitória */
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--dark-text-body); /* Garante a cor correta do texto */
 }
 
-/* Garante que os títulos de capítulo adicionados (se houver) não peguem a fonte serifada */
-.generated-content-wrapper > .font-bold {
-    font-family: 'Inter', sans-serif; /* Volta para a fonte da UI */
-    font-size: 1rem; /* Tamanho normal */
-    line-height: 1.5;
+/* 
+  Esta regra garante que os títulos de capítulo (se houver) 
+  voltem a usar a fonte da interface, o Roboto.
+*/
+.generated-content-wrapper .font-bold {
+    font-family: 'Roboto', sans-serif !important;
 }
 
 </style>
