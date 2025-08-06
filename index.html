@@ -7509,9 +7509,8 @@ const resetApplicationState = async () => {
 
 
 // =========================================================================
-// >>>>> NOVO MÓDULO DE IMPORT/EXPORT BASEADO NO AppState <<<<<
+// >>>>> VERSÃO FINAL E COMPLETA de 'getProjectStateForExport' (Salva Rádios) <<<<<
 // =========================================================================
-
 /**
  * Reúne todos os dados relevantes da aplicação (inputs e estado gerado) em um único objeto para ser salvo.
  * @returns {object} Um objeto contendo o estado completo do projeto.
@@ -7520,12 +7519,21 @@ const getProjectStateForExport = () => {
     // 1. Cria uma cópia profunda do AppState para não modificar o original.
     const stateToExport = JSON.parse(JSON.stringify(AppState));
 
-    // 2. Itera sobre todos os campos de formulário e salva seus valores atuais em `stateToExport.inputs`.
-    const formElements = document.querySelectorAll('#inputTabContent input, #inputTabContent select, #inputTabContent textarea, #factCheckQuery, #languageSelect');
+    // 2. Itera sobre todos os campos de formulário e salva seus valores atuais
+    // ESTA LINHA FOI ATUALIZADA para incluir os textareas do módulo de conclusão
+    const formElements = document.querySelectorAll('#inputTabContent input, #inputTabContent select, #inputTabContent textarea, #factCheckQuery, #languageSelect, #conclusionStrategyModule textarea');
     formElements.forEach(el => {
-        stateToExport.inputs[el.id] = el.value;
+        if (el.type !== 'radio') { // Ignora os rádios por enquanto
+            stateToExport.inputs[el.id] = el.value;
+        }
     });
 
+    // <<< A EVOLUÇÃO CRÍTICA ESTÁ AQUI: LÓGICA ESPECIAL PARA SALVAR O RÁDIO SELECIONADO >>>
+    const checkedConclusionType = document.querySelector('input[name="conclusionType"]:checked');
+    if (checkedConclusionType) {
+        stateToExport.inputs['conclusionType'] = checkedConclusionType.value;
+    }
+    
     // 3. Salva o HTML gerado para cada seção do roteiro.
     const sectionIds = ['intro', 'development', 'climax', 'conclusion', 'cta'];
     sectionIds.forEach(id => {
@@ -7549,71 +7557,72 @@ const getProjectStateForExport = () => {
 
 
 
-// ==========================================================
-// >>>>> VERSÃO FINAL E CORRIGIDA de 'syncUiFromState' (com setTimeout) <<<<<
-// ==========================================================
-/**
- * Pega os dados carregados no AppState e atualiza a interface do usuário para refletir esse estado.
- */
+// =========================================================================
+// >>>>> VERSÃO EVOLUÍDA de 'syncUiFromState' (Carrega Rádios) <<<<<
+// =========================================================================
 const syncUiFromState = () => {
     const state = AppState;
 
-    // 1. Restaura os valores dos inputs do formulário.
+    // 1. Restaura os valores dos inputs de texto, selects, textareas
     for (const id in state.inputs) {
         const element = document.getElementById(id);
-        if (element) {
+        if (element && element.type !== 'radio') {
             element.value = state.inputs[id];
         }
     }
 
-    // 2. Restaura o HTML dos painéis gerados.
+    // <<< A CORREÇÃO ESTÁ AQUI: LÓGICA ESPECIAL PARA CARREGAR O RÁDIO CORRETO >>>
+    if (state.inputs && state.inputs.conclusionType) {
+        const radioToSelect = document.querySelector(`input[name="conclusionType"][value="${state.inputs.conclusionType}"]`);
+        if (radioToSelect) {
+            radioToSelect.checked = true;
+        }
+    } else {
+        // Se não houver estado salvo para o rádio, garante que o padrão "lesson" esteja marcado
+        const defaultRadio = document.querySelector('input[name="conclusionType"][value="lesson"]');
+        if (defaultRadio) defaultRadio.checked = true;
+    }
+
+    // O resto da função continua o mesmo...
+    updateNarrativeStructureOptions();
+    toggleCustomImageStyleVisibility();
+
     if (state.generated.strategicOutlineHTML) document.getElementById('outlineContent').innerHTML = state.generated.strategicOutlineHTML;
     if (state.generated.titlesAndThumbnailsHTML) document.getElementById('titlesThumbnailsContent').innerHTML = state.generated.titlesAndThumbnailsHTML;
     if (state.generated.descriptionHTML) document.getElementById('videoDescriptionContent').innerHTML = state.generated.descriptionHTML;
     if (state.generated.soundtrackHTML) document.getElementById('soundtrackContent').innerHTML = state.generated.soundtrackHTML;
     if (state.generated.emotionalMapHTML) document.getElementById('emotionalMapContent').innerHTML = state.generated.emotionalMapHTML;
     
-    // 3. Reconstrói as seções de roteiro.
     const scriptContainer = document.getElementById('scriptSectionsContainer');
     scriptContainer.innerHTML = '';
     const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
     const sectionTitles = { intro: 'Introdução', development: 'Desenvolvimento', climax: 'Clímax', conclusion: 'Conclusão', cta: 'Call to Action (CTA)' };
-    let projectHasContent = false;
+    let hasAnyScriptContent = false;
 
     sectionOrder.forEach(id => {
         const sectionData = state.generated.script[id];
-        const sectionContainer = document.createElement('div');
-        sectionContainer.id = `${id}Section`;
-        sectionContainer.className = 'script-section';
+        const sectionDiv = document.createElement('div');
+        sectionDiv.id = `${id}Section`;
+        sectionDiv.className = 'script-section';
         
         if (sectionData && sectionData.html) {
-            projectHasContent = true;
+            hasAnyScriptContent = true;
             const sectionElement = generateSectionHtmlContent(id, sectionTitles[id], sectionData.html);
-            sectionContainer.appendChild(sectionElement);
+            sectionDiv.appendChild(sectionElement);
+            sectionDiv.classList.remove('card', 'card-placeholder', 'flex', 'justify-between', 'items-center');
         }
-        scriptContainer.appendChild(sectionContainer);
+        scriptContainer.appendChild(sectionDiv);
     });
 
-    // 4. Restaura os prompts de imagem.
-    for (const sectionId in AppState.generated.imagePrompts) {
-        if (AppState.generated.imagePrompts[sectionId]?.length > 0) {
-            renderPaginatedPrompts(sectionId);
-        }
+    if (state.generated.strategicOutline || hasAnyScriptContent) {
+        document.getElementById('projectDashboard').classList.remove('hidden');
     }
     
-    // 5. Atualiza o estado visual da UI.
-    updateNarrativeStructureOptions();
-    toggleCustomImageStyleVisibility();
-    
-    // CORREÇÃO DE TIMING: Garante que o DOM esteja totalmente renderizado antes de manipular a visibilidade.
     setTimeout(() => {
         updateProgressBar();
-        updateButtonStates(); // Agora esta função encontrará os elementos que precisa.
-        // Só mostra o painel do projeto se ele tiver de fato algum conteúdo.
-        if(projectHasContent || (AppState.generated.strategicOutline && AppState.generated.strategicOutline.introduction) ) {
-             document.getElementById('projectDashboard').classList.remove('hidden');
-        }
-    }, 0);
+        updateButtonStates();
+        updateAllReadingTimes();
+    }, 100);
 };
 
 
