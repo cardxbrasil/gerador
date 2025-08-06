@@ -5642,15 +5642,11 @@ window.analyzeSectionRetention = async (button, sectionId) => {
     // <<< AQUI ESTÁ A MÁGICA >>>
     // Injetamos o HTML do esqueleto pulsante na área de resultado
     const skeletonHtml = `
-        <div class="skeleton-container space-y-3">
-        <div class="skeleton skeleton-line"></div>
-        <div class="skeleton skeleton-line skeleton-line-short"></div>
-    </div>
-    <div class="skeleton-container space-y-3 mt-4">
-        <div class="skeleton skeleton-line"></div>
-        <div class="skeleton skeleton-line skeleton-line-short"></div>
-    </div>
-`;
+        <div class="space-y-3">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card" style="width: 80%;"></div>
+        </div>
+    `;
     analysisOutput.innerHTML = skeletonHtml;
     // <<< FIM DA MÁGICA >>>
 
