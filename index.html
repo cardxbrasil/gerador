@@ -4169,7 +4169,7 @@ const renderPaginatedPrompts = (sectionElementId) => {
     if (!promptItemsContainer || !navContainer) return;
     promptItemsContainer.innerHTML = '';
 
-    // ... (toda a lógica de cálculo de tempo e cena continua a mesma) ...
+    // Lógica de cálculo de tempo e cena (sem alterações)
     let cumulativeSeconds = 0;
     const sectionOrder = ['introSection', 'developmentSection', 'climaxSection', 'conclusionSection', 'ctaSection'];
     const currentSectionIndex = sectionOrder.indexOf(sectionElementId);
@@ -4195,19 +4195,17 @@ const renderPaginatedPrompts = (sectionElementId) => {
         const seconds = cumulativeSeconds % 60;
         const timestamp = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         const sceneNumber = globalSceneCounter + index;
-
-        // <<< A EVOLUÇÃO ESTÁ AQUI >>>
-        // 1. Preparamos o conteúdo do bloco de estilo para ser exibido e copiado
+        
+        // <<< A CORREÇÃO ESTÁ AQUI: VOLTAMOS AO COMPORTAMENTO ORIGINAL E CORRETO >>>
         const styleBlockContent = promptData.styleBlock || '';
         const isCinematicStyleApplied = styleBlockContent.trim() !== '';
 
-        // 2. Montamos o novo HTML com o botão de cópia e a área para o estilo
         const promptHtml = `
-            <div class="prompt-item card !p-4 animate-fade-in">
+            <div class="prompt-item card !p-3 animate-fade-in">
                 <div class="prompt-header">
                     <span class="tag tag-scene"><i class="fas fa-film mr-2"></i>Cena ${String(sceneNumber).padStart(2, '0')}</span>
                     <span class="tag tag-time"><i class="fas fa-clock mr-2"></i>${timestamp}</span>
-                    <!-- O novo botão de cópia que copia DESCRIÇÃO + ESTILO -->
+                    <!-- O botão de cópia continua poderoso, pegando o conteúdo escondido -->
                     <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
                             onclick="
                                 const desc = document.getElementById('prompt-content-${sectionElementId}-${globalIndex}').innerText;
@@ -4220,16 +4218,13 @@ const renderPaginatedPrompts = (sectionElementId) => {
                     </button>
                 </div>
                 <p class="paragraph-preview">"${DOMPurify.sanitize(promptData.scriptPhrase)}"</p>
-                <div class="prompt-details space-y-2 mt-2">
+                <div class="prompt-details">
                     <p class="font-semibold text-sm">Descrição da Imagem:</p>
-                    <p id="prompt-content-${sectionElementId}-${globalIndex}" class="text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded-md">${DOMPurify.sanitize(promptData.imageDescription)}</p>
+                    <p id="prompt-content-${sectionElementId}-${globalIndex}">${DOMPurify.sanitize(promptData.imageDescription)}</p>
                     
-                    ${isCinematicStyleApplied ? `
-                        <div>
-                            <p class="font-semibold text-sm mt-3">Estilo Aplicado:</p>
-                            <pre id="style-block-${sectionElementId}-${globalIndex}" class="text-xs p-2 rounded-md bg-gray-100 dark:bg-gray-800 whitespace-pre-wrap font-mono">${DOMPurify.sanitize(styleBlockContent)}</pre>
-                        </div>
-                    ` : `<pre id="style-block-${sectionElementId}-${globalIndex}" class="hidden"></pre>`}
+                    <!-- A indicação de estilo é visual, mas o bloco de texto fica escondido -->
+                    ${isCinematicStyleApplied ? `<p class="text-xs italic text-gray-400 mt-2">[Estilo Cinematográfico Aplicado]</p>` : ''}
+                    <pre id="style-block-${sectionElementId}-${globalIndex}" class="hidden">${DOMPurify.sanitize(styleBlockContent)}</pre>
                 </div>
             </div>
         `;
@@ -4237,7 +4232,7 @@ const renderPaginatedPrompts = (sectionElementId) => {
         cumulativeSeconds += parseInt(promptData.estimated_duration, 10) || 0;
     });
     
-    // A navegação continua a mesma
+    // A navegação continua igual
     navContainer.innerHTML = `
         <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', -1)" ${currentPage === 0 ? 'disabled' : ''}>
             <i class="fas fa-chevron-left"></i>
