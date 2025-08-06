@@ -5263,17 +5263,17 @@ Sua tarefa é continuar a narrativa a partir daqui, sem repetições.`;
     prompt += `
 \n**REGRAS CRÍTICAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
 1.  **RESPOSTA EM JSON:** Sua resposta DEVE ser um array JSON válido, onde cada item do array é uma string representando um parágrafo do roteiro.
-2.  **QUALIDADE DOS PARÁGRAFOS:** Cada string no array deve ser um parágrafo coeso e bem desenvolvido, agrupando uma ideia completa (idealmente de 4 a 6 frases). **EVITE PARÁGRAFOS COM UMA ÚNICA FRASE**, a menos que seja para um efeito dramático extremo e intencional. A fragmentação excessiva é uma falha.
+2.  **ESTRUTURA OBRIGATÓRIA DOS PARÁGRAFOS:** CADA parágrafo (cada string no array) DEVE OBRIGATORIAMENTE conter **NO MÍNIMO 4 FRASES** e agrupar uma ideia coesa. Parágrafos com 1 ou 2 frases são inaceitáveis e serão considerados uma falha na execução da tarefa.
 3.  **CONTEÚDO PURO:** As strings devem conter APENAS o texto a ser narrado. É PROIBIDO incluir anotações como 'Narrador:', '(Cena: ...)', etc.
 4.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
 
 **EXEMPLO DE FORMATO DE RESPOSTA PERFEITO:**
 [
-  "Este é o primeiro parágrafo, que introduz a ideia principal de forma completa. Ele contém múltiplas frases que se conectam para formar um pensamento coeso.",
-  "O segundo parágrafo desenvolve essa ideia com mais detalhes, fornecendo exemplos ou aprofundando o argumento. Ele também é substancial e não apenas uma única linha."
+  "Este é o primeiro parágrafo, que introduz a ideia principal de forma completa. Ele contém múltiplas frases que se conectam para formar um pensamento coeso. Esta é a terceira frase para cumprir a regra.",
+  "O segundo parágrafo desenvolve essa ideia com mais detalhes, fornecendo exemplos ou aprofundando o argumento. Ele também é substancial e segue a regra das três frases. Sua estrutura é fundamental para o sucesso."
 ]
 
-**AÇÃO FINAL:** Escreva agora a seção "${sectionTitle}", seguindo todas as diretrizes. Responda APENAS com o array JSON de parágrafos bem desenvolvidos.`;
+**AÇÃO FINAL:** Escreva agora a seção "${sectionTitle}", seguindo TODAS as diretrizes. Responda APENAS com o array JSON, garantindo que CADA parágrafo tenha no mínimo 4 frases.`;
 
     let maxTokens = 4000;
 
