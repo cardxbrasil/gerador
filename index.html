@@ -5621,26 +5621,23 @@ ${existingText}
 window.analyzeSectionRetention = async (button, sectionId) => {
     const sectionElement = document.getElementById(sectionId);
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
-    const analysisOutput = sectionElement?.querySelector('.section-analysis-output'); // <-- Adicionamos isso aqui
+    const analysisOutput = sectionElement?.querySelector('.section-analysis-output');
 
     if (!contentWrapper || !contentWrapper.textContent.trim() || !analysisOutput) {
         window.showToast("Gere o roteiro desta seção antes de analisar.", 'error');
         return;
     }
 
-    // Limpa os resultados de outras análises
-    invalidateAndClearPerformance(sectionElement);
-    
     const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]'));
     if (paragraphs.length === 0) {
         window.showToast("Não há parágrafos para analisar.", 'info');
         return;
     }
-
+    
     showButtonLoading(button);
-
-    // <<< AQUI ESTÁ A MÁGICA >>>
-    // Injetamos o HTML do esqueleto pulsante na área de resultado
+    invalidateAndClearPerformance(sectionElement);
+    
+    // ***** AQUI ESTÁ A CORREÇÃO QUE VAI FUNCIONAR *****
     const skeletonHtml = `
         <div class="space-y-3">
             <div class="skeleton-card"></div>
@@ -5648,7 +5645,7 @@ window.analyzeSectionRetention = async (button, sectionId) => {
         </div>
     `;
     analysisOutput.innerHTML = skeletonHtml;
-    // <<< FIM DA MÁGICA >>>
+    // *************************************************
 
     try {
         const paragraphsWithIndexes = paragraphs.map((p, index) => ({
@@ -5686,14 +5683,15 @@ ${JSON.stringify(paragraphsWithIndexes, null, 2)}
 
         const rawResult = await callGroqAPI(prompt, 4000);
         const analysis = cleanGeneratedText(rawResult, true);
+        
+        // Limpa o esqueleto ANTES de mostrar o resultado real.
+        analysisOutput.innerHTML = ''; 
 
         if (!analysis || !Array.isArray(analysis)) {
             throw new Error("A análise da IA retornou um formato inválido.");
         }
         
-        // A lógica de agrupar sugestões e renderizar os tooltips permanece a mesma
-        // e vai automaticamente substituir o "esqueleto" pelo resultado real.
-        // (...código de agrupamento e renderização que já existe...)
+        // Seu código de agrupamento e renderização, que já está correto, continua aqui.
         if (analysis.length > 0) {
             let currentGroup = [];
             for (let i = 0; i < analysis.length; i++) {
@@ -5734,7 +5732,6 @@ ${JSON.stringify(paragraphsWithIndexes, null, 2)}
                     if (!previousItem || item.suggestion !== previousItem.suggestion || (analysis.filter(s => s.suggestion === item.suggestion).length === 1)) {
                         const scoreLabels = { yellow: "PONTO DE ATENÇÃO", red: "PONTO DE RISCO" };
                         const tooltipTitle = scoreLabels[item.retentionScore] || 'ANÁLISE';
-
                         const suggestionTextEscaped = item.suggestion.replace(/"/g, '\"');
                         const buttonsHtml = `
                             <div class="flex gap-2 mt-3">
@@ -5758,14 +5755,11 @@ ${JSON.stringify(paragraphsWithIndexes, null, 2)}
             }
         });
 
-        // Limpa o esqueleto antes de mostrar o resultado
-        analysisOutput.innerHTML = '';
         window.showToast("Análise de retenção concluída!", 'success');
 
     } catch (error) {
         console.error("Erro detalhado em analyzeSectionRetention:", error);
         window.showToast(`Falha na análise: ${error.message}`, 'error');
-        // Em caso de erro, limpa o esqueleto e mostra a mensagem
         analysisOutput.innerHTML = `<p class="text-red-500 text-sm">Falha ao analisar: ${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
