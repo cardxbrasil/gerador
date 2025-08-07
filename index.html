@@ -6601,34 +6601,43 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
     const promptContainer = sectionElement?.querySelector('.prompt-container');
 
     if (!contentWrapper || !contentWrapper.textContent.trim() || !promptContainer) {
-        window.showToast("Gere o roteiro desta seção primeiro.", 'info');
+        window.showToast("Gere o conteúdo do roteiro desta seção primeiro.");
         return;
     }
+    
+    // <<< CORREÇÃO: A verificação do mapa emocional que estava aqui foi REMOVIDA >>>
 
     showButtonLoading(button);
     promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
 
     try {
-        const paragraphsWithContext = Array.from(contentWrapper.querySelectorAll('div[id*="-p-"]')).map(p => ({
-            text: p.textContent.trim().replace(/\[.*?\]/g, ''),
-            chapter: p.previousElementSibling?.textContent.includes('Capítulo:') ? p.previousElementSibling.textContent.replace('Capítulo:', '').trim() : "Contexto Geral"
-        }));
-        
-        if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos para análise."); }
-        
+        // A lógica para extrair os parágrafos continua a mesma
+        const allChildren = Array.from(contentWrapper.children);
+        const paragraphsWithContext = [];
+        let currentChapterTitle = "Contexto Geral";
+        allChildren.forEach(child => {
+            if (child.classList.contains('font-bold') && child.textContent.includes('Capítulo:')) {
+                currentChapterTitle = child.textContent.replace('Capítulo:', '').trim();
+            } else if (child.id && child.id.includes('-p-')) {
+                paragraphsWithContext.push({ text: child.textContent.trim().replace(/\[.*?\]/g, ''), chapter: currentChapterTitle, originalId: child.id });
+            }
+        });
+
+        if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
+
+        const batchSize = 3;
+        const apiPromises = [];
         const visualPacing = document.getElementById('visualPacing').value;
         const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
         const durationRange = durationMap[visualPacing] || '3 e 8';
-        const imageStyleSelect = document.getElementById('imageStyleSelect').value;
-        
-        const batchSize = 3; // Mantemos o processamento em lotes para eficiência
-        const apiPromises = [];
 
         for (let i = 0; i < paragraphsWithContext.length; i += batchSize) {
             const batch = paragraphsWithContext.slice(i, i + batchSize);
             let promptContextForAI = '';
             batch.forEach((item, indexInBatch) => {
-                promptContextForAI += `\nParágrafo ${i + indexInBatch}:\n- Título do Capítulo: "${item.chapter}"\n- Texto: "${item.text}"`;
+                const globalIndex = i + indexInBatch;
+                // <<< CORREÇÃO: Contexto emocional removido do prompt para a IA >>>
+                promptContextForAI += `\nParágrafo ${globalIndex}:\n- Título do Capítulo (Guia Temático): "${item.chapter}"\n- Texto do Parágrafo: "${item.text}"`;
             });
             
              // <<< ESTE É O PROMPT HÍBRIDO, COM SUA LISTA DETALHADA E A ESTRUTURA BLINDADA >>>
@@ -6701,12 +6710,12 @@ ${promptContextForAI}
 
 Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
 
-apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true)));
+      apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true)));
         }
 
         const allBatchResults = await Promise.all(apiPromises);
-        const allGeneratedPrompts = allBatchResults.flat();
-        
+        let allGeneratedPrompts = allBatchResults.flat();
+
         if (!Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length < paragraphsWithContext.length) {
             throw new Error("A IA não retornou um prompt para cada parágrafo.");
         }
@@ -6714,16 +6723,12 @@ apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, t
         const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
             scriptPhrase: paragraphsWithContext[index].text,
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
-            estimated_duration: promptData.estimated_duration || 5,
-            // A otimização continua aqui, salvando apenas a "bandeira"
-            useCinematicStyle: imageStyleSelect === 'cinematic'
+            estimated_duration: promptData.estimated_duration || 5
         }));
 
-        // Salva os dados otimizados no AppState
-        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts;
+        // O resto da função para salvar e renderizar continua o mesmo
+        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts.map((p) => ({ ...p, styleBlock: CINEMATIC_STYLE_BLOCK }));
         AppState.ui.promptPaginationState[sectionElementId] = 0;
-
-        // Sincroniza as variáveis legadas
         if (typeof window.allImagePrompts === 'undefined') window.allImagePrompts = {};
         if (typeof window.promptPaginationState === 'undefined') window.promptPaginationState = {};
         window.allImagePrompts[sectionElementId] = AppState.generated.imagePrompts[sectionElementId];
@@ -6736,12 +6741,10 @@ apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, t
             </div>
         `;
         renderPaginatedPrompts(sectionElementId);
-        window.showToast("Prompts visuais gerados!", 'success');
 
     } catch (error) {
         promptContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar prompts: ${error.message}</p>`;
         console.error("Erro detalhado em generatePromptsForSection:", error);
-        window.showToast(`Erro ao gerar prompts: ${error.message}`, 'error');
     } finally {
         hideButtonLoading(button);
         updateButtonStates();
