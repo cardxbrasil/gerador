@@ -3572,20 +3572,18 @@ const updateButtonStates = () => {
     metadataButtons.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) {
-            // Todos os recursos agora dependem apenas do roteiro principal (Intro, Dev, Climax)
             btn.disabled = !allMainScriptGenerated;
         }
     });
 
-    // <<< A CORREÇÃO ESTÁ AQUI: LÓGICA REFINADA PARA O MÓDULO DE CONCLUSÃO >>>
+    // <<< A CORREÇÃO CRÍTICA ESTÁ AQUI >>>
     const conclusionModule = document.getElementById('conclusionStrategyModule');
     if (conclusionModule) {
-        // A condição para mostrar o módulo agora é:
-        // O roteiro principal está pronto? E AINDA FALTA gerar a Conclusão OU o CTA?
-        const shouldShowConclusionModule = allMainScriptGenerated && (!isConclusionGenerated || !isCtaGenerated);
+        // A NOVA REGRA: O módulo aparece assim que o roteiro principal estiver pronto e FICA LÁ.
+        const shouldShowConclusionModule = allMainScriptGenerated;
         conclusionModule.classList.toggle('hidden', !shouldShowConclusionModule);
 
-        // Lógica interna do módulo: mostra o botão de CTA se a conclusão já foi feita
+        // A lógica interna de qual botão (Conclusão ou CTA) aparece continua a mesma.
         const btnGenerateConclusion = document.getElementById('generateConclusionBtn');
         const btnGenerateCta = document.getElementById('generateCtaBtn');
         if (btnGenerateConclusion && btnGenerateCta) {
@@ -3603,7 +3601,11 @@ const updateButtonStates = () => {
     // Mostra/esconde o painel do diretor quando os recursos essenciais estiverem prontos
     const directorPanel = document.getElementById('directorPanelSection');
     if (directorPanel) {
-        const isReadyForDirector = isFullScriptGenerated && AppState.generated.emotionalMap && Object.keys(AppState.generated.imagePrompts).length > 0;
+        // A condição para o painel do diretor agora verifica os 3 recursos essenciais
+        const isReadyForDirector = isFullScriptGenerated && 
+                                   AppState.generated.emotionalMap && 
+                                   Object.keys(AppState.generated.imagePrompts).length >= 3; // Garante que intro, dev e climax tenham prompts
+                                   
         directorPanel.classList.toggle('hidden', !isReadyForDirector);
     }
 };
