@@ -3695,76 +3695,108 @@ const getTranscriptOnly = () => {
 
 
 // =========================================================================
-// >>>>> VERSÃO REATORADA de 'mapEmotionsAndPacing' <<<<<
+// >>>>> VERSÃO FINAL E BLINDADA de 'mapEmotionsAndPacing' <<<<<
 // =========================================================================
 const mapEmotionsAndPacing = async (button) => {
-    // --- MUDANÇA AQUI: Usamos getTranscriptOnly, que já lê do AppState ---
     const fullTranscript = getTranscriptOnly();
     if (!fullTranscript) {
         window.showToast("Gere o roteiro completo primeiro para criar o mapa emocional.");
         return;
     }
-    // --- FIM DA MUDANÇA ---
 
     const outputContainer = document.getElementById('emotionalMapContent');
     showButtonLoading(button);
-    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
+    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções do roteiro completo...</p>`;
 
     const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
-        const prompt = `Você é uma API ESPECIALISTA EM ANÁLISE EMOCIONAL E RÍTMICA DE TEXTO NARRATIVO. Sua função ÚNICA E CRÍTICA é analisar uma série de parágrafos de roteiro e retornar, para CADA UM, uma análise precisa de sua carga emocional e seu ritmo narrativo.
-
-**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
-Você é o ANALISTA ABSOLUTO de EMOTION e PACE em textos narrativos. Sua única função é identificar e classificar a emoção e o ritmo de cada parágrafo com precisão cirúrgica.
+    
+    // <<< ESTE É O NOVO PROMPT "BLINDADO" >>>
+    const prompt = `Você é uma API ESPECIALISTA EM ANÁLISE EMOCIONAL E RÍTMICA DE TEXTO NARRATIVO. Sua função ÚNICA E CRÍTICA é analisar uma série de parágrafos de roteiro e retornar, para CADA UM, uma análise precisa de sua carga emocional e seu ritmo narrativo.
 
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
+1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`. NENHUM outro texto ou comentário é permitido.
 2.  **ESTRUTURA COMPLETA:** Cada objeto no array DEVE conter EXATAMENTE estas três chaves: "paragraph_index", "emotion", e "pace".
 3.  **QUANTIDADE EXATA DE OBJETOS:** O array DEVE conter EXATAMENTE ${paragraphs.length} objetos, um para cada parágrafo fornecido.
 4.  **SINTAXE DAS STRINGS:** Todas as chaves e valores string DEVEM usar aspas duplas (""). Cada objeto, EXCETO o último, DEVE ser seguido por uma vírgula (,).
 
 **MANUAL DE ANÁLISE E CLASSIFICAÇÃO (SIGA EXATAMENTE):**
-- **Análise Individual:** Gere uma análise para CADA parágrafo listado.
 - **"paragraph_index" (Índice do Parágrafo):** Um número inteiro representando a posição do parágrafo na lista original (0, 1, 2, ...).
-- **"emotion" (Emoção Dominante):** Escolha EXATAMENTE UM dos seguintes valores: "Inspirador", "Reflexivo", "Emocional", "Motivador", "Informativo", "Curioso", "Empático", "Urgente", "Calmo", "Neutro".
+- **"emotion" (Emoção Dominante):** Escolha EXATAMENTE UM dos seguintes valores: "Inspirador", "Reflexivo", "Emocional", "Motivador", "Informativo", "Curioso", "Empático", "Urgente", "Tenso", "Alívio".
 - **"pace" (Ritmo Sugerido):** Escolha EXATAMENTE UM dos seguintes valores: "Muito Lento", "Lento", "Normal", "Rápido", "Muito Rápido".
 
-**ROTEIRO PARA ANÁLISE DETALHADA:**
+**EXEMPLO DE RESPOSTA PERFEITA:**
+[
+  { "paragraph_index": 0, "emotion": "Curioso", "pace": "Normal" },
+  { "paragraph_index": 1, "emotion": "Tenso", "pace": "Rápido" }
+]
+
+**ROTEIRO PARA ANÁLISE:**
 ${paragraphs.map((p, index) => `PARAGRAFO ${index}: "${p}"`).join('\n\n')}
 
-**AÇÃO FINAL:** Analise AGORA cada parágrafo, gere a análise emocional/rítmica conforme as regras e responda APENAS com o array JSON perfeito.`;
+**AÇÃO FINAL:** Analise CADA parágrafo, gere a análise conforme as regras e responda APENAS com o array JSON perfeito.`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 3000);
+        const rawResult = await callGroqAPI(prompt, 4000); // Aumentei um pouco os tokens por segurança
         const analysis = cleanGeneratedText(rawResult, true);
 
-        if (!analysis || !Array.isArray(analysis) || analysis.length !== paragraphs.length) {
-            throw new Error("A IA retornou um mapa emocional em formato inválido ou incompleto.");
+        if (!analysis || !Array.isArray(analysis) || analysis.length < paragraphs.length) {
+            throw new Error("A IA retornou um mapa emocional em formato inválido ou incompleto, mesmo com o prompt blindado. Tente novamente.");
         }
 
-        // --- A MUDANÇA ESTÁ AQUI ---
-        // Gravamos o mapa emocional no nosso "cérebro" central.
         AppState.generated.emotionalMap = analysis;
-        window.emotionalMap = analysis;
-        // --- FIM DA MUDANÇA ---
-        
-        let mapHtml = '<div class="space-y-4">';
-        analysis.forEach(item => {
-            const paragraphText = paragraphs[item.paragraph_index];
-            if (!paragraphText) return;
-            mapHtml += `
-                <div class="emotional-map-item card !p-3">
-                    <p class="paragraph-preview">"${DOMPurify.sanitize(paragraphText)}"</p>
-                    <div class="analysis-tags">
-                        <span class="tag tag-emotion"><i class="fas fa-theater-masks mr-2"></i>${DOMPurify.sanitize(item.emotion)}</span>
-                        <span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${DOMPurify.sanitize(item.pace)}</span>
+        window.emotionalMap = analysis; 
+
+        // A lógica de renderização que já funcionou é mantida
+        outputContainer.innerHTML = ''; 
+
+        const sectionOrder = [
+            { id: 'intro', title: 'Introdução' },
+            { id: 'development', title: 'Desenvolvimento' },
+            { id: 'climax', title: 'Clímax' },
+            { id: 'conclusion', title: 'Conclusão' },
+            { id: 'cta', title: 'Call to Action (CTA)' }
+        ];
+
+        let globalParagraphIndex = 0;
+
+        sectionOrder.forEach(sectionInfo => {
+            const sectionScript = AppState.generated.script[sectionInfo.id];
+            if (!sectionScript || !sectionScript.text) return;
+
+            const sectionParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim());
+            
+            if (sectionParagraphs.length > 0) {
+                const sectionTitleElement = document.createElement('h3');
+                sectionTitleElement.className = 'text-xl font-bold mt-6 mb-4 border-b-2 border-primary pb-2';
+                sectionTitleElement.textContent = sectionInfo.title;
+                outputContainer.appendChild(sectionTitleElement);
+            }
+
+            sectionParagraphs.forEach(() => {
+                const item = analysis[globalParagraphIndex];
+                const paragraphText = paragraphs[globalParagraphIndex];
+
+                if (!item || !paragraphText) {
+                    globalParagraphIndex++;
+                    return;
+                }
+
+                const mapItemHtml = `
+                    <div class="emotional-map-item card !p-3 mb-4">
+                        <p class="paragraph-preview">"${DOMPurify.sanitize(paragraphText)}"</p>
+                        <div class="analysis-tags">
+                            <span class="tag tag-emotion"><i class="fas fa-theater-masks mr-2"></i>${DOMPurify.sanitize(item.emotion)}</span>
+                            <span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${DOMPurify.sanitize(item.pace)}</span>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+                outputContainer.innerHTML += mapItemHtml;
+                globalParagraphIndex++;
+            });
         });
-        mapHtml += '</div>';
         
-        outputContainer.innerHTML = mapHtml;
         markButtonAsCompleted(button.id);
+        updateButtonStates();
 
     } catch (error) {
         console.error("Erro detalhado em mapEmotionsAndPacing:", error);
