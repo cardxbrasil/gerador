@@ -1317,31 +1317,6 @@
 </section>
 
 
-
-
-<!-- ========================================================== -->
-<!--     EVOLUÇÃO 3: O PAINEL DO DIRETOR (FOLHA DE DIREÇÃO)     -->
-<!-- ========================================================== -->
-<section id="directorPanelSection" class="mt-10 hidden">
-    <div class="section-title">
-        <h2 class="text-xl font-bold">5. Painel do Diretor</h2>
-    </div>
-    <div class="card text-center">
-        <p class="mb-4 text-gray-600 dark:text-gray-400">Quando o roteiro, mapa emocional e prompts de imagem estiverem prontos, clique abaixo para gerar uma folha de direção completa.</p>
-        
-        <div class="flex flex-wrap justify-center gap-4">
-            <button id="generateDirectorPanelBtn" data-action="generateDirectorPanel" class="btn btn-primary">
-                <i class="fas fa-clipboard-list mr-2"></i> Gerar Folha de Direção
-            </button>
-        </div>
-
-        <!-- O relatório final será injetado aqui -->
-        <div id="directorPanelOutput" class="mt-6 text-left space-y-6"></div>
-    </div>
-</section>
-
-
-
 </div>
 </main>
 
@@ -3598,20 +3573,8 @@ const updateButtonStates = () => {
         analysisSection.classList.toggle('hidden', !isFullScriptGenerated);
     }
 
-    // Mostra/esconde o painel do diretor quando os recursos essenciais estiverem prontos
-    const directorPanel = document.getElementById('directorPanelSection');
-    if (directorPanel) {
-        // A condição para o painel do diretor agora verifica os 3 recursos essenciais
-        const isReadyForDirector = isFullScriptGenerated && 
-                                   AppState.generated.emotionalMap && 
-                                   Object.keys(AppState.generated.imagePrompts).length >= 3; // Garante que intro, dev e climax tenham prompts
-                                   
-        directorPanel.classList.toggle('hidden', !isReadyForDirector);
-    }
+  
 };
-
-
-
 
 
 
@@ -4419,86 +4382,6 @@ const resetGeneratedScriptContent = (sourceId) => {
     const sourceLabel = document.querySelector(`label[for='${sourceId}']`)?.textContent.replace(':', '') || sourceId;
     window.showToast(`'${sourceLabel}' mudou. O roteiro foi resetado.`);
 
-};
-
-
-
-
-// ==========================================================
-// >>>>> EVOLUÇÃO 3: LÓGICA DO PAINEL DO DIRETOR <<<<<
-// ==========================================================
-
-/**
- * Reúne todos os dados gerados (roteiro, emoções, prompts) do AppState
- * e monta uma "Folha de Direção" (Shot List) completa.
- */
-const generateDirectorPanel = (button) => {
-    // 1. Validação: Verifica se todos os recursos necessários existem no AppState.
-    const { script, emotionalMap, imagePrompts } = AppState.generated;
-    const isReady = script.intro.text && script.development.text && script.climax.text &&
-                    emotionalMap && Object.keys(imagePrompts).length > 0;
-
-    if (!isReady) {
-        window.showToast("Gere o roteiro, o mapa emocional e os prompts de imagem primeiro.");
-        return;
-    }
-
-    showButtonLoading(button);
-    const outputContainer = document.getElementById('directorPanelOutput');
-    outputContainer.innerHTML = '';
-
-    try {
-        // 2. Unificação de Dados: Junta todos os parágrafos e prompts em uma única lista.
-        const allParagraphs = getTranscriptOnly().split('\n\n').filter(p => p.trim());
-        const allPrompts = [
-            ...(imagePrompts.introSection || []),
-            ...(imagePrompts.developmentSection || []),
-            ...(imagePrompts.climaxSection || []),
-            ...(imagePrompts.conclusionSection || []),
-            ...(imagePrompts.ctaSection || [])
-        ];
-
-        if (allParagraphs.length !== allPrompts.length || allParagraphs.length !== emotionalMap.length) {
-            console.warn("Discrepância nos dados:", {
-                paragraphs: allParagraphs.length,
-                prompts: allPrompts.length,
-                emotions: emotionalMap.length
-            });
-            window.showToast("Aviso: desalinhamento de dados. O painel pode estar incompleto.");
-        }
-
-        // 3. Renderização: Itera sobre cada parágrafo e monta o "shot item".
-        let sceneCounter = 1;
-        allParagraphs.forEach((p, index) => {
-            const emotionData = emotionalMap[index] || { emotion: 'N/A', pace: 'N/A' };
-            const promptData = allPrompts[index] || { imageDescription: 'Prompt de imagem não encontrado.' };
-
-            const shotHtml = `
-                <div class="shot-item">
-                    <div class="shot-header">
-                        <span class="scene-tag">Cena ${String(sceneCounter++).padStart(2, '0')}</span>
-                        <div class="tags-group">
-                            <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${emotionData.emotion}</span>
-                            <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
-                        </div>
-                    </div>
-                    <p class="shot-script">"${DOMPurify.sanitize(p)}"</p>
-                    <div class="shot-details">
-                        <p><strong><i class="fas fa-palette fa-fw mr-2"></i>Visual:</strong> ${DOMPurify.sanitize(promptData.imageDescription)}</p>
-                    </div>
-                </div>
-            `;
-            outputContainer.innerHTML += shotHtml;
-        });
-        
-        window.showToast("Folha de Direção gerada com sucesso!");
-
-    } catch (error) {
-        console.error("Erro ao gerar o Painel do Diretor:", error);
-        window.showToast(`Falha ao gerar o painel: ${error.message}`);
-    } finally {
-        hideButtonLoading(button);
-    }
 };
 
 
@@ -7944,11 +7827,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 4. O "GERENTE DE CLIQUES" (OBJETO 'actions' CORRIGIDO) ---
     const actions = {
         // Ações da Seção de Inspiração
-            'generateDirectorPanel': (btn) => generateDirectorPanel(btn),
             'investigate': (btn) => window.verifyFact(btn),
-            'investigate': (btn) => window.verifyFact(btn),
-    'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn),
-        'verify-idea': (btn) => {
+            'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn),
+            'verify-idea': (btn) => {
             const card = btn.closest('.card');
             if (!card) return;
 
