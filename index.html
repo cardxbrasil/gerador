@@ -3696,60 +3696,53 @@ const getTranscriptOnly = () => {
 
 
 
-// =========================================================================
-// >>>>> VERSÃO FINAL E BLINDADA de 'mapEmotionsAndPacing' <<<<<
-// =========================================================================
+
+// ====================================================================================
+// >>>>> VERSÃO FINAL: MAPA EMOCIONAL + VISUAIS (Folha de Direção Simplificada) <<<<<
+// ====================================================================================
 const mapEmotionsAndPacing = async (button) => {
-    const fullTranscript = getTranscriptOnly();
-    if (!fullTranscript) {
-        window.showToast("Gere o roteiro completo primeiro para criar o mapa emocional.");
+    // 1. VALIDAÇÃO ROBUSTA: Verifica se os pré-requisitos estão prontos
+    const { script, imagePrompts } = AppState.generated;
+    const isScriptReady = script.intro.text && script.development.text && script.climax.text;
+    const arePromptsReady = imagePrompts['introSection'] && imagePrompts['developmentSection'] && imagePrompts['climaxSection'];
+
+    if (!isScriptReady) {
+        window.showToast("Gere o roteiro completo primeiro (Intro, Dev, Clímax).");
+        return;
+    }
+    if (!arePromptsReady) {
+        window.showToast("Gere os Prompts de Imagem para todas as seções do roteiro primeiro.");
         return;
     }
 
     const outputContainer = document.getElementById('emotionalMapContent');
     showButtonLoading(button);
-    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções do roteiro completo...</p>`;
-
-    const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
-    
-    // <<< ESTE É O NOVO PROMPT "BLINDADO" >>>
-    const prompt = `Você é uma API ESPECIALISTA EM ANÁLISE EMOCIONAL E RÍTMICA DE TEXTO NARRATIVO. Sua função ÚNICA E CRÍTICA é analisar uma série de parágrafos de roteiro e retornar, para CADA UM, uma análise precisa de sua carga emocional e seu ritmo narrativo.
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`. NENHUM outro texto ou comentário é permitido.
-2.  **ESTRUTURA COMPLETA:** Cada objeto no array DEVE conter EXATAMENTE estas três chaves: "paragraph_index", "emotion", e "pace".
-3.  **QUANTIDADE EXATA DE OBJETOS:** O array DEVE conter EXATAMENTE ${paragraphs.length} objetos, um para cada parágrafo fornecido.
-4.  **SINTAXE DAS STRINGS:** Todas as chaves e valores string DEVEM usar aspas duplas (""). Cada objeto, EXCETO o último, DEVE ser seguido por uma vírgula (,).
-
-**MANUAL DE ANÁLISE E CLASSIFICAÇÃO (SIGA EXATAMENTE):**
-- **"paragraph_index" (Índice do Parágrafo):** Um número inteiro representando a posição do parágrafo na lista original (0, 1, 2, ...).
-- **"emotion" (Emoção Dominante):** Escolha EXATAMENTE UM dos seguintes valores: "Inspirador", "Reflexivo", "Emocional", "Motivador", "Informativo", "Curioso", "Empático", "Urgente", "Tenso", "Alívio".
-- **"pace" (Ritmo Sugerido):** Escolha EXATAMENTE UM dos seguintes valores: "Muito Lento", "Lento", "Normal", "Rápido", "Muito Rápido".
-
-**EXEMPLO DE RESPOSTA PERFEITA:**
-[
-  { "paragraph_index": 0, "emotion": "Curioso", "pace": "Normal" },
-  { "paragraph_index": 1, "emotion": "Tenso", "pace": "Rápido" }
-]
-
-**ROTEIRO PARA ANÁLISE:**
-${paragraphs.map((p, index) => `PARAGRAFO ${index}: "${p}"`).join('\n\n')}
-
-**AÇÃO FINAL:** Analise CADA parágrafo, gere a análise conforme as regras e responda APENAS com o array JSON perfeito.`;
+    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções e unindo com os visuais...</p>`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 4000); // Aumentei um pouco os tokens por segurança
-        const analysis = cleanGeneratedText(rawResult, true);
+        // 2. GERA O MAPA EMOCIONAL (COMO ANTES)
+        const fullTranscript = getTranscriptOnly();
+        const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
+        const prompt = `Você é uma API de análise que retorna um array JSON. Para os ${paragraphs.length} parágrafos, sua resposta DEVE ser um array JSON com ${paragraphs.length} objetos. Cada objeto deve ter: "paragraph_index", "emotion", e "pace". Retorne APENAS o JSON puro.`;
+        
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const emotionalMap = cleanGeneratedText(rawResult, true);
 
-        if (!analysis || !Array.isArray(analysis) || analysis.length < paragraphs.length) {
-            throw new Error("A IA retornou um mapa emocional em formato inválido ou incompleto, mesmo com o prompt blindado. Tente novamente.");
+        if (!emotionalMap || !Array.isArray(emotionalMap) || emotionalMap.length < paragraphs.length) {
+            throw new Error("A IA retornou um mapa emocional em formato inválido. Tente novamente.");
         }
+        AppState.generated.emotionalMap = emotionalMap;
 
-        AppState.generated.emotionalMap = analysis;
-        window.emotionalMap = analysis; 
+        // 3. UNE E RENDERIZA TUDO
+        outputContainer.innerHTML = ''; // Limpa o spinner
 
-        // A lógica de renderização que já funcionou é mantida
-        outputContainer.innerHTML = ''; 
+        const allPrompts = [
+            ...(imagePrompts.introSection || []),
+            ...(imagePrompts.developmentSection || []),
+            ...(imagePrompts.climaxSection || []),
+            ...(imagePrompts.conclusionSection || []),
+            ...(imagePrompts.ctaSection || [])
+        ];
 
         const sectionOrder = [
             { id: 'intro', title: 'Introdução' },
@@ -3762,47 +3755,54 @@ ${paragraphs.map((p, index) => `PARAGRAFO ${index}: "${p}"`).join('\n\n')}
         let globalParagraphIndex = 0;
 
         sectionOrder.forEach(sectionInfo => {
-            const sectionScript = AppState.generated.script[sectionInfo.id];
+            const sectionScript = script[sectionInfo.id];
             if (!sectionScript || !sectionScript.text) return;
 
             const sectionParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim());
             
             if (sectionParagraphs.length > 0) {
                 const sectionTitleElement = document.createElement('h3');
-                sectionTitleElement.className = 'text-xl font-bold mt-6 mb-4 border-b-2 border-primary pb-2';
+                sectionTitleElement.className = 'text-xl font-bold mt-6 mb-4';
                 sectionTitleElement.textContent = sectionInfo.title;
                 outputContainer.appendChild(sectionTitleElement);
             }
 
             sectionParagraphs.forEach(() => {
-                const item = analysis[globalParagraphIndex];
+                const emotionData = emotionalMap[globalParagraphIndex];
+                const promptData = allPrompts[globalParagraphIndex];
                 const paragraphText = paragraphs[globalParagraphIndex];
 
-                if (!item || !paragraphText) {
+                if (!emotionData || !promptData || !paragraphText) {
                     globalParagraphIndex++;
                     return;
                 }
 
-                const mapItemHtml = `
-                    <div class="emotional-map-item card !p-3 mb-4">
-                        <p class="paragraph-preview">"${DOMPurify.sanitize(paragraphText)}"</p>
-                        <div class="analysis-tags">
-                            <span class="tag tag-emotion"><i class="fas fa-theater-masks mr-2"></i>${DOMPurify.sanitize(item.emotion)}</span>
-                            <span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${DOMPurify.sanitize(item.pace)}</span>
-                        </div>
+                const styleBlockApplied = promptData.styleBlock ? '[Estilo Cinematográfico Aplicado]' : '';
+                const itemHtml = `
+                <div class="emotional-map-item card !p-4 mb-4">
+                    <div class="prompt-header mb-3">
+                        <span class="tag tag-emotion"><i class="fas fa-theater-masks mr-2"></i>${DOMPurify.sanitize(emotionData.emotion)}</span>
+                        <span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${DOMPurify.sanitize(emotionData.pace)}</span>
                     </div>
-                `;
-                outputContainer.innerHTML += mapItemHtml;
+                    <p class="mb-4">"${DOMPurify.sanitize(paragraphText)}"</p>
+                    <div class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-3">
+                        <p class="font-semibold text-sm mb-1 text-gray-700 dark:text-gray-300">Image Description:</p>
+                        <p class="text-sm">${DOMPurify.sanitize(promptData.imageDescription)}</p>
+                        <p class="text-xs italic text-gray-500 mt-2">${styleBlockApplied}</p>
+                    </div>
+                </div>`;
+
+                outputContainer.innerHTML += itemHtml;
                 globalParagraphIndex++;
             });
         });
         
+        window.showToast("Mapa Emocional e Visuais gerados com sucesso!");
         markButtonAsCompleted(button.id);
-        updateButtonStates();
 
     } catch (error) {
-        console.error("Erro detalhado em mapEmotionsAndPacing:", error);
-        outputContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar o mapa emocional: ${error.message}</p>`;
+        console.error("Erro detalhado ao gerar o Mapa Emocional Unificado:", error);
+        outputContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar o mapa: ${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
     }
