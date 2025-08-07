@@ -4,7 +4,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,7 +51,7 @@
     /* ======================= ESTILOS GLOBAIS ======================= */
     /* ================================================================= */
     body { 
-        font-family: 'Roboto', sans-serif;
+        font-family: 'Inter', sans-serif; 
         background-color: var(--dark-bg); 
         color: var(--dark-text-body); 
         transition: var(--transition); 
@@ -530,7 +530,7 @@
 
 /* O TEXTO DO ROTEIRO (SERIFADO, COMO NAS SEÇÕES DE CRIAÇÃO) */
 .direction-script {
-    font-family: 'Roboto', serif;
+    font-family: 'Source Serif Pro', serif;
     font-weight: 400; /* Peso normal, sem negrito */
     /* Tamanho e altura de linha herdados do body para consistência total */
     line-height: 1.7; 
@@ -836,19 +836,7 @@
     .print-section-content p, .print-section-content li, .print-section-content h4, .print-section-content strong {
         color: #000 !important;
     }
-
-    /* ================================================================= */
-/* >>>>> SOLUÇÃO DEFINITIVA (CONSIDERANDO O TAILWINDCSS) <<<<< */
-/* ================================================================= */
-
-html, body { 
-    font-family: 'Roboto', sans-serif; 
-    background-color: var(--dark-bg); 
-    color: var(--dark-text-body); 
-    transition: var(--transition); 
 }
-
-
 
 </style>
 
@@ -896,9 +884,6 @@ html, body {
 <!-- ==================================================================== -->
 <!--     NOVA SEÇÃO 0: CENTRAL DE INVESTIGAÇÃO E IDEIAS (FLUXO 2.0)     -->
 <!-- ==================================================================== -->
-
-<!--  <<<<< INÍCIO DO COMENTÁRIO
-
 <section class="mb-12">
     <div class="text-center mb-8">
         <h2 class="text-2xl font-bold mb-2">Comece com a Verdade</h2>
@@ -925,21 +910,21 @@ html, body {
 
 
 
-
+        <!-- Container para o relatório da IA -->
         <div id="factCheckOutput" class="mt-8">
-      
+            <!-- O relatório da investigação e o "botão mágico" aparecerão aqui -->
         </div>
         
         <hr class="my-8 border-dashed border-gray-300 dark:border-gray-600">
 
-  
+        <!-- Parte 2: A Geração de Ideias -->
         <div id="ideaGenerationSection" class="hidden">
              <div class="text-center">
                 <h3 class="text-lg font-bold mb-2">Gerar Ideias a partir do Relatório</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Agora, escolha um especialista para transformar os fatos investigados em ideias de vídeo criativas.</p>
             </div>
             
-   
+            <!-- A Barra de Navegação com Abas de Gênero -->
             <div class="border-b border-gray-200 dark:border-gray-700">
                 <nav id="genreTabs" class="-mb-px flex flex-wrap space-x-2 justify-center" aria-label="Tabs">
     <button data-genre="documentario" class="tab-button tab-active"> <i class="fas fa-film fa-fw"></i> <span>Documentário</span> </button>
@@ -957,14 +942,14 @@ html, body {
             </div>
         </div>
 
-   
+        <!-- O Container final para a Saída das Ideias -->
         <div id="ideasOutput" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-     
+            <!-- As ideias geradas pela IA aparecerão aqui -->
         </div>
     </div>
 </section>
 
-FIM DO COMENTÁRIO >>>>> -->
+
 
     <div class="section-title">
         <h2 class="text-xl font-bold">1. Definir Estratégia</h2>
@@ -3656,90 +3641,113 @@ const getTranscriptOnly = () => {
 
 
 // =========================================================================
-// >>>>> VERSÃO FINAL E DEFINITIVA de 'resetApplicationState' <<<<<
+// >>>>> VERSÃO FINAL de 'generateDirectorSheet' (Organizada por Seções) <<<<<
 // =========================================================================
-const resetApplicationState = async () => {
-    console.log("--- Executando Reset Completo da Aplicação ---");
+const generateDirectorSheet = async (button) => {
+    // Validação
+    const { script, imagePrompts } = AppState.generated;
+    const isScriptReady = script.intro.text && script.development.text && script.climax.text;
+    const arePromptsReady = imagePrompts['introSection'] && imagePrompts['developmentSection'] && imagePrompts['climaxSection'];
 
-    // ----- ETAPA 1: Resetar o "Cérebro" AppState para o estado inicial -----
-    Object.assign(AppState, {
-        inputs: {},
-        generated: {
-            investigationReport: null, ideas: [], strategicOutline: null,
-            script: {
-                intro: { html: null, text: null }, development: { html: null, text: null },
-                climax: { html: null, text: null }, conclusion: { html: null, text: null },
-                cta: { html: null, text: null }
-            },
-            titlesAndThumbnails: null, description: null, soundtrack: null,
-            emotionalMap: null, imagePrompts: {}
-        },
-        ui: { isSettingStrategy: false, promptPaginationState: {} }
-    });
+    if (!isScriptReady || !arePromptsReady) {
+        window.showToast("Gere o roteiro principal e os prompts de imagem primeiro.");
+        return;
+    }
 
-    // ----- ETAPA 2: Limpar TODOS os Outputs da UI (AGORA INCLUINDO A FOLHA DE DIREÇÃO) -----
-    const outputContainers = [
-        'factCheckOutput', 'ideasOutput', 'scriptSectionsContainer', 'outlineContent',
-        'titlesThumbnailsContent', 'videoDescriptionContent', 'soundtrackContent',
-        'directorSheetContent', // <<< A LINHA DA CORREÇÃO
-        'analysisReportContainer', 'hooksReportContainer', 'viralSuggestionsContainer'
-    ];
-    outputContainers.forEach(id => {
-        const container = document.getElementById(id);
-        if (container) container.innerHTML = '';
-    });
+    showButtonLoading(button);
+    const outputContainer = document.getElementById('directorSheetContent');
+    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções e ritmo...</p>`;
 
-    // ----- ETAPA 3: Resetar Placeholders e Estruturas Iniciais -----
-    document.getElementById('outlineContent').innerHTML = '<div class="asset-card-placeholder">Clique para gerar o esboço.</div>';
-    
-    // <<< A OUTRA LINHA DA CORREÇÃO
-    document.getElementById('directorSheetContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro completo e os prompts de imagem para habilitar.</div>';
-    
-    document.getElementById('titlesThumbnailsContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>';
-    document.getElementById('videoDescriptionContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>';
-    document.getElementById('soundtrackContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>';
+    try {
+        // --- ETAPA A: Gerar o Mapa Emocional ---
+        const fullTranscript = getTranscriptOnly();
+        const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
+        
+        const mapPrompt = `Você é uma API de análise. Sua resposta DEVE ser um array JSON com ${paragraphs.length} objetos. Cada objeto deve ter: "paragraph_index", "emotion", e "pace". Retorne APENAS o JSON.`;
+        
+        const rawMapResult = await callGroqAPI(mapPrompt, 3000);
+        const emotionalMap = cleanGeneratedText(rawMapResult, true);
 
-    // ... (o resto da função continua igual)
+        if (!emotionalMap || !Array.isArray(emotionalMap) || emotionalMap.length > paragraphs.length) {
+            throw new Error("A IA falhou ao gerar o mapa emocional.");
+        }
+        
+        AppState.generated.emotionalMap = emotionalMap;
+        window.emotionalMap = emotionalMap;
+        outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Montando a folha de direção...</p>`;
 
-    // ----- ETAPA 4: Limpar TODOS os Inputs do Formulário -----
-    const inputIdsToReset = [
-        'factCheckQuery', 'videoTheme', 'videoDescription', 'targetAudience', 'narrativeTheme', 
-        'centralQuestion', 'emotionalHook', 'narrativeVoice', 'emotionalArc', 'shockingEndingHook', 
-        'researchData', 'imageDescriptionEngine', 'customImageStyle', 'conclusionSpecifics', 'ctaSpecifics'
-    ];
-    inputIdsToReset.forEach(id => {
-        const input = document.getElementById(id);
-        if (input) input.value = '';
-    });
-    document.getElementById('channelName').value = 'The Biblical Unveiling'; 
+        // --- ETAPA B: Montar a Folha de Direção por SEÇÕES ---
+        outputContainer.innerHTML = '';
+        
+        const sectionOrder = [
+            { id: 'intro', title: 'Introdução' },
+            { id: 'development', title: 'Desenvolvimento' },
+            { id: 'climax', title: 'Clímax' },
+            { id: 'conclusion', title: 'Conclusão' },
+            { id: 'cta', title: 'Call to Action (CTA)' }
+        ];
 
-    // ----- ETAPA 5: Resetar Selects e Rádios para o Padrão -----
-    document.getElementById('languageSelect').value = 'en';
-    document.getElementById('videoDuration').value = '';
-    document.getElementById('visualPacing').value = '';
-    document.getElementById('narrativeGoal').value = 'storytelling';
-    document.getElementById('narrativeTone').value = 'inspirador';
-    document.getElementById('languageStyle').value = 'inspirador';
-    document.getElementById('videoObjective').value = 'informar';
-    document.getElementById('speakingPace').value = 'moderate';
-    document.getElementById('imageStyleSelect').value = 'cinematic';
-    
-    const lessonRadio = document.querySelector('input[name="conclusionType"][value="lesson"]');
-    if (lessonRadio) lessonRadio.checked = true;
+        let globalParagraphIndex = 0;
 
-    // ----- ETAPA 6: GARANTE que a UI volte ao estado inicial visual -----
-    updateNarrativeStructureOptions();
-    toggleCustomImageStyleVisibility();
-    document.getElementById('ideaGenerationSection').classList.add('hidden');
-    document.getElementById('projectDashboard').classList.add('hidden');
-    document.getElementById('conclusionStrategyModule').classList.add('hidden');
-    document.getElementById('scriptAnalysisSection').classList.add('hidden');
+        sectionOrder.forEach(sectionInfo => {
+            const sectionScript = AppState.generated.script[sectionInfo.id];
+            if (!sectionScript || !sectionScript.text) return;
 
-    // ----- ETAPA 7: Atualiza o resto da UI -----
-    updateProgressBar();
-    localStorage.removeItem('viralScriptGeneratorProject');
-    window.showToast("Pronto para um novo projeto!");
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+            const sectionParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim());
+            const sectionPrompts = AppState.generated.imagePrompts[`${sectionInfo.id}Section`] || [];
+
+            // Adiciona um título de seção à Folha de Direção
+            outputContainer.innerHTML += `<h3 class="text-lg font-bold mt-8 mb-4 border-b pb-2">${sectionInfo.title}</h3>`;
+
+            sectionParagraphs.forEach((p, indexInSection) => {
+                const emotionData = emotionalMap[globalParagraphIndex] || { emotion: 'N/A', pace: 'N/A' };
+                const promptData = sectionPrompts[indexInSection] || { imageDescription: 'Visual não encontrado.' };
+                const styleBlockContent = promptData.styleBlock || '';
+
+                const itemHtml = `
+                    <div class="direction-item mb-4">
+                        <div class="direction-header">
+                            <div class="tags-group">
+                                <span class="tag tag-emotion"><i class="fas fa-theater-masks fa-fw mr-2"></i>${emotionData.emotion}</span>
+                                <span class="tag tag-pace"><i class="fas fa-tachometer-alt fa-fw mr-2"></i>${emotionData.pace}</span>
+                            </div>
+                            <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
+                                    onclick="
+                                        const desc = document.getElementById('visual-desc-${globalParagraphIndex}').innerText;
+                                        const style = document.getElementById('visual-style-${globalParagraphIndex}').innerText;
+                                        window.copyTextToClipboard(desc + ' ' + style);
+                                        window.showToast('Prompt visual completo copiado!');
+                                    "
+                                    title="Copiar prompt visual completo (descrição + estilo)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <p class="direction-script">"${DOMPurify.sanitize(p)}"</p>
+                        <div class="direction-details">
+                            <p>
+                                <i class="fas fa-palette fa-fw mr-2"></i>
+                                <strong>Visual:</strong>
+                                <span id="visual-desc-${globalParagraphIndex}">${DOMPurify.sanitize(promptData.imageDescription)}</span>
+                            </p>
+                            <pre id="visual-style-${globalParagraphIndex}" class="hidden">${DOMPurify.sanitize(styleBlockContent)}</pre>
+                            ${styleBlockContent ? `<p class="mt-2 text-xs italic text-gray-400">[Estilo Cinematográfico Aplicado]</p>` : ''}
+                        </div>
+                    </div>
+                `;
+                outputContainer.innerHTML += itemHtml;
+                globalParagraphIndex++;
+            });
+        });
+        
+        window.showToast("Folha de Direção gerada com sucesso!");
+        markButtonAsCompleted(button.id);
+
+    } catch (error) {
+        console.error("Erro ao gerar a Folha de Direção:", error);
+        outputContainer.innerHTML = `<p class="text-red-500">${error.message}</p>`;
+    } finally {
+        hideButtonLoading(button);
+    }
 };
 
 
@@ -6502,8 +6510,8 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
         }
 
         const contentWithDivs = paragraphs.map((p, index) =>
-    `<div id="${elementId}-p-${index}">${DOMPurify.sanitize(p)}</div>`
-).join('');
+            `<div id="${elementId}-p-${index}">${DOMPurify.sanitize(p)}</div>`
+        ).join('');
         
         const fullText = paragraphs.join('\n\n');
 
@@ -7295,6 +7303,97 @@ const generateStrategicOutline = async (button) => {
                 document.body.removeChild(printContainer);
             }, 500); // 500ms de atraso
         };
+
+
+
+// =========================================================================
+// >>>>> VERSÃO FINAL E DEFINITIVA de 'resetApplicationState' <<<<<
+// =========================================================================
+const resetApplicationState = async () => {
+    console.log("--- Executando Reset Completo da Aplicação ---");
+
+    // ----- ETAPA 1: Resetar o "Cérebro" AppState para o estado inicial -----
+    Object.assign(AppState, {
+        inputs: {},
+        generated: {
+            investigationReport: null, ideas: [], strategicOutline: null,
+            script: {
+                intro: { html: null, text: null }, development: { html: null, text: null },
+                climax: { html: null, text: null }, conclusion: { html: null, text: null },
+                cta: { html: null, text: null }
+            },
+            titlesAndThumbnails: null, description: null, soundtrack: null,
+            emotionalMap: null, imagePrompts: {}
+        },
+        ui: { isSettingStrategy: false, promptPaginationState: {} }
+    });
+
+
+    window.emotionalMap = [];
+    window.allImagePrompts = {};
+    window.promptPaginationState = {};
+
+    // ----- ETAPA 2: Limpar TODOS os Outputs da UI -----
+    const outputContainers = [
+        'factCheckOutput', 'ideasOutput', 'scriptSectionsContainer', 'outlineContent',
+        'titlesThumbnailsContent', 'videoDescriptionContent', 'soundtrackContent',
+        'emotionalMapContent', 'analysisReportContainer', 'hooksReportContainer',
+        'viralSuggestionsContainer', 'directorPanelOutput'
+    ];
+    outputContainers.forEach(id => {
+        const container = document.getElementById(id);
+        if (container) container.innerHTML = '';
+    });
+
+    // ----- ETAPA 3: Resetar Placeholders e Estruturas Iniciais -----
+    document.getElementById('outlineContent').innerHTML = '<div class="asset-card-placeholder">Clique para gerar o esboço.</div>';
+    document.getElementById('emotionalMapContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro completo para habilitar.</div>';
+    document.getElementById('titlesThumbnailsContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>';
+    document.getElementById('videoDescriptionContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>';
+    document.getElementById('soundtrackContent').innerHTML = '<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>';
+
+    // ----- ETAPA 4: Limpar TODOS os Inputs do Formulário -----
+    const inputIdsToReset = [
+        'factCheckQuery', 'videoTheme', 'videoDescription', 'targetAudience', 'narrativeTheme', 
+        'centralQuestion', 'emotionalHook', 'narrativeVoice', 'emotionalArc', 'shockingEndingHook', 
+        'researchData', 'imageDescriptionEngine', 'customImageStyle', 'conclusionSpecifics', 'ctaSpecifics'
+    ];
+    inputIdsToReset.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+    });
+    document.getElementById('channelName').value = 'The Biblical Unveiling';
+
+    // ----- ETAPA 5: Resetar Selects e Rádios para o Padrão -----
+    document.getElementById('languageSelect').value = 'en';
+    document.getElementById('videoDuration').value = '';
+    document.getElementById('visualPacing').value = '';
+    document.getElementById('narrativeGoal').value = 'storytelling';
+    document.getElementById('narrativeTone').value = 'inspirador';
+    document.getElementById('languageStyle').value = 'inspirador';
+    document.getElementById('videoObjective').value = 'informar';
+    document.getElementById('speakingPace').value = 'moderate';
+    document.getElementById('imageStyleSelect').value = 'cinematic';
+    
+    // <<< A CORREÇÃO ESTÁ AQUI >>>
+    const lessonRadio = document.querySelector('input[name="conclusionType"][value="lesson"]');
+    if (lessonRadio) lessonRadio.checked = true;
+
+    // ----- ETAPA 6: GARANTE que a UI volte ao estado inicial visual -----
+    updateNarrativeStructureOptions();
+    toggleCustomImageStyleVisibility();
+    document.getElementById('ideaGenerationSection').classList.add('hidden');
+    document.getElementById('projectDashboard').classList.add('hidden');
+    document.getElementById('conclusionStrategyModule').classList.add('hidden');
+    document.getElementById('scriptAnalysisSection').classList.add('hidden');
+    document.getElementById('directorPanelSection').classList.add('hidden');
+
+    // ----- ETAPA 7: Atualiza o resto da UI -----
+    updateProgressBar();
+    localStorage.removeItem('viralScriptGeneratorProject');
+    window.showToast("Pronto para um novo projeto!");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 
 
 
