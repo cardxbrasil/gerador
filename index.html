@@ -3698,10 +3698,10 @@ const getTranscriptOnly = () => {
 
 
 // ====================================================================================
-// >>>>> VERSÃO FINAL: MAPA EMOCIONAL + VISUAIS (Folha de Direção Simplificada) <<<<<
+// >>>>> VERSÃO FINAL E REFINADA: MAPA EMOCIONAL + VISUAIS <<<<<
 // ====================================================================================
 const mapEmotionsAndPacing = async (button) => {
-    // 1. VALIDAÇÃO ROBUSTA: Verifica se os pré-requisitos estão prontos
+    // 1. VALIDAÇÃO ROBUSTA (sem alterações)
     const { script, imagePrompts } = AppState.generated;
     const isScriptReady = script.intro.text && script.development.text && script.climax.text;
     const arePromptsReady = imagePrompts['introSection'] && imagePrompts['developmentSection'] && imagePrompts['climaxSection'];
@@ -3720,7 +3720,7 @@ const mapEmotionsAndPacing = async (button) => {
     outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções e unindo com os visuais...</p>`;
 
     try {
-        // 2. GERA O MAPA EMOCIONAL (COMO ANTES)
+        // 2. GERA O MAPA EMOCIONAL (sem alterações)
         const fullTranscript = getTranscriptOnly();
         const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
         const prompt = `Você é uma API de análise que retorna um array JSON. Para os ${paragraphs.length} parágrafos, sua resposta DEVE ser um array JSON com ${paragraphs.length} objetos. Cada objeto deve ter: "paragraph_index", "emotion", e "pace". Retorne APENAS o JSON puro.`;
@@ -3733,8 +3733,8 @@ const mapEmotionsAndPacing = async (button) => {
         }
         AppState.generated.emotionalMap = emotionalMap;
 
-        // 3. UNE E RENDERIZA TUDO
-        outputContainer.innerHTML = ''; // Limpa o spinner
+        // 3. UNE E RENDERIZA TUDO (COM AS CORREÇÕES DE ESTILO E FUNCIONALIDADE)
+        outputContainer.innerHTML = ''; 
 
         const allPrompts = [
             ...(imagePrompts.introSection || []),
@@ -3776,19 +3776,35 @@ const mapEmotionsAndPacing = async (button) => {
                     globalParagraphIndex++;
                     return;
                 }
-
+                
                 const styleBlockApplied = promptData.styleBlock ? '[Estilo Cinematográfico Aplicado]' : '';
+                const fullPromptText = `${promptData.imageDescription} ${promptData.styleBlock || ''}`;
+
+                // <<< AS CORREÇÕES ESTÃO AQUI DENTRO >>>
                 const itemHtml = `
                 <div class="emotional-map-item card !p-4 mb-4">
                     <div class="prompt-header mb-3">
                         <span class="tag tag-emotion"><i class="fas fa-theater-masks mr-2"></i>${DOMPurify.sanitize(emotionData.emotion)}</span>
                         <span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${DOMPurify.sanitize(emotionData.pace)}</span>
+                        
+                        <!-- BOTÃO DE COPIAR ADICIONADO -->
+                        <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
+                                onclick="window.copyTextToClipboard(this.closest('.emotional-map-item').querySelector('.full-prompt-hidden').textContent);"
+                                title="Copiar prompt visual completo">
+                            <i class="fas fa-copy"></i>
+                        </button>
                     </div>
-                    <p class="mb-4">"${DOMPurify.sanitize(paragraphText)}"</p>
-                    <div class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-3">
+
+                    <!-- ESTILO DO TEXTO CORRIGIDO -->
+                    <p class="paragraph-preview">"${DOMPurify.sanitize(paragraphText)}"</p>
+                    
+                    <div class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-3 mt-3">
                         <p class="font-semibold text-sm mb-1 text-gray-700 dark:text-gray-300">Image Description:</p>
                         <p class="text-sm">${DOMPurify.sanitize(promptData.imageDescription)}</p>
                         <p class="text-xs italic text-gray-500 mt-2">${styleBlockApplied}</p>
+                        
+                        <!-- DADO ESCONDIDO PARA O BOTÃO COPIAR -->
+                        <pre class="full-prompt-hidden hidden">${DOMPurify.sanitize(fullPromptText)}</pre>
                     </div>
                 </div>`;
 
