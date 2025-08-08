@@ -1649,7 +1649,6 @@ window.optimizeGroup = async (button, suggestionText) => {
         return;
     }
 
-    // <<< CORREÇÃO CRÍTICA: Escapa as aspas para o seletor funcionar corretamente >>>
     const safeSelector = suggestionText.replace(/"/g, '\\"');
     const paragraphsToOptimize = document.querySelectorAll(`[data-suggestion-group="${safeSelector}"]`);
 
@@ -1732,6 +1731,7 @@ Reescreva o bloco de texto acima, corrigindo o problema e integrando-o perfeitam
         if (sectionElement) {
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
+            invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
         }
 
         window.showToast("Bloco de parágrafos otimizado!");
@@ -1918,26 +1918,20 @@ const applyHookSuggestion = (button) => {
 
     scriptSections.forEach(wrapper => {
         if (replaced) return;
-
         const paragraphs = wrapper.querySelectorAll('div[id*="-p-"]');
         paragraphs.forEach(p => {
             if (replaced) return;
-            
-            // <<< A MUDANÇA ESTÁ AQUI: trocamos busca exata por 'includes' >>>
             if (p.textContent.includes(problematicQuote)) {
-                
                 const newHtmlContent = p.innerHTML.replace(problematicQuote, `<span class="highlight-change">${rewrittenQuote}</span>`);
-                
                 p.innerHTML = DOMPurify.sanitize(newHtmlContent, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
                 window.showToast("Gancho aprimorado com sucesso!");
-                
                 const sectionElement = p.closest('.script-section');
                 if (sectionElement) {
                     invalidateAndClearPerformance(sectionElement);
                     invalidateAndClearPrompts(sectionElement);
+                    invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
                     updateAllReadingTimes();
                 }
-
                 replaced = true;
             }
         });
@@ -2545,25 +2539,20 @@ const insertViralSuggestion = (button) => {
     let inserted = false;
 
     allParagraphs.forEach(p => {
-        // A busca flexível que procura se o parágrafo CONTÉM a âncora
         if (!inserted && p.textContent.trim().includes(anchorParagraph.trim())) {
             const newDiv = document.createElement('div');
             newDiv.id = `inserted-p-${Date.now()}`; 
-            
             newDiv.innerHTML = `<span class="highlight-change">${suggestedText}</span>`;
-            
             p.parentNode.insertBefore(newDiv, p.nextSibling);
-
             newDiv.innerHTML = DOMPurify.sanitize(newDiv.innerHTML, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
             window.showToast("Elemento viral inserido com sucesso!");
-
             const sectionElement = p.closest('.script-section');
             if (sectionElement) {
                 invalidateAndClearPerformance(sectionElement);
                 invalidateAndClearPrompts(sectionElement);
+                invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
                 updateAllReadingTimes();
             }
-            
             inserted = true;
         }
     });
@@ -2769,6 +2758,41 @@ const analyzeFullScript = async (button) => {
 
 
 
+/**
+ * Invalida e limpa o Mapa Emocional quando o roteiro é alterado.
+ * Reseta o estado no AppState e atualiza a UI com um aviso.
+ */
+const invalidateAndClearEmotionalMap = () => {
+    // Só executa se o mapa já tiver sido gerado, para evitar operações desnecessárias
+    if (!AppState.generated.emotionalMap) {
+        return;
+    }
+
+    console.log("Roteiro alterado. Invalidando e limpando o Mapa Emocional.");
+
+    // 1. Reseta o estado no "cérebro" da aplicação
+    AppState.generated.emotionalMap = null;
+
+    // 2. Reseta a interface do usuário (UI)
+    const container = document.getElementById('emotionalMapContent');
+    const button = document.getElementById('mapEmotionsBtn');
+
+    if (container) {
+        // Mostra um aviso claro para o usuário sobre o porquê de o mapa ter sumido
+        container.innerHTML = `
+            <div class="asset-card-placeholder text-yellow-700 dark:text-yellow-300 border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20">
+                O roteiro foi alterado.<br>Clique em "Mapear" novamente para ver a análise atualizada.
+            </div>`;
+    }
+
+    // 3. Reseta o estado do botão "Mapear" para que possa ser clicado novamente
+    if (button) {
+        button.classList.remove('btn-success');
+        button.classList.add('btn-secondary');
+    }
+};
+
+
 
 // ====================================================================================
 // AÇÃO: SUBSTITUA SUA FUNÇÃO 'analyzeScriptPart' INTEIRA POR ESTA VERSÃO BLINDADA
@@ -2930,12 +2954,7 @@ const createReportSection = (analysisData) => {
 // =========================================================================
 // >>>>> FUNÇÃO DE EDIÇÃO CONTEXTUAL (VERSÃO COMPLETA E ROBUSTA) <<<<<
 // =========================================================================
-/**
- * Lida com as ações do menu de edição (expandir, resumir, corrigir).
- * @param {string} action - O nome da ação a ser executada ('expand', 'summarize', 'correct').
- */
 const handleEditingAction = async (action) => {
-    // 1. Validação: Garante que temos uma seleção de texto válida guardada.
     if (!userSelectionRange) {
         window.showToast("Erro: A seleção de texto foi perdida. Tente selecionar novamente.");
         return;
@@ -2943,16 +2962,14 @@ const handleEditingAction = async (action) => {
 
     const selectedText = userSelectionRange.toString().trim();
     if (!selectedText) {
-        // Se a seleção for apenas espaços em branco, não faz nada e esconde o menu.
         document.getElementById('editing-menu').classList.remove('visible');
         return;
     }
 
     const editingMenu = document.getElementById('editing-menu');
-    editingMenu.classList.remove('visible'); // Esconde o menu para não atrapalhar.
-    window.showToast(`A IA está tentando "${action}"...`); // Feedback para o usuário.
+    editingMenu.classList.remove('visible');
+    window.showToast(`A IA está tentando "${action}"...`);
 
-    // 2. Montagem do Prompt: Define a instrução correta para a IA com base na ação.
     const instructions = {
         expand: "Sua tarefa é expandir este parágrafo. Adicione mais detalhes, descrições vívidas e contexto para torná-lo mais rico e envolvente, mantendo o tom e a mensagem central originais.",
         summarize: "Sua tarefa é resumir este parágrafo. Torne-o mais conciso, direto e impactante, removendo redundâncias mas preservando a informação essencial.",
@@ -2972,39 +2989,29 @@ ${selectedText}
 `;
 
     try {
-        // 3. Chamada à IA: Envia o prompt e aguarda a resposta.
         const rawResult = await callGroqAPI(prompt, 3000);
         const refinedText = removeMetaComments(rawResult);
 
-        // 4. Manipulação do DOM (A PARTE CRÍTICA E CORRIGIDA):
         if (userSelectionRange) {
-            // Limpa qualquer seleção que o usuário possa ter feito enquanto a IA trabalhava.
             window.getSelection().removeAllRanges();
-
-            // Apaga o conteúdo original que estava selecionado.
             userSelectionRange.deleteContents();
 
-            // Cria o novo elemento <span> com o texto refinado e a classe para o "pisca".
             const newNode = document.createElement('span');
             newNode.className = 'highlight-change';
-            newNode.textContent = refinedText; // Usamos .textContent para segurança.
+            newNode.textContent = refinedText;
             
-            // Insere o novo nó <span> exatamente onde a seleção estava.
             userSelectionRange.insertNode(newNode);
             
-            // "Seleciona" o novo texto para que o usuário veja o resultado
             const newRange = document.createRange();
             newRange.selectNodeContents(newNode);
             window.getSelection().addRange(newRange);
         }
 
-        // 5. Invalidação e Feedback: Atualiza o estado da aplicação.
-        // Acessa o nó inicial da seleção para encontrar a seção pai
         const sectionElement = userSelectionRange.startContainer.parentElement.closest('.script-section');
         if (sectionElement) {
-            // >>> AQUI ESTÁ A LÓGICA DE SINCRONIZAÇÃO <<<
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
+            invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
             updateAllReadingTimes();
         }
         
@@ -3014,7 +3021,6 @@ ${selectedText}
         console.error(`Erro ao tentar '${action}':`, error);
         window.showToast(`Falha ao refinar o texto: ${error.message}`);
     } finally {
-        // 6. Limpeza: Reseta a variável de seleção para a próxima ação.
         userSelectionRange = null;
     }
 };
@@ -5339,11 +5345,7 @@ window.addDevelopmentChapter = async (button) => {
     showButtonLoading(button);
 
     try {
-// ====================================================================================
-// >>>>> SUBSTITUA SEU suggestionPrompt POR ESTA VERSÃO FINAL E ESPETACULAR <<<<<
-// ====================================================================================
-
-const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
+        const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
 Você não é um gerador de texto. Você é um mestre roteirista que identifica pontos de virada lógicos e emocionantes. Sua tarefa é encontrar os próximos passos mais envolventes para a história. Qualquer desvio desta função é uma falha.
@@ -5373,11 +5375,6 @@ ${existingText.slice(-3000)}
 
 **AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.
 `;
-
-
-
-
-
         const rawSuggestions = await callGroqAPI(suggestionPrompt, 400);
         const chapterSuggestions = cleanGeneratedText(rawSuggestions, true) || [];
         
@@ -5398,9 +5395,8 @@ ${existingText.slice(-3000)}
 
         showButtonLoading(button);
 
-        // --- AQUI ESTÁ O PROMPT CORRIGIDO COM CRASES ---
         const basePrompt = getBasePromptContext();
-const continuationPrompt = `${basePrompt}
+        const continuationPrompt = `${basePrompt}
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
 Você é um ROTEIRISTA CONTINUÍSTA DE ELITE. Sua única função é escrever o PRÓXIMO capítulo de um roteiro existente, garantindo uma transição PERFEITA e a introdução de NOVAS informações. Você NUNCA repete o que já foi dito.
@@ -5427,8 +5423,7 @@ ${existingText}
 
 **AÇÃO FINAL E CRÍTICA:** Escreva AGORA o texto puro para o próximo capítulo sobre "${chapterTheme}", seguindo todas as regras com máxima precisão. Responda APENAS com o texto a ser narrado.
 `;
-        // ---------------------------------------------
-
+        
         const rawResult = await callGroqAPI(continuationPrompt, 4000);
         const newChapter = removeMetaComments(rawResult.trim());
         
@@ -5452,6 +5447,7 @@ ${existingText}
         
         invalidateAndClearPerformance(devSection);
         invalidateAndClearPrompts(devSection);
+        invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
         updateAllReadingTimes();
         
         window.showToast("Novo capítulo adicionado com sucesso!");
@@ -5865,10 +5861,7 @@ window.refineSectionStyle = async (buttonElement) => {
         return;
     }
 
-// =========================================================================
-// >>>>> PROMPT FINAL E BLINDADO PARA 'refineSectionStyle' <<<<<
-// =========================================================================
-const prompt = `Você é um EDITOR DE ESTILO (Copy Editor) DE ALTO DESEMPENHO e um ESPECIALISTA EM FLUÍDEZ NARRATIVA. Sua tarefa é REESCREVER o texto fornecido para elevar drasticamente sua QUALIDADE, FLUÍDEZ, IMPACTO e ORIGINALIDADE, sem alterar o significado, o tom ou a mensagem central.
+    const prompt = `Você é um EDITOR DE ESTILO (Copy Editor) DE ALTO DESEMPENHO e um ESPECIALISTA EM FLUÍDEZ NARRATIVA. Sua tarefa é REESCREVER o texto fornecido para elevar drasticamente sua QUALIDADE, FLUÍDEZ, IMPACTO e ORIGINALIDADE, sem alterar o significado, o tom ou a mensagem central.
 
 **TEXTO ORIGINAL (PARA REFINAMENTO):**
 ---
@@ -5892,9 +5885,6 @@ ${originalText}
 
 **AÇÃO FINAL:** Reescreva AGORA o texto fornecido, aplicando EXATAMENTE todas as regras acima para entregar uma versão significativamente mais refinada, fluida, impactante e livre de repetições. Responda APENAS com o texto final refinado.
 `;
-// =========================================================================
-// >>>>> FIM DO PROMPT PARA 'refineSectionStyle' <<<<<
-// =========================================================================
 
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
@@ -5903,44 +5893,30 @@ ${originalText}
         const newParagraphs = refinedText.split('\n').filter(p => p.trim() !== '');
         const sectionId = sectionElement.id.replace('Section', '');
         
-        // Constrói o novo HTML
         const newHtml = newParagraphs.map((p, index) => 
             `<div id="${sectionId}-p-${index}">${p}</div>`
         ).join('');
 
-        // <<< AQUI ESTÁ A IMPLEMENTAÇÃO DE SEGURANÇA >>>
-        // Sanitiza o HTML antes de inseri-lo no DOM
         contentWrapper.innerHTML = DOMPurify.sanitize(newHtml);
 
-        // Invalida análises anteriores, pois o texto mudou
         invalidateAndClearPerformance(sectionElement);
         invalidateAndClearPrompts(sectionElement);
+        invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
+        
         const analysisOutput = sectionElement.querySelector('.section-analysis-output');
         if (analysisOutput) {
-            analysisOutput.innerHTML = ''; // Limpa a análise de retenção
+            analysisOutput.innerHTML = '';
         }
 
-        // Atualiza o tempo de leitura
         updateAllReadingTimes();
-
         window.showToast("Estilo do roteiro refinado com sucesso!");
 
     } catch (error) {
-        console.error("Erro detalhado em refineSectionStyle:", error); // Adicionado log de erro
+        console.error("Erro detalhado em refineSectionStyle:", error);
         window.showToast(`Falha ao refinar o estilo: ${error.message}`);
     } finally {
         hideButtonLoading(buttonElement);
     }
-};
-
-
-
-window.criterionMap = {
-    'Introdução (Hook)': 'introSection',
-    'Desenvolvimento (Ritmo e Retenção)': 'developmentSection',
-    'Clímax': 'climaxSection',
-    'Conclusão': 'conclusionSection',
-    'CTA (Call to Action)': 'ctaSection'
 };
 
 
@@ -5951,10 +5927,7 @@ window.criterionMap = {
 // =========================================================================
 window.applySuggestion = (button) => {
     const { criterionName, problematicQuote, rewrittenQuote } = button.dataset;
-
-    // Limpamos o nome do critério para remover quaisquer caracteres invisíveis.
     const cleanCriterionName = criterionName.trim();
-
     const sectionId = (window.criterionMap || {})[cleanCriterionName];
     
     if (!sectionId) {
@@ -5976,35 +5949,26 @@ window.applySuggestion = (button) => {
     paragraphs.forEach(p => {
         if (replaced) return;
         const childNodes = Array.from(p.childNodes);
-
         for (const node of childNodes) {
             if (node.nodeType === Node.TEXT_NODE && node.textContent.includes(problematicQuote)) {
-                
                 if (node.parentElement.classList.contains('highlight-change')) {
                     replaced = true;
                     break;
                 }
-                
                 const originalTextNode = node;
                 const text = originalTextNode.textContent;
                 const startIndex = text.indexOf(problematicQuote);
-
                 const textBefore = text.substring(0, startIndex);
                 const textAfter = text.substring(startIndex + problematicQuote.length);
-
                 const highlightSpan = document.createElement('span');
                 highlightSpan.textContent = rewrittenQuote;
                 highlightSpan.className = 'highlight-change'; 
-
                 const nodeBefore = document.createTextNode(textBefore);
                 const nodeAfter = document.createTextNode(textAfter);
-
                 const parent = originalTextNode.parentNode;
-                
                 parent.replaceChild(nodeAfter, originalTextNode);
                 parent.insertBefore(highlightSpan, nodeAfter);
                 parent.insertBefore(nodeBefore, highlightSpan);
-
                 replaced = true;
                 break;
             }
@@ -6020,6 +5984,7 @@ window.applySuggestion = (button) => {
     
     invalidateAndClearPerformance(sectionElement);
     invalidateAndClearPrompts(sectionElement);
+    invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
     updateAllReadingTimes();
 
     button.disabled = true;
@@ -6108,11 +6073,7 @@ window.enrichWithData = async (buttonElement) => {
     const sectionElement = buttonElement.closest('.script-section');
 
     try {
-   
-  // =========================================================================
-// >>>>> PROMPT FINAL E BLINDADO PARA INTEGRAR DADOS EXTERNOS <<<<<
-// =========================================================================
-const prompt = `Você é um EDITOR DE ROTEIRO DE ALTO DESEMPENHO e um ESPECIALISTA EM INTEGRAÇÃO DE INFORMAÇÕES. Sua tarefa ÚNICA, CRÍTICA e INEGOCIÁVEL é REESCREVER um trecho de texto para integrar uma NOVA INFORMAÇÃO de forma TOTALMENTE NATURAL, FLUÍDA e PROFISSIONAL, sem comprometer a integridade do texto original.
+        const prompt = `Você é um EDITOR DE ROTEIRO DE ALTO DESEMPENHO e um ESPECIALISTA EM INTEGRAÇÃO DE INFORMAÇÕES. Sua tarefa ÚNICA, CRÍTICA e INEGOCIÁVEL é REESCREVER um trecho de texto para integrar uma NOVA INFORMAÇÃO de forma TOTALMENTE NATURAL, FLUÍDA e PROFISSIONAL, sem comprometer a integridade do texto original.
 
 **TRECHO ORIGINAL DO ROTEIRO (PARA SER REESCRITO):**
 ---
@@ -6138,9 +6099,6 @@ ${newData}
 
 **AÇÃO FINAL:** Reescreva AGORA o trecho, integrando a nova informação com MÁXIMA habilidade e conformidade. Responda APENAS com o texto final reescrito e integrado.
 `;
-// =========================================================================
-// >>>>> FIM DO PROMPT BLINDADO <<<<<
-// =========================================================================
 
         const rawResult = await callGroqAPI(prompt, 1000);
         const enrichedText = removeMetaComments(rawResult);
@@ -6154,6 +6112,7 @@ ${newData}
         if (sectionElement) {
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
+            invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
         }
 
         window.showToast("Texto enriquecido com sucesso!");
@@ -7889,6 +7848,32 @@ document.addEventListener('DOMContentLoaded', () => {
         'applyHookSuggestion': (btn) => applyHookSuggestion(btn),
         'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
     };
+
+
+// ==========================================================
+// >>>>> LISTENER PARA DETECTAR EDIÇÕES MANUAIS NO ROTEIRO <<<<<
+// ==========================================================
+const scriptContainerForEdits = document.getElementById('scriptSectionsContainer');
+if (scriptContainerForEdits) {
+    // O evento 'input' é perfeito para contenteditable
+    scriptContainerForEdits.addEventListener('input', (event) => {
+        // Garante que a edição veio de dentro de um container de roteiro
+        if (event.target && event.target.closest('.generated-content-wrapper')) {
+            console.log("Edição manual detectada.");
+
+            // Pega a seção pai para invalidar tudo que depende dela
+            const sectionElement = event.target.closest('.script-section');
+            if (sectionElement) {
+                // Invalida todas as análises e recursos derivados
+                invalidateAndClearPerformance(sectionElement);
+                invalidateAndClearPrompts(sectionElement);
+                invalidateAndClearEmotionalMap(); // <<< A NOSSA NOVA FUNÇÃO EM AÇÃO
+                updateAllReadingTimes(); // Recalcula o tempo de leitura
+            }
+        }
+    });
+}
+
 
 // ==========================================================
 // ==================== O "OUVINTE" GERAL DE CLIQUES =====================
