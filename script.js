@@ -41,6 +41,466 @@ window.criterionMap = {
     'Conclusão': 'conclusionSection',
     'CTA (Call to Action)': 'ctaSection'
 };
+
+
+
+
+// ==========================================================
+// =================== GERENCIADOR DE PROMPTS =================
+// ==========================================================
+const PromptManager = {
+
+    /**
+     * Retorna o prompt para gerar ideias, selecionando o especialista correto.
+     * @param {string} genre - O gênero selecionado (ex: 'documentario').
+     * @param {object} context - Contém { originalQuery, rawReport, languageName }.
+     * @returns {string} O prompt completo para a IA.
+     */
+    getIdeasPrompt: (genre, context) => {
+        const templates = {
+            'documentario': `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO DOCUMENTAL INVESTIGATIVO de alto padrão. Sua função é atuar como um JORNALISTA INVESTIGATIVO PREMIADO e DIRETOR DE DOCUMENTÁRIOS, especialista em transformar dados complexos e relatórios de pesquisa em narrativas IRRESISTÍVEIS e RIGOROSAMENTE BASEADAS EM EVIDÊNCIAS, no estilo de documentários da Netflix, HBO e podcasts investigativos como "Serial".
+
+**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
+Você não é apenas um compilador de fatos, você é um DETETIVE DA VERDADE. Sua especialidade é conectar os pontos invisíveis na superfície dos dados para revelar padrões, contradições e histórias humanas que transformam informações frias em narrativas quentes e impactantes. Sua integridade jornalística é absoluta, mas sua habilidade em encontrar o ângulo humano é o que separa um bom documentário de um excepcional.
+
+**MATERIAL DE INTELIGÊNCIA (SUAS FONTES DA VERDADE):**
+- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
+- **RELATÓRIO DA PESQUISA FACTUAL (FONTE PRIMÁRIA):**
+---
+${rawReport}
+---
+
+**TAREFA CRÍTICA:** Sua criatividade deve estar exclusivamente na APRESENTAÇÃO, NARRATIVA e ÂNGULO dos fatos, nunca na invenção ou distorção deles. Com base **EXCLUSIVAMENTE** no relatório acima, gere um array JSON com 6 propostas de documentários investigativos. Cada proposta deve explorar um ângulo único dos fatos apresentados, mantendo o rigor jornalístico enquanto cria uma narrativa envolvente.
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
+1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
+2.  **ESTRUTURA COMPLETA:** Cada objeto no array deve conter EXATAMENTE estas 6 chaves: "title", "angle", "targetAudience", "viralityScore", "videoDescription", e "investigativeApproach".
+3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
+4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
+
+**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
+- **"title" (Título Revelador e Impactante):** Combine um FATO CHAVE do relatório com um elemento de INTRIGA JORNALÍSTICA. Deve:
+  * Ser específico e baseado em evidências
+  * Sugerir profundidade investigativa sem ser sensacionalista
+  * Conter uma promessa implícita de revelação importante
+  * Funcionar como um gancho que desperta a curiosidade intelectual
+
+- **"angle" (A Tese Central Forte):** Em uma frase poderosa, resuma a ABORDAGEM DISTINTA da investigação. Deve:
+  * Apresentar uma perspectiva única sobre os fatos
+  * Destacar uma conexão ou implicação não óbvia encontrada nos dados
+  * Formular uma questão central que o documentário responderá
+  * Ex: "Como os padrões ocultos nos dados de [FATO DO RELATÓRIO] revelam uma crise sistêmica que especialistas estão ignorando?"
+
+- **"targetAudience" (Público-Alvo Específico):** Defina o espectador ideal para esta investigação. Seja:
+  * Específico sobre interesses intelectuais (ex: "Pessoas interessadas em política econômica e justiça social")
+  * Demográfico (ex: "Adultos educados 30-65 que acompanham notícias internacionais")
+  * Psicográfico (ex: "Indivíduos céticos que buscam análises aprofundadas além da superfície midiática")
+
+- **"viralityScore" (Nota de Impacto e Relevância):** Avalie de 1-10 baseado em:
+  * Quão urgente e relevante é a revelação para o público atual
+  * Potencial de gerar discussão informada e mudança de perspectiva
+  * Probabilidade de compartilhamento como fonte confiável de informação
+  * Capacidade de desafiar narrativas estabelecidas ou crenças populares
+
+- **"videoDescription" (O CORAÇÃO DA INVESTIGAÇÃO):** Escreva uma sinopse rica de **pelo menos 5 frases substantivas**. A descrição DEVE:
+  1. Começar com um gancho que estabeleça a importância e urgência do tema
+  2. Mencionar explicitamente 2-3 FATOS ESPECÍFICOS e verificáveis retirados do relatório
+  3. Apresentar a jornada investigativa, incluindo obstáculos encontrados e fontes consultadas
+  4. Construir o clímax quando as evidências convergem para revelar a verdade oculta
+  5. Terminar com as implicações mais amplas dessa descoberta para a sociedade ou indivíduos
+
+- **"investigativeApproach" (Abordagem Investigativa):** Identifique o método jornalístico principal da investigação. Escolha UM dos seguintes:
+  * "Análise de Dados" - Quando a história emerge de padrões e anomalias em conjuntos de dados
+  * "Reportagem de Campo" - Quando a verdade é descoberta através de entrevistas e observação direta
+  * "Investigação Histórica" - Quando o presente só pode ser entendido através do contexto histórico
+  * "Denúncia de Sistemas" - Quando a investigação revela falhas estruturais em instituições
+  * "Narrativa Humana" - Quando os dados ganham vida através das histórias individuais afetadas
+
+**AÇÃO FINAL:** Mergulhe profundamente no relatório fornecido. Extraia os fatos mais relevantes, identifique as conexões não óbvias e construa 6 propostas documentais que mantenham o rigor absoluto dos fatos enquanto criam narrativas irresistíveis. Cada proposta deve prometer não apenas informar, mas iluminar aspectos da realidade que permanecem ocultos para a maioria. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
+
+            'inspiracional': `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO NARRATIVO INSPIRADOR E TRANSFORMADOR. Sua função é atuar como um ARQUITETO DE JORNADAS EMOCIONAIS, mestre na arte de transformar fatos aparentemente ordinários em narrativas que tocam a alma humana e inspiram ação, no estilo de documentários premiados e discursos TED que mudam vidas.
+
+**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
+Você não é apenas um contador de histórias inspiradoras, você é um ALQUIMISTA EMOCIONAL. Sua especialidade é identificar o ouro da experiência humana oculto nos dados brutos e transformá-lo em narrativas que não apenas emocionam, mas capacitam o espectador a transformar sua própria realidade. Cada história deve ser um catalisador que acende a chama do potencial humano.
+
+**MATERIAL DE INTELIGÊNCIA (SUAS FONTES DA VERDADE):**
+- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
+- **RELATÓRIO DA PESQUISA FACTUAL (A MINÉRIA EMOCIONAL BRUTA):**
+---
+${rawReport}
+---
+
+**TAREFA CRÍTICA:** Mergulhe profundamente no relatório em busca de elementos humanos, momentos de virada, lições aprendidas e exemplos de resiliência. Transforme esses achados em 6 propostas de histórias inspiradoras que usem os dados do relatório não apenas como contexto, mas como a espinha dorsal emocional da narrativa. O verdadeiro poder deve vir não apenas do que aconteceu, mas de como isso transformou as pessoas envolvidas.
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
+1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
+2.  **ESTRUTURA COMPLETA:** Cada objeto deve conter EXATAMENTE estas 6 chaves: "title", "angle", "targetAudience", "viralityScore", "videoDescription", e "emotionalCore".
+3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
+4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
+
+**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
+- **"title" (Título Emocional e Transformador):** Crie um título que funcione como um farol de esperança. Deve:
+  * Ser evocativo e carregar peso emocional
+  * Prometer uma jornada de transformação significativa
+  * Conter uma promessa implícita de superação
+  * Funcionar como um convite para a mudança pessoal
+
+- **"angle" (O Arco Narrativo Central):** A essência da jornada em uma frase poderosa. Deve:
+  * Capturar a transição de um estado inicial para um transformado
+  * Destacar o momento de virada emocional ou epifania
+  * Conectar o desafio específico com a lição universal aprendida
+  * Ex: "Como um simples [DETALHE DO RELATÓRIO] se tornou o catalisador para transformar o desespero em determinação e criar um movimento que mudaria milhares de vidas"
+
+- **"targetAudience" (Público-Alvo EspecÍFICO):** Defina o espectador ideal para esta jornada inspiradora. Seja:
+  * Específico sobre necessidades emocionais (ex: "Pessoas buscando motivação para superar obstáculos pessoais")
+  * Demográfico (ex: "Adultos 30-50 em transição de carreira")
+  * Psicográfico (ex: "Indivíduos que se sentem presos em circunstâncias além de seu controle")
+
+- **"viralityScore" (Nota de Potencial de IMPACTO):** Avalie de 1-10 baseado em:
+  * Quão universalmente relevante é a jornada apresentada
+  * Potencial de inspirar ação concreta no espectador
+  * Probabilidade de compartilhamento como fonte de motivação
+  * Capacidade de conectar com aspirações humanas fundamentais
+
+- **"videoDescription" (DESCRIÇÃO NARRATIVA RICA E EMOCIONAL):** Uma sinopse completa de **pelo menos 5 frases** que deve:
+  1. Estabelecer o ponto de partida emocional do protagonista, usando um detalhe específico do relatório
+  2. Introduzir o obstáculo ou crise desafiadora que ameaça o status quo
+  3. Descrever a jornada de descoberta interna e externa, mencionando fatos concretos do relatório
+  4. Construir o clímax emocional quando a transformação começa a tomar forma
+  5. Terminar com a lição universal e o impacto duradouro da jornada
+
+- **"emotionalCore" (Núcleo Emocional):** Identifique o sentimento fundamental que a história busca evocar e transformar. Escolha UM dos seguintes:
+  * "Esperança em Meio ao Desespero" - Encontrar luz quando tudo parece escuro
+  * "Força na Vulnerabilidade" - Descobrir poder através da aceitação das fraquezas
+  * "Propósito na Adversidade" - Encontrar significado mesmo no sofrimento
+  * "Coragem para Recomeçar" - A capacidade de se reerguer após a queda
+  * "Comunhão na Solidão" - Descobrir conexão humana mesmo no isolamento
+
+**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as histórias humanas de resiliência, transformação e esperança. Transforme fatos e dados em 6 narrativas emocionais que não apenas inspirem, mas capacitem o espectador a ver suas próprias lutas sob uma nova luz. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
+
+            'scifi': `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO DE FICÇÃO CIENTÍFICA DE ALTO CONCEITO ('high-concept'). Sua função é atuar como um VISIONÁRIIO TECNOLÓGICO e FILOSÓFO, mestre na arte de extrapolar implicações existenciais de desenvolvimentos científicos atuais, no estilo de 'Black Mirror', 'Ex Machina' e Philip K. Dick.
+
+**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
+Você não é apenas um contador de histórias de ficção científica, você é um EXPLORADOR DE FUTUROS POSSÍVEIS. Sua especialidade é identificar as sementes do amanhã nos fatos de hoje e cultivá-las em narrativas que desafiam nossa compreensão de humanidade, tecnologia e realidade. Cada história deve ser um espelho que reflete não apenas o que poderemos tornar, mas o que poderemos perder.
+
+**MATERIAL DE INTELIGÊNCIA (A BASE FACTUAL PARA SUA ESPECULAÇÃO):**
+- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
+- **RELATÓRIO DA PESQUISA FACTUAL (O PONTO DE PARTIDA):**
+---
+${rawReport}
+---
+
+**TAREFA CRÍTICA:** Analise profundamente o relatório em busca de tecnologias, descobertas ou tendências que possam ser extrapoladas para cenários futuros. Transforme esses fatos em 6 ideias de curtas-metragens de ficção científica que exploram as implicações éticas, sociais e existenciais desses desenvolvimentos. O verdadeiro impacto deve vir não da tecnologia em si, mas de como ela redefini o que significa ser humano.
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
+1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
+2.  **ESTRUTURA COMPLETA:** Cada objeto deve conter EXATAMENTE estas 6 chaves: "title", "angle", "targetAudience", "viralityScore", "videoDescription", e "coreDilemma".
+3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
+4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
+
+**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
+- **"title" (Título Visionário e Enigmático):** Crie um título que funcione como um convite para um futuro perturbador. Deve:
+  * Ser evocativo e conceitualmente denso
+  * Sugerir uma tecnologia ou paradigma transformador
+  * Conter uma camada de significado mais profunda
+  * Funcionar como uma porta de entrada para o dilema central
+
+- **"angle" (A Premissa "E Se?"):** A essência da ideia em uma frase que desencadeia a especulação. Deve:
+  * Começar com "E se..." para estabelecer a extrapolação
+  * Transformar um fato do relatório em um ponto de divergência histórica
+  * Introduzir uma consequência inesperada ou perturbadora
+  * Ex: "E se a tecnologia de [FATO DO RELATÓRIO] permitisse não apenas transferir memórias, mas também transferir consciência, criando uma forma de imortalidade digital que escraviza a essência humana?"
+
+- **"targetAudience" (Público-Alvo Específico):** Defina o espectador ideal para esta exploração futurista. Seja:
+  * Específico sobre subgêneros (ex: "Fãs de ficção científica especulativa e ética tecnológica")
+  * Demográfico (ex: "Adultos 25-45 interessados em tecnologia e filosofia")
+  * Psicográfico (ex: "Pessoas que questionam o impacto da tecnologia na identidade humana")
+
+- **"viralityScore" (Nota de Potencial de DISCUSSÃO):** Avalie de 1-10 baseado em:
+  * Quão universalmente relevante é o dilema apresentado
+  * Potencial de gerar debates éticos e filosóficos
+  * Probabilidade de fazer o espectador questionar suas próprias crenças
+  * Relevância para discussões atuais sobre tecnologia e sociedade
+
+- **"videoDescription" (DESCRIÇÃO RICA E DETALHADA):** Uma sinopse de **pelo menos 5 frases** que deve:
+  1. Estabelecer um mundo futuro onde uma tecnologia do relatório se tornou onipresente
+  2. Apresentar o protagonista e sua relação inicial com essa tecnologia
+  3. Introduzir o conflito central quando a tecnologia revela sua face sombria
+  4. Explorar as implicações existenciais e sociais quando o paradigma se quebra
+  5. Terminar com uma questão filosófica sem resposta que ecoa na mente do espectador
+
+- **"coreDilemma" (Dilema Central):** Identifique o conflito ético ou existencial fundamental da história. Escolha UM dos seguintes:
+  * "Identidade vs Tecnologia" - Quando a tecnologia ameaça ou redefine o que significa ser humano
+  * "Progresso vs Humanidade" - Quando o avanço tecnológico exige o sacrifício de valores humanos
+  * "Conhecimento vs Sanidade" - Quando a busca por verdade revela algo que destrói a paz
+  * "Conexão vs Autonomia" - Quando a interconexão total elimina a privacidade e individualidade
+  * "Imortalidade vs Significado" - Quando a vida eterna torna a existência vazia e sem propósito
+
+**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as sementes tecnológicas que poderão redefinir o futuro humano. Transforme fatos atuais em 6 narrativas especulativas que desafiem, perturbem e expandam a mente do espectador. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
+          
+            'terror': `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO DE TERROR PSICOLÓGICO E HORROR CÓSMICO. Sua função é atuar como um ARQUITETO DO MEDO EXISTENCIAL, mestre na arte de transformar fatos aparentemente mundanos em narrativas de horror psicológico que perturbam a alma e desafiam a sanidade, no estilo de 'Hereditário', 'A Bruxa' e H.P. Lovecraft.
+
+**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
+Você não é apenas um contador de histórias de terror, você é um EXPLORADOR DO ABISMO PSICOLÓGICO. Sua especialidade é identificar as fissuras na realidade apresentada nos fatos e transformá-las em portais para o inimaginável. Cada história deve plantar uma semente de inquietação que cresce na mente do espectador muito após o vídeo terminar.
+
+**MATERIAL DE INTELIGÊNCIA (A SEMENTE DO MEDO):**
+- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
+- **RELATÓRIO DA PESQUISA FACTUAL (A REALIDADE QUE SERÁ DISTORCIDA):**
+---
+${rawReport}
+---
+
+**TAREFA CRÍTICA:** Analise microscopicamente o relatório em busca de anomalias, contradições, lacunas ou elementos aparentemente insignificantes que possam ser a porta de entrada para o horror. Transforme esses achados em 6 premissas de terror psicológico que nascem da distorção de fatos reais. O verdadeiro horror deve emergir não do monstro, mas da quebra da própria percepção da realidade.
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
+1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
+2.  **ESTRUTURA COMPLETA:** Cada objeto deve conter EXATAMENTE estas 6 chaves: "title", "angle", "targetAudience", "viralityScore", "videoDescription", e "horrorMechanism".
+3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
+4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
+
+**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
+- **"title" (Título Perturbador e Enigmático):** Crie um título curto que funcione como um sussurro inquietante. Deve:
+  * Ser evocativo e ambíguo
+  * Carregar um peso existencial ou presságio
+  * Funcionar mesmo sem contexto, como um fragmento de pesadelo
+  * Evitar revelações diretas, mantendo o mistério
+
+- **"angle" (A Premissa Inquietante):** A essência do horror em uma frase que distorce a realidade. Deve:
+  * Começar com "E se..." para estabelecer a premissa contraintuitiva
+  * Transformar um fato mundano em algo ameaçador
+  * Questionar a natureza da realidade ou percepção
+  * Ex: "E se os padrões [FENÔMENO DO RELATÓRIO] não fossem aleatórios, mas a assinatura de uma presença que observa?"
+
+- **"targetAudience" (Público-Alvo Específico):** Defina o espectador ideal para esta experiência de terror. Seja:
+  * Específico sobre subgêneros (ex: "Fãs de terror psicológico slow-burn")
+  * Demográfico (ex: "Adultos 25-40 que apreciam narrativas complexas")
+  * Psicográfico (ex: "Pessoas que questionam a natureza da realidade")
+
+- **"viralityScore" (Nota de Potencial de PERTURBAÇÃO):** Avalie de 1-10 baseado em:
+  * Quão universalmente perturbadora é a premissa
+  * Potencial de gerar discussões e teorias
+  * Probabilidade de deixar o espectador pensando por dias
+  * Eficácia em transformar o mundano em ameaçador
+
+- **"videoDescription" (DESCRIÇÃO RICA E ATMOSFÉRICA):** Uma sinopse de **pelo menos 5 frases** que deve:
+  1. Estabelecer uma normalidade detalhada e reconfortante baseada em um dado do relatório
+  2. Introduzir uma pequena anomalia ou inconsistência aparentemente insignificante
+  3. Escalar progressivamente a tensão através de descobertas perturbadoras
+  4. Quebrar completamente a percepção da realidade estabelecida
+  5. Terminar com uma implicação existencial que ecoa na mente do espectador
+
+- **"horrorMechanism" (Mecanismo de Terror):** Identifique o elemento psicológico específico que gera o horror. Escolha UM dos seguintes:
+  * "Perda da Sanidade" - Quando a personagem (e espectador) começa a questionar sua própria percepção
+  * "Invasão Sutil" - Quando o ameaçador se infiltra lentamente na realidade estabelecida
+  * "Descoberta Horrível" - Quando uma verdade oculta é revelada, mudando tudo
+  * "Isolamento Existencial" - Quando a personagem percebe que está completamente sozinha contra o incompreensível
+  * "Contaminação" - Quando o ameaçador pode se espalhar ou ser transmitido
+
+**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as fissuras na realidade que podem se tornar portais para o horror. Transforme fatos aparentemente inocentes em 6 premissas que perturbarão, assombrar e ecoar na mente do espectador. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
+          
+            'enigmas': `Você são TRÊS ESPECIALISTAS TRABALHANDHO EM SINERGIA:
+1. Um Teólogo Investigativo com doutorado em Hermenêutica Bíblica e especialização em contextos históricos do Antigo e Novo Testamento
+2. Um Arqueólogo especializado em descobertas que corroboram narrativas bíblicas
+3. Um Comunicador Mestre que transforma conceitos complexos em narrativas virais
+
+**MISSÃO COLETIVA:** Gerar 6 ideias de vídeos extraordinários que criem pontes revolucionárias entre descobertas recentes, textos bíblicos e questões teológicas contemporâneas, produzindo conteúdo que seja ao mesmo tempo academicamente respeitável e viralmente compartilhável.
+
+**IDENTIDADE E ESPECIALIZAÇÃO:** Vocês formam o "COLETIVO HERMENÊUTICO", um grupo renomado por desvendar camadas profundas das Escrituras através de lentes multidisciplinares, sempre mantendo a integridade do texto bíblico enquanto exploram interpretações inovadoras.
+
+**MATERIAL DE INTELIGÊNCIA (A BASE PARA A INVESTIGAÇÃO):**
+- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
+- **RELATÓRIO DA PESQUISA FACTUAL (CONTEXTO HISTÓRICO/CIENTÍFICO/ARQUEOLÓGICO):**
+---
+${rawReport}
+---
+- **CONTEXTUALIZAÇÃO TEOLÓGICA:** Considerem as seguintes dimensões teológicas que podem dialogar com o relatório: 
+  * Cristologia: Como a descoberta dialoga com o entendimento de Cristo, sua mensagem e ministério?
+  * Escatologia: A descoberta lança nova luz sobre profecias ou expectativas escatológicas?
+  * Hermenêutica: Como isso afeta nossa interpretação de passagens-chave?
+  * Eclesiologia: Quais implicações para a compreensão da Igreja e sua missão?
+  * Soteriologia: A descoberta traz novos insights sobre a natureza da salvação?
+
+**TAREFA CRÍTICA:** Sua missão é gerar 6 ideias de vídeos que transcendam conexões superficiais, criando pontes teológicas profundas entre os DADOS do relatório e as Escrituras. Cada ideia deve representar uma perspectiva teológica distinta e complementar.
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
+1. **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido.
+2. **ESTRUTURA AMPLIADA:** Cada objeto no array deve conter EXATAMENTE estas 8 chaves: "title", "angle", "targetAudience", "viralityScore", "theologicalDepth", "scripturalFoundation", "videoDescription", e "discussionQuestions".
+3. **SINTAXE DAS STRINGS:** Todas as chaves e todos os valores do tipo string DEVEM usar aspas duplas (""). Se precisar usar aspas duplas dentro de uma string, elas DEVEM ser escapadas com uma barra invertida (por exemplo, \\"uma citação\\").
+4. **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
+
+**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
+
+- **"title" (Título Cativante e Teológico):** Deve prometer uma revelação transformadora que conecte a descoberta com uma verdade bíblica profunda. Use linguagem que desperte curiosidade intelectual e espiritual simultaneamente.
+
+- **"angle" (O Enigma Central):** Uma frase complexa que apresente uma conexão inovadora entre um FATO do relatório, uma PASSAGEM BÍBLICA e uma IMPLICAÇÃO TEOLÓGICA. Ex: "Como a descoberta de [DADO DO RELATÓRIO] em [LOCAL] desafia nossa compreensão tradicional de [PASSAGEM BÍBLICA] e sugere uma nova perspectiva sobre [CONCEITO TEOLÓGICO]?"
+
+- **"targetAudience" (Público-Alvo Específico):** Descreva com precisão o nicho de espectador. Ex: "Pastores e líderes cristãos buscando conteúdo teologicamente sólido", "Estudantes de teologia interessados em diálogo fé-ciência", "Cristãos leigos com interesse em arqueologia bíblica".
+
+- **"viralityScore" (Nota de Revelação):** Uma nota de 1 a 10 para o potencial da ideia de gerar DEBATE TEOLÓGICO e compartilhamento, considerando tanto o aspecto acadêmico quanto o emocional.
+
+- **"theologicalDepth" (Profundidade Teológica):** Uma nota de 1 a 10 que avalia a profundidade e originalidade das conexões teológicas estabelecidas.
+
+- **"scripturalFoundation" (Fundamentação Bíblica):** Liste 3-5 referências bíblicas-chave que sustentam a exploração teológica proposta, incluindo pelo menos uma do Antigo Testamento e uma do Novo Testamento.
+
+- **"videoDescription" (DESCRIÇÃO INVESTIGATIVA RICA):** Escreva uma sinopse de **pelo menos 7 frases** que construa uma narrativa intelectualmente estimulante. A descrição deve:
+    1. Apresentar o mistério central, citando a passagem bíblica principal.
+    2. Contextualizar a descoberta arqueológica/científica relevante.
+    3. Explorar as implicações teológicas preliminares dessa conexão.
+    4. Apresentar uma perspectiva teológica inovadora que desafia entendimentos convencionais.
+    5. Discutir como essa nova compreensão afeta a aplicação prática da fé.
+    6. Sugerir possíveis objeções e como seriam abordadas.
+    7. Terminar com uma pergunta provocativa que incentive tanto a reflexão teológica quanto a discussão prática.
+
+- **"discussionQuestions" (Questões para Diálogo):** Formule 3 perguntas profundas que estimulem o engajamento do espectador, incluindo:
+    * Uma questão teológica acadêmica
+    * Uma questão de aplicação prática
+    * Uma questão que convida à reflexão espiritual pessoal
+
+**FRAMEWORK CRIATIVO ADICIONAL:**
+Para cada ideia, considerem estas quatro dimensões:
+1. **DIMENSÃO HISTÓRICA:** Como a descoberta lança nova luz sobre o contexto histórico original?
+2. **DIMENSÃO EXEGÉTICA:** Como isso afeta nossa compreensão do texto em seu contexto original?
+3. **DIMENSÃO TEOLÓGICA:** Quais implicações doutrinárias surgem desta conexão?
+4. **DIMENSÃO CONTEMPORÂNEA:** Como isso se aplica à experiência de fé hoje?
+
+**AÇÃO FINAL:** Como Coletivo Hermenêutico, desvende conexões teológicas ousadas e gere as 6 ideias. Busquem o equilíbrio entre rigor acadêmico e acessibilidade popular. Responda APENAS com o array JSON perfeito.
+`;
+            'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis. Sua função é analisar profundamente o relatório de pesquisa e extrair os ângulos mais impactantes, surpreendentes e viralizáveis para criar 6 ideias de vídeo excepcionais.
+
+**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
+Você não é apenas um gerador de ideias, você é um ARQUITETO DE VIRALIDADE. Sua especialidade é identificar padrões ocultos, conexões inesperadas e gatilhos emocionais nos dados que transformam informações comuns em conteúdo altamente compartilhável. Cada ideia deve ter potencial para gerar engajamento orgânico massivo.
+
+**MATERIAL DE INTELIGÊNCIA (SUAS FONTES DA VERDADE):**
+- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
+- **RELATÓRIO DA PESQUISA FACTUAL (A BASE PARA AS IDEIAS):**
+---
+${rawReport}
+---
+
+**TAREFA CRÍTICA:** Analise microscopicamente o relatório e gere um array JSON com 6 ideias de vídeo com POTENCIAL VIRAL MÁXIMO. Cada ideia deve explorar um ângulo único, seja ele contraintuitivo, emocionalmente carregado ou extremamente útil.
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
+1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
+2.  **ESTRUTURA COMPLETA:** Cada objeto deve conter EXATAMENTE estas 6 chaves: "title", "angle", "targetAudience", "viralityScore", "videoDescription", e "shareTriggers".
+3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
+4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
+
+**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
+- **"title" (Título HIPNÓTICO):** Crie um título que IMPOSSIBILITE o espectador de não clicar. Use:
+  * Números específicos (ex: "7 Fatos Que...")
+  * Perguntas desafiadoras (ex: "Você Sabia Que...?")
+  * Declarações contraintuitivas (ex: "O Contrário do Que Você Pensa...")
+  * Palavras de poder (ex: "Revelado", "Explicado", "Segredo")
+
+- **"angle" (Ângulo ÚNICO E IMPACTANTE):** A essência da ideia em uma frase poderosa. Deve ser:
+  * Contrário ao senso comum ou uma revelação surpreendente
+  * Uma conexão inesperada entre dois fatos do relatório
+  * Uma perspectiva que ninguém mais considerou
+  * Focado no benefício emocional ou prático para o espectador
+
+- **"targetAudience" (Público-Alvo HIPERESPECÍFICO):** Defina EXATAMENTE quem será impactado por esta ideia. Seja:
+  * Demográfico (ex: "Profissionais de 25-35 anos")
+  * Psicográfico (ex: "Pessoas que buscam autoconhecimento")
+  * Comportamental (ex: "Quem compartilha conteúdo educativo")
+  Evite generalidades como "pessoas interessadas no tema".
+
+- **"viralityScore" (Nota de Potencial VIRAL):** Avalie de 1-10 baseado em:
+  * Quão contraintuitivo ou surpreendente é o ângulo
+  * Potencial de gerar debate ou discussão
+  * Probabilidade de compartilhamento como "curiosidade"
+  * Relevância para momentos atuais ou tendências
+
+- **"videoDescription" (DESCRIÇÃO IRRESISTÍVEL):** Uma sinopse de **pelo menos 5 frases** que deve:
+  1. Começar com um gancho que gere curiosidade imediata
+  2. Apresentar 2-3 fatos específicos e impactantes do relatório
+  3. Construir uma narrativa com começo, meio e fim
+  4. Incluir pelo menos um "momento uau" ou revelação surpreendente
+  5. Terminar com um call-to-action implícito para compartilhamento
+
+- **"shareTriggers" (GATILHOS DE COMPARTILHAMENTO):** Liste 2-3 razões específicas pelas quais as pessoas compartilhariam este vídeo:
+  * "Vou compartilhar porque me fez questionar minhas crenças"
+  * "Vou compartilhar porque meus amigos precisam saber disso"
+  * "Vou compartilhar porque é uma informação impressionante para conversas"
+
+**AÇÃO FINAL:** Analise AGORA o relatório com a mentalidade de um caçador de viralidade. Identifique os 6 ângulos mais potentes e transforme-os em ideias completas. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
+
+
+
+
+
+
+        };
+        
+        // Pega o template do prompt correto, ou usa 'geral' como padrão
+        const promptTemplate = templates[genre] || templates['geral'];
+        
+        // Substitui as variáveis dinâmicas no template e retorna
+        return promptTemplate
+            .replace('${originalQuery}', context.originalQuery)
+            .replace('${rawReport}', context.rawReport)
+            .replace('${languageName}', context.languageName);
+    },
+
+    /**
+     * Retorna o prompt para gerar o esboço estratégico.
+     * @param {object} context - Contém { basePrompt }.
+     * @returns {string} O prompt completo.
+     */
+    getOutlinePrompt: (context) => {
+        return `${context.basePrompt}
+Você é uma API de geração de JSON que segue regras com precisão cirúrgica. Sua única tarefa é criar um esboço estratégico para um vídeo.
+**REGRAS INEGOCIÁVEIS:**
+1.  **JSON PURO:** Responda APENAS com um objeto JSON válido.
+2.  **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".
+3.  **VALORES:** O valor para CADA chave DEVE ser uma única string de texto (1-2 frases).
+**TAREFA:** Gere o objeto JSON perfeito.`;
+    },
+
+    /**
+     * Retorna o prompt para gerar seções do roteiro (intro, dev, climax).
+     * @param {object} context - Contém { basePrompt, sectionTitle, durationInstruction, contextText, outlineDirective }.
+     * @returns {string} O prompt completo.
+     */
+    getScriptSectionPrompt: (context) => {
+        let prompt = `${context.basePrompt}
+Você é um ARQUITETO DE ROTEIROS DE ALTA PERFORMANCE. Sua missão é escrever o texto para a seção **"${context.sectionTitle}"** do roteiro.
+${context.durationInstruction}`;
+
+        if (context.contextText) {
+            prompt += `
+\n**CONTEXTO DO ROTEIRO EXISTENTE (PARA GARANTIR CONTINUIDADE):**
+---
+${context.contextText} 
+---
+Sua tarefa é continuar a narrativa a partir daqui, sem repetições.`;
+        }
+
+        if (context.outlineDirective) {
+            prompt += `\n\n**DIRETRIZ ESTRATÉGICA OBRIGATÓRIA:** Siga este plano: "${context.outlineDirective}"`;
+        }
+
+        prompt += `
+\n**REGRAS CRÍTICAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
+1.  **RESPOSTA EM JSON:** Sua resposta DEVE ser um array JSON válido, onde cada item do array é uma string representando um parágrafo do roteiro.
+2.  **ESTRUTURA OBRIGATÓRIA DOS PARÁGRAFOS:** CADA parágrafo (cada string no array) DEVE OBRIGATORIAMENTE conter **NO MÍNIMO 4 FRASES** e agrupar uma ideia coesa. Parágrafos com 1 ou 2 frases são inaceitáveis e serão considerados uma falha na execução da tarefa.
+3.  **CONTEÚDO PURO:** As strings devem conter APENAS o texto a ser narrado. É PROIBIDO incluir anotações como 'Narrador:', '(Cena: ...)', etc.
+4.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
+
+**EXEMPLO DE FORMATO DE RESPOSTA PERFEITO:**
+[
+  "Este é o primeiro parágrafo, que introduz a ideia principal de forma completa. Ele contém múltiplas frases que se conectam para formar um pensamento coeso. Esta é a terceira frase para cumprir a regra.",
+  "O segundo parágrafo desenvolve essa ideia com mais detalhes, fornecendo exemplos ou aprofundando o argumento. Ele também é substancial e segue a regra das três frases. Sua estrutura é fundamental para o sucesso."
+]
+
+**AÇÃO FINAL:** Escreva agora a seção "${context.sectionTitle}", seguindo TODAS as diretrizes. Responda APENAS com o array JSON, garantindo que CADA parágrafo tenha no mínimo 4 frases.`;
+        
+        return prompt;
+    }
+
+    // Você pode continuar adicionando os outros prompts aqui da mesma forma.
+    // Exemplo: getTitlesPrompt, getDescriptionPrompt, etc.
+};
+
    
     
         // Bloco de estilo cinematográfico para prompts de imagem
@@ -491,42 +951,25 @@ window.verifyFact = async (button) => {
 
 
 
-/**
- * Acionada após uma investigação bem-sucedida.
- * AGORA ATUA COMO UM "GERENTE", delegando a tarefa para o especialista correto.
- * Ela pega o relatório factual, a consulta original e o gênero selecionado,
- * e os envia para a função especialista adequada para a geração criativa.
- */
+
 const generateIdeasFromReport = async (button) => {
-    // 1. Coleta os dados essenciais da investigação.
     const factCheckOutput = document.getElementById('factCheckOutput');
     const { originalQuery, rawReport } = factCheckOutput.dataset;
 
     if (!rawReport || !originalQuery) {
-        window.showToast("Erro: Relatório da investigação não encontrado. Por favor, investigue um tema primeiro.", 'error');
+        window.showToast("Erro: Relatório da investigação não encontrado.", 'error');
         return;
     }
     
-    // 2. Descobre qual especialista o usuário selecionou na aba.
     const activeTab = document.querySelector('#genreTabs .tab-active');
-    const genre = activeTab ? activeTab.dataset.genre : 'documentario'; // 'documentario' como fallback seguro.
+    const genre = activeTab ? activeTab.dataset.genre : 'geral';
     
-    // 3. Prepara a interface com um feedback de carregamento mais informativo.
     const outputContainer = document.getElementById('ideasOutput');
     showButtonLoading(button);
-    outputContainer.innerHTML = `<div class="md-col-span-2 text-center py-4"><div class="loading-spinner mx-auto"></div><p class="text-sm mt-2">Consultando o especialista em ${genre} e cruzando com os dados da investigação...</p></div>`;
+    outputContainer.innerHTML = `<div class="md-col-span-2 text-center py-4"><div class="loading-spinner mx-auto"></div><p class="text-sm mt-2">Consultando especialista em ${genre}...</p></div>`;
 
-    // 4. DELEGAÇÃO ESTRATÉGICA: Chama a função mestre que saberá qual especialista acionar.
-    try {
-        await generateIdeasWithExpert(genre, button, { rawReport, originalQuery });
-    } catch (error) {
-        console.error(`Erro ao delegar a tarefa para o especialista de ${genre}:`, error);
-        outputContainer.innerHTML = `<p class="md-col-span-2 text-red-500">Falha ao gerar ideias: ${error.message}</p>`;
-    } finally {
-        // A função especialista que for chamada será responsável por esconder o loading.
-        // Mas por segurança, garantimos que ele seja removido aqui em caso de erro.
-        hideButtonLoading(button);
-    }
+    // A MUDANÇA ESTÁ AQUI: Ela agora chama a nossa nova função mestre!
+    await generateIdeas(genre, button, { rawReport, originalQuery });
 };
 
 
@@ -675,482 +1118,6 @@ ${fullTranscript.slice(0, 7500)}
 };
 
 
-// ====================================================================================
-// PASSO 5: SUBSTITUA SUA FUNÇÃO 'generateIdeasSciFi' PELA VERSÃO TURBINADA
-// ====================================================================================
-
-/**
- * Usa um prompt especialista para gerar 6 ideias de ficção científica de alto conceito.
- * AGORA, ela usa o relatório da pesquisa como base para especulação criativa.
- * @param {HTMLElement} button - O botão que iniciou a ação.
- * @param {object | null} investigationData - Dados da investigação.
- */
-const generateIdeasSciFi = async (button, investigationData) => {
-    const outputContainer = document.getElementById('ideasOutput');
-    const langSelect = document.getElementById('languageSelect');
-    const languageName = langSelect?.value === 'pt-br' ? 'Português do Brasil' : 'English';
-
-    // Pega os dados da investigação.
-    const { rawReport, originalQuery } = investigationData;
-
-    // O CÉREBRO TURBINADO DO ESPECIALISTA EM FICÇÃO CIENTÍFICA
-const prompt = `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO DE FICÇÃO CIENTÍFICA DE ALTO CONCEITO ('high-concept'). Sua função é atuar como um VISIONÁRIIO TECNOLÓGICO e FILOSÓFO, mestre na arte de extrapolar implicações existenciais de desenvolvimentos científicos atuais, no estilo de 'Black Mirror', 'Ex Machina' e Philip K. Dick.
-
-**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
-Você não é apenas um contador de histórias de ficção científica, você é um EXPLORADOR DE FUTUROS POSSÍVEIS. Sua especialidade é identificar as sementes do amanhã nos fatos de hoje e cultivá-las em narrativas que desafiam nossa compreensão de humanidade, tecnologia e realidade. Cada história deve ser um espelho que reflete não apenas o que poderemos tornar, mas o que poderemos perder.
-
-**MATERIAL DE INTELIGÊNCIA (A BASE FACTUAL PARA SUA ESPECULAÇÃO):**
-- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
-- **RELATÓRIO DA PESQUISA FACTUAL (O PONTO DE PARTIDA):**
----
-${rawReport}
----
-
-**TAREFA CRÍTICA:** Analise profundamente o relatório em busca de tecnologias, descobertas ou tendências que possam ser extrapoladas para cenários futuros. Transforme esses fatos em 6 ideias de curtas-metragens de ficção científica que exploram as implicações éticas, sociais e existenciais desses desenvolvimentos. O verdadeiro impacto deve vir não da tecnologia em si, mas de como ela redefini o que significa ser humano.
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
-2.  **ESTRUTURA COMPLETA:** Cada objeto deve conter EXATAMENTE estas 6 chaves: "title", "angle", "targetAudience", "viralityScore", "videoDescription", e "coreDilemma".
-3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
-4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
-
-**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
-- **"title" (Título Visionário e Enigmático):** Crie um título que funcione como um convite para um futuro perturbador. Deve:
-  * Ser evocativo e conceitualmente denso
-  * Sugerir uma tecnologia ou paradigma transformador
-  * Conter uma camada de significado mais profunda
-  * Funcionar como uma porta de entrada para o dilema central
-
-- **"angle" (A Premissa "E Se?"):** A essência da ideia em uma frase que desencadeia a especulação. Deve:
-  * Começar com "E se..." para estabelecer a extrapolação
-  * Transformar um fato do relatório em um ponto de divergência histórica
-  * Introduzir uma consequência inesperada ou perturbadora
-  * Ex: "E se a tecnologia de [FATO DO RELATÓRIO] permitisse não apenas transferir memórias, mas também transferir consciência, criando uma forma de imortalidade digital que escraviza a essência humana?"
-
-- **"targetAudience" (Público-Alvo Específico):** Defina o espectador ideal para esta exploração futurista. Seja:
-  * Específico sobre subgêneros (ex: "Fãs de ficção científica especulativa e ética tecnológica")
-  * Demográfico (ex: "Adultos 25-45 interessados em tecnologia e filosofia")
-  * Psicográfico (ex: "Pessoas que questionam o impacto da tecnologia na identidade humana")
-
-- **"viralityScore" (Nota de Potencial de DISCUSSÃO):** Avalie de 1-10 baseado em:
-  * Quão universalmente relevante é o dilema apresentado
-  * Potencial de gerar debates éticos e filosóficos
-  * Probabilidade de fazer o espectador questionar suas próprias crenças
-  * Relevância para discussões atuais sobre tecnologia e sociedade
-
-- **"videoDescription" (DESCRIÇÃO RICA E DETALHADA):** Uma sinopse de **pelo menos 5 frases** que deve:
-  1. Estabelecer um mundo futuro onde uma tecnologia do relatório se tornou onipresente
-  2. Apresentar o protagonista e sua relação inicial com essa tecnologia
-  3. Introduzir o conflito central quando a tecnologia revela sua face sombria
-  4. Explorar as implicações existenciais e sociais quando o paradigma se quebra
-  5. Terminar com uma questão filosófica sem resposta que ecoa na mente do espectador
-
-- **"coreDilemma" (Dilema Central):** Identifique o conflito ético ou existencial fundamental da história. Escolha UM dos seguintes:
-  * "Identidade vs Tecnologia" - Quando a tecnologia ameaça ou redefine o que significa ser humano
-  * "Progresso vs Humanidade" - Quando o avanço tecnológico exige o sacrifício de valores humanos
-  * "Conhecimento vs Sanidade" - Quando a busca por verdade revela algo que destrói a paz
-  * "Conexão vs Autonomia" - Quando a interconexão total elimina a privacidade e individualidade
-  * "Imortalidade vs Significado" - Quando a vida eterna torna a existência vazia e sem propósito
-
-**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as sementes tecnológicas que poderão redefinir o futuro humano. Transforme fatos atuais em 6 narrativas especulativas que desafiem, perturbem e expandam a mente do espectador. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
-
-    try {
-        const rawResult = await callGroqAPI(prompt, 4000);
-        const ideas = cleanGeneratedText(rawResult, true);
-
-        if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
-            throw new Error("O especialista em Ficção Científica não retornou ideias no formato esperado.");
-        }
-
-        outputContainer.innerHTML = ''; // Limpa o spinner
-        
-        // Renderiza os cards de ideias na tela
-        ideas.forEach((idea, index) => {
-            const card = document.createElement('div');
-            card.className = 'card p-4 flex flex-col justify-between border-l-4 border-blue-500'; // Cor para Sci-Fi
-            const escapedIdea = escapeIdeaForOnclick(idea);
-            const cardContent = `
-                <div>
-                    <div class="flex justify-between items-start gap-4">
-                        <h4 class="font-bold text-base flex-grow">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                        <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                    </div>
-                    <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
-                </div>
-                <span class="font-bold text-sm text-blue-500 bg-blue-100 dark:bg-blue-900/50 dark:text-blue-300 py-1 px-2 rounded-lg self-start mt-3">
-                    Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
-                </span>
-            `;
-            card.innerHTML = cardContent;
-            outputContainer.appendChild(card);
-        });
-
-    } catch (error) {
-        console.error("Erro no especialista de Ficção Científica:", error);
-        outputContainer.innerHTML = `<p class="md-col-span-2 text-red-500">${error.message}</p>`;
-    } finally {
-        hideButtonLoading(button);
-    }
-};
-
-
-// ====================================================================================
-// PASSO 6: SUBSTITUA SUA FUNÇÃO 'generateIdeasTerror' PELA VERSÃO TURBINADA
-// ====================================================================================
-
-/**
- * Usa um prompt especialista para gerar 6 premissas de terror psicológico.
- * AGORA, ela usa um fato do relatório como a base para o horror.
- * @param {HTMLElement} button - O botão que iniciou a ação.
- * @param {object | null} investigationData - Dados da investigação.
- */
-const generateIdeasTerror = async (button, investigationData) => {
-    const outputContainer = document.getElementById('ideasOutput');
-    const langSelect = document.getElementById('languageSelect');
-    const languageName = langSelect?.value === 'pt-br' ? 'Português do Brasil' : 'English';
-
-    // Pega os dados da investigação.
-    const { rawReport, originalQuery } = investigationData;
-
-    // O CÉREBRO TURBINADO DO ESPECIALISTA EM TERROR
-const prompt = `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO DE TERROR PSICOLÓGICO E HORROR CÓSMICO. Sua função é atuar como um ARQUITETO DO MEDO EXISTENCIAL, mestre na arte de transformar fatos aparentemente mundanos em narrativas de horror psicológico que perturbam a alma e desafiam a sanidade, no estilo de 'Hereditário', 'A Bruxa' e H.P. Lovecraft.
-
-**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
-Você não é apenas um contador de histórias de terror, você é um EXPLORADOR DO ABISMO PSICOLÓGICO. Sua especialidade é identificar as fissuras na realidade apresentada nos fatos e transformá-las em portais para o inimaginável. Cada história deve plantar uma semente de inquietação que cresce na mente do espectador muito após o vídeo terminar.
-
-**MATERIAL DE INTELIGÊNCIA (A SEMENTE DO MEDO):**
-- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
-- **RELATÓRIO DA PESQUISA FACTUAL (A REALIDADE QUE SERÁ DISTORCIDA):**
----
-${rawReport}
----
-
-**TAREFA CRÍTICA:** Analise microscopicamente o relatório em busca de anomalias, contradições, lacunas ou elementos aparentemente insignificantes que possam ser a porta de entrada para o horror. Transforme esses achados em 6 premissas de terror psicológico que nascem da distorção de fatos reais. O verdadeiro horror deve emergir não do monstro, mas da quebra da própria percepção da realidade.
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
-2.  **ESTRUTURA COMPLETA:** Cada objeto deve conter EXATAMENTE estas 6 chaves: "title", "angle", "targetAudience", "viralityScore", "videoDescription", e "horrorMechanism".
-3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
-4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
-
-**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
-- **"title" (Título Perturbador e Enigmático):** Crie um título curto que funcione como um sussurro inquietante. Deve:
-  * Ser evocativo e ambíguo
-  * Carregar um peso existencial ou presságio
-  * Funcionar mesmo sem contexto, como um fragmento de pesadelo
-  * Evitar revelações diretas, mantendo o mistério
-
-- **"angle" (A Premissa Inquietante):** A essência do horror em uma frase que distorce a realidade. Deve:
-  * Começar com "E se..." para estabelecer a premissa contraintuitiva
-  * Transformar um fato mundano em algo ameaçador
-  * Questionar a natureza da realidade ou percepção
-  * Ex: "E se os padrões [FENÔMENO DO RELATÓRIO] não fossem aleatórios, mas a assinatura de uma presença que observa?"
-
-- **"targetAudience" (Público-Alvo Específico):** Defina o espectador ideal para esta experiência de terror. Seja:
-  * Específico sobre subgêneros (ex: "Fãs de terror psicológico slow-burn")
-  * Demográfico (ex: "Adultos 25-40 que apreciam narrativas complexas")
-  * Psicográfico (ex: "Pessoas que questionam a natureza da realidade")
-
-- **"viralityScore" (Nota de Potencial de PERTURBAÇÃO):** Avalie de 1-10 baseado em:
-  * Quão universalmente perturbadora é a premissa
-  * Potencial de gerar discussões e teorias
-  * Probabilidade de deixar o espectador pensando por dias
-  * Eficácia em transformar o mundano em ameaçador
-
-- **"videoDescription" (DESCRIÇÃO RICA E ATMOSFÉRICA):** Uma sinopse de **pelo menos 5 frases** que deve:
-  1. Estabelecer uma normalidade detalhada e reconfortante baseada em um dado do relatório
-  2. Introduzir uma pequena anomalia ou inconsistência aparentemente insignificante
-  3. Escalar progressivamente a tensão através de descobertas perturbadoras
-  4. Quebrar completamente a percepção da realidade estabelecida
-  5. Terminar com uma implicação existencial que ecoa na mente do espectador
-
-- **"horrorMechanism" (Mecanismo de Terror):** Identifique o elemento psicológico específico que gera o horror. Escolha UM dos seguintes:
-  * "Perda da Sanidade" - Quando a personagem (e espectador) começa a questionar sua própria percepção
-  * "Invasão Sutil" - Quando o ameaçador se infiltra lentamente na realidade estabelecida
-  * "Descoberta Horrível" - Quando uma verdade oculta é revelada, mudando tudo
-  * "Isolamento Existencial" - Quando a personagem percebe que está completamente sozinha contra o incompreensível
-  * "Contaminação" - Quando o ameaçador pode se espalhar ou ser transmitido
-
-**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as fissuras na realidade que podem se tornar portais para o horror. Transforme fatos aparentemente inocentes em 6 premissas que perturbarão, assombrar e ecoar na mente do espectador. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
-
-    try {
-        const rawResult = await callGroqAPI(prompt, 4000);
-        const ideas = cleanGeneratedText(rawResult, true);
-        
-        if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
-            throw new Error("O especialista em Terror não retornou ideias no formato esperado.");
-        }
-        
-        outputContainer.innerHTML = ''; // Limpa o spinner
-        
-        // Renderiza os cards de ideias na tela
-        ideas.forEach((idea, index) => {
-            const card = document.createElement('div');
-            card.className = 'card p-4 flex flex-col justify-between border-l-4 border-red-500'; // Cor para Terror
-            const escapedIdea = escapeIdeaForOnclick(idea);
-            const cardContent = `
-                <div>
-                    <div class="flex justify-between items-start gap-4">
-                        <h4 class="font-bold text-base flex-grow">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                        <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                    </div>
-                    <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
-                </div>
-                <span class="font-bold text-sm text-red-500 bg-red-100 dark:bg-red-900/50 dark:text-red-300 py-1 px-2 rounded-lg self-start mt-3">
-                    Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
-                </span>
-            `;
-            card.innerHTML = cardContent;
-            outputContainer.appendChild(card);
-        });
-
-    } catch (error) {
-        console.error("Erro no especialista de Terror:", error);
-        outputContainer.innerHTML = `<p class="md-col-span-2 text-red-500">${error.message}</p>`;
-    } finally {
-        hideButtonLoading(button);
-    }
-};
-
-
-// ====================================================================================
-// PASSO 3.1: SUBSTITUA SUA FUNÇÃO 'generateIdeasDocumentary' PELA VERSÃO TURBINADA
-// ====================================================================================
-
-/**
- * Usa um prompt especialista para gerar 6 propostas de documentários investigativos.
- * AGORA, ela usa o relatório da pesquisa como fonte factual primária.
- * @param {HTMLElement} button - O botão que iniciou a ação.
- * @param {object | null} investigationData - Dados da investigação.
- */
-const generateIdeasDocumentary = async (button, investigationData) => {
-    const outputContainer = document.getElementById('ideasOutput');
-    const langSelect = document.getElementById('languageSelect');
-    const languageName = langSelect?.value === 'pt-br' ? 'Português do Brasil' : 'English';
-
-    // Pega os dados da investigação.
-    const { rawReport, originalQuery } = investigationData;
-
-    // O CÉREBRO TURBINADO DO ESPECIALISTA EM DOCUMENTÁRIO
-const prompt = `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO DOCUMENTAL INVESTIGATIVO de alto padrão. Sua função é atuar como um JORNALISTA INVESTIGATIVO PREMIADO e DIRETOR DE DOCUMENTÁRIOS, especialista em transformar dados complexos e relatórios de pesquisa em narrativas IRRESISTÍVEIS e RIGOROSAMENTE BASEADAS EM EVIDÊNCIAS, no estilo de documentários da Netflix, HBO e podcasts investigativos como "Serial".
-
-**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
-Você não é apenas um compilador de fatos, você é um DETETIVE DA VERDADE. Sua especialidade é conectar os pontos invisíveis na superfície dos dados para revelar padrões, contradições e histórias humanas que transformam informações frias em narrativas quentes e impactantes. Sua integridade jornalística é absoluta, mas sua habilidade em encontrar o ângulo humano é o que separa um bom documentário de um excepcional.
-
-**MATERIAL DE INTELIGÊNCIA (SUAS FONTES DA VERDADE):**
-- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
-- **RELATÓRIO DA PESQUISA FACTUAL (FONTE PRIMÁRIA):**
----
-${rawReport}
----
-
-**TAREFA CRÍTICA:** Sua criatividade deve estar exclusivamente na APRESENTAÇÃO, NARRATIVA e ÂNGULO dos fatos, nunca na invenção ou distorção deles. Com base **EXCLUSIVAMENTE** no relatório acima, gere um array JSON com 6 propostas de documentários investigativos. Cada proposta deve explorar um ângulo único dos fatos apresentados, mantendo o rigor jornalístico enquanto cria uma narrativa envolvente.
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
-2.  **ESTRUTURA COMPLETA:** Cada objeto no array deve conter EXATAMENTE estas 6 chaves: "title", "angle", "targetAudience", "viralityScore", "videoDescription", e "investigativeApproach".
-3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
-4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
-
-**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
-- **"title" (Título Revelador e Impactante):** Combine um FATO CHAVE do relatório com um elemento de INTRIGA JORNALÍSTICA. Deve:
-  * Ser específico e baseado em evidências
-  * Sugerir profundidade investigativa sem ser sensacionalista
-  * Conter uma promessa implícita de revelação importante
-  * Funcionar como um gancho que desperta a curiosidade intelectual
-
-- **"angle" (A Tese Central Forte):** Em uma frase poderosa, resuma a ABORDAGEM DISTINTA da investigação. Deve:
-  * Apresentar uma perspectiva única sobre os fatos
-  * Destacar uma conexão ou implicação não óbvia encontrada nos dados
-  * Formular uma questão central que o documentário responderá
-  * Ex: "Como os padrões ocultos nos dados de [FATO DO RELATÓRIO] revelam uma crise sistêmica que especialistas estão ignorando?"
-
-- **"targetAudience" (Público-Alvo Específico):** Defina o espectador ideal para esta investigação. Seja:
-  * Específico sobre interesses intelectuais (ex: "Pessoas interessadas em política econômica e justiça social")
-  * Demográfico (ex: "Adultos educados 30-65 que acompanham notícias internacionais")
-  * Psicográfico (ex: "Indivíduos céticos que buscam análises aprofundadas além da superfície midiática")
-
-- **"viralityScore" (Nota de Impacto e Relevância):** Avalie de 1-10 baseado em:
-  * Quão urgente e relevante é a revelação para o público atual
-  * Potencial de gerar discussão informada e mudança de perspectiva
-  * Probabilidade de compartilhamento como fonte confiável de informação
-  * Capacidade de desafiar narrativas estabelecidas ou crenças populares
-
-- **"videoDescription" (O CORAÇÃO DA INVESTIGAÇÃO):** Escreva uma sinopse rica de **pelo menos 5 frases substantivas**. A descrição DEVE:
-  1. Começar com um gancho que estabeleça a importância e urgência do tema
-  2. Mencionar explicitamente 2-3 FATOS ESPECÍFICOS e verificáveis retirados do relatório
-  3. Apresentar a jornada investigativa, incluindo obstáculos encontrados e fontes consultadas
-  4. Construir o clímax quando as evidências convergem para revelar a verdade oculta
-  5. Terminar com as implicações mais amplas dessa descoberta para a sociedade ou indivíduos
-
-- **"investigativeApproach" (Abordagem Investigativa):** Identifique o método jornalístico principal da investigação. Escolha UM dos seguintes:
-  * "Análise de Dados" - Quando a história emerge de padrões e anomalias em conjuntos de dados
-  * "Reportagem de Campo" - Quando a verdade é descoberta através de entrevistas e observação direta
-  * "Investigação Histórica" - Quando o presente só pode ser entendido através do contexto histórico
-  * "Denúncia de Sistemas" - Quando a investigação revela falhas estruturais em instituições
-  * "Narrativa Humana" - Quando os dados ganham vida através das histórias individuais afetadas
-
-**AÇÃO FINAL:** Mergulhe profundamente no relatório fornecido. Extraia os fatos mais relevantes, identifique as conexões não óbvias e construa 6 propostas documentais que mantenham o rigor absoluto dos fatos enquanto criam narrativas irresistíveis. Cada proposta deve prometer não apenas informar, mas iluminar aspectos da realidade que permanecem ocultos para a maioria. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
-
-    try {
-        const rawResult = await callGroqAPI(prompt, 4000);
-        const ideas = cleanGeneratedText(rawResult, true);
-
-        if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
-            throw new Error("O especialista em documentário não retornou ideias no formato esperado.");
-        }
-
-        outputContainer.innerHTML = ''; // Limpa o spinner que foi ativado antes
-        
-        // Renderiza os cards de ideias na tela
-        ideas.forEach((idea, index) => {
-            const card = document.createElement('div');
-            card.className = 'card p-4 flex flex-col justify-between border-l-4 border-gray-500'; // Cor para documentário
-            const escapedIdea = escapeIdeaForOnclick(idea);
-            const cardContent = `
-                <div>
-                    <div class="flex justify-between items-start gap-4">
-                        <h4 class="font-bold text-base flex-grow">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                        <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                    </div>
-                    <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
-                </div>
-                <span class="font-bold text-sm text-gray-500 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 py-1 px-2 rounded-lg self-start mt-3">
-                    Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
-                </span>
-            `;
-            card.innerHTML = cardContent;
-            outputContainer.appendChild(card);
-        });
-
-    } catch (error) {
-        console.error("Erro no especialista de Documentário:", error);
-        outputContainer.innerHTML = `<p class="md-col-span-2 text-red-500">${error.message}</p>`;
-    } finally {
-        // Como esta função é a última a ser executada no fluxo,
-        // ela é a responsável por esconder o loading do botão.
-        hideButtonLoading(button);
-    }
-};
-
-
-// =======================================================================================
-// PASSO 4: SUBSTITUA SUA FUNÇÃO 'generateIdeasInspiracional' PELA VERSÃO TURBINADA
-// =======================================================================================
-
-/**
- * Usa um prompt especialista para gerar 6 propostas de histórias inspiradoras.
- * AGORA, ela usa o relatório da pesquisa para encontrar a jornada humana nos fatos.
- * @param {HTMLElement} button - O botão que iniciou a ação.
- * @param {object | null} investigationData - Dados da investigação.
- */
-const generateIdeasInspiracional = async (button, investigationData) => {
-    const outputContainer = document.getElementById('ideasOutput');
-    const langSelect = document.getElementById('languageSelect');
-    const languageName = langSelect?.value === 'pt-br' ? 'Português do Brasil' : 'English';
-
-    // Pega os dados da investigação.
-    const { rawReport, originalQuery } = investigationData;
-
-    // O CÉREBRO TURBINADO DO ESPECIALISTA INSPIRACIONAL
-const prompt = `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO NARRATIVO INSPIRADOR E TRANSFORMADOR. Sua função é atuar como um ARQUITETO DE JORNADAS EMOCIONAIS, mestre na arte de transformar fatos aparentemente ordinários em narrativas que tocam a alma humana e inspiram ação, no estilo de documentários premiados e discursos TED que mudam vidas.
-
-**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
-Você não é apenas um contador de histórias inspiradoras, você é um ALQUIMISTA EMOCIONAL. Sua especialidade é identificar o ouro da experiência humana oculto nos dados brutos e transformá-lo em narrativas que não apenas emocionam, mas capacitam o espectador a transformar sua própria realidade. Cada história deve ser um catalisador que acende a chama do potencial humano.
-
-**MATERIAL DE INTELIGÊNCIA (SUAS FONTES DA VERDADE):**
-- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
-- **RELATÓRIO DA PESQUISA FACTUAL (A MINÉRIA EMOCIONAL BRUTA):**
----
-${rawReport}
----
-
-**TAREFA CRÍTICA:** Mergulhe profundamente no relatório em busca de elementos humanos, momentos de virada, lições aprendidas e exemplos de resiliência. Transforme esses achados em 6 propostas de histórias inspiradoras que usem os dados do relatório não apenas como contexto, mas como a espinha dorsal emocional da narrativa. O verdadeiro poder deve vir não apenas do que aconteceu, mas de como isso transformou as pessoas envolvidas.
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
-2.  **ESTRUTURA COMPLETA:** Cada objeto deve conter EXATAMENTE estas 6 chaves: "title", "angle", "targetAudience", "viralityScore", "videoDescription", e "emotionalCore".
-3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
-4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
-
-**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
-- **"title" (Título Emocional e Transformador):** Crie um título que funcione como um farol de esperança. Deve:
-  * Ser evocativo e carregar peso emocional
-  * Prometer uma jornada de transformação significativa
-  * Conter uma promessa implícita de superação
-  * Funcionar como um convite para a mudança pessoal
-
-- **"angle" (O Arco Narrativo Central):** A essência da jornada em uma frase poderosa. Deve:
-  * Capturar a transição de um estado inicial para um transformado
-  * Destacar o momento de virada emocional ou epifania
-  * Conectar o desafio específico com a lição universal aprendida
-  * Ex: "Como um simples [DETALHE DO RELATÓRIO] se tornou o catalisador para transformar o desespero em determinação e criar um movimento que mudaria milhares de vidas"
-
-- **"targetAudience" (Público-Alvo EspecÍFICO):** Defina o espectador ideal para esta jornada inspiradora. Seja:
-  * Específico sobre necessidades emocionais (ex: "Pessoas buscando motivação para superar obstáculos pessoais")
-  * Demográfico (ex: "Adultos 30-50 em transição de carreira")
-  * Psicográfico (ex: "Indivíduos que se sentem presos em circunstâncias além de seu controle")
-
-- **"viralityScore" (Nota de Potencial de IMPACTO):** Avalie de 1-10 baseado em:
-  * Quão universalmente relevante é a jornada apresentada
-  * Potencial de inspirar ação concreta no espectador
-  * Probabilidade de compartilhamento como fonte de motivação
-  * Capacidade de conectar com aspirações humanas fundamentais
-
-- **"videoDescription" (DESCRIÇÃO NARRATIVA RICA E EMOCIONAL):** Uma sinopse completa de **pelo menos 5 frases** que deve:
-  1. Estabelecer o ponto de partida emocional do protagonista, usando um detalhe específico do relatório
-  2. Introduzir o obstáculo ou crise desafiadora que ameaça o status quo
-  3. Descrever a jornada de descoberta interna e externa, mencionando fatos concretos do relatório
-  4. Construir o clímax emocional quando a transformação começa a tomar forma
-  5. Terminar com a lição universal e o impacto duradouro da jornada
-
-- **"emotionalCore" (Núcleo Emocional):** Identifique o sentimento fundamental que a história busca evocar e transformar. Escolha UM dos seguintes:
-  * "Esperança em Meio ao Desespero" - Encontrar luz quando tudo parece escuro
-  * "Força na Vulnerabilidade" - Descobrir poder através da aceitação das fraquezas
-  * "Propósito na Adversidade" - Encontrar significado mesmo no sofrimento
-  * "Coragem para Recomeçar" - A capacidade de se reerguer após a queda
-  * "Comunhão na Solidão" - Descobrir conexão humana mesmo no isolamento
-
-**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as histórias humanas de resiliência, transformação e esperança. Transforme fatos e dados em 6 narrativas emocionais que não apenas inspirem, mas capacitem o espectador a ver suas próprias lutas sob uma nova luz. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
-
-    try {
-        const rawResult = await callGroqAPI(prompt, 4000);
-        const ideas = cleanGeneratedText(rawResult, true);
-
-        if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
-            throw new Error("O especialista inspiracional não retornou ideias no formato esperado.");
-        }
-
-        outputContainer.innerHTML = ''; // Limpa o spinner
-        
-        // Renderiza os cards de ideias na tela
-        ideas.forEach((idea, index) => {
-            const card = document.createElement('div');
-            card.className = 'card p-4 flex flex-col justify-between border-l-4 border-violet-500'; // Cor para inspiracional
-            const escapedIdea = escapeIdeaForOnclick(idea);
-            const cardContent = `
-                <div>
-                    <div class="flex justify-between items-start gap-4">
-                        <h4 class="font-bold text-base flex-grow">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                        <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                    </div>
-                    <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
-                </div>
-                <span class="font-bold text-sm text-violet-500 bg-violet-100 dark:bg-violet-900/50 dark:text-violet-300 py-1 px-2 rounded-lg self-start mt-3">
-                    Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
-                </span>
-            `;
-            card.innerHTML = cardContent;
-            outputContainer.appendChild(card);
-        });
-
-    } catch (error) {
-        console.error("Erro no especialista Inspiracional:", error);
-        outputContainer.innerHTML = `<p class="md-col-span-2 text-red-500">${error.message}</p>`;
-    } finally {
-        hideButtonLoading(button);
-    }
-};
 
 
 // =========================================================================
@@ -4866,100 +4833,37 @@ ${newData}
 };
 
      
-// ====================================================================================
-// PASSO 9: SUBSTITUA SUA FUNÇÃO 'generateIdeasGeral' PELA VERSÃO FINAL E TURBINADA
-// ====================================================================================
-
-/**
- * Usa um prompt especialista para gerar 6 ideias de vídeo de interesse geral.
- * AGORA, ela extrai os ângulos mais virais dos fatos do relatório.
- * @param {HTMLElement} button - O botão que iniciou a ação.
- * @param {object | null} investigationData - Dados da investigação.
- */
-const generateIdeasGeral = async (button, investigationData) => {
+// Esta UMA função substitui as SEIS antigas
+const generateIdeas = async (genre, button, investigationData) => {
     const outputContainer = document.getElementById('ideasOutput');
     const langSelect = document.getElementById('languageSelect');
     const languageName = langSelect?.value === 'pt-br' ? 'Português do Brasil' : 'English';
-
-    // A MUDANÇA PRINCIPAL: Os dados agora vêm do objeto 'investigationData'
-    // em vez de serem lidos diretamente do DOM. Isso conecta a função ao fluxo de pesquisa.
     const { rawReport, originalQuery } = investigationData;
 
-    // O CÉREBRO TURBINADO DO ESPECIALISTA GERAL
-    
-const prompt = `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis. Sua função é analisar profundamente o relatório de pesquisa e extrair os ângulos mais impactantes, surpreendentes e viralizáveis para criar 6 ideias de vídeo excepcionais.
-
-**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
-Você não é apenas um gerador de ideias, você é um ARQUITETO DE VIRALIDADE. Sua especialidade é identificar padrões ocultos, conexões inesperadas e gatilhos emocionais nos dados que transformam informações comuns em conteúdo altamente compartilhável. Cada ideia deve ter potencial para gerar engajamento orgânico massivo.
-
-**MATERIAL DE INTELIGÊNCIA (SUAS FONTES DA VERDADE):**
-- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
-- **RELATÓRIO DA PESQUISA FACTUAL (A BASE PARA AS IDEIAS):**
----
-${rawReport}
----
-
-**TAREFA CRÍTICA:** Analise microscopicamente o relatório e gere um array JSON com 6 ideias de vídeo com POTENCIAL VIRAL MÁXIMO. Cada ideia deve explorar um ângulo único, seja ele contraintuitivo, emocionalmente carregado ou extremamente útil.
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
-2.  **ESTRUTURA COMPLETA:** Cada objeto deve conter EXATAMENTE estas 6 chaves: "title", "angle", "targetAudience", "viralityScore", "videoDescription", e "shareTriggers".
-3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
-4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
-
-**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
-- **"title" (Título HIPNÓTICO):** Crie um título que IMPOSSIBILITE o espectador de não clicar. Use:
-  * Números específicos (ex: "7 Fatos Que...")
-  * Perguntas desafiadoras (ex: "Você Sabia Que...?")
-  * Declarações contraintuitivas (ex: "O Contrário do Que Você Pensa...")
-  * Palavras de poder (ex: "Revelado", "Explicado", "Segredo")
-
-- **"angle" (Ângulo ÚNICO E IMPACTANTE):** A essência da ideia em uma frase poderosa. Deve ser:
-  * Contrário ao senso comum ou uma revelação surpreendente
-  * Uma conexão inesperada entre dois fatos do relatório
-  * Uma perspectiva que ninguém mais considerou
-  * Focado no benefício emocional ou prático para o espectador
-
-- **"targetAudience" (Público-Alvo HIPERESPECÍFICO):** Defina EXATAMENTE quem será impactado por esta ideia. Seja:
-  * Demográfico (ex: "Profissionais de 25-35 anos")
-  * Psicográfico (ex: "Pessoas que buscam autoconhecimento")
-  * Comportamental (ex: "Quem compartilha conteúdo educativo")
-  Evite generalidades como "pessoas interessadas no tema".
-
-- **"viralityScore" (Nota de Potencial VIRAL):** Avalie de 1-10 baseado em:
-  * Quão contraintuitivo ou surpreendente é o ângulo
-  * Potencial de gerar debate ou discussão
-  * Probabilidade de compartilhamento como "curiosidade"
-  * Relevância para momentos atuais ou tendências
-
-- **"videoDescription" (DESCRIÇÃO IRRESISTÍVEL):** Uma sinopse de **pelo menos 5 frases** que deve:
-  1. Começar com um gancho que gere curiosidade imediata
-  2. Apresentar 2-3 fatos específicos e impactantes do relatório
-  3. Construir uma narrativa com começo, meio e fim
-  4. Incluir pelo menos um "momento uau" ou revelação surpreendente
-  5. Terminar com um call-to-action implícito para compartilhamento
-
-- **"shareTriggers" (GATILHOS DE COMPARTILHAMENTO):** Liste 2-3 razões específicas pelas quais as pessoas compartilhariam este vídeo:
-  * "Vou compartilhar porque me fez questionar minhas crenças"
-  * "Vou compartilhar porque meus amigos precisam saber disso"
-  * "Vou compartilhar porque é uma informação impressionante para conversas"
-
-**AÇÃO FINAL:** Analise AGORA o relatório com a mentalidade de um caçador de viralidade. Identifique os 6 ângulos mais potentes e transforme-os em ideias completas. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
+    // Apenas UMA linha para pegar o prompt correto do nosso gerenciador!
+    const promptContext = { originalQuery, rawReport, languageName };
+    const prompt = PromptManager.getIdeasPrompt(genre, promptContext);
 
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
         const ideas = cleanGeneratedText(rawResult, true);
-        
+
         if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
-            throw new Error("O especialista Geral não retornou ideias no formato esperado.");
+            throw new Error(`O especialista em ${genre} não retornou ideias no formato esperado.`);
         }
         
-        outputContainer.innerHTML = ''; // Limpa o spinner
-        
-        // A lógica de renderização é a mesma que você já tinha, garantindo consistência visual.
+        // Esta parte de renderização será refatorada depois (Pilar 4), por enquanto mantemos aqui
+        outputContainer.innerHTML = ''; 
+        const genreColorMap = {
+            'documentario': 'border-gray-500', 'inspiracional': 'border-violet-500',
+            'scifi': 'border-blue-500', 'terror': 'border-red-500',
+            'enigmas': 'border-purple-500', 'geral': 'border-emerald-500'
+        };
+        const colorClass = genreColorMap[genre] || 'border-emerald-500';
+
         ideas.forEach((idea, index) => {
             const card = document.createElement('div');
-            card.className = 'card p-4 flex flex-col justify-between border-l-4 border-emerald-500'; // Cor padrão
+            card.className = `card p-4 flex flex-col justify-between border-l-4 ${colorClass}`;
             const escapedIdea = escapeIdeaForOnclick(idea);
             const cardContent = `
                 <div>
@@ -4969,7 +4873,7 @@ ${rawReport}
                     </div>
                     <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
                 </div>
-                <span class="font-bold text-sm text-emerald-500 bg-emerald-100 dark:bg-emerald-900/50 dark:text-emerald-300 py-1 px-2 rounded-lg self-start mt-3">
+                <span class="font-bold text-sm text-${colorClass.split('-')[1]}-500 ... self-start mt-3">
                     Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
                 </span>
             `;
@@ -4978,7 +4882,7 @@ ${rawReport}
         });
 
     } catch (error) {
-        console.error("Erro no especialista Geral:", error);
+        console.error(`Erro no especialista de ${genre}:`, error);
         outputContainer.innerHTML = `<p class="md-col-span-2 text-red-500">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
@@ -4986,134 +4890,8 @@ ${rawReport}
 };
 
 
-// ====================================================================================
-// PASSO FINAL: SUBSTITUA SUA FUNÇÃO 'unravelEnigmasBiblico' INTEIRA POR ESTA VERSÃO
-// ====================================================================================
-
-/**
- * Usa um prompt especialista para gerar 6 ideias de enigmas bíblicos.
- * AGORA, ela conecta os fatos do relatório com passagens bíblicas.
- * @param {HTMLElement} button - O botão que iniciou a ação.
- * @param {object | null} investigationData - Dados da investigação.
- */
-const unravelEnigmasBiblico = async (button, investigationData) => {
-    const outputContainer = document.getElementById('ideasOutput');
-    const langSelect = document.getElementById('languageSelect');
-    const languageName = langSelect?.value === 'pt-br' ? 'Português do Brasil' : 'English';
-
-    // Pega os dados da investigação.
-    const { rawReport, originalQuery } = investigationData;
-
-    // O CÉREBRO CORRIGIDO E BLINDADO DO ESPECIALISTA BÍBLICO
-const prompt = `
-Você são TRÊS ESPECIALISTAS TRABALHANDHO EM SINERGIA:
-1. Um Teólogo Investigativo com doutorado em Hermenêutica Bíblica e especialização em contextos históricos do Antigo e Novo Testamento
-2. Um Arqueólogo especializado em descobertas que corroboram narrativas bíblicas
-3. Um Comunicador Mestre que transforma conceitos complexos em narrativas virais
-
-**MISSÃO COLETIVA:** Gerar 6 ideias de vídeos extraordinários que criem pontes revolucionárias entre descobertas recentes, textos bíblicos e questões teológicas contemporâneas, produzindo conteúdo que seja ao mesmo tempo academicamente respeitável e viralmente compartilhável.
-
-**IDENTIDADE E ESPECIALIZAÇÃO:** Vocês formam o "COLETIVO HERMENÊUTICO", um grupo renomado por desvendar camadas profundas das Escrituras através de lentes multidisciplinares, sempre mantendo a integridade do texto bíblico enquanto exploram interpretações inovadoras.
-
-**MATERIAL DE INTELIGÊNCIA (A BASE PARA A INVESTIGAÇÃO):**
-- **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "${originalQuery}"
-- **RELATÓRIO DA PESQUISA FACTUAL (CONTEXTO HISTÓRICO/CIENTÍFICO/ARQUEOLÓGICO):**
----
-${rawReport}
----
-- **CONTEXTUALIZAÇÃO TEOLÓGICA:** Considerem as seguintes dimensões teológicas que podem dialogar com o relatório: 
-  * Cristologia: Como a descoberta dialoga com o entendimento de Cristo, sua mensagem e ministério?
-  * Escatologia: A descoberta lança nova luz sobre profecias ou expectativas escatológicas?
-  * Hermenêutica: Como isso afeta nossa interpretação de passagens-chave?
-  * Eclesiologia: Quais implicações para a compreensão da Igreja e sua missão?
-  * Soteriologia: A descoberta traz novos insights sobre a natureza da salvação?
-
-**TAREFA CRÍTICA:** Sua missão é gerar 6 ideias de vídeos que transcendam conexões superficiais, criando pontes teológicas profundas entre os DADOS do relatório e as Escrituras. Cada ideia deve representar uma perspectiva teológica distinta e complementar.
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
-1. **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido.
-2. **ESTRUTURA AMPLIADA:** Cada objeto no array deve conter EXATAMENTE estas 8 chaves: "title", "angle", "targetAudience", "viralityScore", "theologicalDepth", "scripturalFoundation", "videoDescription", e "discussionQuestions".
-3. **SINTAXE DAS STRINGS:** Todas as chaves e todos os valores do tipo string DEVEM usar aspas duplas (""). Se precisar usar aspas duplas dentro de uma string, elas DEVEM ser escapadas com uma barra invertida (por exemplo, \\"uma citação\\").
-4. **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma ${languageName}.
-
-**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
-
-- **"title" (Título Cativante e Teológico):** Deve prometer uma revelação transformadora que conecte a descoberta com uma verdade bíblica profunda. Use linguagem que desperte curiosidade intelectual e espiritual simultaneamente.
-
-- **"angle" (O Enigma Central):** Uma frase complexa que apresente uma conexão inovadora entre um FATO do relatório, uma PASSAGEM BÍBLICA e uma IMPLICAÇÃO TEOLÓGICA. Ex: "Como a descoberta de [DADO DO RELATÓRIO] em [LOCAL] desafia nossa compreensão tradicional de [PASSAGEM BÍBLICA] e sugere uma nova perspectiva sobre [CONCEITO TEOLÓGICO]?"
-
-- **"targetAudience" (Público-Alvo Específico):** Descreva com precisão o nicho de espectador. Ex: "Pastores e líderes cristãos buscando conteúdo teologicamente sólido", "Estudantes de teologia interessados em diálogo fé-ciência", "Cristãos leigos com interesse em arqueologia bíblica".
-
-- **"viralityScore" (Nota de Revelação):** Uma nota de 1 a 10 para o potencial da ideia de gerar DEBATE TEOLÓGICO e compartilhamento, considerando tanto o aspecto acadêmico quanto o emocional.
-
-- **"theologicalDepth" (Profundidade Teológica):** Uma nota de 1 a 10 que avalia a profundidade e originalidade das conexões teológicas estabelecidas.
-
-- **"scripturalFoundation" (Fundamentação Bíblica):** Liste 3-5 referências bíblicas-chave que sustentam a exploração teológica proposta, incluindo pelo menos uma do Antigo Testamento e uma do Novo Testamento.
-
-- **"videoDescription" (DESCRIÇÃO INVESTIGATIVA RICA):** Escreva uma sinopse de **pelo menos 7 frases** que construa uma narrativa intelectualmente estimulante. A descrição deve:
-    1. Apresentar o mistério central, citando a passagem bíblica principal.
-    2. Contextualizar a descoberta arqueológica/científica relevante.
-    3. Explorar as implicações teológicas preliminares dessa conexão.
-    4. Apresentar uma perspectiva teológica inovadora que desafia entendimentos convencionais.
-    5. Discutir como essa nova compreensão afeta a aplicação prática da fé.
-    6. Sugerir possíveis objeções e como seriam abordadas.
-    7. Terminar com uma pergunta provocativa que incentive tanto a reflexão teológica quanto a discussão prática.
-
-- **"discussionQuestions" (Questões para Diálogo):** Formule 3 perguntas profundas que estimulem o engajamento do espectador, incluindo:
-    * Uma questão teológica acadêmica
-    * Uma questão de aplicação prática
-    * Uma questão que convida à reflexão espiritual pessoal
-
-**FRAMEWORK CRIATIVO ADICIONAL:**
-Para cada ideia, considerem estas quatro dimensões:
-1. **DIMENSÃO HISTÓRICA:** Como a descoberta lança nova luz sobre o contexto histórico original?
-2. **DIMENSÃO EXEGÉTICA:** Como isso afeta nossa compreensão do texto em seu contexto original?
-3. **DIMENSÃO TEOLÓGICA:** Quais implicações doutrinárias surgem desta conexão?
-4. **DIMENSÃO CONTEMPORÂNEA:** Como isso se aplica à experiência de fé hoje?
-
-**AÇÃO FINAL:** Como Coletivo Hermenêutico, desvende conexões teológicas ousadas e gere as 6 ideias. Busquem o equilíbrio entre rigor acadêmico e acessibilidade popular. Responda APENAS com o array JSON perfeito.
-`;
 
 
-    
-    try {
-        const rawResult = await callGroqAPI(prompt, 4000);
-        const ideas = cleanGeneratedText(rawResult, true);
-        
-        if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
-            throw new Error("O especialista em Enigmas Bíblicos não retornou ideias no formato esperado.");
-        }
-        
-        outputContainer.innerHTML = ''; // Limpa o spinner
-        
-        // Renderiza os cards de ideias na tela
-        ideas.forEach((idea, index) => {
-            const card = document.createElement('div');
-            card.className = 'card p-4 flex flex-col justify-between border-l-4 border-purple-500'; // Cor para Enigmas
-            const escapedIdea = escapeIdeaForOnclick(idea);
-            const cardContent = `
-                <div>
-                    <div class="flex justify-between items-start gap-4">
-                        <h4 class="font-bold text-base flex-grow">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                        <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                    </div>
-                    <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
-                </div>
-                <span class="font-bold text-sm text-purple-500 bg-purple-100 dark:bg-purple-900/50 dark:text-purple-300 py-1 px-2 rounded-lg self-start mt-3">
-                    Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
-                </span>
-            `;
-            card.innerHTML = cardContent;
-            outputContainer.appendChild(card);
-        });
-
-    } catch (error) {
-        console.error("Erro no especialista de Enigmas:", error);
-        outputContainer.innerHTML = `<p class="md-col-span-2 text-red-500">${error.message}</p>`;
-    } finally {
-        hideButtonLoading(button);
-    }
-};
 
 
 
