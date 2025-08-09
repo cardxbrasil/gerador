@@ -855,11 +855,43 @@
     });
     </script>
 
+
+<style>
+#appSidebar { min-height: 100vh; position: sticky; top: 0; }
+.sidebar-link.active { background-color: rgba(99,102,241,0.08); font-weight: 600; }
+@media (max-width: 768px) {
+  #appSidebar { display: none; }
+  #appSidebar.open { display: block; position: fixed; z-index: 60; left: 0; top: 0; height: 100vh; width: 280px; }
+  #rightContentWrapper { padding-left: 1rem; }
+}
+</style>
+
 </head>
 
 
 
-<body class="bg-gray-50 dark:bg-gray-900" class="transition-colors duration-500 ease-in-out">
+<body class="bg-gray-50 dark:bg-gray-900" class="transition-colors duration-500 ease-in-out" class="transition-colors duration-500 ease-in-out">
+<div class="min-h-screen flex">
+
+<aside id="appSidebar" class="w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 p-4 hidden md:block">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-bold text-gray-700 dark:text-gray-200">Etapas</h3>
+    <button id="sidebarCollapse" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800" title="Fechar">
+      <i class="fas fa-angle-left text-gray-600 dark:text-gray-300"></i>
+    </button>
+  </div>
+  <nav class="space-y-1"><button class="sidebar-link block w-full text-left py-2 px-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800" data-target="step-1">Etapa 1</button>
+<button class="sidebar-link block w-full text-left py-2 px-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800" data-target="step-2">Etapa 2</button>
+<button class="sidebar-link block w-full text-left py-2 px-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800" data-target="step-3">Etapa 3</button>
+<button class="sidebar-link block w-full text-left py-2 px-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800" data-target="step-4">Etapa 4</button>
+<button class="sidebar-link block w-full text-left py-2 px-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800" data-target="step-5">Etapa 5</button></nav>
+  <div class="mt-6 md:hidden">
+    <button id="sidebarOpenPersistent" class="btn btn-secondary w-full">Abrir Painel</button>
+  </div>
+</aside>
+
+<div class="flex-1 p-4" id="rightContentWrapper">
+
     <div class="min-h-screen">
         <!-- Header -->
         <header class="bg-white dark:bg-gray-800 shadow-sm">
@@ -964,7 +996,7 @@
 
 
 
-    <div class="section-title">
+    <div class="section-title" id="step-1">
         <h2 class="text-xl font-bold">1. Definir Estratégia</h2>
     </div>
     
@@ -1147,7 +1179,7 @@
 
     <!-- SEÇÃO 2: CRIAR ROTEIRO -->
     <section class="mb-10">
-        <div class="section-title"><h2 class="text-xl font-bold">2. Criar Roteiro</h2></div>
+        <div class="section-title" id="step-2"><h2 class="text-xl font-bold">2. Criar Roteiro</h2></div>
         
         <!-- Card do Esboço Estratégico -->
         <div id="strategicOutlineCard" class="card card-placeholder mb-6">
@@ -1212,7 +1244,7 @@
 
     <!-- SEÇÃO 3: RECURSOS E METADADOS -->
     <section>
-        <div class="section-title"><h2 class="text-xl font-bold">3. Recursos e Metadados</h2></div>
+        <div class="section-title" id="step-3"><h2 class="text-xl font-bold">3. Recursos e Metadados</h2></div>
         
         <!-- Mapa Emocional -->
         <div class="card card-placeholder mb-6">
@@ -1262,7 +1294,7 @@
 
     <!-- SEÇÃO 5: ANÁLISE DE ROTEIRO COMPLETO -->
 <section id="scriptAnalysisSection" class="mt-10 hidden">
-    <div class="section-title">
+    <div class="section-title" id="step-4">
         <h2 class="text-xl font-bold">5. Análise de Roteiro (Beta)</h2>
     </div>
     <div class="card text-center">
@@ -1300,7 +1332,7 @@
 
 
 
-    <div class="section-title">
+    <div class="section-title" id="step-5">
         <h2 class="text-xl font-bold">4. Gerenciamento do Projeto</h2>
     </div>
     <div class="card">
@@ -8055,5 +8087,58 @@ strategicInputIds.forEach(id => {
 });
 
 </script>
+
+</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const links = document.querySelectorAll('.sidebar-link');
+  const sidebar = document.getElementById('appSidebar');
+  const collapseBtn = document.getElementById('sidebarCollapse');
+
+  links.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.dataset.target;
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        links.forEach(l => l.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      if (window.innerWidth < 768 && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+      }
+    });
+  });
+
+  collapseBtn?.addEventListener('click', () => {
+    sidebar.classList.toggle('hidden');
+  });
+
+  document.getElementById('sidebarOpenPersistent')?.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+  });
+
+  window.addEventListener('scroll', () => {
+    let current = "";
+    document.querySelectorAll('.section-title').forEach(section => {
+      const sectionTop = section.offsetTop;
+      if (pageYOffset >= sectionTop - 100) {
+        current = section.getAttribute('id');
+      }
+    });
+    links.forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.target === current) {
+        btn.classList.add('active');
+      }
+    });
+  });
+
+  if (links.length) links[0].classList.add('active');
+});
+</script>
+
 </body>
 </html>
