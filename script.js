@@ -476,7 +476,7 @@ ${context.durationInstruction}`;
     getVideoDescriptionPrompt: (context) => {
         return `${context.basePrompt}\n\n**TAREFA:** Gerar uma descrição otimizada e hashtags no idioma ${context.languageName}.\n**REGRAS:** Comece com um gancho, detalhe o conteúdo, finalize com CTA e liste 10 hashtags.\n**AÇÃO:** Responda APENAS com a descrição e hashtags.`;
     },
-};
+
 
 
 getSoundtrackPrompt: (fullTranscript) => {
@@ -517,8 +517,9 @@ ${fullTranscript}
 
 **AÇÃO FINAL:** Analise AGORA o roteiro. Gere o array JSON com os 3 prompts de trilha sonora mais descritivos e alinhados com a narrativa. Responda APENAS com o array JSON perfeito.`;
    
-    
+    }
 
+    
 };
 
 
