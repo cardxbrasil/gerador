@@ -882,6 +882,52 @@ button:hover, .btn:hover {
 }
 </style>
 
+
+<style>
+:root {
+  --bg-main: #f4f9ff;
+  --bg-card: rgba(255,255,255,0.9);
+  --text-main: #1f2937;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+}
+
+.dark {
+  --bg-main: #111827;
+  --bg-card: #1f2937;
+  --text-main: #f9fafb;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+main > * {
+  background-color: var(--bg-card);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease;
+}
+
+button, .btn {
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s ease;
+}
+
+button:hover, .btn:hover {
+  background-color: var(--accent-hover);
+}
+</style>
+
 </head>
 
 
@@ -8149,6 +8195,27 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (links.length) links[0].classList.add('active');
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const themeToggle = document.getElementById('themeToggle');
+  if (!localStorage.getItem('theme')) {
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('theme', 'dark');
+  } else {
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }
+  themeToggle?.addEventListener('click', () => {
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+  });
 });
 </script>
 
