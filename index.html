@@ -6533,6 +6533,9 @@ window.regenerateSection = (fullSectionId) => {
 // >>>>> VERSÃO FINAL E HÍBRIDA DE 'generatePromptsForSection' <<<<<
 // =========================================================================
 
+// =================================================================================================
+// >>>>> VERSÃO COMPLETA E OTIMIZADA de 'generatePromptsForSection' (NÃO salva o CINEMATIC_STYLE_BLOCK) <<<<<
+// =================================================================================================
 window.generatePromptsForSection = async (button, sectionElementId) => {
     const sectionElement = document.getElementById(sectionElementId);
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
@@ -6543,30 +6546,38 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
         return;
     }
     
-    // <<< CORREÇÃO: A verificação do mapa emocional que estava aqui foi REMOVIDA >>>
-
     showButtonLoading(button);
     promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
 
     try {
-        // A lógica para extrair os parágrafos continua a mesma
         const allChildren = Array.from(contentWrapper.children);
         const paragraphsWithContext = [];
         let currentChapterTitle = "Contexto Geral";
+
         allChildren.forEach(child => {
             if (child.classList.contains('font-bold') && child.textContent.includes('Capítulo:')) {
                 currentChapterTitle = child.textContent.replace('Capítulo:', '').trim();
             } else if (child.id && child.id.includes('-p-')) {
-                paragraphsWithContext.push({ text: child.textContent.trim().replace(/\[.*?\]/g, ''), chapter: currentChapterTitle, originalId: child.id });
+                paragraphsWithContext.push({ 
+                    text: child.textContent.trim().replace(/\[.*?\]/g, ''), 
+                    chapter: currentChapterTitle, 
+                    originalId: child.id 
+                });
             }
         });
 
-        if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
+        if (paragraphsWithContext.length === 0) { 
+            throw new Error("Não foram encontrados parágrafos estruturados para análise."); 
+        }
 
         const batchSize = 3;
         const apiPromises = [];
         const visualPacing = document.getElementById('visualPacing').value;
-        const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
+        const durationMap = { 
+            'dinamico': '3 e 8', 
+            'normal': '8 e 15', 
+            'contemplativo': '15 e 25' 
+        };
         const durationRange = durationMap[visualPacing] || '3 e 8';
 
         for (let i = 0; i < paragraphsWithContext.length; i += batchSize) {
@@ -6574,12 +6585,10 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
             let promptContextForAI = '';
             batch.forEach((item, indexInBatch) => {
                 const globalIndex = i + indexInBatch;
-                // <<< CORREÇÃO: Contexto emocional removido do prompt para a IA >>>
                 promptContextForAI += `\nParágrafo ${globalIndex}:\n- Título do Capítulo (Guia Temático): "${item.chapter}"\n- Texto do Parágrafo: "${item.text}"`;
             });
             
-             // <<< ESTE É O PROMPT HÍBRIDO, COM SUA LISTA DETALHADA E A ESTRUTURA BLINDADA >>>
-const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
+            const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 
 Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar parágrafos e transformá-los em descrições de imagem ricas em detalhes.
 
@@ -6590,7 +6599,7 @@ Você é uma especialista em criação de prompts visuais cinematográficos. Sua
 3. **PROIBIÇÃO DE ASPAS INTERNAS**: Nos valores de texto, use apenas aspas simples (') para ênfase
 4. **ESTRUTURA PADRÃO**: Cada objeto deve ter exatamente duas chaves:
    - "imageDescription" (string): descrição visual detalhada
-   -estimated_duration" (número inteiro): duração estimada em segundos
+   - "estimated_duration" (número inteiro): duração estimada em segundos
 
 ## EXEMPLO DE FORMATAÇÃO CORRETA
 
@@ -6648,7 +6657,7 @@ ${promptContextForAI}
 
 Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
 
-      apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true)));
+            apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true)));
         }
 
         const allBatchResults = await Promise.all(apiPromises);
@@ -6664,8 +6673,11 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
             estimated_duration: promptData.estimated_duration || 5
         }));
 
-        // O resto da função para salvar e renderizar continua o mesmo
-        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts.map((p) => ({ ...p, styleBlock: CINEMATIC_STYLE_BLOCK }));
+        // <<< A CORREÇÃO CRÍTICA ESTÁ AQUI >>>
+        // Agora salvamos APENAS os dados essenciais, sem o styleBlock gigante.
+        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts;
+        
+        // Sincroniza o estado para as funções de renderização que ainda podem usar variáveis globais legadas
         AppState.ui.promptPaginationState[sectionElementId] = 0;
         if (typeof window.allImagePrompts === 'undefined') window.allImagePrompts = {};
         if (typeof window.promptPaginationState === 'undefined') window.promptPaginationState = {};
@@ -6688,7 +6700,6 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
         updateButtonStates();
     }
 };
-
 
 
 // =========================================================================
