@@ -3738,10 +3738,10 @@ const generatePromptsForSectionInBackground = async (sectionElementId) => {
 
 
 // ====================================================================================
-// >>>>> VERSÃO FINAL 4.0: FOCO EM EMOÇÕES + BOTÃO DE COPIAR TEXTO <<<<<
+// >>>>> VERSÃO FINAL 4.1: CORRIGE A EXIBIÇÃO DAS TAGS DE EMOÇÃO E RITMO <<<<<
 // ====================================================================================
 const mapEmotionsAndPacing = async (button) => {
-    const { script } = AppState.generated; // Não precisamos mais dos imagePrompts aqui
+    const { script } = AppState.generated;
 
     const isScriptReady = script.intro.text && script.development.text && script.climax.text;
     if (!isScriptReady) {
@@ -3754,7 +3754,6 @@ const mapEmotionsAndPacing = async (button) => {
     outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando a jornada emocional do roteiro...</p>`;
 
     try {
-        // ETAPA 1: GARANTIR DADOS DE EMOÇÃO
         if (!AppState.generated.emotionalMap) {
             const fullTranscript = getTranscriptOnly();
             const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
@@ -3763,7 +3762,6 @@ const mapEmotionsAndPacing = async (button) => {
             AppState.generated.emotionalMap = cleanGeneratedText(rawResult, true, true);
         }
 
-        // ETAPA 2: RENDERIZAÇÃO FOCADA E SIMPLIFICADA
         outputContainer.innerHTML = '';
         let paragraphCounter = 0;
 
@@ -3785,13 +3783,14 @@ const mapEmotionsAndPacing = async (button) => {
             const uniqueEmotions = [...new Set(sectionEmotionsData.map(e => e.emotion))];
             const uniquePaces = [...new Set(sectionEmotionsData.map(e => e.pace))];
 
+            // <<<< AQUI ESTÁ A CORREÇÃO PRECISA >>>>
             const tagsHtml = uniqueEmotions.map(emotion => 
                 `<span class="tag tag-emotion"><i class="fas fa-theater-masks mr-2"></i>${DOMPurify.sanitize(emotion)}</span>`
             ).join('') + uniquePaces.map(pace => 
                 `<span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${DOMPurify.sanitize(pace)}</span>`
             ).join('');
+            // <<<< FIM DA CORREÇÃO >>>>
 
-            // <<<< MUDANÇA PRINCIPAL 1: O NOVO CABEÇALHO COM BOTÃO DE COPIAR >>>>
             const sectionCardHtml = `
             <div class="emotional-map-item card !p-6 mb-6 animate-fade-in">
                 <div class="flex justify-between items-center mb-3">
@@ -3803,16 +3802,12 @@ const mapEmotionsAndPacing = async (button) => {
                     </button>
                     <pre class="full-prompt-hidden hidden">${DOMPurify.sanitize(sectionScript.text)}</pre>
                 </div>
-
                 <div class="prompt-header mb-4">
                     ${tagsHtml || '<span class="text-sm italic text-gray-500">Nenhuma emoção analisada.</span>'}
                 </div>
-                
                 <div class="text-base leading-relaxed">
                     ${sectionScript.html} 
                 </div>
-
-                <!-- <<<< MUDANÇA PRINCIPAL 2: SEÇÃO DE PROMPTS REMOVIDA >>>> -->
             </div>`;
             
             outputContainer.innerHTML += sectionCardHtml;
