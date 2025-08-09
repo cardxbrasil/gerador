@@ -951,7 +951,13 @@ const generateIdeasFromReport = async (button) => {
     
     const outputContainer = document.getElementById('ideasOutput');
     showButtonLoading(button);
-    outputContainer.innerHTML = `<div class="md-col-span-2 text-center py-4"><div class="loading-spinner mx-auto"></div><p class="text-sm mt-2">Consultando especialista em ${genre}...</p></div>`;
+outputContainer.innerHTML = `
+    <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center p-8 text-center bg-gray-100/50 dark:bg-gray-800/50 rounded-lg">
+        <div class="loading-spinner"></div>
+        <p class="text-lg font-semibold mt-4 text-gray-700 dark:text-gray-300">Consultando especialista em ${genre}...</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Isso pode levar alguns segundos.</p>
+    </div>
+`;
 
     // A MUDANÇA ESTÁ AQUI: Ela agora chama a nossa nova função mestre!
     await generateIdeas(genre, button, { rawReport, originalQuery });
