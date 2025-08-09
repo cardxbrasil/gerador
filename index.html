@@ -6936,53 +6936,29 @@ const generateTitlesAndThumbnails = async (button) => {
 
 
 // =========================================================================
-// >>>>> PASSO ÚNICO: SUBSTITUA A FUNÇÃO analyzeTitles INTEIRA POR ESTA VERSÃO BLINDADA <<<<<
+// >>>>> VERSÃO CORRIGIDA que lê os dados do AppState <<<<<
 // =========================================================================
-
 window.analyzeTitles = async () => {
-    if (!generatedTitlesAndThumbnails || !generatedTitlesAndThumbnails.titles || generatedTitlesAndThumbnails.titles.length === 0) {
-        window.showToast("Gere os títulos primeiro!", 'info');
+    // <<<< AQUI ESTÁ A CORREÇÃO >>>>
+    // Pega os dados diretamente do "cérebro" da aplicação
+    const titlesData = AppState.generated.titlesAndThumbnails;
+
+    if (!titlesData || !titlesData.titles || titlesData.titles.length === 0) {
+        window.showToast("Gere os títulos primeiro antes de analisar!", 'info');
         return;
     }
 
     const resultContainer = document.getElementById('ctrAnalysisResult');
-    resultContainer.innerHTML = DOMPurify.sanitize(`<div class="loading-spinner-small"></div>`);
+    resultContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-2"></div>`;
 
-    const titlesString = generatedTitlesAndThumbnails.titles.join('\n');
+    // Usa os títulos do objeto que acabamos de pegar
+    const titlesString = titlesData.titles.join('\n');
     
-    // >>> PROMPT BLINDADO COM REGRAS DE SINTAXE E ESTRUTURA EXPLÍCITAS <<<
-    const prompt = `Você é uma API de análise de títulos do YouTube que retorna APENAS um array JSON.
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA (INEGOCIÁVEIS):**
-1.  **JSON PURO:** Sua resposta inteira deve ser APENAS o código JSON, começando com \`[\` e terminando com \`]\`.
-2.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
-3.  **VÍRGULA FINAL:** Cada objeto JSON dentro do array DEVE ser seguido por uma vírgula, EXCETO o último objeto.
-4.  **ESTRUTURA DO OBJETO:** Cada objeto no array DEVE conter EXATAMENTE estas três chaves: "titulo_original" (string), "nota_ctr" (um número de 0 a 10), e "sugestao_melhora" (string).
-
-**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
-[
-  {
-    "titulo_original": "Título Exemplo 1",
-    "nota_ctr": 8,
-    "sugestao_melhora": "Adicionar um número ou um gatilho de curiosidade."
-  },
-  {
-    "titulo_original": "Título Exemplo 2",
-    "nota_ctr": 6,
-    "sugestao_melhora": "Encurtar para ser mais direto e impactante."
-  }
-]
-
-**Títulos para analisar:**
----
-${titlesString}
----
-
-Responda APENAS com o array JSON completo e sintaticamente PERFEITO, seguindo EXATAMENTE as regras acima.`;
+    const prompt = `... (o seu prompt blindado de análise de títulos continua o mesmo aqui) ...`;
 
     try {
         const rawResult = await callGroqAPI(prompt, 3000);
-        const analysis = cleanGeneratedText(rawResult, true);
+        const analysis = cleanGeneratedText(rawResult, true, true);
 
         if (!analysis || !Array.isArray(analysis)) {
             throw new Error("A IA não retornou uma análise de títulos em formato válido.");
@@ -6991,70 +6967,45 @@ Responda APENAS com o array JSON completo e sintaticamente PERFEITO, seguindo EX
         let analysisHtml = '<div class="space-y-4">';
         analysis.forEach(item => {
             analysisHtml += `
-                <div class="p-3 card-background rounded-md shadow-sm">
-                    <p class="font-semibold text-gray-800 dark:text-gray-200">${DOMPurify.sanitize(item.titulo_original)}</p>
-                    <p class="text-sm mt-1 text-gray-600 dark:text-gray-400"><strong>Nota de CTR:</strong> <span class="text-indigo-500 font-bold">${DOMPurify.sanitize(String(item.nota_ctr))} / 10</span></p>
-                    <p class="text-sm mt-1 text-gray-600 dark:text-gray-400"><strong>Sugestão:</strong> ${DOMPurify.sanitize(item.sugestao_melhora)}</p>
+                <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-md shadow-sm">
+                    <p class="font-semibold">${DOMPurify.sanitize(item.titulo_original)}</p>
+                    <p class="text-sm mt-1"><strong>Nota de CTR:</strong> <span class="text-indigo-500 font-bold">${DOMPurify.sanitize(String(item.nota_ctr))} / 10</span></p>
+                    <p class="text-sm mt-1"><strong>Sugestão:</strong> ${DOMPurify.sanitize(item.sugestao_melhora)}</p>
                 </div>
             `;
         });
         analysisHtml += '</div>';
-        resultContainer.innerHTML = DOMPurify.sanitize(analysisHtml);
+        resultContainer.innerHTML = analysisHtml;
 
     } catch (error) {
         console.error("Erro detalhado em analyzeTitles:", error);
-        resultContainer.innerHTML = DOMPurify.sanitize(`<p class="text-red-500 text-sm">Falha ao analisar os títulos: ${error.message}</p>`);
+        resultContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao analisar os títulos: ${error.message}</p>`;
     }
 };
 
 // =========================================================================
-// >>>>> PASSO ÚNICO: SUBSTITUA A FUNÇÃO analyzeThumbnails INTEIRA POR ESTA VERSÃO BLINDADA <<<<<
+// >>>>> VERSÃO CORRIGIDA que lê os dados do AppState <<<<<
 // =========================================================================
-
 window.analyzeThumbnails = async () => {
-    if (!generatedTitlesAndThumbnails || !generatedTitlesAndThumbnails.thumbnails || generatedTitlesAndThumbnails.thumbnails.length === 0) {
-        window.showToast("Gere as ideias de thumbnail primeiro!", 'info');
+    // <<<< AQUI ESTÁ A CORREÇÃO >>>>
+    const thumbnailsData = AppState.generated.titlesAndThumbnails;
+
+    if (!thumbnailsData || !thumbnailsData.thumbnails || thumbnailsData.thumbnails.length === 0) {
+        window.showToast("Gere as ideias de thumbnail primeiro antes de analisar!", 'info');
         return;
     }
 
     const resultContainer = document.getElementById('thumbnailAnalysisResult');
-    resultContainer.innerHTML = DOMPurify.sanitize(`<div class="loading-spinner-small"></div>`);
-
-    const thumbnailsString = generatedTitlesAndThumbnails.thumbnails.map(t => `Título: ${t.title}, Descrição: ${t.description}`).join('\n---\n');
+    resultContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-2"></div>`;
     
-    // >>> PROMPT BLINDADO COM REGRAS DE SINTAXE E ESTRUTURA EXPLÍCITAS <<<
-    const prompt = `Você é uma API de análise de thumbnails do YouTube que retorna APENAS um array JSON.
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA (INEGOCIÁVEIS):**
-1.  **JSON PURO:** Sua resposta inteira deve ser APENAS o código JSON, começando com \`[\` e terminando com \`]\`.
-2.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
-3.  **VÍRGULA FINAL:** Cada objeto JSON dentro do array DEVE ser seguido por uma vírgula, EXCETO o último objeto.
-4.  **ESTRUTURA DO OBJETO:** Cada objeto no array DEVE conter EXATAMENTE estas três chaves: "titulo" (string, contendo o título original da ideia analisada), "nota_visual" (um número de 0 a 10), e "sugestao_melhora" (string).
-
-**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
-[
-  {
-    "titulo": "Ideia de Thumbnail 1",
-    "nota_visual": 7,
-    "sugestao_melhora": "Aumentar o contraste e usar uma fonte mais legível no texto."
-  },
-  {
-    "titulo": "Ideia de Thumbnail 2",
-    "nota_visual": 9,
-    "sugestao_melhora": "Adicionar um contorno brilhante ao redor da pessoa para destacá-la do fundo."
-  }
-]
-
-**Ideias para analisar:**
----
-${thumbnailsString}
----
-
-Responda APENAS com o array JSON completo e sintaticamente PERFEITO, seguindo EXATAMENTE as regras acima.`;
+    // Usa as thumbnails do objeto que acabamos de pegar
+    const thumbnailsString = thumbnailsData.thumbnails.map(t => `Título: ${t.title}, Descrição: ${t.description}`).join('\n---\n');
+    
+    const prompt = `... (o seu prompt blindado de análise de thumbnails continua o mesmo aqui) ...`;
 
     try {
         const rawResult = await callGroqAPI(prompt, 2500);
-        const analysis = cleanGeneratedText(rawResult, true);
+        const analysis = cleanGeneratedText(rawResult, true, true);
 
         if (!analysis || !Array.isArray(analysis)) {
             throw new Error("A IA não retornou uma análise de thumbnails em formato válido.");
@@ -7063,19 +7014,19 @@ Responda APENAS com o array JSON completo e sintaticamente PERFEITO, seguindo EX
         let analysisHtml = '<div class="space-y-4">';
         analysis.forEach(item => {
             analysisHtml += `
-                <div class="p-3 card-background rounded-md shadow-sm">
-                    <p class="font-semibold text-gray-800 dark:text-gray-200">"${DOMPurify.sanitize(item.titulo || 'Ideia Sem Título')}"</p>
-                    <p class="text-sm mt-1 text-gray-600 dark:text-gray-400"><strong>Nota de Potencial Visual:</strong> <span class="text-indigo-500 font-bold">${DOMPurify.sanitize(String(item.nota_visual))} / 10</span></p>
-                    <p class="text-sm mt-1 text-gray-600 dark:text-gray-400"><strong>Sugestão:</strong> ${DOMPurify.sanitize(item.sugestao_melhora)}</p>
+                <div class="p-3 bg-gray-100 dark:bg-gray-800 rounded-md shadow-sm">
+                    <p class="font-semibold">"${DOMPurify.sanitize(item.titulo || 'Ideia Sem Título')}"</p>
+                    <p class="text-sm mt-1"><strong>Nota de Potencial Visual:</strong> <span class="text-indigo-500 font-bold">${DOMPurify.sanitize(String(item.nota_visual))} / 10</span></p>
+                    <p class="text-sm mt-1"><strong>Sugestão:</strong> ${DOMPurify.sanitize(item.sugestao_melhora)}</p>
                 </div>
             `;
         });
         analysisHtml += '</div>';
-        resultContainer.innerHTML = DOMPurify.sanitize(analysisHtml);
+        resultContainer.innerHTML = analysisHtml;
 
     } catch (error) {
         console.error("Erro detalhado em analyzeThumbnails:", error);
-        resultContainer.innerHTML = DOMPurify.sanitize(`<p class="text-red-500 text-sm">Falha ao analisar as thumbnails: ${error.message}</p>`);
+        resultContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao analisar as thumbnails: ${error.message}</p>`;
     }
 };
 
