@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -837,43 +839,74 @@
 
 
 
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggle = document.getElementById('darkModeToggle');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const storedTheme = localStorage.getItem('theme');
+        if (storedTheme === 'dark' || (!storedTheme && prefersDark)) {
+            document.documentElement.classList.add('dark');
+        }
+        toggle?.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            const theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', theme);
+        });
+    });
+    </script>
+
+
 <style>
 #appSidebar { min-height: 100vh; position: sticky; top: 0; }
-.sidebar-link.active { background-color: rgba(99,102,241,0.15); font-weight: 600; }
-main > * { background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-.dark main > * { background: #1f2937; }
+.sidebar-link.active { background-color: rgba(255,255,255,0.25); font-weight: 600; }
+.card {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+.dark .card {
+  background: rgba(31, 41, 55, 0.3);
+}
+button, .btn {
+  transition: all 0.3s ease;
+}
+button:hover, .btn:hover {
+  transform: translateY(-2px);
+}
+@media (max-width: 768px) {
+  #appSidebar { display: none; }
+  #appSidebar.open { display: flex; position: fixed; z-index: 60; left: 0; top: 0; height: 100vh; width: 280px; }
+  #rightContentWrapper { padding-left: 1rem; }
+}
 </style>
 
 </head>
 
 
 
-<body class="bg-gray-50 dark:bg-gray-900" class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-500 ease-in-out">
+<body class="bg-gray-50 dark:bg-gray-900" class="transition-colors duration-500 ease-in-out" class="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 transition-colors duration-500 ease-in-out">
 <div class="min-h-screen flex">
 
-<aside id="appSidebar" class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-  <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-    <h1 class="text-lg font-bold">Minha Ferramenta</h1>
-  </div>
-  <nav class="flex-1 p-4 space-y-1 overflow-y-auto"><button class="sidebar-link flex items-center w-full py-2 px-3 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900 transition" data-target="step-1"><span class="mr-2 text-sm font-bold bg-indigo-500 text-white px-2 py-1 rounded">01</span> 1. Definir Estratégia</button>
-<button class="sidebar-link flex items-center w-full py-2 px-3 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900 transition" data-target="step-2"><span class="mr-2 text-sm font-bold bg-indigo-500 text-white px-2 py-1 rounded">02</span> 2. Criar Roteiro</button>
-<button class="sidebar-link flex items-center w-full py-2 px-3 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900 transition" data-target="step-3"><span class="mr-2 text-sm font-bold bg-indigo-500 text-white px-2 py-1 rounded">03</span> 3. Recursos e Metadados</button>
-<button class="sidebar-link flex items-center w-full py-2 px-3 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900 transition" data-target="step-4"><span class="mr-2 text-sm font-bold bg-indigo-500 text-white px-2 py-1 rounded">04</span> 5. Análise de Roteiro (Beta)</button>
-<button class="sidebar-link flex items-center w-full py-2 px-3 rounded hover:bg-indigo-100 dark:hover:bg-indigo-900 transition" data-target="step-5"><span class="mr-2 text-sm font-bold bg-indigo-500 text-white px-2 py-1 rounded">05</span> 4. Gerenciamento do Projeto</button></nav>
-</aside>
-
-<div class="flex-1 flex flex-col">
-
-<header class="w-full bg-white dark:bg-gray-800 shadow px-6 py-3 flex items-center justify-between">
-  <h2 class="text-xl font-semibold">Dashboard</h2>
-  <div class="flex items-center gap-3">
-    <button id="themeToggle" class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-      <i class="fas fa-adjust"></i>
+<aside id="appSidebar" class="w-72 bg-white/30 dark:bg-gray-800/30 backdrop-blur-lg border-r border-white/20 dark:border-gray-700/20 p-6 hidden md:flex flex-col">
+  <div class="flex items-center justify-between mb-8">
+    <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Etapas</h3>
+    <button id="sidebarCollapse" class="p-2 rounded hover:bg-white/20 transition">
+      <i class="fas fa-angle-left text-gray-700 dark:text-gray-200"></i>
     </button>
   </div>
-</header>
+  <nav class="space-y-2 flex-1"><button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-1"><span class="mr-3 bg-white/20 px-2 py-1 rounded text-sm font-bold">01</span> 1. Definir Estratégia</button>
+<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-2"><span class="mr-3 bg-white/20 px-2 py-1 rounded text-sm font-bold">02</span> 2. Criar Roteiro</button>
+<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-3"><span class="mr-3 bg-white/20 px-2 py-1 rounded text-sm font-bold">03</span> 3. Recursos e Metadados</button>
+<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-4"><span class="mr-3 bg-white/20 px-2 py-1 rounded text-sm font-bold">04</span> 5. Análise de Roteiro (Beta)</button>
+<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-5"><span class="mr-3 bg-white/20 px-2 py-1 rounded text-sm font-bold">05</span> 4. Gerenciamento do Projeto</button></nav>
+  <div class="pt-6 border-t border-white/20 dark:border-gray-700/20 text-sm text-gray-600 dark:text-gray-300">
+    Use os botões acima para navegar entre as etapas.
+  </div>
+</aside>
 
-<main class="flex-1 p-6 space-y-6" id="rightContentWrapper">
+<div class="flex-1 p-8 space-y-6" id="rightContentWrapper">
 
     <div class="min-h-screen">
         <!-- Header -->
@@ -8071,14 +8104,14 @@ strategicInputIds.forEach(id => {
 
 </script>
 
-</main>
 </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const links = document.querySelectorAll('.sidebar-link');
-  const themeToggle = document.getElementById('themeToggle');
+  const sidebar = document.getElementById('appSidebar');
+  const collapseBtn = document.getElementById('sidebarCollapse');
 
   links.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -8089,19 +8122,33 @@ document.addEventListener('DOMContentLoaded', () => {
         links.forEach(l => l.classList.remove('active'));
         btn.classList.add('active');
       }
+      if (window.innerWidth < 768 && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+      }
+    });
+  });
+
+  collapseBtn?.addEventListener('click', () => {
+    sidebar.classList.toggle('hidden');
+  });
+
+  window.addEventListener('scroll', () => {
+    let current = "";
+    document.querySelectorAll('.section-title').forEach(section => {
+      const sectionTop = section.offsetTop;
+      if (pageYOffset >= sectionTop - 100) {
+        current = section.getAttribute('id');
+      }
+    });
+    links.forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.target === current) {
+        btn.classList.add('active');
+      }
     });
   });
 
   if (links.length) links[0].classList.add('active');
-
-  themeToggle?.addEventListener('click', () => {
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-  });
-
-  if (localStorage.getItem('theme') === 'dark') {
-    document.documentElement.classList.add('dark');
-  }
 });
 </script>
 
