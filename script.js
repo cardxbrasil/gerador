@@ -116,7 +116,7 @@ ${rawReport}
   * "Denúncia de Sistemas" - Quando a investigação revela falhas estruturais em instituições
   * "Narrativa Humana" - Quando os dados ganham vida através das histórias individuais afetadas
 
-**AÇÃO FINAL:** Mergulhe profundamente no relatório fornecido. Extraia os fatos mais relevantes, identifique as conexões não óbvias e construa 6 propostas documentais que mantenham o rigor absoluto dos fatos enquanto criam narrativas irresistíveis. Cada proposta deve prometer não apenas informar, mas iluminar aspectos da realidade que permanecem ocultos para a maioria. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
+**AÇÃO FINAL:** Mergulhe profundamente no relatório fornecido. Extraia os fatos mais relevantes, identifique as conexões não óbvias e construa 6 propostas documentais que mantenham o rigor absoluto dos fatos enquanto criam narrativas irresistíveis. Cada proposta deve prometer não apenas informar, mas iluminar aspectos da realidade que permanecem ocultos para a maioria. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`
 
             'inspiracional': `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO NARRATIVO INSPIRADOR E TRANSFORMADOR. Sua função é atuar como um ARQUITETO DE JORNADAS EMOCIONAIS, mestre na arte de transformar fatos aparentemente ordinários em narrativas que tocam a alma humana e inspiram ação, no estilo de documentários premiados e discursos TED que mudam vidas.
 
@@ -176,7 +176,7 @@ ${rawReport}
   * "Coragem para Recomeçar" - A capacidade de se reerguer após a queda
   * "Comunhão na Solidão" - Descobrir conexão humana mesmo no isolamento
 
-**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as histórias humanas de resiliência, transformação e esperança. Transforme fatos e dados em 6 narrativas emocionais que não apenas inspirem, mas capacitem o espectador a ver suas próprias lutas sob uma nova luz. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
+**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as histórias humanas de resiliência, transformação e esperança. Transforme fatos e dados em 6 narrativas emocionais que não apenas inspirem, mas capacitem o espectador a ver suas próprias lutas sob uma nova luz. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`
 
             'scifi': `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO DE FICÇÃO CIENTÍFICA DE ALTO CONCEITO ('high-concept'). Sua função é atuar como um VISIONÁRIIO TECNOLÓGICO e FILOSÓFO, mestre na arte de extrapolar implicações existenciais de desenvolvimentos científicos atuais, no estilo de 'Black Mirror', 'Ex Machina' e Philip K. Dick.
 
@@ -236,7 +236,7 @@ ${rawReport}
   * "Conexão vs Autonomia" - Quando a interconexão total elimina a privacidade e individualidade
   * "Imortalidade vs Significado" - Quando a vida eterna torna a existência vazia e sem propósito
 
-**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as sementes tecnológicas que poderão redefinir o futuro humano. Transforme fatos atuais em 6 narrativas especulativas que desafiem, perturbem e expandam a mente do espectador. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
+**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as sementes tecnológicas que poderão redefinir o futuro humano. Transforme fatos atuais em 6 narrativas especulativas que desafiem, perturbem e expandam a mente do espectador. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`
           
             'terror': `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO DE TERROR PSICOLÓGICO E HORROR CÓSMICO. Sua função é atuar como um ARQUITETO DO MEDO EXISTENCIAL, mestre na arte de transformar fatos aparentemente mundanos em narrativas de horror psicológico que perturbam a alma e desafiam a sanidade, no estilo de 'Hereditário', 'A Bruxa' e H.P. Lovecraft.
 
@@ -296,7 +296,7 @@ ${rawReport}
   * "Isolamento Existencial" - Quando a personagem percebe que está completamente sozinha contra o incompreensível
   * "Contaminação" - Quando o ameaçador pode se espalhar ou ser transmitido
 
-**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as fissuras na realidade que podem se tornar portais para o horror. Transforme fatos aparentemente inocentes em 6 premissas que perturbarão, assombrar e ecoar na mente do espectador. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
+**AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as fissuras na realidade que podem se tornar portais para o horror. Transforme fatos aparentemente inocentes em 6 premissas que perturbarão, assombrar e ecoar na mente do espectador. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`
           
             'enigmas': `Você são TRÊS ESPECIALISTAS TRABALHANDHO EM SINERGIA:
 1. Um Teólogo Investigativo com doutorado em Hermenêutica Bíblica e especialização em contextos históricos do Antigo e Novo Testamento
@@ -363,8 +363,8 @@ Para cada ideia, considerem estas quatro dimensões:
 3. **DIMENSÃO TEOLÓGICA:** Quais implicações doutrinárias surgem desta conexão?
 4. **DIMENSÃO CONTEMPORÂNEA:** Como isso se aplica à experiência de fé hoje?
 
-**AÇÃO FINAL:** Como Coletivo Hermenêutico, desvende conexões teológicas ousadas e gere as 6 ideias. Busquem o equilíbrio entre rigor acadêmico e acessibilidade popular. Responda APENAS com o array JSON perfeito.
-`;
+**AÇÃO FINAL:** Como Coletivo Hermenêutico, desvende conexões teológicas ousadas e gere as 6 ideias. Busquem o equilíbrio entre rigor acadêmico e acessibilidade popular. Responda APENAS com o array JSON perfeito.`
+
             'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis. Sua função é analisar profundamente o relatório de pesquisa e extrair os ângulos mais impactantes, surpreendentes e viralizáveis para criar 6 ideias de vídeo excepcionais.
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
@@ -422,7 +422,7 @@ ${rawReport}
   * "Vou compartilhar porque meus amigos precisam saber disso"
   * "Vou compartilhar porque é uma informação impressionante para conversas"
 
-**AÇÃO FINAL:** Analise AGORA o relatório com a mentalidade de um caçador de viralidade. Identifique os 6 ângulos mais potentes e transforme-os em ideias completas. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`;
+**AÇÃO FINAL:** Analise AGORA o relatório com a mentalidade de um caçador de viralidade. Identifique os 6 ângulos mais potentes e transforme-os em ideias completas. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`
 
 
 
