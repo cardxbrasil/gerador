@@ -427,25 +427,16 @@ __RAW_REPORT__
 
 
 
-    };
-    
-    const promptTemplate = templates[genre] || templates['geral'];
-    
-    // A substituição acontece aqui, de forma segura, na hora da execução.
-    return promptTemplate
-        .replace(/__ORIGINAL_QUERY__/g, context.originalQuery)
-        .replace(/__RAW_REPORT__/g, context.rawReport)
-        .replace(/__LANGUAGE_NAME__/g, context.languageName);
-},
+};
+        
+        const promptTemplate = templates[genre] || templates['geral'];
+        
+        return promptTemplate
+            .replace(/__ORIGINAL_QUERY__/g, context.originalQuery)
+            .replace(/__RAW_REPORT__/g, context.rawReport)
+            .replace(/__LANGUAGE_NAME__/g, context.languageName);
+    },
 
-
-
-
-    /**
-     * Retorna o prompt para gerar o esboço estratégico.
-     * @param {object} context - Contém { basePrompt }.
-     * @returns {string} O prompt completo.
-     */
     getOutlinePrompt: (context) => {
         return `${context.basePrompt}
 Você é uma API de geração de JSON que segue regras com precisão cirúrgica. Sua única tarefa é criar um esboço estratégico para um vídeo.
@@ -456,29 +447,17 @@ Você é uma API de geração de JSON que segue regras com precisão cirúrgica.
 **TAREFA:** Gere o objeto JSON perfeito.`;
     },
 
-    /**
-     * Retorna o prompt para gerar seções do roteiro (intro, dev, climax).
-     * @param {object} context - Contém { basePrompt, sectionTitle, durationInstruction, contextText, outlineDirective }.
-     * @returns {string} O prompt completo.
-     */
     getScriptSectionPrompt: (context) => {
         let prompt = `${context.basePrompt}
 Você é um ARQUITETO DE ROTEIROS DE ALTA PERFORMANCE. Sua missão é escrever o texto para a seção **"${context.sectionTitle}"** do roteiro.
 ${context.durationInstruction}`;
 
         if (context.contextText) {
-            prompt += `
-\n**CONTEXTO DO ROTEIRO EXISTENTE (PARA GARANTIR CONTINUIDADE):**
----
-${context.contextText} 
----
-Sua tarefa é continuar a narrativa a partir daqui, sem repetições.`;
+            prompt += `\n\n**CONTEXTO DO ROTEIRO EXISTENTE (PARA GARANTIR CONTINUIDADE):**\n---\n${context.contextText}\n---`;
         }
-
         if (context.outlineDirective) {
             prompt += `\n\n**DIRETRIZ ESTRATÉGICA OBRIGATÓRIA:** Siga este plano: "${context.outlineDirective}"`;
         }
-
         prompt += `
 \n**REGRAS CRÍTICAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
 1.  **RESPOSTA EM JSON:** Sua resposta DEVE ser um array JSON válido, onde cada item do array é uma string representando um parágrafo do roteiro.
@@ -486,22 +465,69 @@ Sua tarefa é continuar a narrativa a partir daqui, sem repetições.`;
 3.  **CONTEÚDO PURO:** As strings devem conter APENAS o texto a ser narrado. É PROIBIDO incluir anotações como 'Narrador:', '(Cena: ...)', etc.
 4.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
 
-**EXEMPLO DE FORMATO DE RESPOSTA PERFEITO:**
-[
-  "Este é o primeiro parágrafo, que introduz a ideia principal de forma completa. Ele contém múltiplas frases que se conectam para formar um pensamento coeso. Esta é a terceira frase para cumprir a regra.",
-  "O segundo parágrafo desenvolve essa ideia com mais detalhes, fornecendo exemplos ou aprofundando o argumento. Ele também é substancial e segue a regra das três frases. Sua estrutura é fundamental para o sucesso."
-]
-
-**AÇÃO FINAL:** Escreva agora a seção "${context.sectionTitle}", seguindo TODAS as diretrizes. Responda APENAS com o array JSON, garantindo que CADA parágrafo tenha no mínimo 4 frases.`;
-        
+**AÇÃO FINAL:** Escreva agora a seção "${context.sectionTitle}", seguindo TODAS as diretrizes. Responda APENAS com o array JSON.`;
         return prompt;
-    }
+    },
 
-    // Você pode continuar adicionando os outros prompts aqui da mesma forma.
-    // Exemplo: getTitlesPrompt, getDescriptionPrompt, etc.
+    getTitlesAndThumbnailsPrompt: (context) => {
+        return `${context.basePrompt}\n\n**TAREFA:** Gerar 5 sugestões de títulos e thumbnails.\n**REGRAS:**\n1. **FORMATO:** Responda APENAS com um array JSON.\n2. **ESTRUTURA:** Cada objeto no array deve ter 3 chaves: "suggested_title", "thumbnail_title", e "thumbnail_description".\n3. **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores.`;
+    },
+
+    getVideoDescriptionPrompt: (context) => {
+        return `${context.basePrompt}\n\n**TAREFA:** Gerar uma descrição otimizada e hashtags no idioma ${context.languageName}.\n**REGRAS:** Comece com um gancho, detalhe o conteúdo, finalize com CTA e liste 10 hashtags.\n**AÇÃO:** Responda APENAS com a descrição e hashtags.`;
+    }
 };
 
-   
+const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
+    const baseContext = getBasePromptContext();
+    const videoDuration = document.getElementById('videoDuration').value;
+    const selectedLanguage = document.getElementById('languageSelect').value;
+    const languageName = new Intl.DisplayNames([selectedLanguage], { type: 'language' }).of(selectedLanguage);
+
+    const targetWords = wordCountMap[videoDuration]?.[sectionName];
+    const durationInstruction = targetWords ? `\n\n**CRITICAL TIMING CONSTRAINT:** The generated text for this section MUST be approximately **${targetWords} words** in total.` : '';
+
+    const context = {
+        basePrompt: baseContext,
+        sectionTitle,
+        durationInstruction,
+        contextText: contextText ? contextText.slice(-4000) : null,
+        outlineDirective,
+        languageName
+    };
+    
+    let prompt;
+    let maxTokens = 4000;
+
+    switch (sectionName) {
+        case 'outline':
+            prompt = PromptManager.getOutlinePrompt(context);
+            maxTokens = 2000;
+            break;
+        case 'titles_thumbnails':
+            prompt = PromptManager.getTitlesAndThumbnailsPrompt(context);
+            maxTokens = 2000;
+            break;
+        case 'description':
+            prompt = PromptManager.getVideoDescriptionPrompt(context);
+            maxTokens = 1000;
+            break;
+        default:
+            prompt = PromptManager.getScriptSectionPrompt(context);
+            break;
+    }
+    
+    return { prompt, maxTokens };
+};
+
+
+
+// ===================================================================
+// =================== FIM DE GERENCIADOR DE PROMPTS =================
+// ===================================================================
+
+
+
     
         // Bloco de estilo cinematográfico para prompts de imagem
         const CINEMATIC_STYLE_BLOCK = `
@@ -4627,6 +4653,39 @@ ${originalText}
 
 
 
+// ==========================================================
+// =================== FUNÇÕES DE RENDERIZAÇÃO =================
+// ==========================================================
+
+/**
+ * Recebe os dados de uma ideia e retorna o HTML completo do card.
+ * É como uma "fábrica" de cards.
+ * @param {object} idea - O objeto da ideia vindo da API.
+ * @param {number} index - O número do card (para o "1.", "2.", etc.).
+ * @param {string} colorClass - A classe de cor da borda (ex: 'border-emerald-500').
+ * @returns {string} Uma string contendo o HTML do card.
+ */
+const renderIdeaCard = (idea, index, colorClass) => {
+    const escapedIdea = escapeIdeaForOnclick(idea);
+    const borderColorName = colorClass.split('-')[1]; // Pega 'emerald' de 'border-emerald-500'
+
+    return `
+        <div class="card p-4 flex flex-col justify-between border-l-4 ${colorClass}">
+            <div>
+                <div class="flex justify-between items-start gap-4">
+                    <h4 class="font-bold text-base flex-grow">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
+                    <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+                </div>
+                <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+            </div>
+            <span class="font-bold text-sm text-${borderColorName}-500 bg-${borderColorName}-100 dark:bg-${borderColorName}-900/50 dark:text-${borderColorName}-300 py-1 px-2 rounded-lg self-start mt-3">
+                Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
+            </span>
+        </div>
+    `;
+};
+
+
 
 // =========================================================================
 // >>>>> SUBSTITUA A FUNÇÃO 'applySuggestion' INTEIRA POR ESTA VERSÃO <<<<<
@@ -4853,7 +4912,7 @@ const generateIdeas = async (genre, button, investigationData) => {
         }
         
         // Esta parte de renderização será refatorada depois (Pilar 4), por enquanto mantemos aqui
-        outputContainer.innerHTML = ''; 
+       outputContainer.innerHTML = ''; 
         const genreColorMap = {
             'documentario': 'border-gray-500', 'inspiracional': 'border-violet-500',
             'scifi': 'border-blue-500', 'terror': 'border-red-500',
@@ -4861,25 +4920,13 @@ const generateIdeas = async (genre, button, investigationData) => {
         };
         const colorClass = genreColorMap[genre] || 'border-emerald-500';
 
-        ideas.forEach((idea, index) => {
-            const card = document.createElement('div');
-            card.className = `card p-4 flex flex-col justify-between border-l-4 ${colorClass}`;
-            const escapedIdea = escapeIdeaForOnclick(idea);
-            const cardContent = `
-                <div>
-                    <div class="flex justify-between items-start gap-4">
-                        <h4 class="font-bold text-base flex-grow">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                        <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                    </div>
-                    <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
-                </div>
-                <span class="font-bold text-sm text-${colorClass.split('-')[1]}-500 ... self-start mt-3">
-                    Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
-                </span>
-            `;
-            card.innerHTML = cardContent;
-            outputContainer.appendChild(card);
-        });
+        // Veja como ficou mais limpo:
+        // 1. Usa .map para transformar cada 'idea' em um HTML de card.
+        // 2. Usa .join('') para juntar todos os HTMLs em uma única string.
+        const allCardsHtml = ideas.map((idea, index) => renderIdeaCard(idea, index, colorClass)).join('');
+        
+        // 3. Insere tudo na tela de uma só vez.
+        outputContainer.innerHTML = allCardsHtml;
 
     } catch (error) {
         console.error(`Erro no especialista de ${genre}:`, error);
