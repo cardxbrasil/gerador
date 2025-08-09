@@ -3030,7 +3030,7 @@ ${selectedText}
             updateAllReadingTimes();
         }
         
-        window.showToast(\Texto refinado com sucesso!`, 'success');`
+        window.showToast(`Falha ao refinar o texto: ${error.message}`, 'error');
 
     } catch (error) {
         console.error(`Erro ao tentar '${action}':`, error);
