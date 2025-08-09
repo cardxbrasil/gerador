@@ -6954,7 +6954,34 @@ window.analyzeTitles = async () => {
     // Usa os títulos do objeto que acabamos de pegar
     const titlesString = titlesData.titles.join('\n');
     
-    const prompt = `... (o seu prompt blindado de análise de títulos continua o mesmo aqui) ...`;
+    const prompt = `Você é uma API de análise de títulos do YouTube que retorna APENAS um array JSON.
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA (INEGOCIÁVEIS):**
+1.  **JSON PURO:** Sua resposta inteira deve ser APENAS o código JSON, começando com \`[\` e terminando com \`]\`.
+2.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
+3.  **VÍRGULA FINAL:** Cada objeto JSON dentro do array DEVE ser seguido por uma vírgula, EXCETO o último objeto.
+4.  **ESTRUTURA DO OBJETO:** Cada objeto no array DEVE conter EXATAMENTE estas três chaves: "titulo_original" (string), "nota_ctr" (um número de 0 a 10), e "sugestao_melhora" (string).
+
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+[
+  {
+    "titulo_original": "Título Exemplo 1",
+    "nota_ctr": 8,
+    "sugestao_melhora": "Adicionar um número ou um gatilho de curiosidade."
+  },
+  {
+    "titulo_original": "Título Exemplo 2",
+    "nota_ctr": 6,
+    "sugestao_melhora": "Encurtar para ser mais direto e impactante."
+  }
+]
+
+**Títulos para analisar:**
+---
+${titlesString}
+---
+
+Responda APENAS com o array JSON completo e sintaticamente PERFEITO, seguindo EXATAMENTE as regras acima.`;
 
     try {
         const rawResult = await callGroqAPI(prompt, 3000);
@@ -7001,7 +7028,34 @@ window.analyzeThumbnails = async () => {
     // Usa as thumbnails do objeto que acabamos de pegar
     const thumbnailsString = thumbnailsData.thumbnails.map(t => `Título: ${t.title}, Descrição: ${t.description}`).join('\n---\n');
     
-    const prompt = `... (o seu prompt blindado de análise de thumbnails continua o mesmo aqui) ...`;
+    const prompt = `Você é uma API de análise de thumbnails do YouTube que retorna APENAS um array JSON.
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA (INEGOCIÁVEIS):**
+1.  **JSON PURO:** Sua resposta inteira deve ser APENAS o código JSON, começando com \`[\` e terminando com \`]\`.
+2.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
+3.  **VÍRGULA FINAL:** Cada objeto JSON dentro do array DEVE ser seguido por uma vírgula, EXCETO o último objeto.
+4.  **ESTRUTURA DO OBJETO:** Cada objeto no array DEVE conter EXATAMENTE estas três chaves: "titulo" (string, contendo o título original da ideia analisada), "nota_visual" (um número de 0 a 10), e "sugestao_melhora" (string).
+
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+[
+  {
+    "titulo": "Ideia de Thumbnail 1",
+    "nota_visual": 7,
+    "sugestao_melhora": "Aumentar o contraste e usar uma fonte mais legível no texto."
+  },
+  {
+    "titulo": "Ideia de Thumbnail 2",
+    "nota_visual": 9,
+    "sugestao_melhora": "Adicionar um contorno brilhante ao redor da pessoa para destacá-la do fundo."
+  }
+]
+
+**Ideias para analisar:**
+---
+${thumbnailsString}
+---
+
+Responda APENAS com o array JSON completo e sintaticamente PERFEITO, seguindo EXATAMENTE as regras acima.`;
 
     try {
         const rawResult = await callGroqAPI(prompt, 2500);
