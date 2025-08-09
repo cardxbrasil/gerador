@@ -3276,62 +3276,57 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let jsonString;
     const trimmedText = text.trim();
 
-    // --- ETAPA 0 (EVOLUÍDA): O DETETIVE DE INTENÇÃO 2.0 ---
-    // A lógica agora é mais precisa para isolar o JSON.
+    // ETAPA 0: O DETETIVE DE INTENÇÃO 2.0 (Mantido 100%)
     const markdownMatch = trimmedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
-
     if (markdownMatch && markdownMatch[2]) {
-        // Se encontrar JSON dentro de um bloco de código, essa é a fonte mais confiável.
         jsonString = markdownMatch[2].trim();
     } else {
-        // Se não, usamos uma lógica de "pinça" para pegar do primeiro ao último caractere de JSON.
         const startIndex = trimmedText.search(/[\{\[]/);
         if (startIndex === -1) {
             console.error("FALHA DE DETECÇÃO: Nenhum início de JSON ('{' ou '[') encontrado no texto da IA.", text);
             throw new Error("A IA não retornou um formato JSON reconhecível.");
         }
-
         const lastBraceIndex = trimmedText.lastIndexOf('}');
         const lastBracketIndex = trimmedText.lastIndexOf(']');
         const endIndex = Math.max(lastBraceIndex, lastBracketIndex);
-
         if (endIndex === -1 || endIndex < startIndex) {
             console.error("FALHA DE DETECÇÃO: JSON parece estar incompleto (sem '}' ou ']' de fechamento).", text);
             throw new Error("O JSON retornado pela IA parece estar incompleto.");
         }
-        
-        // A "pinça" extrai apenas a parte que é realmente JSON, ignorando o lixo antes ou depois.
         jsonString = trimmedText.substring(startIndex, endIndex + 1);
     }
-    // --- FIM DA EVOLUÇÃO NA DETECÇÃO ---
-
-    // A partir daqui, suas etapas de reparo originais são mantidas,
-    // mas agora elas trabalharão com um `jsonString` muito mais limpo.
+    
+    // ETAPA 1: PRÉ-CIRURGIA (NORMALIZAÇÃO) - Adicionada para maior robustez
+    try {
+        // Corrige os erros mais comuns ANTES da primeira tentativa de parse.
+        // 1. Garante que as chaves dos objetos JSON estejam entre aspas duplas. Ex: { key: "value" } => { "key": "value" }
+        jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
+        // 2. Converte aspas simples em aspas duplas para os valores. Ex: { "key": 'value' } => { "key": "value" }
+        jsonString = jsonString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
+        // 3. Remove vírgulas extras antes de fechar colchetes ou chaves. Ex: [ "a", "b", ] => [ "a", "b" ]
+        jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
+    } catch (preSurgeryError) {
+        console.warn("Erro durante a pré-cirurgia. O JSON pode estar muito malformado.", preSurgeryError);
+    }
 
     // ETAPA 2: CIRURGIA PREVENTIVA DE FECHAMENTO (Sua lógica, mantida 100%)
     let openBrackets = (jsonString.match(/\[/g) || []).length;
     let closeBrackets = (jsonString.match(/\]/g) || []).length;
     let openBraces = (jsonString.match(/\{/g) || []).length;
     let closeBraces = (jsonString.match(/\}/g) || []).length;
-
     while (openBraces > closeBraces) { jsonString += '}'; closeBraces++; }
     while (openBrackets > closeBrackets) { jsonString += ']'; closeBrackets++; }
 
     // ETAPA 3: TENTATIVA INICIAL
     try {
         let parsedResult = JSON.parse(jsonString);
-
-        // EVOLUÇÃO 2: A CAMADA DE SEGURANÇA SEMÂNTICA (Sua lógica, mantida 100%)
         if (arrayExpected && !Array.isArray(parsedResult)) {
-            console.warn("Correção Semântica: A IA retornou um objeto, mas um array era esperado. O resultado foi envolvido em um array.", parsedResult);
+            console.warn("Correção Semântica: A IA retornou um objeto, mas um array era esperado.", parsedResult);
             return [parsedResult];
         }
-
         return parsedResult;
 
     } catch (initialError) {
-        // Se a tentativa inicial falhar, significa que o JSON em si está malformado.
-        // AGORA, e somente agora, ativamos a sua poderosa lógica de reparo.
         console.warn("Parse inicial falhou. O JSON extraído ainda tem erros. Iniciando reparos...", initialError.message);
         
         // ETAPA 4: CIRURGIAS AVANÇADAS (Sua lógica, mantida 100%)
@@ -3358,9 +3353,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             // ETAPA 5: TENTATIVA FINAL
             let finalParsedResult = JSON.parse(repairedString);
 
-            // EVOLUÇÃO 3: APLICA A SEGURANÇA SEMÂNTICA AQUI TAMBÉM (Sua lógica, mantida 100%)
             if (arrayExpected && !Array.isArray(finalParsedResult)) {
-                console.warn("Correção Semântica Pós-Reparo: A IA retornou um objeto, mas um array era esperado. O resultado foi envolvido em um array.", finalParsedResult);
+                console.warn("Correção Semântica Pós-Reparo: A IA retornou um objeto, mas um array era esperado.", finalParsedResult);
                 return [finalParsedResult];
             }
 
