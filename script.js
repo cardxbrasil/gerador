@@ -2388,21 +2388,21 @@ const mapEmotionsAndPacing = async (button) => {
 // ==========================================================
 // >>>>> PROMPT TRADUZIDO PARA PORTUGUÊS-BRASIL <<<<<
 // ==========================================================
-const prompt = `Sua única função é retornar um array JSON. Para cada um dos ${paragraphs.length} parágrafos a seguir, analise e retorne a emoção principal e o ritmo.
+const prompt = `Your single function is to return a JSON array. For each of the ${paragraphs.length} paragraphs below, analyze and return the main emotion and pacing.
         
-**REGRAS CRÍTICAS E INEGOCIÁVEIS:**
-1.  Sua resposta deve ser APENAS o array JSON, começando com \`[\` e terminando com \`]\`. NENHUM outro texto é permitido.
-2.  O array deve conter EXATAMENTE ${paragraphs.length} objetos.
-3.  Cada objeto deve ter EXATAMENTE duas chaves: "emotion" e "pace".
-4.  Valores permitidos para "emotion": 'Positiva Forte', 'Positiva Leve', 'Neutra', 'Negativa Leve', 'Negativa Forte'.
-5.  Valores permitidos para "pace": 'Muito Rápido', 'Rápido', 'Médio', 'Lento', 'Muito Lento'.
+**CRITICAL AND UNBREAKABLE RULES:**
+1.  Your response MUST BE ONLY the JSON array, starting with \`[\` and ending with \`]\`. NO other text is permitted.
+2.  The array must contain EXACTLY ${paragraphs.length} objects.
+3.  Each object must have EXACTLY two keys: "emotion" and "pace".
+4.  Allowed values for "emotion": 'strongly_positive', 'slightly_positive', 'neutral', 'slightly_negative', 'strongly_negative'.
+5.  Allowed values for "pace": 'very_fast', 'fast', 'medium', 'slow', 'very_slow'.
 
-**TEXTO PARA ANÁLISE:**
+**TEXT FOR ANALYSIS:**
 ---
 ${JSON.stringify(paragraphs)}
 ---
 
-AÇÃO: Retorne APENAS o array JSON, usando os termos em Português do Brasil para os valores.`;
+ACTION: Return ONLY the JSON array, using the English terms for the values.`;
 
         const rawResult = await callGroqAPI(prompt, 4000);
         const emotionalMapData = cleanGeneratedText(rawResult, true, true); // Espera um array
