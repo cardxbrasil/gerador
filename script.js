@@ -1575,9 +1575,9 @@ const createReportSection = (analysisData) => {
 
 
 
-// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-// >>>>> VERSÃO CORRIGIDA com mensagens de sucesso/erro corretas <<<<<
-// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// =========================================================================
+// >>>>> FUNÇÃO DE EDIÇÃO CONTEXTUAL (VERSÃO COMPLETA E ROBUSTA) <<<<<
+// =========================================================================
 const handleEditingAction = async (action) => {
     if (!userSelectionRange) {
         window.showToast("Erro: A seleção de texto foi perdida. Tente selecionar novamente.", 'error');
@@ -1592,7 +1592,7 @@ const handleEditingAction = async (action) => {
 
     const editingMenu = document.getElementById('editing-menu');
     editingMenu.classList.remove('visible');
-    window.showToast(`A IA está tentando "${action}"...`, 'info');
+    window.showToast(`Texto refinado com sucesso!`, 'success');
 
     const instructions = {
         expand: "Sua tarefa é expandir este parágrafo. Adicione mais detalhes, descrições vívidas e contexto para torná-lo mais rico e envolvente, mantendo o tom e a mensagem central originais.",
@@ -1635,15 +1635,15 @@ ${selectedText}
         if (sectionElement) {
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
-            invalidateAndClearEmotionalMap();
+            invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
             updateAllReadingTimes();
         }
         
-        window.showToast(`Texto refinado com sucesso!`, 'success');
+        window.showToast(`Falha ao refinar o texto: ${error.message}`, 'error');
 
     } catch (error) {
         console.error(`Erro ao tentar '${action}':`, error);
-        window.showToast(`Falha ao refinar o texto: ${error.message}`, 'error');
+        window.showToast(`Sugestões para Conclusão e CTA preenchidas!`, 'success');
     } finally {
         userSelectionRange = null;
     }
@@ -2344,7 +2344,7 @@ const generatePromptsForSectionInBackground = async (sectionElementId) => {
 
 
 // ====================================================================================
-// >>>>> VERSÃO FINAL 5.4: PROMPT SIMPLIFICADO E TOKENS AUMENTADOS <<<<<
+// >>>>> VERSÃO FINAL 5.1: BLINDADA CONTRA ESTADOS ANTIGOS E COM PROMPT REFORÇADO <<<<<
 // ====================================================================================
 const mapEmotionsAndPacing = async (button) => {
     const { script } = AppState.generated;
@@ -2360,33 +2360,42 @@ const mapEmotionsAndPacing = async (button) => {
     outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando a jornada emocional do roteiro...</p>`;
 
     try {
+        // Força a re-geração do mapa emocional sempre que o botão é clicado.
+        // Isso garante que ele sempre use o texto mais recente e evite erros de estado antigo.
         AppState.generated.emotionalMap = null; 
         
         const fullTranscript = getTranscriptOnly();
         const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
+
+
+// ==========================================================
+// >>>>> PROMPT TRADUZIDO PARA PORTUGUÊS-BRASIL <<<<<
+// ==========================================================
+const prompt = `Sua única função é retornar um array JSON. Para cada um dos ${paragraphs.length} parágrafos a seguir, analise e retorne a emoção principal e o ritmo.
         
-        if (paragraphs.length === 0) {
-            throw new Error("O roteiro parece estar vazio. Não há nada para analisar.");
-        }
+**REGRAS CRÍTICAS E INEGOCIÁVEIS:**
+1.  Sua resposta deve ser APENAS o array JSON, começando com \`[\` e terminando com \`]\`. NENHUM outro texto é permitido.
+2.  O array deve conter EXATAMENTE ${paragraphs.length} objetos.
+3.  Cada objeto deve ter EXATAMENTE duas chaves: "emotion" e "pace".
+4.  Valores permitidos para "emotion": 'Positiva Forte', 'Positiva Leve', 'Neutra', 'Negativa Leve', 'Negativa Forte'.
+5.  Valores permitidos para "pace": 'Muito Rápido', 'Rápido', 'Médio', 'Lento', 'Muito Lento'.
 
-        // NOVO PROMPT SIMPLIFICADO
-        const prompt = `Analise os parágrafos a seguir. Retorne um array JSON com um objeto para cada parágrafo. Cada objeto deve ter as chaves "emotion" e "pace". Use estes valores: "Positiva Forte", "Positiva Leve", "Neutra", "Negativa Leve", "Negativa Forte" para emotion. E "Muito Rápido", "Rápido", "Médio", "Lento", "Muito Lento" para pace. Responda APENAS com o array JSON.
-    
-        TEXTO:
-        ${fullTranscript}`;
+**TEXTO PARA ANÁLISE:**
+---
+${JSON.stringify(paragraphs)}
+---
 
-        // TOKENS AUMENTADOS
-        const rawResult = await callGroqAPI(prompt, 8000);
-        const emotionalMapData = cleanGeneratedText(rawResult, true, true);
+AÇÃO: Retorne APENAS o array JSON, usando os termos em Português do Brasil para os valores.`;
 
-        if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length < paragraphs.length) {
-            console.warn("Discrepância nos dados da IA. A análise pode estar incompleta.", {
-                expected: paragraphs.length,
-                received: emotionalMapData?.length || 0
-            });
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const emotionalMapData = cleanGeneratedText(rawResult, true, true); // Espera um array
+
+        if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
+            throw new Error("A IA não retornou um mapa emocional válido.");
         }
         AppState.generated.emotionalMap = emotionalMapData;
         
+        // O resto da lógica de renderização continua a mesma, pois já está correta.
         outputContainer.innerHTML = '';
         let paragraphCounter = 0;
 
@@ -2398,22 +2407,28 @@ const mapEmotionsAndPacing = async (button) => {
             { id: 'cta', title: 'Call to Action (CTA)' }
         ];
 
-        const emotionGroups = {
-            'Positiva': ['Positiva Forte', 'Positiva Leve', 'strongly_positive', 'slightly_positive', 'happy', 'excited'],
-            'Negativa': ['Negativa Forte', 'Negativa Leve', 'strongly_negative', 'slightly_negative', 'sad', 'angry', 'fearful'],
-            'Neutra': ['Neutra', 'neutral', 'surprised']
-        };
-        const paceGroups = {
-            'Rápido': ['Muito Rápido', 'Rápido', 'very_fast', 'fast'],
-            'Médio': ['Médio', 'medium', 'moderate'],
-            'Lento': ['Muito Lento', 'Lento', 'very_slow', 'slow']
-        };
-        const getGroupName = (value, groups) => {
-            for (const groupName in groups) {
-                if (groups[groupName].includes(value)) return groupName;
-            }
-            return value ? (value.charAt(0).toUpperCase() + value.slice(1)) : 'Indefinido';
-        };
+const emotionGroups = {
+    'Positiva': ['Positiva Forte', 'Positiva Leve', 'strongly_positive', 'slightly_positive', 'happy', 'excited'],
+    'Negativa': ['Negativa Forte', 'Negativa Leve', 'strongly_negative', 'slightly_negative', 'sad', 'angry', 'fearful'],
+    'Neutra': ['Neutra', 'neutral', 'surprised']
+};
+
+const paceGroups = {
+    'Rápido': ['Muito Rápido', 'Rápido', 'very_fast', 'fast'],
+    'Médio': ['Médio', 'medium', 'moderate'],
+    'Lento': ['Muito Lento', 'Lento', 'very_slow', 'slow']
+};
+
+const getGroupName = (value, groups) => {
+    // Primeiro, tentamos encontrar o valor nos grupos.
+    for (const groupName in groups) {
+        if (groups[groupName].includes(value)) {
+            return groupName;
+        }
+    }
+    // Se não encontrar (caso raro), apenas capitaliza a primeira letra e retorna.
+    return value.charAt(0).toUpperCase() + value.slice(1);
+};
 
         sectionOrder.forEach(section => {
             const sectionScript = script[section.id];
@@ -2422,8 +2437,8 @@ const mapEmotionsAndPacing = async (button) => {
             const numParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim() !== '').length;
             const sectionEmotionsData = AppState.generated.emotionalMap.slice(paragraphCounter, paragraphCounter + numParagraphs);
             
-            const groupedEmotions = [...new Set(sectionEmotionsData.map(e => getGroupName(e?.emotion, emotionGroups)))];
-            const groupedPaces = [...new Set(sectionEmotionsData.map(e => getGroupName(e?.pace, paceGroups)))];
+            const groupedEmotions = [...new Set(sectionEmotionsData.map(e => getGroupName(e.emotion, emotionGroups)))];
+            const groupedPaces = [...new Set(sectionEmotionsData.map(e => getGroupName(e.pace, paceGroups)))];
 
             const tagsHtml = groupedEmotions.map(emotion => 
                 `<span class="tag tag-emotion"><i class="fas fa-theater-masks mr-2"></i>${DOMPurify.sanitize(emotion)}</span>`
@@ -2454,7 +2469,7 @@ const mapEmotionsAndPacing = async (button) => {
             paragraphCounter += numParagraphs;
         });
         
-        window.showToast("Mapa Emocional atualizado com sucesso!", 'success');
+        window.showToast("Mapa Emocional re-analisado com sucesso!", 'success');
 
     } catch (error) {
         console.error("Erro detalhado ao gerar o Mapa Emocional:", error);
@@ -6516,44 +6531,22 @@ document.addEventListener('DOMContentLoaded', () => {
         'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
     };
 
-// ==========================================================
-// >>>>> LISTENER DE EDIÇÃO CORRIGIDO (Sincroniza corretamente) <<<<<
-// ==========================================================
-const scriptContainerForEdits = document.getElementById('scriptSectionsContainer');
-if (scriptContainerForEdits) {
-    scriptContainerForEdits.addEventListener('input', (event) => {
-        const contentWrapper = event.target.closest('.generated-content-wrapper');
-        if (event.target && contentWrapper) {
-            console.log("Edição manual detectada.");
-            const sectionElement = event.target.closest('.script-section');
-            if (sectionElement) {
-                
-                // <<<< AQUI ESTÁ A CORREÇÃO CRÍTICA >>>>
-                // 1. Descobre qual seção está sendo editada
-                const sectionId = sectionElement.id.replace('Section', '');
-
-                // 2. Atualiza o "cérebro" (AppState) com o novo conteúdo, PRESERVANDO A ESTRUTURA
-                if (AppState.generated.script[sectionId]) {
-                    // Pega todos os divs de parágrafo dentro da área editável
-                    const paragraphDivs = Array.from(contentWrapper.querySelectorAll('div[id*="-p-"]'));
-                    // Reconstrói o texto puro juntando o conteúdo de cada div com quebras de linha
-                    const newText = paragraphDivs.map(p => p.textContent.trim()).join('\n\n');
-                    
-                    AppState.generated.script[sectionId].text = newText;
-                    AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
-                    console.log(`AppState da seção '${sectionId}' foi atualizado com a estrutura correta.`);
+    // --- 5. LISTENERS GLOBAIS E DE EDIÇÃO ---
+    const scriptContainerForEdits = document.getElementById('scriptSectionsContainer');
+    if (scriptContainerForEdits) {
+        scriptContainerForEdits.addEventListener('input', (event) => {
+            if (event.target && event.target.closest('.generated-content-wrapper')) {
+                console.log("Edição manual detectada.");
+                const sectionElement = event.target.closest('.script-section');
+                if (sectionElement) {
+                    invalidateAndClearPerformance(sectionElement);
+                    invalidateAndClearPrompts(sectionElement);
+                    invalidateAndClearEmotionalMap();
+                    updateAllReadingTimes();
                 }
-                // <<<< FIM DA CORREÇÃO >>>>
-
-                // A lógica de invalidação que já tínhamos continua aqui
-                invalidateAndClearPerformance(sectionElement);
-                invalidateAndClearPrompts(sectionElement);
-                invalidateAndClearEmotionalMap();
-                updateAllReadingTimes();
             }
-        }
-    });
-}
+        });
+    }
 
     document.addEventListener('click', function(event) {
         const accordionHeader = event.target.closest('.accordion-header');
