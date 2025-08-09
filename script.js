@@ -1576,7 +1576,8 @@ const createReportSection = (analysisData) => {
 
 
 // =========================================================================
-// >>>>> FUNÇÃO DE EDIÇÃO CONTEXTUAL (VERSÃO COMPLETA E ROBUSTA) <<<<<
+// >>>>> VERSÃO CORRIGIDA E FINAL de 'handleEditingAction' <<<<<
+// (Resolve o crash e sincroniza com o AppState)
 // =========================================================================
 const handleEditingAction = async (action) => {
     if (!userSelectionRange) {
@@ -1592,7 +1593,6 @@ const handleEditingAction = async (action) => {
 
     const editingMenu = document.getElementById('editing-menu');
     editingMenu.classList.remove('visible');
-    window.showToast(`Texto refinado com sucesso!`, 'success');
 
     const instructions = {
         expand: "Sua tarefa é expandir este parágrafo. Adicione mais detalhes, descrições vívidas e contexto para torná-lo mais rico e envolvente, mantendo o tom e a mensagem central originais.",
@@ -1612,11 +1612,15 @@ ${selectedText}
 ---
 `;
 
+    // Guarda a referência da seção ANTES de qualquer coisa.
+    const sectionElement = userSelectionRange.startContainer.parentElement.closest('.script-section');
+    
     try {
         const rawResult = await callGroqAPI(prompt, 3000);
         const refinedText = removeMetaComments(rawResult);
 
         if (userSelectionRange) {
+            // Lógica para substituir o texto na tela
             window.getSelection().removeAllRanges();
             userSelectionRange.deleteContents();
 
@@ -1626,29 +1630,41 @@ ${selectedText}
             
             userSelectionRange.insertNode(newNode);
             
+            // Resseleciona o novo texto para feedback visual
             const newRange = document.createRange();
             newRange.selectNodeContents(newNode);
             window.getSelection().addRange(newRange);
         }
 
-        const sectionElement = userSelectionRange.startContainer.parentElement.closest('.script-section');
+        // <<< ETAPA CRÍTICA: ATUALIZA O "CÉREBRO" (AppState) >>>
         if (sectionElement) {
+            const sectionId = sectionElement.id.replace('Section', '');
+            const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
+            
+            if (contentWrapper && AppState.generated.script[sectionId]) {
+                AppState.generated.script[sectionId].text = contentWrapper.textContent;
+                AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
+                console.log(`AppState para '${sectionId}' atualizado com sucesso após a edição.`);
+            }
+
+            // Invalida os outros recursos que dependem do texto
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
-            invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
+            invalidateAndClearEmotionalMap();
             updateAllReadingTimes();
         }
         
-        window.showToast(`Falha ao refinar o texto: ${error.message}`, 'error');
+        // Mensagem de sucesso correta
+        window.showToast(`Texto refinado com sucesso!`, 'success');
 
-    } catch (error) {
-        console.error(`Erro ao tentar '${action}':`, error);
-        window.showToast(`Sugestões para Conclusão e CTA preenchidas!`, 'success');
+    } catch (err) { // <<< CORREÇÃO DO CRASH >>>
+        // Mensagem de erro correta, dentro do 'catch'
+        console.error(`Erro ao tentar '${action}':`, err);
+        window.showToast(`Falha ao refinar o texto: ${err.message}`, 'error');
     } finally {
         userSelectionRange = null;
     }
 };
-
 
 
 
