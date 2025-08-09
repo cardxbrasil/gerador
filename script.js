@@ -6531,31 +6531,36 @@ document.addEventListener('DOMContentLoaded', () => {
         'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
     };
 
-    // --- 5. LISTENERS GLOBAIS E DE EDIÇÃO ---
+// ==========================================================
+// >>>>> LISTENER DE EDIÇÃO CORRIGIDO (Sincroniza corretamente) <<<<<
+// ==========================================================
 const scriptContainerForEdits = document.getElementById('scriptSectionsContainer');
 if (scriptContainerForEdits) {
     scriptContainerForEdits.addEventListener('input', (event) => {
         const contentWrapper = event.target.closest('.generated-content-wrapper');
         if (event.target && contentWrapper) {
             console.log("Edição manual detectada.");
-
             const sectionElement = event.target.closest('.script-section');
             if (sectionElement) {
                 
-                // ==========================================================
-                // >>>>> ADICIONE APENAS ESTE BLOCO DE CÓDIGO AQUI <<<<<
-                // ==========================================================
+                // <<<< AQUI ESTÁ A CORREÇÃO CRÍTICA >>>>
+                // 1. Descobre qual seção está sendo editada
                 const sectionId = sectionElement.id.replace('Section', '');
-                if (AppState.generated.script[sectionId]) {
-                    AppState.generated.script[sectionId].text = contentWrapper.textContent;
-                    AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
-                    console.log(`AppState da seção '${sectionId}' foi atualizado.`);
-                }
-                // ==========================================================
-                // >>>>> FIM DO BLOCO ADICIONADO <<<<<
-                // ==========================================================
 
-                // O resto do seu código continua o mesmo
+                // 2. Atualiza o "cérebro" (AppState) com o novo conteúdo, PRESERVANDO A ESTRUTURA
+                if (AppState.generated.script[sectionId]) {
+                    // Pega todos os divs de parágrafo dentro da área editável
+                    const paragraphDivs = Array.from(contentWrapper.querySelectorAll('div[id*="-p-"]'));
+                    // Reconstrói o texto puro juntando o conteúdo de cada div com quebras de linha
+                    const newText = paragraphDivs.map(p => p.textContent.trim()).join('\n\n');
+                    
+                    AppState.generated.script[sectionId].text = newText;
+                    AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
+                    console.log(`AppState da seção '${sectionId}' foi atualizado com a estrutura correta.`);
+                }
+                // <<<< FIM DA CORREÇÃO >>>>
+
+                // A lógica de invalidação que já tínhamos continua aqui
                 invalidateAndClearPerformance(sectionElement);
                 invalidateAndClearPrompts(sectionElement);
                 invalidateAndClearEmotionalMap();
