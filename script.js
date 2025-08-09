@@ -2367,22 +2367,25 @@ const mapEmotionsAndPacing = async (button) => {
         const fullTranscript = getTranscriptOnly();
         const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
 
-        // PROMPT REFORÇADO E BLINDADO
-        const prompt = `Sua única função é retornar um array JSON. Para cada um dos ${paragraphs.length} parágrafos a seguir, analise e retorne a emoção principal e o ritmo.
+
+// ==========================================================
+// >>>>> PROMPT TRADUZIDO PARA PORTUGUÊS-BRASIL <<<<<
+// ==========================================================
+const prompt = `Sua única função é retornar um array JSON. Para cada um dos ${paragraphs.length} parágrafos a seguir, analise e retorne a emoção principal e o ritmo.
         
 **REGRAS CRÍTICAS E INEGOCIÁVEIS:**
 1.  Sua resposta deve ser APENAS o array JSON, começando com \`[\` e terminando com \`]\`. NENHUM outro texto é permitido.
 2.  O array deve conter EXATAMENTE ${paragraphs.length} objetos.
 3.  Cada objeto deve ter EXATAMENTE duas chaves: "emotion" e "pace".
-4.  Valores permitidos para "emotion": strongly_positive, slightly_positive, neutral, slightly_negative, strongly_negative.
-5.  Valores permitidos para "pace": very_fast, fast, medium, slow, very_slow.
+4.  Valores permitidos para "emotion": 'Positiva Forte', 'Positiva Leve', 'Neutra', 'Negativa Leve', 'Negativa Forte'.
+5.  Valores permitidos para "pace": 'Muito Rápido', 'Rápido', 'Médio', 'Lento', 'Muito Lento'.
 
 **TEXTO PARA ANÁLISE:**
 ---
 ${JSON.stringify(paragraphs)}
 ---
 
-AÇÃO: Retorne APENAS o array JSON.`;
+AÇÃO: Retorne APENAS o array JSON, usando os termos em Português do Brasil para os valores.`;
 
         const rawResult = await callGroqAPI(prompt, 4000);
         const emotionalMapData = cleanGeneratedText(rawResult, true, true); // Espera um array
@@ -2404,22 +2407,28 @@ AÇÃO: Retorne APENAS o array JSON.`;
             { id: 'cta', title: 'Call to Action (CTA)' }
         ];
 
-        const emotionGroups = {
-            'Positive': ['strongly_positive', 'slightly_positive', 'happy', 'excited'],
-            'Negative': ['strongly_negative', 'slightly_negative', 'sad', 'angry', 'fearful'],
-            'Neutral': ['neutral', 'surprised']
-        };
-        const paceGroups = {
-            'Fast': ['very_fast', 'fast'],
-            'Medium': ['medium', 'moderate'],
-            'Slow': ['very_slow', 'slow']
-        };
-        const getGroupName = (value, groups) => {
-            for (const groupName in groups) {
-                if (groups[groupName].includes(value)) return groupName;
-            }
-            return value;
-        };
+const emotionGroups = {
+    'Positiva': ['Positiva Forte', 'Positiva Leve', 'strongly_positive', 'slightly_positive', 'happy', 'excited'],
+    'Negativa': ['Negativa Forte', 'Negativa Leve', 'strongly_negative', 'slightly_negative', 'sad', 'angry', 'fearful'],
+    'Neutra': ['Neutra', 'neutral', 'surprised']
+};
+
+const paceGroups = {
+    'Rápido': ['Muito Rápido', 'Rápido', 'very_fast', 'fast'],
+    'Médio': ['Médio', 'medium', 'moderate'],
+    'Lento': ['Muito Lento', 'Lento', 'very_slow', 'slow']
+};
+
+const getGroupName = (value, groups) => {
+    // Primeiro, tentamos encontrar o valor nos grupos.
+    for (const groupName in groups) {
+        if (groups[groupName].includes(value)) {
+            return groupName;
+        }
+    }
+    // Se não encontrar (caso raro), apenas capitaliza a primeira letra e retorna.
+    return value.charAt(0).toUpperCase() + value.slice(1);
+};
 
         sectionOrder.forEach(section => {
             const sectionScript = script[section.id];
