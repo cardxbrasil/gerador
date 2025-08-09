@@ -858,11 +858,26 @@
 
 <style>
 #appSidebar { min-height: 100vh; position: sticky; top: 0; }
-.sidebar-link.active { background-color: rgba(99,102,241,0.08); font-weight: 600; }
-.sidebar-link span { display: inline-block; width: 2rem; text-align: center; }
+.sidebar-link.active { background-color: rgba(255,255,255,0.25); font-weight: 600; }
+.card {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+.dark .card {
+  background: rgba(31, 41, 55, 0.3);
+}
+button, .btn {
+  transition: all 0.3s ease;
+}
+button:hover, .btn:hover {
+  transform: translateY(-2px);
+}
 @media (max-width: 768px) {
   #appSidebar { display: none; }
-  #appSidebar.open { display: flex; position: fixed; z-index: 60; left: 0; top: 0; height: 100vh; width: 260px; background-color: inherit; }
+  #appSidebar.open { display: flex; position: fixed; z-index: 60; left: 0; top: 0; height: 100vh; width: 280px; }
   #rightContentWrapper { padding-left: 1rem; }
 }
 </style>
@@ -871,27 +886,27 @@
 
 
 
-<body class="bg-gray-50 dark:bg-gray-900" class="transition-colors duration-500 ease-in-out" class="transition-colors duration-500 ease-in-out">
+<body class="bg-gray-50 dark:bg-gray-900" class="transition-colors duration-500 ease-in-out" class="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 transition-colors duration-500 ease-in-out">
 <div class="min-h-screen flex">
 
-<aside id="appSidebar" class="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 p-4 hidden md:flex flex-col">
-  <div class="flex items-center justify-between mb-6">
-    <h3 class="text-lg font-bold text-gray-700 dark:text-gray-200">Etapas</h3>
-    <button id="sidebarCollapse" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
-      <i class="fas fa-angle-left text-gray-600 dark:text-gray-300"></i>
+<aside id="appSidebar" class="w-72 bg-white/30 dark:bg-gray-800/30 backdrop-blur-lg border-r border-white/20 dark:border-gray-700/20 p-6 hidden md:flex flex-col">
+  <div class="flex items-center justify-between mb-8">
+    <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Etapas</h3>
+    <button id="sidebarCollapse" class="p-2 rounded hover:bg-white/20 transition">
+      <i class="fas fa-angle-left text-gray-700 dark:text-gray-200"></i>
     </button>
   </div>
-  <nav class="space-y-1 flex-1"><button class="sidebar-link flex items-center w-full text-left py-2 px-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800" data-target="step-1"><span class="mr-2 font-bold">01</span> 1. Definir Estratégia</button>
-<button class="sidebar-link flex items-center w-full text-left py-2 px-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800" data-target="step-2"><span class="mr-2 font-bold">02</span> 2. Criar Roteiro</button>
-<button class="sidebar-link flex items-center w-full text-left py-2 px-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800" data-target="step-3"><span class="mr-2 font-bold">03</span> 3. Recursos e Metadados</button>
-<button class="sidebar-link flex items-center w-full text-left py-2 px-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800" data-target="step-4"><span class="mr-2 font-bold">04</span> 5. Análise de Roteiro (Beta)</button>
-<button class="sidebar-link flex items-center w-full text-left py-2 px-3 rounded hover:bg-gray-100 dark:hover:bg-gray-800" data-target="step-5"><span class="mr-2 font-bold">05</span> 4. Gerenciamento do Projeto</button></nav>
-  <div class="pt-4 border-t border-gray-200 dark:border-gray-800">
-    <p class="text-sm text-gray-500 dark:text-gray-400">Use os botões acima para navegar entre as etapas.</p>
+  <nav class="space-y-2 flex-1"><button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-1"><span class="mr-3 bg-white/20 px-2 py-1 rounded text-sm font-bold">01</span> 1. Definir Estratégia</button>
+<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-2"><span class="mr-3 bg-white/20 px-2 py-1 rounded text-sm font-bold">02</span> 2. Criar Roteiro</button>
+<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-3"><span class="mr-3 bg-white/20 px-2 py-1 rounded text-sm font-bold">03</span> 3. Recursos e Metadados</button>
+<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-4"><span class="mr-3 bg-white/20 px-2 py-1 rounded text-sm font-bold">04</span> 5. Análise de Roteiro (Beta)</button>
+<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-5"><span class="mr-3 bg-white/20 px-2 py-1 rounded text-sm font-bold">05</span> 4. Gerenciamento do Projeto</button></nav>
+  <div class="pt-6 border-t border-white/20 dark:border-gray-700/20 text-sm text-gray-600 dark:text-gray-300">
+    Use os botões acima para navegar entre as etapas.
   </div>
 </aside>
 
-<div class="flex-1 p-6" id="rightContentWrapper">
+<div class="flex-1 p-8 space-y-6" id="rightContentWrapper">
 
     <div class="min-h-screen">
         <!-- Header -->
@@ -8115,10 +8130,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   collapseBtn?.addEventListener('click', () => {
     sidebar.classList.toggle('hidden');
-  });
-
-  document.getElementById('sidebarOpenPersistent')?.addEventListener('click', () => {
-    sidebar.classList.toggle('open');
   });
 
   window.addEventListener('scroll', () => {
