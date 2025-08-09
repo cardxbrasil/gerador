@@ -820,26 +820,61 @@
 
 
 
-#appSidebar { min-height: 100vh; position: sticky; top: 0; }
-.sidebar-link.active { background-color: rgba(255,255,255,0.25); font-weight: 600; }
-.card {
-  background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(10px);
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+/* ========================================================== */
+/*           ESTILOS PARA O LAYOUT PRINCIPAL (Sidebar)        */
+/* ========================================================== */
+
+/* Transforma o body em um container flexível */
+body {
+    display: flex;
 }
-.dark .card {
-  background: rgba(31, 41, 55, 0.3);
+
+#appSidebar {
+    /* Define uma largura fixa e garante que a altura seja 100% da tela */
+    width: 288px; /* 72 * 4 (Tailwind w-72) */
+    min-height: 100vh;
+    
+    /* A MÁGICA ESTÁ AQUI: Posição fixa */
+    position: fixed;
+    top: 0;
+    left: 0;
+    
+    /* Garante que ela não encolha */
+    flex-shrink: 0;
 }
-button, .btn {
-  transition: all 0.3s ease;
+
+/* O conteúdo principal à direita */
+#rightContentWrapper {
+    /* Ocupa todo o espaço restante */
+    flex-grow: 1;
+    
+    /* CRUCIAL: Adiciona um preenchimento à esquerda igual à largura da sidebar */
+    /* Isso impede que o conteúdo comece escondido atrás dela */
+    margin-left: 288px; /* Mesmo valor da largura da sidebar */
 }
-button:hover, .btn:hover {
-  transform: translateY(-2px);
+
+/* Estilos dos links da sidebar (mantidos e melhorados) */
+.sidebar-link.active { 
+    background-color: rgba(255, 255, 255, 0.25); 
+    font-weight: 600; 
+    color: var(--dark-text-header);
 }
+.dark .sidebar-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--dark-text-header);
+}
+
+/* Lógica para telas menores (mantida) */
 @media (max-width: 768px) {
-  #appSidebar { display: none; }
-  #appSidebar.open { display: flex; position: fixed; z-index: 60; left: 0; top: 0; height: 100vh; width: 280px; }
-  #rightContentWrapper { padding-left: 1rem; }
+    #appSidebar { 
+        display: none; /* Começa escondida */
+    }
+    #appSidebar.open { 
+        display: flex; 
+        /* ... resto do seu código media query ... */
+    }
+    #rightContentWrapper { 
+        margin-left: 0; /* Remove a margem em telas pequenas */
+        padding-left: 1rem; 
+    }
 }
