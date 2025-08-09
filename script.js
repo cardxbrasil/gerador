@@ -475,9 +475,50 @@ ${context.durationInstruction}`;
 
     getVideoDescriptionPrompt: (context) => {
         return `${context.basePrompt}\n\n**TAREFA:** Gerar uma descrição otimizada e hashtags no idioma ${context.languageName}.\n**REGRAS:** Comece com um gancho, detalhe o conteúdo, finalize com CTA e liste 10 hashtags.\n**AÇÃO:** Responda APENAS com a descrição e hashtags.`;
-    }
+    },
 };
 
+
+getSoundtrackPrompt: (fullTranscript) => {
+        return `Você é uma API ESPECIALISTA EM CRIAÇÃO DE PROMPTS PARA IAs DE GERAÇÃO DE TRILHAS SONORAS CINEMATOGRÁFICAS. Sua função ÚNICA E CRÍTICA é analisar um roteiro e gerar 3 PARÁGRAFOS DESCRITIVOS que sirvam como prompts ricos para a criação de uma trilha sonora que complemente perfeitamente o tom e a emoção do vídeo.
+
+**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
+Você é o ESPECIALISTA ABSOLUTO em traduzir narrativa em descrições sonoras precisas e evocativas. Sua função é ser a PONTE entre o roteiro e a composição musical.
+
+**ROTEIRO COMPLETO PARA ANÁLISE MUSICAL:**
+---
+${fullTranscript}
+---
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
+1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
+2.  **ESTRUTURA DO ARRAY:** O array deve conter EXATAMENTE 3 strings.
+3.  **SINTAXE DAS STRINGS:** Todas as strings DEVEM usar aspas duplas (""). Cada string, EXCETO a última, DEVE ser seguida por uma vírgula (,).
+
+**MANUAL DE CRIAÇÃO DE PROMPTS MUSICAIS (SIGA EXATAMENTE):**
+- **Foco na Emoção e Cena:** Cada parágrafo deve descrever uma atmosfera sonora para uma fase da narrativa (ex: introdução, clímax, conclusão).
+- **Elementos Descritivos Essenciais:** Cada string deve incluir:
+    1.  **Instrumentação Principal:** (Ex: "piano solo", "orquestra completa").
+    2.  **Qualidade Sonora/Textura:** (Ex: "melodia suave", "ritmo acelerado").
+    3.  **Atmosfera/Emoção Alvo:** (Ex: "atmosfera de mistério", "senso de urgência").
+- **Conectividade:** Juntos, os 3 prompts devem cobrir um arco sonoro coerente com a jornada do roteiro.
+
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+[
+  "Uma melodia suave e contemplativa tocada por um piano minimalista, criando uma atmosfera de introspecção.",
+  "Ritmo acelerado e pulsante com percussão eletrônica, construindo tensão crescente.",
+  "Uma orquestração épica e emocional com cordas expansivas, evocando realização e alívio."
+]
+
+**RESTRIÇÕES ESTRATÉGICAS ABSOLUTAS:**
+- **NENHUMA DESCRIÇÃO GENÉRICA:** Seja específico sobre instrumentos, texturas e emoções.
+- **NENHUMA MENÇÃO A NOMES DE MÚSICAS OU ARTISTAS.**
+- **RESPEITO AO CONTEXTO NARRATIVO:** As sugestões DEVEM estar alinhadas com o tom do roteiro.
+
+**AÇÃO FINAL:** Analise AGORA o roteiro. Gere o array JSON com os 3 prompts de trilha sonora mais descritivos e alinhados com a narrativa. Responda APENAS com o array JSON perfeito.`;
+    }
+
+};
 
 
 
@@ -2463,13 +2504,13 @@ const getGroupName = (value, groups) => {
 
 /**
  * Acionada pelo botão "Gerar Trilha Sonora".
- * Analisa o roteiro completo e usa um prompt especialista para gerar 3 sugestões
+ * Analisa o roteiro completo e usa o PromptManager para gerar 3 sugestões
  * de prompts musicais detalhados para IAs de geração de áudio.
  */
 const generateSoundtrack = async (button) => {
     const fullTranscript = getTranscriptOnly();
     if (!fullTranscript) {
-        window.showToast("Gere o roteiro completo primeiro para sugerir uma trilha sonora coerente.");
+        window.showToast("Gere o roteiro completo primeiro para sugerir uma trilha sonora coerente.", 'info');
         return;
     }
 
@@ -2477,47 +2518,13 @@ const generateSoundtrack = async (button) => {
     showButtonLoading(button);
     outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
 
-    // O seu novo e espetacular cérebro especialista em Trilha Sonora.
-    const prompt = `Você é uma API ESPECIALISTA EM CRIAÇÃO DE PROMPTS PARA IAs DE GERAÇÃO DE TRILHAS SONORAS CINEMATOGRÁFICAS. Sua função ÚNICA E CRÍTICA é analisar um roteiro e gerar 3 PARÁGRAFOS DESCRITIVOS que sirvam como prompts ricos para a criação de uma trilha sonora que complemente perfeitamente o tom e a emoção do vídeo.
-
-**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
-Você é o ESPECIALISTA ABSOLUTO em traduzir narrativa em descrições sonoras precisas e evocativas. Sua função é ser a PONTE entre o roteiro e a composição musical.
-
-**ROTEIRO COMPLETO PARA ANÁLISE MUSICAL:**
----
-${fullTranscript}
----
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
-2.  **ESTRUTURA DO ARRAY:** O array deve conter EXATAMENTE 3 strings.
-3.  **SINTAXE DAS STRINGS:** Todas as strings DEVEM usar aspas duplas (""). Cada string, EXCETO a última, DEVE ser seguida por uma vírgula (,).
-
-**MANUAL DE CRIAÇÃO DE PROMPTS MUSICAIS (SIGA EXATAMENTE):**
-- **Foco na Emoção e Cena:** Cada parágrafo deve descrever uma atmosfera sonora para uma fase da narrativa (ex: introdução, clímax, conclusão).
-- **Elementos Descritivos Essenciais:** Cada string deve incluir:
-    1.  **Instrumentação Principal:** (Ex: "piano solo", "orquestra completa").
-    2.  **Qualidade Sonora/Textura:** (Ex: "melodia suave", "ritmo acelerado").
-    3.  **Atmosfera/Emoção Alvo:** (Ex: "atmosfera de mistério", "senso de urgência").
-- **Conectividade:** Juntos, os 3 prompts devem cobrir um arco sonoro coerente com a jornada do roteiro.
-
-**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
-[
-  "Uma melodia suave e contemplativa tocada por um piano minimalista, criando uma atmosfera de introspecção.",
-  "Ritmo acelerado e pulsante com percussão eletrônica, construindo tensão crescente.",
-  "Uma orquestração épica e emocional com cordas expansivas, evocando realização e alívio."
-]
-
-**RESTRIÇÕES ESTRATÉGICAS ABSOLUTAS:**
-- **NENHUMA DESCRIÇÃO GENÉRICA:** Seja específico sobre instrumentos, texturas e emoções.
-- **NENHUMA MENÇÃO A NOMES DE MÚSICAS OU ARTISTAS.**
-- **RESPEITO AO CONTEXTO NARRATIVO:** As sugestões DEVEM estar alinhadas com o tom do roteiro.
-
-**AÇÃO FINAL:** Analise AGORA o roteiro. Gere o array JSON com os 3 prompts de trilha sonora mais descritivos e alinhados com a narrativa. Responda APENAS com o array JSON perfeito.`;
+    // AQUI ESTÁ A MUDANÇA: A lógica do prompt foi movida para o PromptManager.
+    // Agora, apenas chamamos a "biblioteca" para pegar o prompt pronto.
+    const prompt = PromptManager.getSoundtrackPrompt(fullTranscript);
 
     try {
         const rawResult = await callGroqAPI(prompt, 1500);
-        const analysis = cleanGeneratedText(rawResult, true);
+        const analysis = cleanGeneratedText(rawResult, true); // Espera um array de strings
 
         if (!analysis || !Array.isArray(analysis) || analysis.length === 0) {
             throw new Error("A IA não retornou sugestões no formato esperado.");
@@ -2526,7 +2533,7 @@ ${fullTranscript}
         let suggestionsHtml = '<ul class="soundtrack-list space-y-2">';
         analysis.forEach(suggestion => {
             // Garante que a sugestão seja uma string antes de tentar sanitizar
-            if(typeof suggestion === 'string') {
+            if (typeof suggestion === 'string') {
                 suggestionsHtml += `<li>${DOMPurify.sanitize(suggestion)}</li>`;
             }
         });
