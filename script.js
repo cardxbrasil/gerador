@@ -515,11 +515,11 @@ ${fullTranscript}
 - **NENHUMA MENÇÃO A NOMES DE MÚSICAS OU ARTISTAS.**
 - **RESPEITO AO CONTEXTO NARRATIVO:** As sugestões DEVEM estar alinhadas com o tom do roteiro.
 
-**AÇÃO FINAL:** Analise AGORA o roteiro. Gere o array JSON com os 3 prompts de trilha sonora mais descritivos e alinhados com a narrativa. Responda APENAS com o array JSON perfeito.`;
+**AÇÃO FINAL:** Analise AGORA o roteiro. Gere o array JSON com os 4 prompts de trilha sonora mais descritivos e alinhados com a narrativa. Responda APENAS com o array JSON perfeito.`;
    
     }
 
-    
+
 };
 
 
