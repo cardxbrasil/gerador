@@ -3668,14 +3668,11 @@ const getTranscriptOnly = () => {
 
 
 // ====================================================================================
-// >>>>> VERSÃO FINAL E CORRIGIDA: MAPA EMOCIONAL UNIFICADO <<<<<
+// >>>>> VERSÃO FINAL E CORRIGIDA: MAPA EMOCIONAL UNIFICADO E OTIMIZADO <<<<<
 // ====================================================================================
 const mapEmotionsAndPacing = async (button) => {
-    // 1. VALIDAÇÃO ROBUSTA (continua a mesma)
     const { script, imagePrompts } = AppState.generated;
     const isScriptReady = script.intro.text && script.development.text && script.climax.text;
-
-    // Removemos a validação dos prompts aqui, pois o mapa emocional pode ser útil mesmo sem eles.
     if (!isScriptReady) {
         window.showToast("Gere o roteiro completo primeiro (Intro, Dev, Clímax).");
         return;
@@ -3686,7 +3683,6 @@ const mapEmotionsAndPacing = async (button) => {
     outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções e construindo o storyboard unificado...</p>`;
 
     try {
-        // 2. COLETA E GERAÇÃO DE DADOS UNIFICADOS (continua a mesma)
         const fullTranscript = getTranscriptOnly();
         const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
         
@@ -3700,7 +3696,6 @@ const mapEmotionsAndPacing = async (button) => {
         }
         AppState.generated.emotionalMap = emotionalMap;
         
-        // Coleta todos os prompts de imagem em uma única lista, se existirem
         const allPrompts = [
             ...(imagePrompts.introSection || []),
             ...(imagePrompts.developmentSection || []),
@@ -3709,26 +3704,38 @@ const mapEmotionsAndPacing = async (button) => {
             ...(imagePrompts.ctaSection || [])
         ];
         
-        // <<< AQUI ESTÁ A MUDANÇA: A RENDERIZAÇÃO UNIFICADA >>>
-        outputContainer.innerHTML = ''; // Limpa o spinner
+        outputContainer.innerHTML = '';
 
-        // Um único loop para percorrer todos os parágrafos do roteiro
         for (let i = 0; i < paragraphs.length; i++) {
             const paragraphText = paragraphs[i];
             const emotionData = emotionalMap[i];
-            // O prompt de imagem é opcional agora
             const promptData = allPrompts[i] || null;
 
-            // Se faltar algum dado essencial (exceto o prompt), pula para o próximo
-            if (!paragraphText || !emotionData) {
-                continue;
-            }
+            if (!paragraphText || !emotionData) continue;
             
-            // Monta o HTML para o prompt de imagem, se ele existir
             let promptHtml = '<p class="text-sm text-gray-500 italic">Prompts de imagem não gerados para esta seção.</p>';
             if (promptData) {
-                const styleBlockApplied = promptData.styleBlock ? '[Estilo Cinematográfico Aplicado]' : '';
-                const fullPromptText = `${promptData.imageDescription} ${promptData.styleBlock || ''}`;
+                // <<< A MESMA LÓGICA CORRIGIDA E COMPLETA APLICADA AQUI >>>
+                const imageStyleSetting = document.getElementById('imageStyleSelect').value;
+                const useCinematicStyle = imageStyleSetting === 'cinematic';
+                const useCustomStyle = imageStyleSetting === 'custom';
+                
+                let styleBlockToApply = '';
+                let styleIndicator = '';
+
+                if (useCinematicStyle) {
+                    styleBlockToApply = CINEMATIC_STYLE_BLOCK;
+                    styleIndicator = '[Estilo Cinematográfico Aplicado]';
+                } else if (useCustomStyle) {
+                    const customStyleText = document.getElementById('customImageStyle').value.trim();
+                    if (customStyleText) {
+                        styleBlockToApply = customStyleText;
+                        styleIndicator = '[Estilo Personalizado Aplicado]';
+                    }
+                }
+
+                const fullPromptTextForCopy = `${promptData.imageDescription} ${styleBlockToApply}`.trim();
+
                 promptHtml = `
                     <div class="flex justify-between items-center mb-1">
                         <p class="font-semibold text-sm text-gray-700 dark:text-gray-300">Image Description:</p>
@@ -3739,12 +3746,11 @@ const mapEmotionsAndPacing = async (button) => {
                         </button>
                     </div>
                     <p class="text-sm">${DOMPurify.sanitize(promptData.imageDescription)}</p>
-                    <p class="text-xs italic text-gray-500 mt-2">${styleBlockApplied}</p>
-                    <pre class="full-prompt-hidden hidden">${DOMPurify.sanitize(fullPromptText)}</pre>
+                    <p class="text-xs italic text-gray-500 mt-2">${styleIndicator}</p>
+                    <pre class="full-prompt-hidden hidden">${DOMPurify.sanitize(fullPromptTextForCopy)}</pre>
                 `;
             }
 
-            // Monta o card completo para o item do mapa
             const itemHtml = `
             <div class="emotional-map-item card !p-4 mb-4 animate-fade-in">
                 <div class="prompt-header mb-3">
@@ -3757,7 +3763,6 @@ const mapEmotionsAndPacing = async (button) => {
                 </div>
             </div>`;
 
-            // Adiciona o card ao container, construindo a lista contínua
             outputContainer.innerHTML += itemHtml;
         }
         
@@ -4202,18 +4207,17 @@ Escreva agora o texto puro para o Call to Action, garantindo que seja bem estrut
  * @param {string} sectionElementId - O ID da seção (ex: 'introSection').
  */
 // ====================================================================================
-// >>>>> VERSÃO FINAL DE renderPaginatedPrompts (COM CENA E TEMPO CORRIGIDOS) <<<<<
+// >>>>> VERSÃO FINAL E CORRIGIDA de renderPaginatedPrompts (Reconstrói o prompt para exibição) <<<<<
 // ====================================================================================
 const renderPaginatedPrompts = (sectionElementId) => {
     const sectionElement = document.getElementById(sectionElementId);
     if (!sectionElement) return;
 
-    // --- Lógica de setup ---
     const itemsPerPage = 4;
-    const prompts = allImagePrompts[sectionElementId] || [];
+    const prompts = AppState.generated.imagePrompts[sectionElementId] || [];
     if (prompts.length === 0) return;
     
-    const currentPage = promptPaginationState[sectionElementId] || 0;
+    const currentPage = AppState.ui.promptPaginationState[sectionElementId] || 0;
     const totalPages = Math.ceil(prompts.length / itemsPerPage);
     const promptItemsContainer = sectionElement.querySelector('.prompt-items-container');
     const navContainer = sectionElement.querySelector('.prompt-nav-container');
@@ -4221,78 +4225,61 @@ const renderPaginatedPrompts = (sectionElementId) => {
     if (!promptItemsContainer || !navContainer) return;
     promptItemsContainer.innerHTML = '';
 
-    // --- Lógica da Memória Contínua (para o Tempo) ---
-    let cumulativeSeconds = 0;
-    const sectionOrder = ['introSection', 'developmentSection', 'climaxSection', 'conclusionSection', 'ctaSection'];
-    const currentSectionIndex = sectionOrder.indexOf(sectionElementId);
-    
-    for (let i = 0; i < currentSectionIndex; i++) {
-        const previousSectionId = sectionOrder[i];
-        const previousPrompts = allImagePrompts[previousSectionId] || [];
-        previousPrompts.forEach(p => {
-            cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
-        });
-    }
+    const promptsToShow = prompts.slice(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage);
 
-    const startIndex = currentPage * itemsPerPage;
-    if (startIndex > 0) {
-        const previousPagePrompts = prompts.slice(0, startIndex);
-        previousPagePrompts.forEach(p => {
-            cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
-        });
-    }
+    promptsToShow.forEach((promptData, indexOnPage) => {
+        const globalIndex = (currentPage * itemsPerPage) + indexOnPage;
 
-    // --- Lógica da Numeração de Cena (Global) ---
-    let globalSceneCounter = 1; // Começa a contar do 1
-    for (let i = 0; i < currentSectionIndex; i++) {
-        const previousSectionId = sectionOrder[i];
-        globalSceneCounter += (allImagePrompts[previousSectionId] || []).length;
-    }
-    // Adiciona as cenas das páginas anteriores da seção atual
-    globalSceneCounter += startIndex;
-    // ---------------------------------------------
-    
-    const promptsToShow = prompts.slice(startIndex, startIndex + itemsPerPage);
-
-    promptsToShow.forEach((promptData, index) => {
-        // --- Cálculo e Renderização ---
-        const globalIndex = startIndex + index; // Índice para IDs de elementos
-
-        // Tempo
-        const minutes = Math.floor(cumulativeSeconds / 60);
-        const seconds = cumulativeSeconds % 60;
-        const timestamp = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        // <<< A LÓGICA CORRIGIDA E COMPLETA ESTÁ AQUI >>>
+        // 1. Verificamos a configuração global para decidir se aplicamos o estilo
+        const imageStyleSetting = document.getElementById('imageStyleSelect').value;
+        const useCinematicStyle = imageStyleSetting === 'cinematic';
+        const useCustomStyle = imageStyleSetting === 'custom';
         
-        // Número da Cena
-        const sceneNumber = globalSceneCounter + index;
+        let styleBlockToApply = '';
+        let styleIndicator = '';
 
-        // Montagem do HTML
-        const styleBlockContent = promptData.styleBlock || '';
+        if (useCinematicStyle) {
+            styleBlockToApply = CINEMATIC_STYLE_BLOCK;
+            styleIndicator = `<p class="text-xs italic text-gray-500 mt-2">[Estilo Cinematográfico Aplicado]</p>`;
+        } else if (useCustomStyle) {
+            const customStyleText = document.getElementById('customImageStyle').value.trim();
+            if (customStyleText) {
+                styleBlockToApply = customStyleText;
+                styleIndicator = `<p class="text-xs italic text-gray-500 mt-2">[Estilo Personalizado Aplicado]</p>`;
+            }
+        }
+
+        // 2. Montamos o texto completo para o botão de copiar DINAMICAMENTE
+        const fullPromptTextForCopy = `${promptData.imageDescription} ${styleBlockToApply}`.trim();
+            
+        // 3. Montamos o HTML
         const promptHtml = `
             <div class="prompt-item card !p-3 animate-fade-in">
                 <div class="prompt-header">
-                    <span class="tag tag-scene"><i class="fas fa-film mr-2"></i>Cena ${String(sceneNumber).padStart(2, '0')}</span>
-                    <span class="tag tag-time"><i class="fas fa-clock mr-2"></i>${timestamp}</span>
-                    <button class="copy-btn-small" onclick="copyTextToClipboard(document.getElementById('prompt-content-${sectionElementId}-${globalIndex}')?.textContent + ' ' + document.getElementById('style-block-${sectionElementId}-${globalIndex}')?.textContent); window.showCopyFeedback(this)" title="Copiar Prompt">
+                    <span class="tag tag-scene"><i class="fas fa-film mr-2"></i>Cena ${String(globalIndex + 1).padStart(2, '0')}</span>
+                    <span class="tag tag-time"><i class="fas fa-stopwatch mr-2"></i>~${promptData.estimated_duration}s</span>
+                    
+                    <button class="ml-auto text-gray-400 hover:text-primary transition-colors"
+                            onclick="window.copyTextToClipboard(this.closest('.prompt-item').querySelector('.full-prompt-hidden').textContent); window.showCopyFeedback(this.querySelector('i'))"
+                            title="Copiar prompt visual completo">
                         <i class="fas fa-copy"></i>
                     </button>
                 </div>
                 <p class="paragraph-preview">"${DOMPurify.sanitize(promptData.scriptPhrase)}"</p>
-                <div class="prompt-details">
-                    <p class="prompt-label">${imageDescriptionLabels[elements.languageSelect.value] || 'Image Description:'}</p>
-                    <p id="prompt-content-${sectionElementId}-${globalIndex}">${DOMPurify.sanitize(promptData.imageDescription)}</p>
-                    ${styleBlockContent ? `<p class="style-block-indicator">[Estilo Cinematográfico Aplicado]</p>` : ''}
-                    <pre id="style-block-${sectionElementId}-${globalIndex}" class="hidden">${styleBlockContent}</pre>
+                <div class="border-t border-dashed border-gray-300 dark:border-gray-600 pt-3 mt-3">
+                    <p class="font-semibold text-sm text-gray-700 dark:text-gray-300">${imageDescriptionLabels[elements.languageSelect.value] || 'Image Description:'}</p>
+                    <p>${DOMPurify.sanitize(promptData.imageDescription)}</p>
+                    ${styleIndicator}
+                    
+                    <pre class="full-prompt-hidden hidden">${DOMPurify.sanitize(fullPromptTextForCopy)}</pre>
                 </div>
             </div>
         `;
         promptItemsContainer.innerHTML += promptHtml;
-
-        // Atualiza o tempo para a próxima iteração
-        cumulativeSeconds += parseInt(promptData.estimated_duration, 10) || 0;
     });
     
-    // --- Renderização da Navegação ---
+    // Recriando a navegação para garantir que ela esteja sempre correta
     navContainer.innerHTML = `
         <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', -1)" ${currentPage === 0 ? 'disabled' : ''}>
             <i class="fas fa-chevron-left"></i>
@@ -6533,9 +6520,6 @@ window.regenerateSection = (fullSectionId) => {
 // >>>>> VERSÃO FINAL E HÍBRIDA DE 'generatePromptsForSection' <<<<<
 // =========================================================================
 
-// =================================================================================================
-// >>>>> VERSÃO COMPLETA E OTIMIZADA de 'generatePromptsForSection' (NÃO salva o CINEMATIC_STYLE_BLOCK) <<<<<
-// =================================================================================================
 window.generatePromptsForSection = async (button, sectionElementId) => {
     const sectionElement = document.getElementById(sectionElementId);
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
@@ -6546,38 +6530,30 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
         return;
     }
     
+    // <<< CORREÇÃO: A verificação do mapa emocional que estava aqui foi REMOVIDA >>>
+
     showButtonLoading(button);
     promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
 
     try {
+        // A lógica para extrair os parágrafos continua a mesma
         const allChildren = Array.from(contentWrapper.children);
         const paragraphsWithContext = [];
         let currentChapterTitle = "Contexto Geral";
-
         allChildren.forEach(child => {
             if (child.classList.contains('font-bold') && child.textContent.includes('Capítulo:')) {
                 currentChapterTitle = child.textContent.replace('Capítulo:', '').trim();
             } else if (child.id && child.id.includes('-p-')) {
-                paragraphsWithContext.push({ 
-                    text: child.textContent.trim().replace(/\[.*?\]/g, ''), 
-                    chapter: currentChapterTitle, 
-                    originalId: child.id 
-                });
+                paragraphsWithContext.push({ text: child.textContent.trim().replace(/\[.*?\]/g, ''), chapter: currentChapterTitle, originalId: child.id });
             }
         });
 
-        if (paragraphsWithContext.length === 0) { 
-            throw new Error("Não foram encontrados parágrafos estruturados para análise."); 
-        }
+        if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
 
         const batchSize = 3;
         const apiPromises = [];
         const visualPacing = document.getElementById('visualPacing').value;
-        const durationMap = { 
-            'dinamico': '3 e 8', 
-            'normal': '8 e 15', 
-            'contemplativo': '15 e 25' 
-        };
+        const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
         const durationRange = durationMap[visualPacing] || '3 e 8';
 
         for (let i = 0; i < paragraphsWithContext.length; i += batchSize) {
@@ -6585,10 +6561,12 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
             let promptContextForAI = '';
             batch.forEach((item, indexInBatch) => {
                 const globalIndex = i + indexInBatch;
+                // <<< CORREÇÃO: Contexto emocional removido do prompt para a IA >>>
                 promptContextForAI += `\nParágrafo ${globalIndex}:\n- Título do Capítulo (Guia Temático): "${item.chapter}"\n- Texto do Parágrafo: "${item.text}"`;
             });
             
-            const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
+             // <<< ESTE É O PROMPT HÍBRIDO, COM SUA LISTA DETALHADA E A ESTRUTURA BLINDADA >>>
+const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 
 Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar parágrafos e transformá-los em descrições de imagem ricas em detalhes.
 
@@ -6599,7 +6577,7 @@ Você é uma especialista em criação de prompts visuais cinematográficos. Sua
 3. **PROIBIÇÃO DE ASPAS INTERNAS**: Nos valores de texto, use apenas aspas simples (') para ênfase
 4. **ESTRUTURA PADRÃO**: Cada objeto deve ter exatamente duas chaves:
    - "imageDescription" (string): descrição visual detalhada
-   - "estimated_duration" (número inteiro): duração estimada em segundos
+   -estimated_duration" (número inteiro): duração estimada em segundos
 
 ## EXEMPLO DE FORMATAÇÃO CORRETA
 
@@ -6657,7 +6635,7 @@ ${promptContextForAI}
 
 Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
 
-            apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true)));
+      apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true)));
         }
 
         const allBatchResults = await Promise.all(apiPromises);
@@ -6673,11 +6651,8 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
             estimated_duration: promptData.estimated_duration || 5
         }));
 
-        // <<< A CORREÇÃO CRÍTICA ESTÁ AQUI >>>
-        // Agora salvamos APENAS os dados essenciais, sem o styleBlock gigante.
-        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts;
-        
-        // Sincroniza o estado para as funções de renderização que ainda podem usar variáveis globais legadas
+        // O resto da função para salvar e renderizar continua o mesmo
+        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts.map((p) => ({ ...p, styleBlock: CINEMATIC_STYLE_BLOCK }));
         AppState.ui.promptPaginationState[sectionElementId] = 0;
         if (typeof window.allImagePrompts === 'undefined') window.allImagePrompts = {};
         if (typeof window.promptPaginationState === 'undefined') window.promptPaginationState = {};
@@ -6700,6 +6675,7 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
         updateButtonStates();
     }
 };
+
 
 
 // =========================================================================
