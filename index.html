@@ -13,32 +13,14 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.11/dist/purify.min.js"></script>
-
-
-
 <link href="style.css" rel="stylesheet"/></head>
 <body class="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 transition-colors duration-500 ease-in-out">
 <div class="min-h-screen flex">
-<aside class="w-72 bg-white/30 dark:bg-gray-800/30 backdrop-blur-lg border-r border-white/20 dark:border-gray-700/20 p-6 hidden md:flex flex-col" id="appSidebar">
-<div class="flex items-center justify-between mb-8">
-<h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">Etapas</h3>
-<button class="p-2 rounded hover:bg-white/20 transition" id="sidebarCollapse">
-<i class="fas fa-angle-left text-gray-700 dark:text-gray-200"></i>
-</button>
-</div>
-<nav class="space-y-2 flex-1"><button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-1">Definir Estratégia</button>
-<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-2">Criar Roteiro</button>
-<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-3">Recursos e Metadados</button>
-<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-4">Análise de Roteiro (Beta)</button>
-<button class="sidebar-link flex items-center w-full text-left py-2 px-4 rounded-lg hover:bg-white/20 transition" data-target="step-5">Gerenciamento do Projeto</button></nav>
-<div class="pt-6 border-t border-white/20 dark:border-gray-700/20 text-sm text-gray-600 dark:text-gray-300">
-    Use os botões acima para navegar entre as etapas.
-  </div>
-</aside>
+<aside class="w-72 bg-white/30 dark:bg-gray-800/30 backdrop-blur-lg border-r border-white/20 dark:border-gray-700/20 p-6 hidden md:flex flex-col sidebar" id="appSidebar"><div class="menu"></div></aside>
 <div class="flex-1 p-8 space-y-6" id="rightContentWrapper">
 <div class="min-h-screen">
 <!-- Header -->
-<header class="bg-white dark:bg-gray-800 shadow-sm">
+<header class="bg-white dark:bg-gray-800 shadow-sm"><button id="sidebarToggle">☰</button>
 <div class="container mx-auto px-4 py-4 flex justify-between items-center">
 <h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
 <i class="fas fa-video mr-2"></i>Gerador de Roteiros Virais v5.0
@@ -64,7 +46,7 @@
 </div>
 </div>
 <!-- Main Content -->
-<main class="container mx-auto px-4 pb-20">
+<main class="container mx-auto px-4 pb-20 main-content">
 <!-- Estratégia Section -->
 <!-- ==================================================================== -->
 <!--     NOVA SEÇÃO 0: CENTRAL DE INVESTIGAÇÃO E IDEIAS (FLUXO 2.0)     -->
@@ -283,7 +265,6 @@
     </button>
 </div>
 </div>
-
 <!-- PAINEL DO PROJETO (inicialmente escondido) -->
 <div class="hidden mt-12" id="projectDashboard">
 <!-- SEÇÃO 2: CRIAR ROTEIRO -->
@@ -385,7 +366,6 @@
 </div>
 <!-- Note que o módulo de conclusão não está mais aqui dentro -->
 </section>
-
 <!-- SEÇÃO 5: ANÁLISE DE ROTEIRO COMPLETO -->
 <section class="mt-10 hidden" id="scriptAnalysisSection">
 <div class="section-title" id="step-4">
@@ -508,10 +488,8 @@
 </div>
 </div>
 </div>
-
 </div>
 </div>
-
-<script type="module" src="script.js"></script>
+<script src="script.js" type="module"></script>
 </body>
 </html>
