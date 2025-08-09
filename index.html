@@ -2050,7 +2050,7 @@ ${fullTranscript.slice(0, 7500)}
         reportHtml += `</div>`;
         
         reportContainer.innerHTML = reportHtml;
-        window.showToast(\${hooks.length} ganchos analisados e aprimorados!`, 'success');`
+        window.showToast(`${hooks.length} ganchos analisados e aprimorados!`, 'success');
 
     } catch (error) {
         console.error("Erro detalhado em analyzeRetentionHooks:", error);
