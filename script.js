@@ -1575,9 +1575,9 @@ const createReportSection = (analysisData) => {
 
 
 
-// =========================================================================
-// >>>>> FUNÇÃO DE EDIÇÃO CONTEXTUAL (VERSÃO COMPLETA E ROBUSTA) <<<<<
-// =========================================================================
+// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+// >>>>> VERSÃO CORRIGIDA com mensagens de sucesso/erro corretas <<<<<
+// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 const handleEditingAction = async (action) => {
     if (!userSelectionRange) {
         window.showToast("Erro: A seleção de texto foi perdida. Tente selecionar novamente.", 'error');
@@ -1592,7 +1592,7 @@ const handleEditingAction = async (action) => {
 
     const editingMenu = document.getElementById('editing-menu');
     editingMenu.classList.remove('visible');
-    window.showToast(`Texto refinado com sucesso!`, 'success');
+    window.showToast(`A IA está tentando "${action}"...`, 'info');
 
     const instructions = {
         expand: "Sua tarefa é expandir este parágrafo. Adicione mais detalhes, descrições vívidas e contexto para torná-lo mais rico e envolvente, mantendo o tom e a mensagem central originais.",
@@ -1635,15 +1635,15 @@ ${selectedText}
         if (sectionElement) {
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
-            invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
+            invalidateAndClearEmotionalMap();
             updateAllReadingTimes();
         }
         
-        window.showToast(`Falha ao refinar o texto: ${error.message}`, 'error');
+        window.showToast(`Texto refinado com sucesso!`, 'success');
 
     } catch (error) {
         console.error(`Erro ao tentar '${action}':`, error);
-        window.showToast(`Sugestões para Conclusão e CTA preenchidas!`, 'success');
+        window.showToast(`Falha ao refinar o texto: ${error.message}`, 'error');
     } finally {
         userSelectionRange = null;
     }
@@ -6532,21 +6532,38 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- 5. LISTENERS GLOBAIS E DE EDIÇÃO ---
-    const scriptContainerForEdits = document.getElementById('scriptSectionsContainer');
-    if (scriptContainerForEdits) {
-        scriptContainerForEdits.addEventListener('input', (event) => {
-            if (event.target && event.target.closest('.generated-content-wrapper')) {
-                console.log("Edição manual detectada.");
-                const sectionElement = event.target.closest('.script-section');
-                if (sectionElement) {
-                    invalidateAndClearPerformance(sectionElement);
-                    invalidateAndClearPrompts(sectionElement);
-                    invalidateAndClearEmotionalMap();
-                    updateAllReadingTimes();
+const scriptContainerForEdits = document.getElementById('scriptSectionsContainer');
+if (scriptContainerForEdits) {
+    scriptContainerForEdits.addEventListener('input', (event) => {
+        const contentWrapper = event.target.closest('.generated-content-wrapper');
+        if (event.target && contentWrapper) {
+            console.log("Edição manual detectada.");
+
+            const sectionElement = event.target.closest('.script-section');
+            if (sectionElement) {
+                
+                // ==========================================================
+                // >>>>> ADICIONE APENAS ESTE BLOCO DE CÓDIGO AQUI <<<<<
+                // ==========================================================
+                const sectionId = sectionElement.id.replace('Section', '');
+                if (AppState.generated.script[sectionId]) {
+                    AppState.generated.script[sectionId].text = contentWrapper.textContent;
+                    AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
+                    console.log(`AppState da seção '${sectionId}' foi atualizado.`);
                 }
+                // ==========================================================
+                // >>>>> FIM DO BLOCO ADICIONADO <<<<<
+                // ==========================================================
+
+                // O resto do seu código continua o mesmo
+                invalidateAndClearPerformance(sectionElement);
+                invalidateAndClearPrompts(sectionElement);
+                invalidateAndClearEmotionalMap();
+                updateAllReadingTimes();
             }
-        });
-    }
+        }
+    });
+}
 
     document.addEventListener('click', function(event) {
         const accordionHeader = event.target.closest('.accordion-header');
