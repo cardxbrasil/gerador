@@ -2686,7 +2686,7 @@ ${fullTranscript.slice(0, 7500)}
         reportHtml += `</div>`;
         
         reportContainer.innerHTML = reportHtml;
-        window.showToast(\${suggestions.length} sugestões virais encontradas!`, 'success');`
+        window.showToast(`${appliedCount} sugest${appliedCount > 1 ? 'ões' : 'ão'} aplicad${appliedCount > 1 ? 'as' : 'a'} com sucesso!`, 'success');
 
     } catch (error) {
         console.error("Erro detalhado em suggestViralElements:", error);
