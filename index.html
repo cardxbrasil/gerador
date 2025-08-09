@@ -5755,7 +5755,7 @@ ${JSON.stringify(paragraphsWithIndexes, null, 2)}
 
                 window.showToast("Parágrafo otimizado!", 'success');
             } catch (error) {
-                window.showToast(\Falha ao otimizar: ${error.message}`, 'error');`
+                window.showToast(`Falha ao gerar Títulos: ${error.message}`, 'error');
                 console.error("Erro detalhado em optimizeParagraph:", error);
                 if (button) button.innerHTML = '⚠️'; // Ícone de erro
             }
