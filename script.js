@@ -3296,38 +3296,49 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
 // ============================
 // >>>>> FILTRO JSON <<<<<
 // ============================
-const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => { // <<<< EVOLUÇÃO 1: Adicionado 'arrayExpected'
+const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
-        return expectJson ? null : '';
+        return expectJson ? (arrayExpected ? [] : null) : '';
     }
 
     if (!expectJson) {
         return text.trim();
     }
 
-    // --- ETAPA ZERO (NOVA): O DETETIVE DE INTENÇÃO ---
-    // (Sua lógica original, mantida 100%)
     let jsonString;
     const trimmedText = text.trim();
+
+    // --- ETAPA 0 (EVOLUÍDA): O DETETIVE DE INTENÇÃO 2.0 ---
+    // A lógica agora é mais precisa para isolar o JSON.
     const markdownMatch = trimmedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
+
     if (markdownMatch && markdownMatch[2]) {
+        // Se encontrar JSON dentro de um bloco de código, essa é a fonte mais confiável.
         jsonString = markdownMatch[2].trim();
-    } 
-    else {
-        const jsonObjects = trimmedText.match(/\{[\s\S]*?\}/g);
-        if (jsonObjects && jsonObjects.length > 1) {
-            jsonString = `[${jsonObjects.join(',')}]`;
-        } 
-        else {
-            const startIndex = trimmedText.search(/[\{\[]/);
-            if (startIndex === -1) {
-                throw new Error("A IA não retornou um formato JSON reconhecível.");
-            }
-            jsonString = trimmedText.substring(startIndex);
+    } else {
+        // Se não, usamos uma lógica de "pinça" para pegar do primeiro ao último caractere de JSON.
+        const startIndex = trimmedText.search(/[\{\[]/);
+        if (startIndex === -1) {
+            console.error("FALHA DE DETECÇÃO: Nenhum início de JSON ('{' ou '[') encontrado no texto da IA.", text);
+            throw new Error("A IA não retornou um formato JSON reconhecível.");
         }
+
+        const lastBraceIndex = trimmedText.lastIndexOf('}');
+        const lastBracketIndex = trimmedText.lastIndexOf(']');
+        const endIndex = Math.max(lastBraceIndex, lastBracketIndex);
+
+        if (endIndex === -1 || endIndex < startIndex) {
+            console.error("FALHA DE DETECÇÃO: JSON parece estar incompleto (sem '}' ou ']' de fechamento).", text);
+            throw new Error("O JSON retornado pela IA parece estar incompleto.");
+        }
+        
+        // A "pinça" extrai apenas a parte que é realmente JSON, ignorando o lixo antes ou depois.
+        jsonString = trimmedText.substring(startIndex, endIndex + 1);
     }
-    
-    // --- A PARTIR DAQUI, AS SUAS ETAPAS ANTERIORES FORAM MANTIDAS E EVOLUÍDAS ---
+    // --- FIM DA EVOLUÇÃO NA DETECÇÃO ---
+
+    // A partir daqui, suas etapas de reparo originais são mantidas,
+    // mas agora elas trabalharão com um `jsonString` muito mais limpo.
 
     // ETAPA 2: CIRURGIA PREVENTIVA DE FECHAMENTO (Sua lógica, mantida 100%)
     let openBrackets = (jsonString.match(/\[/g) || []).length;
@@ -3342,22 +3353,23 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     try {
         let parsedResult = JSON.parse(jsonString);
 
-        // <<<< EVOLUÇÃO 2: A CAMADA DE SEGURANÇA SEMÂNTICA >>>>
-        // Se a gente esperava um array, mas a IA mandou um objeto, a gente corrige.
+        // EVOLUÇÃO 2: A CAMADA DE SEGURANÇA SEMÂNTICA (Sua lógica, mantida 100%)
         if (arrayExpected && !Array.isArray(parsedResult)) {
             console.warn("Correção Semântica: A IA retornou um objeto, mas um array era esperado. O resultado foi envolvido em um array.", parsedResult);
-            return [parsedResult]; // Envolve o objeto solitário em um array
+            return [parsedResult];
         }
-        // <<<< FIM DA EVOLUÇÃO 2 >>>>
 
         return parsedResult;
 
     } catch (initialError) {
-        console.warn("Parse inicial falhou. Iniciando reparos...", initialError.message);
+        // Se a tentativa inicial falhar, significa que o JSON em si está malformado.
+        // AGORA, e somente agora, ativamos a sua poderosa lógica de reparo.
+        console.warn("Parse inicial falhou. O JSON extraído ainda tem erros. Iniciando reparos...", initialError.message);
         
         // ETAPA 4: CIRURGIAS AVANÇADAS (Sua lógica, mantida 100%)
         let repairedString = jsonString; 
         try {
+            // Todas as suas regras de substituição permanecem intactas.
             repairedString = repairedString.replace(/(?<=")\s*[\r\n]+\s*(?=")/g, ',');
             repairedString = repairedString.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
             repairedString = repairedString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
@@ -3378,13 +3390,13 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             // ETAPA 5: TENTATIVA FINAL
             let finalParsedResult = JSON.parse(repairedString);
 
-            // <<<< EVOLUÇÃO 3: APLICA A SEGURANÇA SEMÂNTICA AQUI TAMBÉM >>>>
+            // EVOLUÇÃO 3: APLICA A SEGURANÇA SEMÂNTICA AQUI TAMBÉM (Sua lógica, mantida 100%)
             if (arrayExpected && !Array.isArray(finalParsedResult)) {
                 console.warn("Correção Semântica Pós-Reparo: A IA retornou um objeto, mas um array era esperado. O resultado foi envolvido em um array.", finalParsedResult);
                 return [finalParsedResult];
             }
-            // <<<< FIM DA EVOLUÇÃO 3 >>>>
 
+            console.log("Cirurgia no JSON bem-sucedida!");
             return finalParsedResult;
 
         } catch (surgeryError) {
@@ -6531,22 +6543,34 @@ document.addEventListener('DOMContentLoaded', () => {
         'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
     };
 
-    // --- 5. LISTENERS GLOBAIS E DE EDIÇÃO ---
-    const scriptContainerForEdits = document.getElementById('scriptSectionsContainer');
-    if (scriptContainerForEdits) {
-        scriptContainerForEdits.addEventListener('input', (event) => {
-            if (event.target && event.target.closest('.generated-content-wrapper')) {
-                console.log("Edição manual detectada.");
-                const sectionElement = event.target.closest('.script-section');
-                if (sectionElement) {
-                    invalidateAndClearPerformance(sectionElement);
-                    invalidateAndClearPrompts(sectionElement);
-                    invalidateAndClearEmotionalMap();
-                    updateAllReadingTimes();
+// SUBSTITUA PELO NOVO BLOCO ABAIXO
+const scriptContainerForEdits = document.getElementById('scriptSectionsContainer');
+if (scriptContainerForEdits) {
+    scriptContainerForEdits.addEventListener('input', (event) => {
+        const wrapper = event.target.closest('.generated-content-wrapper');
+        if (event.target && wrapper) {
+            console.log("Edição manual detectada. Sincronizando AppState...");
+            const sectionElement = wrapper.closest('.script-section');
+            if (sectionElement) {
+                const sectionId = sectionElement.id.replace('Section', ''); // Ex: 'intro', 'development'
+                
+                // <<< AQUI ESTÁ A MÁGICA >>>
+                // Atualizamos o cérebro (AppState) com o texto e o HTML novos da tela.
+                if (AppState.generated.script[sectionId]) {
+                    AppState.generated.script[sectionId].text = wrapper.textContent;
+                    AppState.generated.script[sectionId].html = wrapper.innerHTML;
+                    console.log(`AppState para '${sectionId}' foi atualizado.`);
                 }
+
+                // As invalidações que você já tinha continuam aqui
+                invalidateAndClearPerformance(sectionElement);
+                invalidateAndClearPrompts(sectionElement);
+                invalidateAndClearEmotionalMap();
+                updateAllReadingTimes();
             }
-        });
-    }
+        }
+    });
+}
 
     document.addEventListener('click', function(event) {
         const accordionHeader = event.target.closest('.accordion-header');
