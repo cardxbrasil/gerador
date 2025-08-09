@@ -2818,13 +2818,8 @@ const invalidateAndClearEmotionalMap = () => {
 
 
 // ====================================================================================
-// AÇÃO: SUBSTITUA SUA FUNÇÃO 'analyzeScriptPart' INTEIRA POR ESTA VERSÃO BLINDADA
+// >>>>> VERSÃO APRIMORADA que força a IA a ser mais precisa <<<<<
 // ====================================================================================
-
-/**
- * A função "Crítico de Cinema". Analisa uma parte específica do roteiro.
- * VERSÃO BLINDADA com prompt simplificado para garantir conformidade da IA.
- */
 const analyzeScriptPart = async (criterion, text, context = {}) => {
     const sectionKeyMap = {
         'Introdução (Hook)': 'introduction',
@@ -2836,7 +2831,7 @@ const analyzeScriptPart = async (criterion, text, context = {}) => {
     const outlineKey = sectionKeyMap[criterion];
     const outlineDirective = context.outline?.[outlineKey] || 'Nenhuma diretriz estratégica específica foi definida para esta seção.';
 
-    // O NOVO CÉREBRO, MAIS SIMPLES E DIRETO
+    // O CÉREBRO APRIMORADO
     const prompt = `
 Você é uma API de Análise Crítica de Roteiros. Sua única função é retornar um objeto JSON.
 
@@ -2851,35 +2846,33 @@ ${text.slice(0, 7000)}
 
 **REGRAS CRÍTICAS DE RESPOSTA (JSON ESTRITO - SIGA EXATAMENTE):**
 1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um objeto JSON válido.
-2.  **CHAVES E TIPOS OBRIGATÓRIOS:** O objeto DEVE conter EXATAMENTE estas 5 chaves:
+2.  **CHAVES E TIPOS OBRIGATÓRIOS:** O objeto DEVE conter EXATAMENTE estas 6 chaves:
     - **"criterion_name"**: (String) Use EXATAMENTE: "${criterion}".
     - **"score"**: (Número) Uma nota de 0 a 10 para esta seção.
     - **"positive_points"**: (String) Um parágrafo único sobre os pontos fortes.
-    - **"critique"**: (String) A principal crítica ou ponto de melhoria. Se estiver bom, escreva "Nenhuma crítica significativa.".
-    - **"suggestion"**: (String) Uma sugestão ACIONÁVEL para melhorar o ponto da crítica. Se não houver crítica, escreva "Manter como está.".
+    - **"problematic_quote"**: (String) O trecho EXATO do texto original que precisa de melhoria. DEVE SER UMA CÓPIA LITERAL. Se não houver, use "Nenhum".
+    - **"critique"**: (String) A principal crítica sobre o "problematic_quote". Se estiver bom, escreva "Nenhuma crítica significativa.".
+    - **"rewritten_quote"**: (String) Uma sugestão REESCRITA do "problematic_quote". Se não houver crítica, use "Manter como está.".
 3.  **SINTAXE:** Todas as chaves e valores string DEVEM usar aspas duplas ("").
 
 **AÇÃO FINAL:** Analise o trecho e retorne APENAS o objeto JSON perfeito.
 `;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 1500); // Reduzimos os tokens pois a resposta é mais simples
-        const analysisData = cleanGeneratedText(rawResult, true);
+        const rawResult = await callGroqAPI(prompt, 1500);
+        const analysisData = cleanGeneratedText(rawResult, true); // Espera um objeto
 
         if (!analysisData) { throw new Error("A IA retornou uma resposta nula."); }
 
-        // Validação robusta contra a falha da IA
-        const requiredKeys = ['score', 'positive_points', 'critique', 'suggestion'];
+        // Validação mais robusta para as novas chaves
+        const requiredKeys = ['score', 'positive_points', 'problematic_quote', 'critique', 'rewritten_quote'];
         for (const key of requiredKeys) {
             if (!(key in analysisData)) {
-                // Se uma chave faltar, nós criamos um erro mais informativo
-                console.error("JSON retornado pela IA (incompleto):", analysisData);
                 throw new Error(`A chave obrigatória '${key}' está ausente na resposta da IA.`);
             }
         }
         
-        // NOVO: Reestruturamos os dados para corresponder ao que a função 'createReportSection' espera.
-        // Isso mantém o resto do seu código funcionando sem precisar de mais alterações.
+        // Reestruturamos os dados para a função 'createReportSection'
         const formattedData = {
             criterion_name: criterion,
             score: analysisData.score,
@@ -2887,19 +2880,21 @@ ${text.slice(0, 7000)}
             improvement_points: []
         };
 
-        // Se houver uma crítica real, criamos o objeto de melhoria
-        if (analysisData.critique.toLowerCase() !== "nenhuma crítica significativa." && analysisData.suggestion) {
+        if (analysisData.critique.toLowerCase() !== "nenhuma crítica significativa.") {
             formattedData.improvement_points.push({
-                problematic_quote: "Seção inteira", // A crítica agora é sobre o bloco todo
+                // <<<< AQUI ESTÁ A MUDANÇA >>>>
+                // A sugestão de texto agora é o texto reescrito
+                suggestion_text: "Substituir por:",
+                problematic_quote: analysisData.problematic_quote,
                 critique: analysisData.critique,
-                suggestion_text: analysisData.suggestion,
-                rewritten_quote: text // O "reescrito" é o próprio texto original, já que a sugestão é geral
+                rewritten_quote: analysisData.rewritten_quote 
             });
         }
         
         return formattedData;
 
     } catch (error) {
+        // Bloco de erro continua o mesmo
         console.error(`Erro crítico ao analisar a seção '${criterion}':`, error);
         return { 
             criterion_name: criterion, 
