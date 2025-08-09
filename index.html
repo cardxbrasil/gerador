@@ -1520,16 +1520,31 @@ Para diferentes gêneros e atmosferas, considere estas referências:
         // ================== FUNÇÕES DE UTILIDADE ==================
         // ==========================================================
         /**
-         * Exibe uma notificação toast na parte inferior da tela.
-         * @param {string} message - A mensagem a ser exibida.
-         */
-        window.showToast = (message) => {
+  * Exibe uma notificação toast na parte inferior da tela com cores contextuais.
+ * @param {string} message - A mensagem a ser exibida.
+ * @param {'info'|'success'|'error'} [type='info'] - O tipo de notificação.
+ */
+window.showToast = (message, type = 'info') => {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
     if (!toast || !toastMessage) return;
+
+    // Aplica a nova cor da borda com base no tipo, usando suas variáveis CSS
+    switch (type) {
+        case 'success':
+            toast.style.borderLeftColor = 'var(--success)';
+            break;
+        case 'error':
+            toast.style.borderLeftColor = 'var(--danger)';
+            break;
+        default: // 'info' ou qualquer outro
+            toast.style.borderLeftColor = 'var(--primary)';
+    }
+
     toastMessage.textContent = message;
     toast.classList.add('show');
-    setTimeout(() => { toast.classList.remove('show'); }, 8000);
+    // Aumentamos o tempo para 5 segundos para dar tempo de ler
+    setTimeout(() => { toast.classList.remove('show'); }, 5000);
 };
 
 
@@ -1566,7 +1581,7 @@ const saveStateToLocalStorage = () => {
 
     } catch (error) {
         console.error("Erro ao salvar o projeto no localStorage:", error);
-        window.showToast("Não foi possível salvar o projeto automaticamente.");
+        window.showToast("Não foi possível salvar o projeto automaticamente.", 'error');
     }
 };
 
@@ -1584,7 +1599,7 @@ const loadStateFromLocalStorage = () => {
             Object.assign(AppState, loadedState);
             syncUiFromState();
             
-            window.showToast("Seu projeto anterior foi carregado!");
+            window.showToast("Seu projeto anterior foi carregado!", 'success');
         }
     } catch (error) {
         console.error("Erro ao carregar o projeto do localStorage:", error);
@@ -1645,7 +1660,7 @@ const generateIdeasWithExpert = async (genre, button, investigationData = null) 
 window.optimizeGroup = async (button, suggestionText) => {
     if (!button || !suggestionText) {
         console.error("Erro crítico em optimizeGroup: Parâmetros inválidos.", { button, suggestionText });
-        window.showToast("Erro crítico: Parâmetros da função estão faltando.");
+        window.showToast("Erro crítico: Parâmetros da função estão faltando.", 'error');
         return;
     }
 
@@ -1653,7 +1668,7 @@ window.optimizeGroup = async (button, suggestionText) => {
     const paragraphsToOptimize = document.querySelectorAll(`[data-suggestion-group="${safeSelector}"]`);
 
     if (paragraphsToOptimize.length === 0) {
-        window.showToast("Erro: parágrafos para otimizar não encontrados.");
+        window.showToast("Erro: parágrafos para otimizar não encontrados.", 'error');
         console.warn("Nenhum parágrafo encontrado com o seletor:", `[data-suggestion-group="${safeSelector}"]`);
         return;
     }
@@ -1734,7 +1749,7 @@ Reescreva o bloco de texto acima, corrigindo o problema e integrando-o perfeitam
             invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
         }
 
-        window.showToast("Bloco de parágrafos otimizado!");
+        window.showToast("Bloco de parágrafos otimizado!", 'success');
 
     } catch (error) {
         console.error("Erro detalhado e crítico em optimizeGroup:", error);
@@ -1775,7 +1790,7 @@ const setupGenreTabs = () => {
         if (ideasOutput) {
             ideasOutput.innerHTML = '';
             // Damos um feedback claro para o usuário sobre o que aconteceu.
-            window.showToast("Especialista alterado! Clique novamente em 'Gerar Ideias'.");
+            window.showToast("Especialista alterado! Clique novamente em 'Gerar Ideias'.", 'info');
         }
 
         // A lógica antiga de atualização visual continua a mesma.
@@ -1806,7 +1821,7 @@ window.verifyFact = async (button) => {
     // 2. LEITURA E VALIDAÇÃO: Pega o que o usuário digitou.
     const query = document.getElementById('factCheckQuery').value.trim();
     if (!query) {
-        window.showToast("Por favor, digite uma afirmação ou pergunta para investigar.");
+        window.showToast("Por favor, digite uma afirmação ou pergunta para investigar.", 'info');
         return;
     }
 
@@ -1843,7 +1858,7 @@ window.verifyFact = async (button) => {
         const ideaGenerationSection = document.getElementById('ideaGenerationSection');
         if (ideaGenerationSection) {
             ideaGenerationSection.classList.remove('hidden');
-            window.showToast("Investigação concluída! Agora, gere ideias a partir dos fatos.");
+            window.showToast("Investigação concluída! Agora, gere ideias a partir dos fatos.", 'success');
             ideaGenerationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         
@@ -1874,7 +1889,7 @@ const generateIdeasFromReport = async (button) => {
     const { originalQuery, rawReport } = factCheckOutput.dataset;
 
     if (!rawReport || !originalQuery) {
-        window.showToast("Erro: Relatório da investigação não encontrado. Por favor, investigue um tema primeiro.");
+        window.showToast("Erro: Relatório da investigação não encontrado. Por favor, investigue um tema primeiro.", 'error');
         return;
     }
     
@@ -1909,7 +1924,7 @@ const applyHookSuggestion = (button) => {
     const { problematicQuote, rewrittenQuote } = button.dataset;
 
     if (!problematicQuote || !rewrittenQuote) {
-        window.showToast("Erro: Informações da sugestão não encontradas.");
+        window.showToast("Erro: Informações da sugestão não encontradas.", 'error');
         return;
     }
     
@@ -1924,7 +1939,7 @@ const applyHookSuggestion = (button) => {
             if (p.textContent.includes(problematicQuote)) {
                 const newHtmlContent = p.innerHTML.replace(problematicQuote, `<span class="highlight-change">${rewrittenQuote}</span>`);
                 p.innerHTML = DOMPurify.sanitize(newHtmlContent, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
-                window.showToast("Gancho aprimorado com sucesso!");
+                window.showToast("Gancho aprimorado com sucesso!", 'success');
                 const sectionElement = p.closest('.script-section');
                 if (sectionElement) {
                     invalidateAndClearPerformance(sectionElement);
@@ -1938,7 +1953,7 @@ const applyHookSuggestion = (button) => {
     });
 
     if (!replaced) {
-        window.showToast("Não foi possível aplicar. O texto pode ter sido editado.");
+        window.showToast("Não foi possível aplicar. O texto pode ter sido editado.", 'info');
         return;
     }
 
@@ -1955,7 +1970,7 @@ const applyHookSuggestion = (button) => {
 const analyzeRetentionHooks = async (button) => {
     const fullTranscript = getTranscriptOnly();
     if (!fullTranscript) {
-        window.showToast("Gere o roteiro completo primeiro para caçar os ganchos.");
+        window.showToast("Gere o roteiro completo primeiro para caçar os ganchos.", 'info');
         return;
     }
 
@@ -2035,7 +2050,7 @@ ${fullTranscript.slice(0, 7500)}
         reportHtml += `</div>`;
         
         reportContainer.innerHTML = reportHtml;
-        window.showToast(`${hooks.length} ganchos analisados e aprimorados!`);
+        window.showToast(\${hooks.length} ganchos analisados e aprimorados!`, 'success');`
 
     } catch (error) {
         console.error("Erro detalhado em analyzeRetentionHooks:", error);
@@ -2531,7 +2546,7 @@ const insertViralSuggestion = (button) => {
     const { anchorParagraph, suggestedText } = button.dataset;
 
     if (!anchorParagraph || !suggestedText) {
-        window.showToast("Erro: Informações da sugestão não encontradas.");
+        window.showToast("Erro: Informações da sugestão não encontradas.", 'error');
         return;
     }
 
@@ -2545,7 +2560,7 @@ const insertViralSuggestion = (button) => {
             newDiv.innerHTML = `<span class="highlight-change">${suggestedText}</span>`;
             p.parentNode.insertBefore(newDiv, p.nextSibling);
             newDiv.innerHTML = DOMPurify.sanitize(newDiv.innerHTML, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
-            window.showToast("Elemento viral inserido com sucesso!");
+            window.showToast("Elemento viral inserido com sucesso!", 'success');
             const sectionElement = p.closest('.script-section');
             if (sectionElement) {
                 invalidateAndClearPerformance(sectionElement);
@@ -2558,7 +2573,7 @@ const insertViralSuggestion = (button) => {
     });
 
     if (!inserted) {
-        window.showToast("Não foi possível inserir. O parágrafo âncora pode ter sido editado.");
+        window.showToast("Não foi possível inserir. O parágrafo âncora pode ter sido editado.", 'info');
         return;
     }
 
@@ -2583,7 +2598,7 @@ const suggestViralElements = async (button) => {
     const fullTranscript = getTranscriptOnly();
     const videoTheme = document.getElementById('videoTheme')?.value.trim();
     if (!fullTranscript || !videoTheme) {
-        window.showToast("Gere o roteiro completo e defina um tema para receber sugestões virais.");
+        window.showToast("Gere o roteiro completo e defina um tema para receber sugestões virais.", 'info');
         return;
     }
 
@@ -2671,7 +2686,7 @@ ${fullTranscript.slice(0, 7500)}
         reportHtml += `</div>`;
         
         reportContainer.innerHTML = reportHtml;
-        window.showToast(`${suggestions.length} sugestões virais encontradas!`);
+        window.showToast(\${suggestions.length} sugestões virais encontradas!`, 'success');`
 
     } catch (error) {
         console.error("Erro detalhado em suggestViralElements:", error);
@@ -2745,7 +2760,7 @@ const analyzeFullScript = async (button) => {
             }
         });
 
-        window.showToast("Análise do roteiro concluída!");
+        window.showToast("Análise do roteiro concluída!", 'success');
 
     } catch (error) {
         console.error("Erro detalhado em analyzeFullScript:", error);
@@ -2956,7 +2971,7 @@ const createReportSection = (analysisData) => {
 // =========================================================================
 const handleEditingAction = async (action) => {
     if (!userSelectionRange) {
-        window.showToast("Erro: A seleção de texto foi perdida. Tente selecionar novamente.");
+        window.showToast("Erro: A seleção de texto foi perdida. Tente selecionar novamente.", 'error');
         return;
     }
 
@@ -2968,7 +2983,7 @@ const handleEditingAction = async (action) => {
 
     const editingMenu = document.getElementById('editing-menu');
     editingMenu.classList.remove('visible');
-    window.showToast(`A IA está tentando "${action}"...`);
+    window.showToast(\A IA está tentando "${action}"...`, 'info');`
 
     const instructions = {
         expand: "Sua tarefa é expandir este parágrafo. Adicione mais detalhes, descrições vívidas e contexto para torná-lo mais rico e envolvente, mantendo o tom e a mensagem central originais.",
@@ -3015,11 +3030,11 @@ ${selectedText}
             updateAllReadingTimes();
         }
         
-        window.showToast(`Texto refinado com sucesso!`);
+        window.showToast(\Texto refinado com sucesso!`, 'success');`
 
     } catch (error) {
         console.error(`Erro ao tentar '${action}':`, error);
-        window.showToast(`Falha ao refinar o texto: ${error.message}`);
+        window.showToast(\Falha ao refinar o texto: ${error.message}`, 'error');`
     } finally {
         userSelectionRange = null;
     }
@@ -3070,7 +3085,7 @@ const suggestFinalStrategy = async (button) => {
     const basePromptContext = getBasePromptContext();
     
     if (!fullContext) {
-        window.showToast("Gere o roteiro principal primeiro para receber sugestões.");
+        window.showToast("Gere o roteiro principal primeiro para receber sugestões.", 'info');
         hideButtonLoading(button);
         return;
     }
@@ -3105,7 +3120,7 @@ ${fullContext}
         if (suggestions && suggestions.conclusion_suggestion && suggestions.cta_suggestion) {
             conclusionSpecifics.value = suggestions.conclusion_suggestion;
             ctaSpecifics.value = suggestions.cta_suggestion;
-            window.showToast("Sugestões para Conclusão e CTA preenchidas!");
+            window.showToast("Sugestões para Conclusão e CTA preenchidas!", 'success');
         } else {
             throw new Error("A IA não retornou sugestões no formato esperado.");
         }
@@ -3147,7 +3162,7 @@ window.deleteParagraphGroup = async (button, suggestionText) => {
     const paragraphsToDelete = document.querySelectorAll(`[data-suggestion-group="${safeSelector}"]`);
 
     if (paragraphsToDelete.length === 0) {
-        window.showToast("Erro: Parágrafos para deletar não encontrados.");
+        window.showToast("Erro: Parágrafos para deletar não encontrados.", 'error');
         return;
     }
 
@@ -3172,7 +3187,7 @@ window.deleteParagraphGroup = async (button, suggestionText) => {
         }
         
         // 8. Notifica o usuário do sucesso.
-        window.showToast("Bloco de parágrafos deletado com sucesso!");
+        window.showToast("Bloco de parágrafos deletado com sucesso!", 'success');
     }, 300); // O tempo do timeout deve ser o mesmo da transição do CSS.
 };
 
@@ -3249,7 +3264,7 @@ const showInputDialog = (title, message, label, placeholder, suggestions = []) =
                 closeDialog(customText);
             } else {
                 // Se o campo estiver vazio, avisa o usuário
-                window.showToast("Por favor, digite um tema ou escolha uma das sugestões.");
+                window.showToast("Por favor, digite um tema ou escolha uma das sugestões.", 'info');
             }
         };
 
@@ -3302,27 +3317,24 @@ const validateInputs = () => {
     const visualPacing = document.getElementById('visualPacing')?.value;
 
     if (!channelName) {
-        window.showToast("Por favor, insira o nome do canal.");
+        window.showToast("Por favor, insira o nome do canal.", 'error');
         return false;
     }
     if (!videoTheme) {
-        window.showToast("Por favor, insira o tema do vídeo.");
+        window.showToast("Por favor, insira o tema do vídeo.", 'error');
         return false;
     }
     if (!videoDescription) {
-        window.showToast("Por favor, insira a descrição do vídeo (para inspiração).");
+        window.showToast("Por favor, insira a descrição do vídeo (para inspiração).", 'error');
         return false;
     }
     if (!videoDuration || videoDuration === "") {
-        window.showToast("Por favor, selecione a Duração Desejada do vídeo.");
+        window.showToast("Por favor, selecione a Duração Desejada do vídeo.", 'error');
         return false;
     }
     
-    // ==========================================================
-    // >>>>> AQUI ESTÁ A NOVA VALIDAÇÃO <<<<<
-    // ==========================================================
     if (!visualPacing || visualPacing === "") {
-        window.showToast("Por favor, selecione o Ritmo Visual do vídeo.");
+        window.showToast("Por favor, selecione o Ritmo Visual do vídeo.", 'error');
         return false;
     }
     
@@ -3410,7 +3422,7 @@ const validateInputs = () => {
         window.copyTextToClipboard = async (text) => {
             try {
                 await navigator.clipboard.writeText(text);
-                window.showToast('Copiado!');
+                window.showToast('Copiado!', 'success');
             } catch (err) {
                 // Fallback para navegadores mais antigos ou contextos restritos (ex: iframes)
                 const ta = document.createElement('textarea');
@@ -3422,7 +3434,7 @@ const validateInputs = () => {
                 ta.select();
                 try {
                     document.execCommand('copy');
-                    window.showToast('Copiado!');
+                    window.showToast('Copiado!', 'success');
                 } finally {
                     document.body.removeChild(ta);
                 }
@@ -3979,7 +3991,7 @@ Escreva agora o texto puro da conclusão, seguindo a estrutura de parágrafos be
         button.classList.add('hidden');
         document.getElementById('generateCtaBtn').classList.remove('hidden');
 
-        window.showToast("Conclusão gerada! Agora, vamos ao CTA.");
+        window.showToast("Conclusão gerada! Agora, vamos ao CTA.", 'success');
         
     } catch (error) {
         console.error("Erro detalhado em generateConclusion:", error);
@@ -4062,7 +4074,7 @@ Escreva agora o texto puro para o Call to Action, garantindo que seja bem estrut
         ctaSpecificsElement.disabled = true;
         ctaSpecificsElement.parentElement.classList.add('opacity-50');
         
-        window.showToast("Roteiro finalizado! Seção de Análise liberada.");
+        window.showToast("Roteiro finalizado! Seção de Análise liberada.", 'success');
         
         const analysisSection = document.getElementById('scriptAnalysisSection');
         if (analysisSection) {
@@ -4378,7 +4390,7 @@ const resetGeneratedScriptContent = (sourceId) => {
     updateButtonStates();
     
     const sourceLabel = document.querySelector(`label[for='${sourceId}']`)?.textContent.replace(':', '') || sourceId;
-    window.showToast(`'${sourceLabel}' mudou. O roteiro foi resetado.`);
+    window.showToast(\'${sourceLabel}' mudou. O roteiro foi resetado.`, 'info');`
 
 };
 
@@ -5360,7 +5372,7 @@ window.addDevelopmentChapter = async (button) => {
     const existingText = contentWrapper?.textContent.trim();
 
     if (!existingText) {
-        window.showToast("Gere o desenvolvimento inicial primeiro.");
+        window.showToast("Gere o desenvolvimento inicial primeiro.", 'info');
         return;
     }
 
@@ -5411,7 +5423,7 @@ ${existingText.slice(-3000)}
         );
 
         if (!chapterTheme) {
-            window.showToast("Operação cancelada.");
+            window.showToast("Operação cancelada.", 'info');
             return;
         }
 
@@ -5472,7 +5484,7 @@ ${existingText}
         invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
         updateAllReadingTimes();
         
-        window.showToast("Novo capítulo adicionado com sucesso!");
+        window.showToast("Novo capítulo adicionado com sucesso!", 'success');
         contentWrapper.lastElementChild.previousElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
     } catch (error) {
@@ -5561,7 +5573,7 @@ window.analyzeSectionRetention = async (button, sectionId) => {
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
 
     if (!contentWrapper || !contentWrapper.textContent.trim()) {
-        window.showToast("Gere o roteiro desta seção antes de analisar a retenção.");
+        window.showToast("Gere o roteiro desta seção antes de analisar a retenção.", 'info');
         return;
     }
 
@@ -5573,7 +5585,7 @@ window.analyzeSectionRetention = async (button, sectionId) => {
 
     const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]'));
     if (paragraphs.length === 0) {
-        window.showToast("Não há parágrafos para analisar nesta seção.");
+        window.showToast("Não há parágrafos para analisar nesta seção.", 'info');
         return;
     }
 
@@ -5686,7 +5698,7 @@ ${JSON.stringify(paragraphsWithIndexes, null, 2)}
             }
         });
 
-        window.showToast("Análise de retenção concluída!");
+        window.showToast("Análise de retenção concluída!", 'success');
 
     } catch (error) {
         console.error("Erro detalhado em analyzeSectionRetention:", error);
@@ -5741,9 +5753,9 @@ ${JSON.stringify(paragraphsWithIndexes, null, 2)}
                 invalidateAndClearPrompts(paragraphElement.closest('.script-section'));
                 invalidateAndClearPerformance(paragraphElement.closest('.script-section'));
 
-                window.showToast("Parágrafo otimizado!");
+                window.showToast("Parágrafo otimizado!", 'success');
             } catch (error) {
-                window.showToast(`Falha ao otimizar: ${error.message}`);
+                window.showToast(\Falha ao otimizar: ${error.message}`, 'error');`
                 console.error("Erro detalhado em optimizeParagraph:", error);
                 if (button) button.innerHTML = '⚠️'; // Ícone de erro
             }
@@ -5758,7 +5770,7 @@ window.suggestPerformance = async (button, sectionId) => {
     const outputContainer = sectionElement?.querySelector('.section-performance-output');
 
     if (!contentWrapper || !contentWrapper.textContent.trim() || !outputContainer) {
-        window.showToast("Gere o roteiro desta seção primeiro.");
+        window.showToast("Gere o roteiro desta seção primeiro.", 'info');
         return;
     }
 
@@ -5869,7 +5881,7 @@ window.refineSectionStyle = async (buttonElement) => {
 
     const sectionElement = buttonElement.closest('.script-section');
     if (!sectionElement) {
-        window.showToast("Erro: Seção do roteiro não encontrada.");
+        window.showToast("Erro: Seção do roteiro não encontrada.", 'error');
         hideButtonLoading(buttonElement);
         return;
     }
@@ -5878,7 +5890,7 @@ window.refineSectionStyle = async (buttonElement) => {
     const originalText = contentWrapper?.textContent.trim();
 
     if (!originalText) {
-        window.showToast("Não há texto para refinar nesta seção.");
+        window.showToast("Não há texto para refinar nesta seção.", 'info');
         hideButtonLoading(buttonElement);
         return;
     }
@@ -5931,7 +5943,7 @@ ${originalText}
         }
 
         updateAllReadingTimes();
-        window.showToast("Estilo do roteiro refinado com sucesso!");
+        window.showToast("Estilo do roteiro refinado com sucesso!", 'success');
 
     } catch (error) {
         console.error("Erro detalhado em refineSectionStyle:", error);
@@ -6032,7 +6044,7 @@ const applyAllSuggestions = async (button) => {
     const allApplyButtons = document.querySelectorAll('#analysisReportContainer button[data-action="applySuggestion"]:not(:disabled)');
 
     if (allApplyButtons.length === 0) {
-        window.showToast("Nenhuma sugestão nova para aplicar.");
+        window.showToast("Nenhuma sugestão nova para aplicar.", 'info');
         return;
     }
     
@@ -6071,7 +6083,7 @@ const applyAllSuggestions = async (button) => {
 window.enrichWithData = async (buttonElement) => {
     const selection = window.getSelection();
     if (selection.rangeCount === 0 || selection.toString().trim() === '') {
-        window.showToast("Por favor, selecione primeiro o trecho de texto que deseja enriquecer.");
+        window.showToast("Por favor, selecione primeiro o trecho de texto que deseja enriquecer.", 'info');
         return;
     }
     
@@ -6086,7 +6098,7 @@ window.enrichWithData = async (buttonElement) => {
     );
 
     if (!newData) {
-        window.showToast("Operação cancelada.");
+        window.showToast("Operação cancelada.", 'info');
         userSelectionRange = null;
         return;
     }
@@ -6137,7 +6149,7 @@ ${newData}
             invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
         }
 
-        window.showToast("Texto enriquecido com sucesso!");
+        window.showToast("Texto enriquecido com sucesso!", 'success');
 
     } catch (error) {
         console.error("Erro detalhado em enrichWithData:", error);
@@ -6426,7 +6438,7 @@ const selectIdea = (idea) => {
     if (targetElement) {
         targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    window.showToast("Ideia selecionada! Estratégia pré-preenchida. Revise e ajuste.");
+    window.showToast("Ideia selecionada! Estratégia pré-preenchida. Revise e ajuste.", 'success');
 };
 
 
@@ -6437,7 +6449,7 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
     if (!validateInputs()) return;
 
     if (!AppState.generated.strategicOutline && sectionName !== 'intro') {
-        window.showToast("Crie o Esboço Estratégico primeiro!");
+        window.showToast("Crie o Esboço Estratégico primeiro!", 'info');
         return;
     }
 
@@ -6795,12 +6807,12 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
             const transcriptText = getTranscriptOnly();
 
             if (!transcriptText) {
-                window.showToast("Nenhum roteiro para copiar. Gere as seções primeiro.");
+                window.showToast("Nenhum roteiro para copiar. Gere as seções primeiro.", 'info');
                 return;
             }
 
             copyTextToClipboard(transcriptText);
-            window.showToast("Transcrição copiada! Download do arquivo .rtf iniciado.");
+            window.showToast("Transcrição copiada! Download do arquivo .rtf iniciado.", 'success');
 
             const fileName = (document.getElementById('videoTheme').value.trim().replace(/[^a-zA-Z0-9]/gi, '_').toLowerCase() || 'roteiro') + '_transcricao.rtf';
             
@@ -6885,7 +6897,7 @@ const generateTitlesAndThumbnails = async (button) => {
             markButtonAsCompleted(button.id);
         }
     } catch (error) {
-        window.showToast(`Falha ao gerar Títulos: ${error.message}`);
+        window.showToast(\Falha ao gerar Títulos: ${error.message}`, 'error');`
         console.error("Error generating Titles/Thumbnails.", error);
     } finally {
         hideButtonLoading(button);
@@ -6904,7 +6916,7 @@ const generateTitlesAndThumbnails = async (button) => {
 
 window.analyzeTitles = async () => {
     if (!generatedTitlesAndThumbnails || !generatedTitlesAndThumbnails.titles || generatedTitlesAndThumbnails.titles.length === 0) {
-        window.showToast("Gere os títulos primeiro!");
+        window.showToast("Gere os títulos primeiro!", 'info');
         return;
     }
 
@@ -6976,7 +6988,7 @@ Responda APENAS com o array JSON completo e sintaticamente PERFEITO, seguindo EX
 
 window.analyzeThumbnails = async () => {
     if (!generatedTitlesAndThumbnails || !generatedTitlesAndThumbnails.thumbnails || generatedTitlesAndThumbnails.thumbnails.length === 0) {
-        window.showToast("Gere as ideias de thumbnail primeiro!");
+        window.showToast("Gere as ideias de thumbnail primeiro!", 'info');
         return;
     }
 
@@ -7069,7 +7081,7 @@ const generateVideoDescription = async (button) => {
             markButtonAsCompleted(button.id);
         }
     } catch (error) {
-        window.showToast(`Falha ao gerar Descrição: ${error.message}`);
+        window.showToast(\Falha ao gerar Descrição: ${error.message}`, 'error');`
         console.error("Error generating Video Description.", error);
     } finally {
         hideButtonLoading(button);
@@ -7344,7 +7356,7 @@ const resetApplicationState = async () => {
     // ----- ETAPA 7: Atualiza o resto da UI -----
     updateProgressBar();
     localStorage.removeItem('viralScriptGeneratorProject');
-    window.showToast("Pronto para um novo projeto!");
+    window.showToast("Pronto para um novo projeto!", 'success');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -7495,7 +7507,7 @@ const exportProject = () => {
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-    window.showToast("Projeto exportado com sucesso!");
+    window.showToast("Projeto exportado com sucesso!", 'success');
 };
 
 /**
@@ -7513,9 +7525,9 @@ const importProject = (event) => {
             Object.assign(AppState, loadedState);
             // Manda a UI se sincronizar com os novos dados do AppState.
             syncUiFromState();
-            window.showToast("Projeto importado com sucesso!");
+            window.showToast("Projeto importado com sucesso!", 'success');
         } catch (err) {
-            window.showToast("Erro: Arquivo de projeto inválido ou corrompido.");
+            window.showToast("Erro: Arquivo de projeto inválido ou corrompido.", 'error');
             console.error("Erro ao importar projeto:", err);
         }
     };
@@ -7594,7 +7606,7 @@ const suggestStrategy = async (button) => {
     const theme = document.getElementById('videoTheme')?.value.trim();
     const description = document.getElementById('videoDescription')?.value.trim();
     if (!theme || !description) {
-        window.showToast("Preencha o Tema e a Descrição do Vídeo para receber sugestões.");
+        window.showToast("Preencha o Tema e a Descrição do Vídeo para receber sugestões.", 'info');
         return;
     }
     
@@ -7717,7 +7729,7 @@ const startCrafting = () => {
     if (dashboard) {
         dashboard.classList.remove('hidden');
         dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        window.showToast("Estratégia definida! Pronto para criar o esboço.");
+        window.showToast("Estratégia definida! Pronto para criar o esboço.", 'success');
     }
 };
 
@@ -7792,7 +7804,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (synopsisText && outputContainer) {
                 window.verifyFact(btn, synopsisText, outputContainer);
             } else {
-                window.showToast("Não foi possível encontrar a sinopse ou a área de resultado.");
+                window.showToast("Não foi possível encontrar a sinopse ou a área de resultado.", 'error');
             }
         },
         'select-idea': (btn) => { 
@@ -7806,7 +7818,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('videoTheme').value = ideaObject.title || '';
                 document.getElementById('videoDescription').value = ideaObject.synopsis || ideaObject.enigma || '';
                 document.getElementById('centralQuestion').value = ideaObject.hook_question || '';
-                window.showToast("Enigma selecionado! Estratégia pré-preenchida.");
+                window.showToast("Enigma selecionado! Estratégia pré-preenchida.", 'success');
                 document.getElementById('inputTabsNav').scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         },
