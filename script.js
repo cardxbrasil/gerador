@@ -2344,7 +2344,7 @@ const generatePromptsForSectionInBackground = async (sectionElementId) => {
 
 
 // ====================================================================================
-// >>>>> VERSÃO FINAL 5.3: CÓDIGO DE RENDERIZAÇÃO COMPLETO E CORRIGIDO <<<<<
+// >>>>> VERSÃO FINAL 5.4: PROMPT SIMPLIFICADO E TOKENS AUMENTADOS <<<<<
 // ====================================================================================
 const mapEmotionsAndPacing = async (button) => {
     const { script } = AppState.generated;
@@ -2360,7 +2360,6 @@ const mapEmotionsAndPacing = async (button) => {
     outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando a jornada emocional do roteiro...</p>`;
 
     try {
-        // Força a re-geração do mapa emocional sempre que o botão é clicado.
         AppState.generated.emotionalMap = null; 
         
         const fullTranscript = getTranscriptOnly();
@@ -2370,23 +2369,14 @@ const mapEmotionsAndPacing = async (button) => {
             throw new Error("O roteiro parece estar vazio. Não há nada para analisar.");
         }
 
-        const prompt = `Sua única função é retornar um array JSON. Para cada um dos ${paragraphs.length} parágrafos a seguir, analise e retorne a emoção principal e o ritmo.
-        
-**REGRAS CRÍTICAS E INEGOCIÁVEIS:**
-1.  Sua resposta deve ser APENAS o array JSON, começando com \`[\` e terminando com \`]\`. NENHUM outro texto é permitido.
-2.  O array deve conter EXATAMENTE ${paragraphs.length} objetos.
-3.  Cada objeto deve ter EXATAMENTE duas chaves: "emotion" e "pace".
-4.  Valores permitidos para "emotion": 'Positiva Forte', 'Positiva Leve', 'Neutra', 'Negativa Leve', 'Negativa Forte'.
-5.  Valores permitidos para "pace": 'Muito Rápido', 'Rápido', 'Médio', 'Lento', 'Muito Lento'.
+        // NOVO PROMPT SIMPLIFICADO
+        const prompt = `Analise os parágrafos a seguir. Retorne um array JSON com um objeto para cada parágrafo. Cada objeto deve ter as chaves "emotion" e "pace". Use estes valores: "Positiva Forte", "Positiva Leve", "Neutra", "Negativa Leve", "Negativa Forte" para emotion. E "Muito Rápido", "Rápido", "Médio", "Lento", "Muito Lento" para pace. Responda APENAS com o array JSON.
+    
+        TEXTO:
+        ${fullTranscript}`;
 
-**TEXTO PARA ANÁLISE:**
----
-${JSON.stringify(paragraphs)}
----
-
-AÇÃO: Retorne APENAS o array JSON, usando os termos em Português do Brasil para os valores.`;
-
-        const rawResult = await callGroqAPI(prompt, 4000);
+        // TOKENS AUMENTADOS
+        const rawResult = await callGroqAPI(prompt, 8000);
         const emotionalMapData = cleanGeneratedText(rawResult, true, true);
 
         if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length < paragraphs.length) {
@@ -2422,10 +2412,9 @@ AÇÃO: Retorne APENAS o array JSON, usando os termos em Português do Brasil pa
             for (const groupName in groups) {
                 if (groups[groupName].includes(value)) return groupName;
             }
-            return value ? value.charAt(0).toUpperCase() + value.slice(1) : 'Indefinido';
+            return value ? (value.charAt(0).toUpperCase() + value.slice(1)) : 'Indefinido';
         };
 
-        // <<<< LOOP DE RENDERIZAÇÃO COMPLETO E CORRIGIDO >>>>
         sectionOrder.forEach(section => {
             const sectionScript = script[section.id];
             if (!sectionScript || !sectionScript.text) return;
