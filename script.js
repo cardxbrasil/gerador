@@ -2344,7 +2344,7 @@ const generatePromptsForSectionInBackground = async (sectionElementId) => {
 
 
 // ====================================================================================
-// >>>>> VERSÃO FINAL 5.2: GARANTE A RE-ANÁLISE E RE-RENDERIZAÇÃO A CADA CLIQUE <<<<<
+// >>>>> VERSÃO FINAL 5.3: CÓDIGO DE RENDERIZAÇÃO COMPLETO E CORRIGIDO <<<<<
 // ====================================================================================
 const mapEmotionsAndPacing = async (button) => {
     const { script } = AppState.generated;
@@ -2357,20 +2357,19 @@ const mapEmotionsAndPacing = async (button) => {
 
     const outputContainer = document.getElementById('emotionalMapContent');
     showButtonLoading(button);
-    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Re-analisando a jornada emocional do roteiro atualizado...</p>`;
+    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando a jornada emocional do roteiro...</p>`;
 
     try {
-        // <<<< CORREÇÃO CRÍTICA: FORÇA A RE-ANÁLISE SEMPRE >>>>
-        // Limpa o mapa de emoções do estado para garantir que a IA seja chamada com o texto mais recente.
+        // Força a re-geração do mapa emocional sempre que o botão é clicado.
         AppState.generated.emotionalMap = null; 
         
-        const fullTranscript = getTranscriptOnly(); // Pega o texto mais recente do AppState
+        const fullTranscript = getTranscriptOnly();
         const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
-
-        if (paragraphs.length === 0) {
-            throw new Error("O roteiro está vazio. Não há nada para analisar.");
-        }
         
+        if (paragraphs.length === 0) {
+            throw new Error("O roteiro parece estar vazio. Não há nada para analisar.");
+        }
+
         const prompt = `Sua única função é retornar um array JSON. Para cada um dos ${paragraphs.length} parágrafos a seguir, analise e retorne a emoção principal e o ritmo.
         
 **REGRAS CRÍTICAS E INEGOCIÁVEIS:**
@@ -2391,14 +2390,13 @@ AÇÃO: Retorne APENAS o array JSON, usando os termos em Português do Brasil pa
         const emotionalMapData = cleanGeneratedText(rawResult, true, true);
 
         if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length < paragraphs.length) {
-            console.warn("Discrepância nos dados da IA. Tentando continuar.", {
+            console.warn("Discrepância nos dados da IA. A análise pode estar incompleta.", {
                 expected: paragraphs.length,
                 received: emotionalMapData?.length || 0
             });
         }
         AppState.generated.emotionalMap = emotionalMapData;
         
-        // Renderização (a lógica interna permanece a mesma, pois já está correta)
         outputContainer.innerHTML = '';
         let paragraphCounter = 0;
 
@@ -2424,12 +2422,47 @@ AÇÃO: Retorne APENAS o array JSON, usando os termos em Português do Brasil pa
             for (const groupName in groups) {
                 if (groups[groupName].includes(value)) return groupName;
             }
-            return value.charAt(0).toUpperCase() + value.slice(1);
+            return value ? value.charAt(0).toUpperCase() + value.slice(1) : 'Indefinido';
         };
 
+        // <<<< LOOP DE RENDERIZAÇÃO COMPLETO E CORRIGIDO >>>>
         sectionOrder.forEach(section => {
-            // ... (A sua lógica de renderização, que já está perfeita, continua aqui) ...
-            // Ela vai pegar os dados frescos do AppState.generated.emotionalMap e renderizar corretamente.
+            const sectionScript = script[section.id];
+            if (!sectionScript || !sectionScript.text) return;
+
+            const numParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim() !== '').length;
+            const sectionEmotionsData = AppState.generated.emotionalMap.slice(paragraphCounter, paragraphCounter + numParagraphs);
+            
+            const groupedEmotions = [...new Set(sectionEmotionsData.map(e => getGroupName(e?.emotion, emotionGroups)))];
+            const groupedPaces = [...new Set(sectionEmotionsData.map(e => getGroupName(e?.pace, paceGroups)))];
+
+            const tagsHtml = groupedEmotions.map(emotion => 
+                `<span class="tag tag-emotion"><i class="fas fa-theater-masks mr-2"></i>${DOMPurify.sanitize(emotion)}</span>`
+            ).join('') + groupedPaces.map(pace => 
+                `<span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${DOMPurify.sanitize(pace)}</span>`
+            ).join('');
+
+            const sectionCardHtml = `
+            <div class="emotional-map-item card !p-6 mb-6 animate-fade-in">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-xl font-bold">${section.title}</h2>
+                    <button class="text-gray-400 hover:text-primary transition-colors"
+                            onclick="window.copyTextToClipboard(this.nextElementSibling.textContent); window.showCopyFeedback(this);"
+                            title="Copiar Texto Completo da Seção">
+                        <i class="fas fa-copy fa-lg"></i>
+                    </button>
+                    <pre class="full-prompt-hidden hidden">${DOMPurify.sanitize(sectionScript.text)}</pre>
+                </div>
+                <div class="prompt-header mb-4">
+                    ${tagsHtml || '<span class="text-sm italic text-gray-500">Nenhuma emoção analisada.</span>'}
+                </div>
+                <div class="text-base leading-relaxed">
+                    ${sectionScript.html} 
+                </div>
+            </div>`;
+            
+            outputContainer.innerHTML += sectionCardHtml;
+            paragraphCounter += numParagraphs;
         });
         
         window.showToast("Mapa Emocional atualizado com sucesso!", 'success');
