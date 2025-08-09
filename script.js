@@ -2344,7 +2344,7 @@ const generatePromptsForSectionInBackground = async (sectionElementId) => {
 
 
 // ====================================================================================
-// >>>>> VERSÃO FINAL 5.0: AGRUPAMENTO DE EMOÇÕES + BOTÃO REUTILIZÁVEL <<<<<
+// >>>>> VERSÃO FINAL 5.1: BLINDADA CONTRA ESTADOS ANTIGOS E COM PROMPT REFORÇADO <<<<<
 // ====================================================================================
 const mapEmotionsAndPacing = async (button) => {
     const { script } = AppState.generated;
@@ -2360,16 +2360,39 @@ const mapEmotionsAndPacing = async (button) => {
     outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando a jornada emocional do roteiro...</p>`;
 
     try {
-        // Força a re-geração do mapa emocional sempre que o botão é clicado,
-        // para refletir possíveis edições manuais no roteiro.
+        // Força a re-geração do mapa emocional sempre que o botão é clicado.
+        // Isso garante que ele sempre use o texto mais recente e evite erros de estado antigo.
         AppState.generated.emotionalMap = null; 
         
         const fullTranscript = getTranscriptOnly();
         const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
-        const prompt = `Para cada um dos ${paragraphs.length} parágrafos a seguir, analise e retorne a emoção principal e o ritmo. As emoções podem ser: strongly_positive, slightly_positive, neutral, slightly_negative, strongly_negative. Os ritmos podem ser: very_fast, fast, medium, slow, very_slow. Sua resposta DEVE ser um array JSON com ${paragraphs.length} objetos, cada um com as chaves "emotion" e "pace". Retorne APENAS o JSON puro.`;
-        const rawResult = await callGroqAPI(prompt, 4000);
-        AppState.generated.emotionalMap = cleanGeneratedText(rawResult, true, true);
+
+        // PROMPT REFORÇADO E BLINDADO
+        const prompt = `Sua única função é retornar um array JSON. Para cada um dos ${paragraphs.length} parágrafos a seguir, analise e retorne a emoção principal e o ritmo.
         
+**REGRAS CRÍTICAS E INEGOCIÁVEIS:**
+1.  Sua resposta deve ser APENAS o array JSON, começando com \`[\` e terminando com \`]\`. NENHUM outro texto é permitido.
+2.  O array deve conter EXATAMENTE ${paragraphs.length} objetos.
+3.  Cada objeto deve ter EXATAMENTE duas chaves: "emotion" e "pace".
+4.  Valores permitidos para "emotion": strongly_positive, slightly_positive, neutral, slightly_negative, strongly_negative.
+5.  Valores permitidos para "pace": very_fast, fast, medium, slow, very_slow.
+
+**TEXTO PARA ANÁLISE:**
+---
+${JSON.stringify(paragraphs)}
+---
+
+AÇÃO: Retorne APENAS o array JSON.`;
+
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const emotionalMapData = cleanGeneratedText(rawResult, true, true); // Espera um array
+
+        if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
+            throw new Error("A IA não retornou um mapa emocional válido.");
+        }
+        AppState.generated.emotionalMap = emotionalMapData;
+        
+        // O resto da lógica de renderização continua a mesma, pois já está correta.
         outputContainer.innerHTML = '';
         let paragraphCounter = 0;
 
@@ -2381,28 +2404,22 @@ const mapEmotionsAndPacing = async (button) => {
             { id: 'cta', title: 'Call to Action (CTA)' }
         ];
 
-        // <<<< LÓGICA DE AGRUPAMENTO DE EMOÇÕES >>>>
         const emotionGroups = {
             'Positive': ['strongly_positive', 'slightly_positive', 'happy', 'excited'],
             'Negative': ['strongly_negative', 'slightly_negative', 'sad', 'angry', 'fearful'],
             'Neutral': ['neutral', 'surprised']
         };
-
         const paceGroups = {
             'Fast': ['very_fast', 'fast'],
             'Medium': ['medium', 'moderate'],
             'Slow': ['very_slow', 'slow']
         };
-
         const getGroupName = (value, groups) => {
             for (const groupName in groups) {
-                if (groups[groupName].includes(value)) {
-                    return groupName;
-                }
+                if (groups[groupName].includes(value)) return groupName;
             }
-            return value; // Retorna o valor original se não estiver em nenhum grupo
+            return value;
         };
-        // <<<< FIM DA LÓGICA DE AGRUPAMENTO >>>>
 
         sectionOrder.forEach(section => {
             const sectionScript = script[section.id];
@@ -2411,7 +2428,6 @@ const mapEmotionsAndPacing = async (button) => {
             const numParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim() !== '').length;
             const sectionEmotionsData = AppState.generated.emotionalMap.slice(paragraphCounter, paragraphCounter + numParagraphs);
             
-            // Agrupa e remove duplicatas
             const groupedEmotions = [...new Set(sectionEmotionsData.map(e => getGroupName(e.emotion, emotionGroups)))];
             const groupedPaces = [...new Set(sectionEmotionsData.map(e => getGroupName(e.pace, paceGroups)))];
 
@@ -2445,15 +2461,13 @@ const mapEmotionsAndPacing = async (button) => {
         });
         
         window.showToast("Mapa Emocional re-analisado com sucesso!", 'success');
-        // <<<< MUDANÇA NO BOTÃO: NÃO MARCAMOS MAIS COMO CONCLUÍDO >>>>
-        // A linha markButtonAsCompleted(button.id); foi REMOVIDA.
 
     } catch (error) {
         console.error("Erro detalhado ao gerar o Mapa Emocional:", error);
         outputContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar o mapa: ${error.message}</p>`;
         AppState.generated.emotionalMap = null;
     } finally {
-        hideButtonLoading(button); // Apenas remove o spinner, mas mantém o botão ativo.
+        hideButtonLoading(button);
     }
 };
 
