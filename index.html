@@ -4208,12 +4208,11 @@ const renderPaginatedPrompts = (sectionElementId) => {
     const sectionElement = document.getElementById(sectionElementId);
     if (!sectionElement) return;
 
-    // --- Lógica de setup ---
     const itemsPerPage = 4;
-    const prompts = allImagePrompts[sectionElementId] || [];
+    const prompts = (window.allImagePrompts && window.allImagePrompts[sectionElementId]) || [];
     if (prompts.length === 0) return;
     
-    const currentPage = promptPaginationState[sectionElementId] || 0;
+    const currentPage = (window.promptPaginationState && window.promptPaginationState[sectionElementId]) || 0;
     const totalPages = Math.ceil(prompts.length / itemsPerPage);
     const promptItemsContainer = sectionElement.querySelector('.prompt-items-container');
     const navContainer = sectionElement.querySelector('.prompt-nav-container');
@@ -4221,78 +4220,71 @@ const renderPaginatedPrompts = (sectionElementId) => {
     if (!promptItemsContainer || !navContainer) return;
     promptItemsContainer.innerHTML = '';
 
-    // --- Lógica da Memória Contínua (para o Tempo) ---
+    // Lógica para memória de tempo e numeração de cena (mantida)
     let cumulativeSeconds = 0;
+    let globalSceneCounter = 1;
     const sectionOrder = ['introSection', 'developmentSection', 'climaxSection', 'conclusionSection', 'ctaSection'];
     const currentSectionIndex = sectionOrder.indexOf(sectionElementId);
-    
+
     for (let i = 0; i < currentSectionIndex; i++) {
-        const previousSectionId = sectionOrder[i];
-        const previousPrompts = allImagePrompts[previousSectionId] || [];
-        previousPrompts.forEach(p => {
+        const prevPrompts = (window.allImagePrompts && window.allImagePrompts[sectionOrder[i]]) || [];
+        prevPrompts.forEach(p => {
             cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
         });
+        globalSceneCounter += prevPrompts.length;
     }
-
     const startIndex = currentPage * itemsPerPage;
-    if (startIndex > 0) {
-        const previousPagePrompts = prompts.slice(0, startIndex);
-        previousPagePrompts.forEach(p => {
-            cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
-        });
-    }
-
-    // --- Lógica da Numeração de Cena (Global) ---
-    let globalSceneCounter = 1; // Começa a contar do 1
-    for (let i = 0; i < currentSectionIndex; i++) {
-        const previousSectionId = sectionOrder[i];
-        globalSceneCounter += (allImagePrompts[previousSectionId] || []).length;
-    }
-    // Adiciona as cenas das páginas anteriores da seção atual
+    prompts.slice(0, startIndex).forEach(p => {
+        cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
+    });
     globalSceneCounter += startIndex;
-    // ---------------------------------------------
     
     const promptsToShow = prompts.slice(startIndex, startIndex + itemsPerPage);
 
     promptsToShow.forEach((promptData, index) => {
-        // --- Cálculo e Renderização ---
-        const globalIndex = startIndex + index; // Índice para IDs de elementos
-
-        // Tempo
         const minutes = Math.floor(cumulativeSeconds / 60);
         const seconds = cumulativeSeconds % 60;
         const timestamp = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        
-        // Número da Cena
         const sceneNumber = globalSceneCounter + index;
 
-        // Montagem do HTML
-        const styleBlockContent = promptData.styleBlock || '';
+        // <<<< AQUI ESTÁ A MUDANÇA-CHAVE >>>>
+        // 1. Montamos o prompt completo para a cópia APENAS se o sinalizador for true.
+        const fullPromptText = promptData.applyStyleBlock
+            ? `${promptData.imageDescription} ${CINEMATIC_STYLE_BLOCK}`
+            : promptData.imageDescription;
+        
+        // 2. Verificamos o sinalizador para decidir se mostramos o texto na tela.
+        const styleIndicatorHtml = promptData.applyStyleBlock
+            ? `<p class="style-block-indicator">[Estilo Cinematográfico Aplicado]</p>`
+            : '';
+        // <<<< FIM DA MUDANÇA >>>>
+
         const promptHtml = `
             <div class="prompt-item card !p-3 animate-fade-in">
                 <div class="prompt-header">
                     <span class="tag tag-scene"><i class="fas fa-film mr-2"></i>Cena ${String(sceneNumber).padStart(2, '0')}</span>
                     <span class="tag tag-time"><i class="fas fa-clock mr-2"></i>${timestamp}</span>
-                    <button class="copy-btn-small" onclick="copyTextToClipboard(document.getElementById('prompt-content-${sectionElementId}-${globalIndex}')?.textContent + ' ' + document.getElementById('style-block-${sectionElementId}-${globalIndex}')?.textContent); window.showCopyFeedback(this)" title="Copiar Prompt">
+                    <button class="copy-btn-small" 
+                            onclick="window.copyTextToClipboard(this.closest('.prompt-item').querySelector('.full-prompt-hidden').textContent); window.showCopyFeedback(this)" 
+                            title="Copiar Prompt Completo">
                         <i class="fas fa-copy"></i>
                     </button>
                 </div>
                 <p class="paragraph-preview">"${DOMPurify.sanitize(promptData.scriptPhrase)}"</p>
                 <div class="prompt-details">
                     <p class="prompt-label">${imageDescriptionLabels[elements.languageSelect.value] || 'Image Description:'}</p>
-                    <p id="prompt-content-${sectionElementId}-${globalIndex}">${DOMPurify.sanitize(promptData.imageDescription)}</p>
-                    ${styleBlockContent ? `<p class="style-block-indicator">[Estilo Cinematográfico Aplicado]</p>` : ''}
-                    <pre id="style-block-${sectionElementId}-${globalIndex}" class="hidden">${styleBlockContent}</pre>
+                    <p>${DOMPurify.sanitize(promptData.imageDescription)}</p>
+                    ${styleIndicatorHtml}
+                    <pre class="full-prompt-hidden hidden">${DOMPurify.sanitize(fullPromptText)}</pre>
                 </div>
             </div>
         `;
         promptItemsContainer.innerHTML += promptHtml;
 
-        // Atualiza o tempo para a próxima iteração
         cumulativeSeconds += parseInt(promptData.estimated_duration, 10) || 0;
     });
     
-    // --- Renderização da Navegação ---
+    // Renderização da Navegação (mantida)
     navContainer.innerHTML = `
         <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', -1)" ${currentPage === 0 ? 'disabled' : ''}>
             <i class="fas fa-chevron-left"></i>
@@ -6537,11 +6529,9 @@ window.regenerateSection = (fullSectionId) => {
         };
 
 
-
 // =========================================================================
-// >>>>> VERSÃO FINAL E HÍBRIDA DE 'generatePromptsForSection' <<<<<
+// >>>>> VERSÃO OTIMIZADA que NÃO SALVA o styleBlock repetidamente <<<<<
 // =========================================================================
-
 window.generatePromptsForSection = async (button, sectionElementId) => {
     const sectionElement = document.getElementById(sectionElementId);
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
@@ -6551,14 +6541,11 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
         window.showToast("Gere o conteúdo do roteiro desta seção primeiro.");
         return;
     }
-    
-    // <<< CORREÇÃO: A verificação do mapa emocional que estava aqui foi REMOVIDA >>>
 
     showButtonLoading(button);
     promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
 
     try {
-        // A lógica para extrair os parágrafos continua a mesma
         const allChildren = Array.from(contentWrapper.children);
         const paragraphsWithContext = [];
         let currentChapterTitle = "Contexto Geral";
@@ -6572,6 +6559,7 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
 
         if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
 
+        // A lógica de chamada da IA em lotes permanece a mesma
         const batchSize = 3;
         const apiPromises = [];
         const visualPacing = document.getElementById('visualPacing').value;
@@ -6583,11 +6571,9 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
             let promptContextForAI = '';
             batch.forEach((item, indexInBatch) => {
                 const globalIndex = i + indexInBatch;
-                // <<< CORREÇÃO: Contexto emocional removido do prompt para a IA >>>
                 promptContextForAI += `\nParágrafo ${globalIndex}:\n- Título do Capítulo (Guia Temático): "${item.chapter}"\n- Texto do Parágrafo: "${item.text}"`;
             });
             
-             // <<< ESTE É O PROMPT HÍBRIDO, COM SUA LISTA DETALHADA E A ESTRUTURA BLINDADA >>>
 const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 
 Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar parágrafos e transformá-los em descrições de imagem ricas em detalhes.
@@ -6656,8 +6642,9 @@ ${promptContextForAI}
 ## AÇÃO FINAL
 
 Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
-
-      apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true)));
+            
+            // Usamos a versão evoluída do filtro, esperando um array
+            apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true, true)));
         }
 
         const allBatchResults = await Promise.all(apiPromises);
@@ -6673,8 +6660,18 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
             estimated_duration: promptData.estimated_duration || 5
         }));
 
-        // O resto da função para salvar e renderizar continua o mesmo
-        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts.map((p) => ({ ...p, styleBlock: CINEMATIC_STYLE_BLOCK }));
+        // <<<< AQUI ESTÁ A MUDANÇA-CHAVE >>>>
+        // 1. Verificamos se o estilo cinematográfico deve ser aplicado.
+        const applyCinematicStyle = document.getElementById('imageStyleSelect').value === 'cinematic';
+
+        // 2. Salvamos no AppState APENAS a informação e o SINALIZADOR, não o bloco de texto.
+        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts.map(p => ({
+            ...p,
+            applyStyleBlock: applyCinematicStyle // Salva 'true' ou 'false'
+        }));
+        // <<<< FIM DA MUDANÇA >>>>
+
+        // O resto da função para preparar a renderização continua igual
         AppState.ui.promptPaginationState[sectionElementId] = 0;
         if (typeof window.allImagePrompts === 'undefined') window.allImagePrompts = {};
         if (typeof window.promptPaginationState === 'undefined') window.promptPaginationState = {};
@@ -6697,7 +6694,6 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
         updateButtonStates();
     }
 };
-
 
 
 // =========================================================================
