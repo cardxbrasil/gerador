@@ -1,3 +1,5 @@
+
+
 // ==========================================================
 // ==================== ESTADO CENTRALIZADO =================
 // ==========================================================
@@ -6651,23 +6653,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (links.length) links[0].classList.add('active');
-});
-
-
-// Toggle de tema
-document.getElementById('themeToggle')?.addEventListener('click', () => {
-    document.body.classList.toggle('light');
-    localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
-});
-
-// Carregar tema salvo
-window.addEventListener('DOMContentLoaded', () => {
-    if (localStorage.getItem('theme') === 'light') {
-        document.body.classList.add('light');
-    }
-});
-
-// Toggle sidebar no mobile
-document.getElementById('sidebarToggle')?.addEventListener('click', () => {
-    document.querySelector('.sidebar')?.classList.toggle('active');
 });

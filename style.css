@@ -1,4 +1,5 @@
-/* ================================================================= */
+
+    /* ================================================================= */
     /* =================== ARQUITETURA DE DESIGN (THEME) ================= */
     /* ================================================================= */
     :root {
@@ -819,200 +820,26 @@
 
 
 
-/* ========================================================== */
-/*           ESTILOS PARA O LAYOUT PRINCIPAL (Sidebar)        */
-/* ========================================================== */
-
-/* Transforma o body em um container flexível */
-body {
-    display: flex;
-}
-
-#appSidebar {
-    /* Define uma largura fixa e garante que a altura seja 100% da tela */
-    width: 288px; /* 72 * 4 (Tailwind w-72) */
-    min-height: 100vh;
-    
-    /* A MÁGICA ESTÁ AQUI: Posição fixa */
-    position: fixed;
-    top: 0;
-    left: 0;
-    
-    /* Garante que ela não encolha */
-    flex-shrink: 0;
-}
-
-/* O conteúdo principal à direita */
-#rightContentWrapper {
-    /* Ocupa todo o espaço restante */
-    flex-grow: 1;
-    
-    /* CRUCIAL: Adiciona um preenchimento à esquerda igual à largura da sidebar */
-    /* Isso impede que o conteúdo comece escondido atrás dela */
-    margin-left: 288px; /* Mesmo valor da largura da sidebar */
-}
-
-/* Estilos dos links da sidebar (mantidos e melhorados) */
-.sidebar-link.active { 
-    background-color: rgba(255, 255, 255, 0.25); 
-    font-weight: 600; 
-    color: var(--dark-text-header);
-}
-.dark .sidebar-link.active {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: var(--dark-text-header);
-}
-
-/* Lógica para telas menores (mantida) */
-@media (max-width: 768px) {
-    #appSidebar { 
-        display: none; /* Começa escondida */
-    }
-    #appSidebar.open { 
-        display: flex; 
-        /* ... resto do seu código media query ... */
-    }
-    #rightContentWrapper { 
-        margin-left: 0; /* Remove a margem em telas pequenas */
-        padding-left: 1rem; 
-    }
-}
-
-
-/* ====== LAYOUT MODERNO ====== */
-
-/* Reset básico */
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-}
-
-/* Grid principal */
-body {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Sidebar fixa */
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 260px;
-    height: 100vh;
-    background: rgba(30, 30, 30, 0.85);
-    backdrop-filter: blur(12px);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 1rem;
-    border-right: 1px solid rgba(255,255,255,0.1);
-    z-index: 1000;
-}
-
-/* Itens da sidebar */
-.sidebar .menu {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-.sidebar .menu-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.6rem 1rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-.sidebar .menu-item:hover {
-    background: rgba(255,255,255,0.08);
-}
-
-/* Conteúdo principal */
-.main-content {
-    margin-left: 260px;
-    padding: 2rem;
-}
-
-/* Tema padrão (escuro) */
-:root {
-    --bg-color: #1e1e1e;
-    --text-color: #ffffff;
-    --accent-color: #4ade80;
-}
-
-/* Tema claro colorido */
-body.light {
-    --bg-color: #f0f4f8;
-    --text-color: #1f2937;
-    --accent-color: #2563eb;
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-    body {
-        grid-template-columns: 1fr;
-    }
-    .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease-in-out;
-    }
-    .sidebar.active {
-        transform: translateX(0);
-    }
-    .main-content {
-        margin-left: 0;
-    }
-}
-
-
-.app-container {
-    display: flex;
-    min-height: 100vh;
-}
-
-.sidebar {
-    background: var(--card-bg);
-    width: 240px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
-}
-
-.main-content {
-    margin-left: 240px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-header.header {
-    position: sticky;
-    top: 0;
-    background: var(--bg);
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
-    z-index: 100;
-}
-
+#appSidebar { min-height: 100vh; position: sticky; top: 0; }
+.sidebar-link.active { background-color: rgba(255,255,255,0.25); font-weight: 600; }
 .card {
-    background: var(--card-bg);
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+.dark .card {
+  background: rgba(31, 41, 55, 0.3);
+}
+button, .btn {
+  transition: all 0.3s ease;
+}
+button:hover, .btn:hover {
+  transform: translateY(-2px);
+}
+@media (max-width: 768px) {
+  #appSidebar { display: none; }
+  #appSidebar.open { display: flex; position: fixed; z-index: 60; left: 0; top: 0; height: 100vh; width: 280px; }
+  #rightContentWrapper { padding-left: 1rem; }
 }
