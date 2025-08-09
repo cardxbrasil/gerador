@@ -3735,10 +3735,10 @@ const generatePromptsForSectionInBackground = async (sectionElementId) => {
 
 
 // ====================================================================================
-// >>>>> VERSÃO FINAL 3.0: FLUXO SIMPLIFICADO E CORRIGIDO <<<<<
+// >>>>> VERSÃO FINAL 4.0: FOCO EM EMOÇÕES + BOTÃO DE COPIAR TEXTO <<<<<
 // ====================================================================================
 const mapEmotionsAndPacing = async (button) => {
-    const { script, imagePrompts } = AppState.generated;
+    const { script } = AppState.generated; // Não precisamos mais dos imagePrompts aqui
 
     const isScriptReady = script.intro.text && script.development.text && script.climax.text;
     if (!isScriptReady) {
@@ -3748,48 +3748,35 @@ const mapEmotionsAndPacing = async (button) => {
 
     const outputContainer = document.getElementById('emotionalMapContent');
     showButtonLoading(button);
-    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando emoções e storyboard...</p>`;
+    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando a jornada emocional do roteiro...</p>`;
 
     try {
-        // ETAPA 1: GARANTIR QUE TEMOS TODOS OS DADOS
-        
-        // Gera o mapa emocional se ainda não existir
+        // ETAPA 1: GARANTIR DADOS DE EMOÇÃO
         if (!AppState.generated.emotionalMap) {
-            outputContainer.querySelector('p').textContent = 'Analisando jornada emocional...';
             const fullTranscript = getTranscriptOnly();
             const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
-            const prompt = `Você é uma API de análise... (seu prompt de emoções completo aqui)`;
+            const prompt = `Você é uma API de análise que retorna um array JSON. Para os ${paragraphs.length} parágrafos, sua resposta DEVE ser um array JSON com ${paragraphs.length} objetos. Cada objeto deve ter: "paragraph_index", "emotion", e "pace". Retorne APENAS o JSON puro.`;
             const rawResult = await callGroqAPI(prompt, 4000);
             AppState.generated.emotionalMap = cleanGeneratedText(rawResult, true, true);
         }
 
-        const sectionOrder = [
-            { id: 'intro', title: 'Introdução', promptKey: 'introSection' },
-            { id: 'development', title: 'Desenvolvimento', promptKey: 'developmentSection' },
-            { id: 'climax', title: 'Clímax', promptKey: 'climaxSection' },
-            { id: 'conclusion', title: 'Conclusão', promptKey: 'conclusionSection' },
-            { id: 'cta', title: 'Call to Action (CTA)', promptKey: 'ctaSection' }
-        ];
-
-        // Gera os prompts de imagem para cada seção que precisa, em sequência
-        for (const section of sectionOrder) {
-            if (script[section.id]?.text && !imagePrompts[section.promptKey]) {
-                outputContainer.querySelector('p').textContent = `Gerando visuais para: ${section.title}...`;
-                // Usamos a função principal, mas sem um botão, passando apenas o ID da seção
-                await window.generatePromptsForSection(null, section.promptKey); 
-            }
-        }
-        
-        // ETAPA 2: RENDERIZAÇÃO FINAL
+        // ETAPA 2: RENDERIZAÇÃO FOCADA E SIMPLIFICADA
         outputContainer.innerHTML = '';
         let paragraphCounter = 0;
+
+        const sectionOrder = [
+            { id: 'intro', title: 'Introdução' },
+            { id: 'development', title: 'Desenvolvimento' },
+            { id: 'climax', title: 'Clímax' },
+            { id: 'conclusion', title: 'Conclusão' },
+            { id: 'cta', title: 'Call to Action (CTA)' }
+        ];
 
         sectionOrder.forEach(section => {
             const sectionScript = script[section.id];
             if (!sectionScript || !sectionScript.text) return;
 
-            const sectionParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim() !== '');
-            const numParagraphs = sectionParagraphs.length;
+            const numParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim() !== '').length;
             const sectionEmotionsData = AppState.generated.emotionalMap.slice(paragraphCounter, paragraphCounter + numParagraphs);
             
             const uniqueEmotions = [...new Set(sectionEmotionsData.map(e => e.emotion))];
@@ -3801,52 +3788,39 @@ const mapEmotionsAndPacing = async (button) => {
                 `<span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${DOMPurify.sanitize(pace)}</span>`
             ).join('');
 
-            let promptsHtml = '<p class="text-sm italic text-gray-500">Prompts de imagem não gerados para esta seção.</p>';
-            const sectionPrompts = imagePrompts[section.promptKey] || [];
-
-            if (sectionPrompts.length > 0) {
-                promptsHtml = sectionPrompts.map(promptData => {
-                    const fullPromptTextForCopy = promptData.applyStyleBlock ? `${promptData.imageDescription} ${CINEMATIC_STYLE_BLOCK}` : promptData.imageDescription;
-                    return `
-                        <div class="prompt-item !border-l-transparent !bg-transparent !p-0 mt-3">
-                            <p class="paragraph-preview !mb-2 !pb-2"><em>Para o parágrafo: "${DOMPurify.sanitize(promptData.scriptPhrase.substring(0, 80))}..."</em></p>
-                            <div class="flex justify-between items-center">
-                                <p class="text-sm flex-grow">${DOMPurify.sanitize(promptData.imageDescription)}</p>
-                                <button class="ml-4 copy-btn-small text-gray-400 hover:text-primary transition-colors"
-                                        onclick="window.copyTextToClipboard(this.nextElementSibling.textContent); window.showCopyFeedback(this);"
-                                        title="Copiar prompt completo">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                                <pre class="full-prompt-hidden hidden">${DOMPurify.sanitize(fullPromptTextForCopy)}</pre>
-                            </div>
-                        </div>`;
-                }).join('<hr class="my-3 border-dashed border-gray-300 dark:border-gray-600">');
-            }
-
+            // <<<< MUDANÇA PRINCIPAL 1: O NOVO CABEÇALHO COM BOTÃO DE COPIAR >>>>
             const sectionCardHtml = `
             <div class="emotional-map-item card !p-6 mb-6 animate-fade-in">
-                <h2 class="text-xl font-bold mb-3">${section.title}</h2>
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-xl font-bold">${section.title}</h2>
+                    <button class="text-gray-400 hover:text-primary transition-colors"
+                            onclick="window.copyTextToClipboard(this.nextElementSibling.textContent); window.showCopyFeedback(this);"
+                            title="Copiar Texto Completo da Seção">
+                        <i class="fas fa-copy fa-lg"></i>
+                    </button>
+                    <pre class="full-prompt-hidden hidden">${DOMPurify.sanitize(sectionScript.text)}</pre>
+                </div>
+
                 <div class="prompt-header mb-4">
                     ${tagsHtml || '<span class="text-sm italic text-gray-500">Nenhuma emoção analisada.</span>'}
                 </div>
-                <div class="text-base leading-relaxed mb-6">
+                
+                <div class="text-base leading-relaxed">
                     ${sectionScript.html} 
                 </div>
-                <div class="border-t border-gray-300 dark:border-gray-700 pt-4">
-                    <h3 class="font-semibold mb-2">Prompts de Imagem da Seção</h3>
-                    ${promptsHtml}
-                </div>
+
+                <!-- <<<< MUDANÇA PRINCIPAL 2: SEÇÃO DE PROMPTS REMOVIDA >>>> -->
             </div>`;
             
             outputContainer.innerHTML += sectionCardHtml;
             paragraphCounter += numParagraphs;
         });
         
-        window.showToast("Storyboard por seções gerado com sucesso!", 'success');
+        window.showToast("Mapa Emocional gerado com sucesso!", 'success');
         markButtonAsCompleted(button.id);
 
     } catch (error) {
-        console.error("Erro detalhado ao gerar o Mapa Emocional por seções:", error);
+        console.error("Erro detalhado ao gerar o Mapa Emocional:", error);
         outputContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar o mapa: ${error.message}</p>`;
         AppState.generated.emotionalMap = null;
     } finally {
