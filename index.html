@@ -6897,7 +6897,7 @@ const generateTitlesAndThumbnails = async (button) => {
             markButtonAsCompleted(button.id);
         }
     } catch (error) {
-        window.showToast(\Falha ao gerar Títulos: ${error.message}`, 'error');`
+        window.showToast(`Erro: Arquivo de projeto inválido ou corrompido.`, 'error');
         console.error("Error generating Titles/Thumbnails.", error);
     } finally {
         hideButtonLoading(button);
