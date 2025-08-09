@@ -478,47 +478,6 @@ ${context.durationInstruction}`;
     }
 };
 
-const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
-    const baseContext = getBasePromptContext();
-    const videoDuration = document.getElementById('videoDuration').value;
-    const selectedLanguage = document.getElementById('languageSelect').value;
-    const languageName = new Intl.DisplayNames([selectedLanguage], { type: 'language' }).of(selectedLanguage);
-
-    const targetWords = wordCountMap[videoDuration]?.[sectionName];
-    const durationInstruction = targetWords ? `\n\n**CRITICAL TIMING CONSTRAINT:** The generated text for this section MUST be approximately **${targetWords} words** in total.` : '';
-
-    const context = {
-        basePrompt: baseContext,
-        sectionTitle,
-        durationInstruction,
-        contextText: contextText ? contextText.slice(-4000) : null,
-        outlineDirective,
-        languageName
-    };
-    
-    let prompt;
-    let maxTokens = 4000;
-
-    switch (sectionName) {
-        case 'outline':
-            prompt = PromptManager.getOutlinePrompt(context);
-            maxTokens = 2000;
-            break;
-        case 'titles_thumbnails':
-            prompt = PromptManager.getTitlesAndThumbnailsPrompt(context);
-            maxTokens = 2000;
-            break;
-        case 'description':
-            prompt = PromptManager.getVideoDescriptionPrompt(context);
-            maxTokens = 1000;
-            break;
-        default:
-            prompt = PromptManager.getScriptSectionPrompt(context);
-            break;
-    }
-    
-    return { prompt, maxTokens };
-};
 
 
 
