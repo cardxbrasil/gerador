@@ -7081,7 +7081,7 @@ const generateVideoDescription = async (button) => {
             markButtonAsCompleted(button.id);
         }
     } catch (error) {
-        window.showToast(\Falha ao gerar Descrição: ${error.message}`, 'error');`
+        window.showToast(`Falha ao sugerir estratégia: ${error.message}`, 'error');
         console.error("Error generating Video Description.", error);
     } finally {
         hideButtonLoading(button);
