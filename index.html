@@ -4594,9 +4594,9 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
 // ============================
 // >>>>> FILTRO JSON <<<<<
 // ============================
-const cleanGeneratedText = (text, expectJson = false) => {
+const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => { // <<<< EVOLUÇÃO 1: Adicionado 'arrayExpected'
     if (!text || typeof text !== 'string') {
-        return expectJson ? null : ''; // Retorna nulo para JSON, string vazia para texto
+        return expectJson ? null : '';
     }
 
     if (!expectJson) {
@@ -4604,21 +4604,18 @@ const cleanGeneratedText = (text, expectJson = false) => {
     }
 
     // --- ETAPA ZERO (NOVA): O DETETIVE DE INTENÇÃO ---
+    // (Sua lógica original, mantida 100%)
     let jsonString;
     const trimmedText = text.trim();
-
-    // 1. Tenta encontrar um bloco de código Markdown primeiro.
     const markdownMatch = trimmedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
     if (markdownMatch && markdownMatch[2]) {
         jsonString = markdownMatch[2].trim();
     } 
-    // 2. Se não, tenta encontrar múltiplos objetos JSON para montar um array.
     else {
         const jsonObjects = trimmedText.match(/\{[\s\S]*?\}/g);
-        if (jsonObjects && jsonObjects.length > 1) { // Só monta se houver MAIS de um objeto
+        if (jsonObjects && jsonObjects.length > 1) {
             jsonString = `[${jsonObjects.join(',')}]`;
         } 
-        // 3. Se nada disso funcionar, usa a lógica de fallback (procurar o início).
         else {
             const startIndex = trimmedText.search(/[\{\[]/);
             if (startIndex === -1) {
@@ -4627,11 +4624,10 @@ const cleanGeneratedText = (text, expectJson = false) => {
             jsonString = trimmedText.substring(startIndex);
         }
     }
-    // -----------------------------------------------------------
     
     // --- A PARTIR DAQUI, AS SUAS ETAPAS ANTERIORES FORAM MANTIDAS E EVOLUÍDAS ---
 
-    // ETAPA 2: CIRURGIA PREVENTIVA DE FECHAMENTO (Sua lógica)
+    // ETAPA 2: CIRURGIA PREVENTIVA DE FECHAMENTO (Sua lógica, mantida 100%)
     let openBrackets = (jsonString.match(/\[/g) || []).length;
     let closeBrackets = (jsonString.match(/\]/g) || []).length;
     let openBraces = (jsonString.match(/\{/g) || []).length;
@@ -4642,20 +4638,25 @@ const cleanGeneratedText = (text, expectJson = false) => {
 
     // ETAPA 3: TENTATIVA INICIAL
     try {
-        return JSON.parse(jsonString);
+        let parsedResult = JSON.parse(jsonString);
+
+        // <<<< EVOLUÇÃO 2: A CAMADA DE SEGURANÇA SEMÂNTICA >>>>
+        // Se a gente esperava um array, mas a IA mandou um objeto, a gente corrige.
+        if (arrayExpected && !Array.isArray(parsedResult)) {
+            console.warn("Correção Semântica: A IA retornou um objeto, mas um array era esperado. O resultado foi envolvido em um array.", parsedResult);
+            return [parsedResult]; // Envolve o objeto solitário em um array
+        }
+        // <<<< FIM DA EVOLUÇÃO 2 >>>>
+
+        return parsedResult;
+
     } catch (initialError) {
         console.warn("Parse inicial falhou. Iniciando reparos...", initialError.message);
         
-        // ETAPA 4: CIRURGIAS AVANÇADAS
+        // ETAPA 4: CIRURGIAS AVANÇADAS (Sua lógica, mantida 100%)
         let repairedString = jsonString; 
         try {
-            // <<< A EVOLUÇÃO ESTÁ AQUI: A MICRO-CIRURGIA PARA VÍRGULAS AUSENTES >>>
-            // Procura por uma aspa de fechamento, seguida por uma quebra de linha, seguida por uma aspa de abertura,
-            // e insere a vírgula que faltava.
             repairedString = repairedString.replace(/(?<=")\s*[\r\n]+\s*(?=")/g, ',');
-            // <<< FIM DA EVOLUÇÃO >>>
-
-            // Suas cirurgias + as minhas, todas juntas
             repairedString = repairedString.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
             repairedString = repairedString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
             repairedString = repairedString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
@@ -4673,10 +4674,18 @@ const cleanGeneratedText = (text, expectJson = false) => {
             repairedString = repairedString.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
 
             // ETAPA 5: TENTATIVA FINAL
-            return JSON.parse(repairedString);
+            let finalParsedResult = JSON.parse(repairedString);
+
+            // <<<< EVOLUÇÃO 3: APLICA A SEGURANÇA SEMÂNTICA AQUI TAMBÉM >>>>
+            if (arrayExpected && !Array.isArray(finalParsedResult)) {
+                console.warn("Correção Semântica Pós-Reparo: A IA retornou um objeto, mas um array era esperado. O resultado foi envolvido em um array.", finalParsedResult);
+                return [finalParsedResult];
+            }
+            // <<<< FIM DA EVOLUÇÃO 3 >>>>
+
+            return finalParsedResult;
 
         } catch (surgeryError) {
-            // Seu relatório de erro
             console.error("FALHA CRÍTICA: A cirurgia no JSON não foi bem-sucedida.", surgeryError.message);
             console.error("JSON Problemático (Original):", text);
             console.error("JSON Pós-Cirurgia (Falhou):", repairedString);
