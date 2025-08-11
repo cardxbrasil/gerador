@@ -1542,12 +1542,16 @@ const createReportSection = (analysisData) => {
             const problematicQuoteEscaped = (point.problematic_quote || '').replace(/"/g, '"');
             const rewrittenQuoteEscaped = (point.rewritten_quote || '').replace(/"/g, '"');
 
+            // <<< AQUI ESTÁ A CORREÇÃO >>>
+            // Agora estamos adicionando o texto de `point.rewritten_quote` ao lado da palavra "Sugestão".
             return `
             <div class="mt-4 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
-                <p class="text-sm italic text-gray-500 dark:text-gray-400 mb-1">" ${DOMPurify.sanitize(point.problematic_quote || '')} "</p>
+                <p class="text-sm italic text-gray-500 dark:text-gray-400 mb-1">Citação: "${DOMPurify.sanitize(point.problematic_quote || 'N/A')}"</p>
                 <p class="text-sm"><strong class="text-yellow-600 dark:text-yellow-400">Crítica:</strong> ${DOMPurify.sanitize(point.critique || '')}</p>
                 <div class="flex items-center justify-between gap-2 mt-2">
-                    <p class="text-sm flex-1"><strong class="text-green-600 dark:text-green-400">Sugestão:</strong> ${DOMPurify.sanitize(point.suggestion_text || '')}</p>
+                    <p class="text-sm flex-1">
+                        <strong class="text-green-600 dark:text-green-400">Sugestão:</strong> Substituir por: "${DOMPurify.sanitize(point.rewritten_quote || '')}"
+                    </p>
                     
                     <button class="btn btn-primary btn-small flex-shrink-0"
                             data-action="applySuggestion"
