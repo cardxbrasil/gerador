@@ -1405,7 +1405,7 @@ window.applySuggestion = (button) => { console.log("Ação: Aplicar Sugestão");
 const applyAllSuggestions = async (button) => { console.log("Ação: Aplicar Todas"); window.showToast("Função 'Aplicar Todas' a ser conectada.", "info"); };
 const applyHookSuggestion = (button) => { console.log("Ação: Aplicar Gancho"); window.showToast("Função 'Aplicar Gancho' a ser conectada.", "info"); };
 const insertViralSuggestion = (button) => { console.log("Ação: Inserir Sugestão Viral"); window.showToast("Função 'Inserir Sugestão Viral' a ser conectada.", "info"); };
-const handleEditingAction = async (action) => { console.log(`Ação de Edição: ${action}`); window.showToast(`Função 'Edição ${action}' a ser conectada.`, "info"); };
+
 
 
 // ==========================================================
