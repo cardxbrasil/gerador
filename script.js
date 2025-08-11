@@ -460,26 +460,540 @@ const applyStrategy = () => {
     window.showToast("Estratégia definida. Pronto para criar o roteiro.", 'success');
 };
 
+// =========================================================================
+// ====================  ===================
+// =========================================================================
+
+const generateStrategicOutline = async (button) => {
+    if (!validateInputs()) return;
+
+    // --- ETAPA 1: LIMPEZA PROFUNDA INTEGRADA ---
+    console.log("Iniciando limpeza profunda para novo esboço...");
+
+    // Limpa o roteiro e o esboço da memória (AppState)
+    AppState.generated.strategicOutline = null;
+    AppState.generated.script = {
+        intro: { html: null, text: null }, development: { html: null, text: null },
+        climax: { html: null, text: null }, conclusion: { html: null, text: null },
+        cta: { html: null, text: null }
+    };
+
+    // Limpa TODOS os recursos derivados da memória (AppState)
+    AppState.generated.emotionalMap = null;
+    AppState.generated.titlesAndThumbnails = null;
+    AppState.generated.description = null;
+    AppState.generated.soundtrack = null;
+    AppState.generated.imagePrompts = {};
+
+    // Limpa os containers da UI para refletir a memória limpa
+    const scriptContainer = document.getElementById('scriptSectionsContainer');
+    if (scriptContainer) scriptContainer.innerHTML = '';
+
+    const outlineContent = document.getElementById('outlineContent');
+    if(outlineContent) outlineContent.innerHTML = `<div class="asset-card-placeholder">Clique para gerar o esboço.</div>`;
+    
+    // Limpa os placeholders no painel de finalização que dependem do roteiro
+    const placeholdersToReset = {
+        'emotionalMapContent': 'Gere o roteiro completo para habilitar.',
+        'titlesThumbnailsContent': 'Gere o roteiro para habilitar.',
+        'videoDescriptionContent': 'Gere o roteiro para habilitar.',
+        'soundtrackContent': 'Gere o roteiro para habilitar.'
+    };
+    for (const id in placeholdersToReset) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.innerHTML = `<div class="asset-card-placeholder">${placeholdersToReset[id]}</div>`;
+        }
+    }
+    const analysisContainers = ['analysisReportContainer', 'hooksReportContainer', 'viralSuggestionsContainer'];
+    analysisContainers.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.innerHTML = '';
+    });
+    console.log("Limpeza profunda concluída.");
+    // --- FIM DA LIMPEZA ---
+
+    showButtonLoading(button);
+    
+    const outlineContentDiv = document.getElementById('outlineContent');
+    outlineContentDiv.innerHTML = `<div class="asset-card-placeholder"><div class="loading-spinner"></div><span style="margin-left: 1rem;">Criando o esqueleto da sua história...</span></div>`;
+
+    try {
+        const baseContext = getBasePromptContext(); // Usa a versão completa que já transplantamos
+        const prompt = `${baseContext}
+        Você é uma API de geração de JSON. Sua tarefa é criar um esboço estratégico para um vídeo.
+        **REGRAS INEGOCIÁVEIS:**
+        1.  **JSON PURO:** Responda APENAS com um objeto JSON válido.
+        2.  **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".
+        3.  **VALORES:** O valor para CADA chave DEVE ser uma única string de texto concisa (1-2 frases).
+        **TAREFA:** Gere o objeto JSON perfeito.`;
+
+        const rawResult = await callGroqAPI(prompt, 2000);
+        AppState.generated.strategicOutline = cleanGeneratedText(rawResult, true);
+        
+        const { strategicOutline } = AppState.generated;
+
+        if (!strategicOutline || typeof strategicOutline !== 'object' || !strategicOutline.introduction) {
+            throw new Error("A IA falhou em gerar um esboço em formato JSON válido.");
+        }
+
+        const titleTranslations = {
+            'introduction': 'Introdução', 'development': 'Desenvolvimento',
+            'climax': 'Clímax', 'conclusion': 'Conclusão', 'cta': 'CTA'
+        };
+        
+        let outlineHtml = '<ul class="space-y-4 text-sm" style="list-style-position: inside; padding-left: 1rem;">';
+        for (const key in strategicOutline) {
+            if (Object.hasOwnProperty.call(strategicOutline, key)) {
+                const translatedTitle = titleTranslations[key] || key;
+                outlineHtml += `<li><div><strong style="color: var(--primary);">${translatedTitle}:</strong> <span style="color: var(--text-body);">${DOMPurify.sanitize(strategicOutline[key])}</span></div></li>`;
+            }
+        }
+        outlineHtml += '</ul>';
+        
+        outlineContentDiv.innerHTML = outlineHtml;
+        
+        // Cria os novos placeholders para as seções do roteiro
+        createScriptSectionPlaceholders();
+
+    } catch (error) {
+        console.error("Erro detalhado em generateStrategicOutline:", error);
+        window.showToast(`Falha ao gerar Esboço: ${error.message}`, 'error');
+        if(outlineContentDiv) outlineContentDiv.innerHTML = `<div class="asset-card-placeholder" style="color: var(--danger);">${error.message}. Tente novamente.</div>`;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+const createScriptSectionPlaceholders = () => {
+    const scriptContainer = document.getElementById('scriptSectionsContainer');
+    if (!scriptContainer) return;
+
+    const sections = [
+        { id: 'intro', title: 'Introdução', action: 'generateIntro' },
+        { id: 'development', title: 'Desenvolvimento', action: 'generateDevelopment' },
+        { id: 'climax', title: 'Clímax', action: 'generateClimax' },
+    ];
+
+    let placeholdersHtml = '';
+    sections.forEach(section => {
+        placeholdersHtml += `
+            <div id="${section.id}Section" class="card card-placeholder mb-4 animate-fade-in flex justify-between items-center">
+                <h3 class="font-semibold text-lg" style="color: var(--text-header);">${section.title}</h3>
+                <button id="${section.action}Btn" data-action="${section.action}" class="btn btn-secondary btn-small">
+                    <i class="fas fa-magic" style="margin-right: 8px;"></i>Gerar
+                </button>
+            </div>
+        `;
+    });
+    
+    scriptContainer.innerHTML = placeholdersHtml;
+};
+
+
+// =========================================================================
+// ====================  ===================
+// =========================================================================
+
+
+const getBasePromptContext = () => {
+    // Coleta todos os valores dos campos do formulário
+    const channelName = document.getElementById('channelName')?.value.trim() || "";
+    const videoTheme = document.getElementById('videoTheme')?.value.trim() || "";
+    const targetAudience = document.getElementById('targetAudience')?.value.trim() || "";
+    const language = document.getElementById('languageSelect')?.value || "en";
+    const languageStyle = document.getElementById('languageStyle')?.value || "";
+    const videoObjective = document.getElementById('videoObjective')?.value || "";
+    const speakingPace = document.getElementById('speakingPace')?.value || "";
+    const narrativeStructure = document.getElementById('narrativeStructure')?.value || "";
+    const narrativeTheme = document.getElementById('narrativeTheme')?.value.trim() || "";
+    const narrativeTone = document.getElementById('narrativeTone')?.value || "";
+    const narrativeVoice = document.getElementById('narrativeVoice')?.value.trim() || "";
+    const shockingEndingHook = document.getElementById('shockingEndingHook')?.value.trim() || "";
+    const imageStyleSelect = document.getElementById('imageStyleSelect')?.value || "";
+    const customImageStyle = document.getElementById('customImageStyle')?.value.trim() || "";
+
+    // DIETA DOS INPUTS: Limita o tamanho dos campos de texto livre para evitar sobrecarga.
+    const videoDescription = (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000);
+    const centralQuestion = (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500);
+    const emotionalArc = (document.getElementById('emotionalArc')?.value.trim() || "").slice(0, 500);
+    const imageDescriptionEngine = (document.getElementById('imageDescriptionEngine')?.value.trim() || "").slice(0, 500);
+    const researchData = (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500);
+    const emotionalHook = (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000);
+
+    // Monta o prompt base
+    let context = `
+    Você é um ROTEIRISTA ESPECIALISTA e PESQUISADOR DE MÁXIMO DESEMPENHO para o canal "${channelName}". Sua única função é criar conteúdo de vídeo altamente envolvente, crível e ressonante emocionalmente, baseado nas instruções detalhadas fornecidas.
+    
+    **Core Project Details:**
+    - Video Topic: "${videoTheme}"
+    - Target Audience: "${targetAudience}"
+    - Language: "${language}"
+    - Video Objective: "${videoObjective}"
+                        
+    **Narrative & Style Instructions:**
+    - Narrative Structure to use: "${narrativeStructure}"
+    - Speaking Pace: "${speakingPace}"
+    `;
+
+    if (narrativeTheme) { context += `\n- Core Theme (The Big Idea): "${narrativeTheme}"`; }
+    if (narrativeTone) { context += `\n- Narrative Tone (The Feeling): "${narrativeTone}"`; }
+    if (narrativeVoice) { context += `\n- Narrator's Voice (The Personality): "${narrativeVoice}"`; }
+    if (shockingEndingHook) { context += `\n- Shocking Ending Hook to use: "${shockingEndingHook}"`; }
+    if (videoDescription) { context += `\n\n**Additional Information & Inspiration:**\n- Inspiration/Context: "${videoDescription}"`; }
+    if (centralQuestion) { context += `\n- Central Question to guide the entire script: "${centralQuestion}"`; }
+    if (emotionalArc) { context += `\n- Desired Emotional Arc: "${emotionalArc}"`; }
+
+    if (emotionalHook) {
+        if (narrativeTone === 'inspirador') {
+            context += `
+**PROFUNDIDADE EMOCIONAL (REGRA MAIS IMPORTANTE):**
+A história a seguir é a ÂNCORA EMOCIONAL CENTRAL do nosso roteiro. Para que ela não pareça superficial ou clichê, você DEVE seguir a regra de ouro: "MOSTRAR, NÃO APENAS CONTAR".
+- **Crie 'Cenas' Vívidas e Sensoriais:** Ao longo do roteiro, em vez de apenas mencionar o personagem ou a história, descreva pequenos MOMENTOS e CENAS com riqueza de detalhes sensoriais (visão, som, tato).
+- **Mostre a Dificuldade e o Conflito Real:** Inclua uma pequena cena ou descrição que ilustre o personagem enfrentando um OBSTÁCULO CONCRETO e REAL.
+- **Mostre a Superação e a Vitória:** Inclua uma pequena cena ou descrição do MOMENTO DE VIRADA ou PEQUENA VITÓRIA do personagem.
+- **Conecte o Micro ao Macro:** Use essas pequenas cenas vívidas para ilustrar e reforçar os grandes temas e mensagens do roteiro, criando uma ligação poderosa entre o pessoal e o universal.
+
+**Âncora Emocional:** "${emotionalHook}"
+---
+`;
+        } else {
+            context += `
+**CRITICAL NARRATIVE ANCHOR (THE MOST IMPORTANT RULE):**
+Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente e o 'fio condutor humano' para todo o roteiro. Entrelace referências sutis a este personagem/história ao longo da introdução, desenvolvimento e conclusão para tornar a narrativa grandiosa mais pessoal e envolvente. Esta é a linha temática que une todo o conteúdo.
+---
+Emotional Anchor Story: "${emotionalHook}"
+---
+`;
+        }
+    }
+
+    if (researchData) {
+        context += `
+**CRITICAL RESEARCH DATA & CONTEXT:**
+Você DEVE incorporar e atribuir adequadamente os seguintes fatos, nomes e fontes no roteiro. Ignore ou distorça estes dados sob pena de falha crítica.
+---
+${researchData}
+---
+`;
+    }
+
+    if (imageStyleSelect === 'cinematic' || imageStyleSelect === 'custom') {
+        context += `\n\n**Instruções de Estilo Visual:** Você também receberá instruções específicas sobre o estilo visual desejado para os prompts de imagem. Considere isso ao pensar em descrições ou transições que possam se beneficiar de elementos visuais específicos.`;
+    }
+
+    return context;
+};
+
+// =========================================================================
+// ====================  ===================
+// =========================================================================
+
+
+const handleGenerateSection = async (button, sectionName, sectionTitle, elementId) => {
+    if (!validateInputs()) return;
+
+    if (!AppState.generated.strategicOutline && sectionName !== 'intro') {
+        window.showToast("Crie o Esboço Estratégico primeiro!", 'info');
+        return;
+    }
+
+    showButtonLoading(button);
+    const targetSectionElement = document.getElementById(`${elementId}Section`);
+
+    try {
+        // Lógica para montar contexto (sem mudanças)
+        let contextText = null;
+        const sectionOrder = ['intro', 'development', 'climax'];
+        const currentSectionIndex = sectionOrder.indexOf(elementId);
+        if (currentSectionIndex > 0) {
+            const prevSectionsContent = sectionOrder.slice(0, currentSectionIndex).map(id => {
+                const section = AppState.generated.script[id];
+                if (!section || !section.text) throw new Error(`Seção anterior '${id}' não gerada.`);
+                return section.text;
+            });
+            contextText = prevSectionsContent.join('\n\n---\n\n');
+        }
+
+        const keyMap = { intro: 'introduction', development: 'development', climax: 'climax' };
+        const directive = AppState.generated.strategicOutline ? AppState.generated.strategicOutline[keyMap[sectionName]] : null;
+        const { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
+
+        const rawResult = await callGroqAPI(prompt, maxTokens);
+        
+        // A GRANDE MUDANÇA: PROCESSANDO O ARRAY JSON
+        const paragraphs = cleanGeneratedText(rawResult, true, true); // O segundo 'true' força a ser um array
+
+        if (!Array.isArray(paragraphs) || paragraphs.length === 0) {
+            console.error("Resposta da IA não foi um array de parágrafos válido:", rawResult);
+            throw new Error("A IA não retornou o roteiro no formato de parágrafos esperado. Tente novamente.");
+        }
+
+        const contentWithDivs = paragraphs.map((p, index) =>
+            `<div id="${elementId}-p-${index}">${DOMPurify.sanitize(p)}</div>`
+        ).join('');
+        
+        const fullText = paragraphs.join('\n\n');
+
+        // Atualiza o estado central
+        if (AppState.generated.script.hasOwnProperty(sectionName)) {
+            AppState.generated.script[sectionName] = {
+                html: contentWithDivs,
+                text: fullText
+            };
+            console.log(`Estado para '${sectionName}' atualizado no AppState.`);
+        }
+
+        // Renderiza na UI
+        if (targetSectionElement) {
+            const sectionElement = generateSectionHtmlContent(elementId, sectionTitle, contentWithDivs);
+            targetSectionElement.innerHTML = '';
+            targetSectionElement.appendChild(sectionElement);
+            targetSectionElement.classList.remove('card', 'card-placeholder', 'flex', 'justify-between', 'items-center');
+        }
+
+        // ESSA LÓGICA ESTAVA FALTANDO E É IMPORTANTE
+        // markButtonAsCompleted(button.id);
+
+    } catch (error) {
+        window.showToast(`Falha ao gerar ${sectionTitle}: ${error.message}`, 'error');
+        console.error(`Error generating ${sectionTitle}.`, error);
+        if (targetSectionElement) {
+             const actionName = button.dataset.action;
+             // Recria o placeholder em caso de erro
+             targetSectionElement.innerHTML = createScriptSectionPlaceholders(); // Assumindo que essa função recria todos.
+        }
+    } finally {
+        hideButtonLoading(button);
+        
+
+const updateButtonStates = () => {
+    const script = AppState.generated.script;
+
+    // Define os estados chave da geração do roteiro
+    const allMainScriptGenerated = !!script.intro?.text && !!script.development?.text && !!script.climax?.text;
+    const isConclusionGenerated = !!script.conclusion?.text;
+    const isCtaGenerated = !!script.cta?.text;
+    const isFullScriptGenerated = allMainScriptGenerated && isConclusionGenerated && isCtaGenerated;
+
+    // Habilita/desabilita botões de metadados no painel de finalização
+    const metadataButtons = ['generateTitlesAndThumbnailsBtn', 'generateDescriptionBtn', 'generateSoundtrackBtn', 'mapEmotionsBtn'];
+    metadataButtons.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.disabled = !allMainScriptGenerated;
+        }
+    });
+
+    // --- A CORREÇÃO CRÍTICA ESTÁ AQUI (LÓGICA DA SUA IMAGEM) ---
+    const conclusionModule = document.getElementById('conclusionStrategyModule');
+    if (conclusionModule) {
+        // A NOVA REGRA: O módulo aparece assim que o roteiro principal estiver pronto e FICA LÁ.
+        const shouldShowConclusionModule = allMainScriptGenerated;
+        conclusionModule.classList.toggle('hidden', !shouldShowConclusionModule);
+
+        // A lógica interna de qual botão (Conclusão ou CTA) aparece continua a mesma.
+        const btnGenerateConclusion = document.getElementById('generateConclusionBtn');
+        const btnGenerateCta = document.getElementById('generateCtaBtn');
+        if (btnGenerateConclusion && btnGenerateCta) {
+            btnGenerateConclusion.classList.toggle('hidden', isConclusionGenerated);
+            btnGenerateCta.classList.toggle('hidden', !isConclusionGenerated);
+        }
+    }
+    
+    // Mostra/esconde a seção de análise quando TUDO estiver pronto
+    const analysisSection = document.getElementById('scriptAnalysisSection');
+    if (analysisSection) {
+        analysisSection.classList.toggle('hidden', !isFullScriptGenerated);
+    }
+};
+
+    }
+};
+
+
+// =========================================================================
+// ====================  ===================
+// =========================================================================
+
+
+const wordCountMap = {
+    'short': { intro: 60, development: 190, climax: 75, conclusion: 50 },
+    'medium': { intro: 120, development: 420, climax: 165, conclusion: 120 },
+    'long': { intro: 225, development: 750, climax: 300, conclusion: 225 },
+};
+
+const handleGenerateSection = async (button, sectionName, sectionTitle, elementId) => {
+    if (!validateInputs()) return;
+
+    if (!AppState.generated.strategicOutline && sectionName !== 'intro') {
+        window.showToast("Crie o Esboço Estratégico primeiro!", 'info');
+        return;
+    }
+
+    showButtonLoading(button);
+    const targetSectionElement = document.getElementById(`${elementId}Section`);
+
+    try {
+        let contextText = null;
+        const sectionOrder = ['intro', 'development', 'climax'];
+        const currentSectionIndex = sectionOrder.indexOf(elementId);
+        if (currentSectionIndex > 0) {
+            const prevSectionsContent = sectionOrder.slice(0, currentSectionIndex).map(id => {
+                const section = AppState.generated.script[id];
+                if (!section || !section.text) throw new Error(`Seção anterior '${id}' não gerada.`);
+                return section.text;
+            });
+            contextText = prevSectionsContent.join('\n\n---\n\n');
+        }
+
+        const keyMap = { intro: 'introduction', development: 'development', climax: 'climax' };
+        const directive = AppState.generated.strategicOutline ? AppState.generated.strategicOutline[keyMap[sectionName]] : null;
+        const { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
+
+        const rawResult = await callGroqAPI(prompt, maxTokens);
+        const paragraphs = cleanGeneratedText(rawResult, true, true); 
+
+        if (!Array.isArray(paragraphs) || paragraphs.length === 0) {
+            throw new Error("A IA não retornou o roteiro no formato de parágrafos esperado. Tente novamente.");
+        }
+
+        const contentWithDivs = paragraphs.map((p, index) =>
+            `<div id="${elementId}-p-${index}">${DOMPurify.sanitize(p)}</div>`
+        ).join('');
+        
+        const fullText = paragraphs.join('\n\n');
+
+        if (AppState.generated.script.hasOwnProperty(sectionName)) {
+            AppState.generated.script[sectionName] = { html: contentWithDivs, text: fullText };
+        }
+
+        if (targetSectionElement) {
+            const sectionElement = generateSectionHtmlContent(elementId, sectionTitle, contentWithDivs);
+            targetSectionElement.innerHTML = '';
+            targetSectionElement.appendChild(sectionElement);
+            targetSectionElement.classList.remove('card', 'card-placeholder', 'flex', 'justify-between', 'items-center');
+        }
+
+    } catch (error) {
+        window.showToast(`Falha ao gerar ${sectionTitle}: ${error.message}`, 'error');
+        console.error(`Error generating ${sectionTitle}.`, error);
+        if (targetSectionElement) {
+            // Recria o placeholder em caso de erro
+            targetSectionElement.innerHTML = createScriptSectionPlaceholders(); 
+        }
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
+    const baseContext = getBasePromptContext();
+    const videoDuration = document.getElementById('videoDuration').value;
+    
+    const targetWords = wordCountMap[videoDuration]?.[sectionName];
+    let durationInstruction = '';
+    if (targetWords) {
+        durationInstruction = `\n\n**CRITICAL TIMING CONSTRAINT:** The generated text for this section MUST be approximately **${targetWords} words** in total.`;
+    }
+
+    let prompt = `${baseContext}
+Você é um ARQUITETO DE ROTEIROS DE ALTA PERFORMANCE. Sua missão é escrever o texto para a seção **"${sectionTitle}"** do roteiro.
+${durationInstruction}`;
+
+    if (contextText) {
+        prompt += `
+\n**CONTEXTO DO ROTEIRO EXISTENTE (PARA GARANTIR CONTINUIDADE):**
+---
+${contextText.slice(-4000)} 
+---
+Sua tarefa é continuar a narrativa a partir daqui, sem repetições.`;
+    }
+
+    if (outlineDirective) {
+        prompt += `\n\n**DIRETRIZ ESTRATÉGICA OBRIGATÓRIA:** Siga este plano: "${outlineDirective}"`;
+    }
+    
+    prompt += `
+\n**REGRAS CRÍTICAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
+1.  **RESPOSTA EM JSON:** Sua resposta DEVE ser um array JSON válido, onde cada item do array é uma string representando um parágrafo do roteiro.
+2.  **ESTRUTURA OBRIGATÓRIA DOS PARÁGRAFOS:** CADA parágrafo (cada string no array) DEVE OBRIGATORIAMENTE conter **NO MÍNIMO 4 FRASES** e agrupar uma ideia coesa. Parágrafos com 1 ou 2 frases são inaceitáveis.
+3.  **CONTEÚDO PURO:** As strings devem conter APENAS o texto a ser narrado. É PROIBIDO incluir anotações como 'Narrador:', '(Cena: ...)', etc.
+4.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
+
+**AÇÃO FINAL:** Escreva agora a seção "${sectionTitle}", seguindo TODAS as diretrizes. Responda APENAS com o array JSON.`;
+
+    let maxTokens = 4000;
+    
+    return { prompt, maxTokens };
+};
+
+const generateSectionHtmlContent = (sectionId, title, content) => {
+    const accordionItem = document.createElement('div');
+    accordionItem.className = 'accordion-item card !p-0 mb-4 animate-fade-in';
+    // Nota: A versão completa com as ferramentas de análise será transplantada depois.
+    const time = "" // calculateReadingTime(content);
+    accordionItem.innerHTML = `
+        <div class="accordion-header">
+            <div class="header-title-group">
+                <h3>${title}</h3>
+                <span class="text-xs">${time}</span>
+            </div>
+            <div class="header-actions-group">
+                <div class="header-buttons">
+                    <button title="Re-gerar" data-action="regenerate" data-section-id="${sectionId}Section"><i class="fas fa-sync-alt"></i></button>
+                    <button title="Copiar" data-action="copy"><i class="fas fa-copy"></i></button>
+                </div>
+                <i class="fas fa-chevron-down accordion-arrow"></i>
+            </div>
+        </div>
+        <div class="accordion-body">
+            <div class="generated-content-wrapper" contenteditable="true">${content}</div>
+        </div>
+    `;
+    accordionItem.querySelector('.accordion-header').addEventListener('click', (e) => {
+        if(!e.target.closest('.header-buttons')) {
+            const body = accordionItem.querySelector('.accordion-body');
+            const arrow = accordionItem.querySelector('.accordion-arrow');
+            body.classList.toggle('open');
+            arrow.classList.toggle('open');
+            body.style.display = body.classList.contains('open') ? 'block' : 'none';
+        }
+    });
+    return accordionItem;
+};
+
+// =========================================================================
+// ====================  ===================
+// =========================================================================
 
 
 
 
+const goToFinalize = () => {
+    const { script } = AppState.generated;
 
+    // Verificação de segurança: garante que o roteiro principal está gerado.
+    if (!script.intro?.text && !script.development?.text && !script.climax?.text) {
+        window.showToast("Gere ao menos as seções principais do roteiro antes de finalizar.", 'info');
+        return;
+    }
 
+    // Se a verificação passar, marca a etapa como concluída e avança.
+    markStepCompleted('script');
+    showPane('finalize');
+    window.showToast("Roteiro pronto! Bem-vindo à área de finalização.", 'success');
+};
 
-
-
-
-
-
-
-
+// =========================================================================
+// ====================  ===================
+// =========================================================================
 
 
 const suggestStrategy = async (button) => { console.log("Ação: Sugerir Estratégia"); window.showToast("Função 'Sugerir Estratégia' a ser conectada.", "info"); };
 
-const generateStrategicOutline = async (button) => { console.log("Ação: Gerar Esboço"); window.showToast("Função 'Gerar Esboço' a ser conectada.", "info"); };
-const handleGenerateSection = async (button, sectionName, sectionTitle, elementId) => { console.log(`Ação: Gerar Seção ${sectionName}`); window.showToast(`Função 'Gerar Seção ${sectionName}' a ser conectada.`, "info"); };
+
+
 const generateConclusion = async (button) => { console.log("Ação: Gerar Conclusão"); window.showToast("Função 'Gerar Conclusão' a ser conectada.", "info"); };
 const generateStrategicCta = async (button) => { console.log("Ação: Gerar CTA"); window.showToast("Função 'Gerar CTA' a ser conectada.", "info"); };
 const suggestFinalStrategy = async (button) => { console.log("Ação: Sugerir Estratégia Final"); window.showToast("Função 'Sugerir Estratégia Final' a ser conectada.", "info"); };
@@ -507,7 +1021,7 @@ const applyAllSuggestions = async (button) => { console.log("Ação: Aplicar Tod
 const applyHookSuggestion = (button) => { console.log("Ação: Aplicar Gancho"); window.showToast("Função 'Aplicar Gancho' a ser conectada.", "info"); };
 const insertViralSuggestion = (button) => { console.log("Ação: Inserir Sugestão Viral"); window.showToast("Função 'Inserir Sugestão Viral' a ser conectada.", "info"); };
 const handleEditingAction = async (action) => { console.log(`Ação de Edição: ${action}`); window.showToast(`Função 'Edição ${action}' a ser conectada.`, "info"); };
-const goToFinalize = () => { markStepCompleted('script'); showPane('finalize'); };
+
 
 // ==========================================================
 // ==================== SALVAR / CARREGAR =====================
