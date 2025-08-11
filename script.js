@@ -1022,6 +1022,7 @@ const applyHookSuggestion = (button) => {
     
     const scriptSections = document.querySelectorAll('#scriptSectionsContainer .generated-content-wrapper');
     let replaced = false;
+    let sectionElement = null; // Variável para guardar a referência da seção alterada
 
     scriptSections.forEach(wrapper => {
         if (replaced) return;
@@ -1029,14 +1030,18 @@ const applyHookSuggestion = (button) => {
         paragraphs.forEach(p => {
             if (replaced) return;
             if (p.textContent.includes(problematicQuote)) {
+                // SUA LÓGICA ATUAL DE SUBSTITUIÇÃO (100% MANTIDA)
                 const newHtmlContent = p.innerHTML.replace(problematicQuote, `<span class="highlight-change">${rewrittenQuote}</span>`);
                 p.innerHTML = DOMPurify.sanitize(newHtmlContent, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
+                
                 window.showToast("Gancho aprimorado com sucesso!", 'success');
-                const sectionElement = p.closest('.script-section');
+
+                // SUA LÓGICA ATUAL DE INVALIDAÇÃO (100% MANTIDA)
+                sectionElement = p.closest('.script-section'); // Guardamos a referência aqui
                 if (sectionElement) {
                     invalidateAndClearPerformance(sectionElement);
                     invalidateAndClearPrompts(sectionElement);
-                    invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
+                    invalidateAndClearEmotionalMap();
                     updateAllReadingTimes();
                 }
                 replaced = true;
@@ -1049,6 +1054,23 @@ const applyHookSuggestion = (button) => {
         return;
     }
 
+    // =================================================================
+    // >>>>> AQUI ESTÁ A ÚNICA ADIÇÃO: Sincronização com AppState <<<<<
+    // =================================================================
+    if (sectionElement) {
+        const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
+        const scriptSectionId = sectionElement.id.replace('Section', '');
+        if (contentWrapper && AppState.generated.script[scriptSectionId]) {
+            AppState.generated.script[scriptSectionId].text = contentWrapper.textContent;
+            AppState.generated.script[scriptSectionId].html = contentWrapper.innerHTML;
+            console.log(`AppState para '${scriptSectionId}' foi atualizado após aplicar gancho.`);
+        }
+    }
+    // =================================================================
+    // >>>>> FIM DA ADIÇÃO <<<<<
+    // =================================================================
+
+    // O RESTO DA SUA FUNÇÃO (100% MANTIDO)
     button.disabled = true;
     button.innerHTML = '<i class="fas fa-check mr-2"></i>Aplicada!';
     button.classList.remove('btn-primary');
