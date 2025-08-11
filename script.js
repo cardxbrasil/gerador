@@ -762,6 +762,52 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
     }
 };
 
+
+
+const updateButtonStates = () => {
+    const script = AppState.generated.script;
+
+    // Define os estados chave da geração do roteiro
+    const allMainScriptGenerated = !!script.intro?.text && !!script.development?.text && !!script.climax?.text;
+    const isConclusionGenerated = !!script.conclusion?.text;
+    const isCtaGenerated = !!script.cta?.text;
+    const isFullScriptGenerated = allMainScriptGenerated && isConclusionGenerated && isCtaGenerated;
+
+    // Habilita/desabilita botões de metadados no painel de finalização
+    const metadataButtons = ['generateTitlesAndThumbnailsBtn', 'generateDescriptionBtn', 'generateSoundtrackBtn', 'mapEmotionsBtn'];
+    metadataButtons.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.disabled = !allMainScriptGenerated;
+        }
+    });
+
+    // Controla a visibilidade do Módulo de Conclusão no painel de roteiro
+    const conclusionModule = document.getElementById('conclusionStrategyModule');
+    if (conclusionModule) {
+        const shouldShowConclusionModule = allMainScriptGenerated;
+        conclusionModule.classList.toggle('hidden', !shouldShowConclusionModule);
+
+        // Controla qual botão (Gerar Conclusão ou Gerar CTA) é mostrado dentro do módulo
+        const btnGenerateConclusion = document.getElementById('generateConclusionBtn');
+        const btnGenerateCta = document.getElementById('generateCtaBtn');
+        if (btnGenerateConclusion && btnGenerateCta) {
+            btnGenerateConclusion.classList.toggle('hidden', isConclusionGenerated);
+            btnGenerateCta.classList.toggle('hidden', !isConclusionGenerated);
+        }
+    }
+    
+    // Mostra/esconde a seção de análise no painel de finalização quando TUDO estiver pronto
+    const analysisSection = document.getElementById('scriptAnalysisSection');
+    if (analysisSection) {
+        analysisSection.classList.toggle('hidden', !isFullScriptGenerated);
+    }
+};
+
+
+
+
+
 const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
     const baseContext = getBasePromptContext();
     const videoDuration = document.getElementById('videoDuration').value;
