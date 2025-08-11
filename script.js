@@ -849,38 +849,152 @@ Sua tarefa é continuar a narrativa a partir daqui, sem repetições.`;
     return { prompt, maxTokens };
 };
 
+
+// =========================================================================
+// ====================  ===================
+// =========================================================================
+
+
 const generateSectionHtmlContent = (sectionId, title, content) => {
     const accordionItem = document.createElement('div');
     accordionItem.className = 'accordion-item card !p-0 mb-4 animate-fade-in';
-    // Nota: A versão completa com as ferramentas de análise será transplantada depois.
-    const time = "" // calculateReadingTime(content);
-    accordionItem.innerHTML = `
-        <div class="accordion-header">
-            <div class="header-title-group">
-                <h3>${title}</h3>
-                <span class="text-xs">${time}</span>
-            </div>
-            <div class="header-actions-group">
-                <div class="header-buttons">
-                    <button title="Re-gerar" data-action="regenerate" data-section-id="${sectionId}Section"><i class="fas fa-sync-alt"></i></button>
-                    <button title="Copiar" data-action="copy"><i class="fas fa-copy"></i></button>
-                </div>
-                <i class="fas fa-chevron-down accordion-arrow"></i>
-            </div>
+
+    const accordionHeader = document.createElement('div');
+    accordionHeader.className = 'accordion-header';
+
+    const accordionBody = document.createElement('div');
+    accordionBody.id = `${sectionId}Body`;
+    accordionBody.className = 'accordion-body';
+
+    const headerTitleGroup = document.createElement('div');
+    headerTitleGroup.className = 'header-title-group';
+    const h3 = document.createElement('h3');
+    h3.textContent = title;
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'text-xs font-normal text-gray-500';
+    // const time = calculateReadingTime(content); // Será reativado quando a função for transplantada
+    // timeSpan.textContent = time;
+    headerTitleGroup.appendChild(h3);
+    headerTitleGroup.appendChild(timeSpan);
+
+    const headerActionsGroup = document.createElement('div');
+    headerActionsGroup.className = 'header-actions-group';
+    const headerButtons = document.createElement('div');
+    headerButtons.className = 'header-buttons';
+
+    const regenerateBtn = document.createElement('button');
+    regenerateBtn.className = 'regenerate-btn';
+    regenerateBtn.title = 'Re-gerar esta seção';
+    regenerateBtn.dataset.action = 'regenerate';
+    regenerateBtn.dataset.sectionId = `${sectionId}Section`;
+    regenerateBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/></svg>`;
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'copy-btn';
+    copyBtn.title = 'Copiar Roteiro';
+    copyBtn.dataset.action = 'copy';
+    copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5-.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>`;
+    headerButtons.appendChild(regenerateBtn);
+    headerButtons.appendChild(copyBtn);
+
+    const arrowSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    arrowSvg.id = `${sectionId}Arrow`;
+    arrowSvg.setAttribute('class', 'accordion-arrow');
+    arrowSvg.setAttribute('width', '16'); arrowSvg.setAttribute('height', '16');
+    arrowSvg.setAttribute('fill', 'currentColor'); arrowSvg.setAttribute('viewBox', '0 0 16 16');
+    arrowSvg.innerHTML = `<path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>`;
+    
+    headerActionsGroup.appendChild(headerButtons);
+    headerActionsGroup.appendChild(arrowSvg);
+    accordionHeader.appendChild(headerTitleGroup);
+    accordionHeader.appendChild(headerActionsGroup);
+
+    const contentWrapper = document.createElement('div');
+    contentWrapper.className = 'generated-content-wrapper';
+    contentWrapper.setAttribute('contenteditable', 'true');
+    contentWrapper.innerHTML = content;
+
+    const analysisTools = document.createElement('div');
+    const addChapterButtonHtml = sectionId === 'development' ? `
+        <div class="tooltip-container">
+            <button class="btn btn-primary btn-small" data-action="addDevelopmentChapter">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z"/></svg> 
+                Adicionar Capítulo
+            </button>
         </div>
-        <div class="accordion-body">
-            <div class="generated-content-wrapper" contenteditable="true">${content}</div>
+    ` : '';
+    
+    const toolsHtml = `
+        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-6">
+            <div class="text-center">
+                <h5 class="font-semibold text-base mb-2 text-gray-800 dark:text-gray-200">Passo 1: Diagnóstico e Criativo</h5>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Analise, edite ou enriqueça o texto para máxima qualidade.</p>
+                <div class="flex items-center justify-center gap-2 flex-wrap">
+                    
+                    <div class="tooltip-container">
+                        <button class="btn btn-secondary btn-small" data-action="analyzeRetention" data-section-id="${sectionId}Section">Analisar Retenção</button>
+                        <span class="tooltip-text">
+                            <strong>Função:</strong> Diagnóstico.<br>
+                            <strong>O que faz:</strong> Age como um "médico". Ele escaneia o texto e te diz: "Aqui está bom, aqui tem um ponto de atenção, e aqui tem um ponto de risco". Ele te dá o diagnóstico, mas não a cura.
+                        </span>
+                    </div>
+
+                    <div class="tooltip-container">
+                        <button class="btn btn-secondary btn-small" data-action="refineStyle">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gem" viewBox="0 0 16 16"><path d="M3.1.7a.5.5 0 0 1 .4-.2h9a.5.5 0 0 1 .4.2l2.976 3.974c.149.199.224.458.224.726v1.2a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5v-1.2c0-.268.075-.527.224-.726L3.1.7zM1.49 4.107l-1.18-1.575a.5.5 0 0 1 .4-.8h13.56a.5.5 0 0 1 .4.8L14.51 4.107H1.49zM.5 5.5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1 0-1H1v-1H.5a.5.5 0 0 1 0-1H1v-1H.5a.5.5 0 0 1 0-1H1v-1H.5a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v7a.5.5 0 0 1 0 1h-.5a.5.5 0 0 1 0-1H15v-1h-.5a.5.5 0 0 1 0-1H15v-1h-.5a.5.5 0 0 1 0-1H15v-1h.5a.5.5 0 0 1 .5-.5v-1a.5.5 0 0 1-.5.5zM2 13.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>
+                            Refinar Estilo
+                        </button>
+                        <span class="tooltip-text">
+                            <strong>Função:</strong> Polimento.<br>
+                            <strong>O que faz:</strong> Age como um "polidor de carros". Ele pega o texto inteiro, remove repetições e melhora a fluidez.
+                        </span>
+                    </div>
+
+                    <div class="tooltip-container">
+                        <button class="btn btn-secondary btn-small" data-action="enrichWithData">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8.5 2a.5.5 0 0 1 .5.5v11a.5.5 0 0 1-1 0v-11a.5.5 0 0 1 .5-.5z"/><path d="M2 7.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>
+                            Enriquecer com Dados
+                        </button>
+                        <span class="tooltip-text">
+                            <strong>Função:</strong> Adição.<br>
+                            <strong>O que faz:</strong> Age como um "engenheiro de reforço". Você seleciona um trecho e ele o reforça com mais credibilidade.
+                        </span>
+                    </div>
+                    ${addChapterButtonHtml}
+                </div>
+                <div id="analysis-output-${sectionId}" class="section-analysis-output mt-3 text-left"></div>
+            </div>
+            <div class="pt-4 border-t border-dashed border-gray-200 dark:border-gray-700 text-center">
+                 <h5 class="font-semibold text-base mb-2 text-gray-800 dark:text-gray-200">Passo 2: Estrutura de Narração</h5>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Adicione sugestões de performance para guiar a narração.</p>
+                <div class="flex items-center justify-center gap-2"><button class="btn btn-secondary btn-small" data-action="suggestPerformance" data-section-id="${sectionId}Section">Sugerir Performance</button></div>
+                <div class="section-performance-output mt-3 text-left"></div> 
+            </div>
+            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 text-center">
+                <h5 class="font-semibold text-base mb-2 text-gray-800 dark:text-gray-200">Passo 3: Recursos Visuais</h5>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Crie o storyboard visual para esta seção do roteiro.</p>
+                <button class="btn btn-secondary btn-small" data-action="generate-prompts" data-section-id="${sectionId}Section">Gerar Prompts de Imagem</button>
+                <div class="prompt-container mt-4 text-left"></div>
+            </div>
         </div>
     `;
+    analysisTools.innerHTML = DOMPurify.sanitize(toolsHtml, { ADD_TAGS: ["svg", "path", "span", "br", "strong"], ADD_ATTR: ["d", "fill", "viewBox", "xmlns", "width", "height", "class"] });
+    
+    accordionBody.appendChild(contentWrapper);
+    accordionBody.appendChild(analysisTools);
+    accordionItem.appendChild(accordionHeader);
+    accordionItem.appendChild(accordionBody);
+
+    // Adiciona o listener para abrir/fechar
     accordionItem.querySelector('.accordion-header').addEventListener('click', (e) => {
         if(!e.target.closest('.header-buttons')) {
             const body = accordionItem.querySelector('.accordion-body');
             const arrow = accordionItem.querySelector('.accordion-arrow');
-            body.classList.toggle('open');
-            arrow.classList.toggle('open');
-            body.style.display = body.classList.contains('open') ? 'block' : 'none';
+            const isOpen = body.classList.toggle('open');
+            body.style.display = isOpen ? 'block' : 'none';
         }
     });
+
     return accordionItem;
 };
 
