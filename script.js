@@ -1291,7 +1291,8 @@ window.deleteParagraphGroup = async (button, suggestionText) => {
         window.showToast("Bloco de parágrafos deletado com sucesso!", 'success');
     }, 300);
 };
-};
+
+
 // =========================================================================
 // ====================  ===================
 // =========================================================================
