@@ -406,6 +406,39 @@ const generateIdeasFromReport = async (button) => {
 
 
 
+const selectIdea = (idea) => {
+    // 1. Preenche os campos principais na aba "Estratégia"
+    const videoThemeEl = document.getElementById('videoTheme');
+    if (videoThemeEl) videoThemeEl.value = idea.title || '';
+
+    const videoDescEl = document.getElementById('videoDescription');
+    if (videoDescEl) videoDescEl.value = idea.videoDescription || '';
+    
+    const targetAudienceEl = document.getElementById('targetAudience');
+    if (targetAudienceEl) targetAudienceEl.value = idea.targetAudience || '';
+
+    const narrativeThemeEl = document.getElementById('narrativeTheme');
+    if (narrativeThemeEl) narrativeThemeEl.value = idea.angle || '';
+
+    // 2. Limpa campos estratégicos opcionais para evitar confusão de uma ideia anterior
+    const fieldsToClear = [
+        'centralQuestion', 'emotionalHook', 'narrativeVoice', 
+        'shockingEndingHook', 'researchData'
+    ];
+    fieldsToClear.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    
+    // 3. Salva os novos valores no estado global
+    AppState.inputs.videoTheme = idea.title || '';
+    AppState.inputs.videoDescription = idea.videoDescription || '';
+    // ... (poderíamos salvar todos, mas o save automático no 'change' já vai cuidar disso)
+
+    // 4. Navega para a próxima etapa do Wizard
+    window.showToast("Ideia selecionada! Agora, refine a estratégia.", 'success');
+    showPane('strategy');
+};
 
 
 
@@ -419,7 +452,12 @@ const generateIdeasFromReport = async (button) => {
 
 
 
-const selectIdea = (idea) => { console.log("Ação: Selecionar Ideia"); window.showToast("Função 'Selecionar Ideia' a ser conectada.", "info"); };
+
+
+
+
+
+
 const suggestStrategy = async (button) => { console.log("Ação: Sugerir Estratégia"); window.showToast("Função 'Sugerir Estratégia' a ser conectada.", "info"); };
 const applyStrategy = () => { console.log("Ação: Aplicar Estratégia"); window.showToast("Função 'Aplicar Estratégia' a ser conectada.", "info"); };
 const generateStrategicOutline = async (button) => { console.log("Ação: Gerar Esboço"); window.showToast("Função 'Gerar Esboço' a ser conectada.", "info"); };
