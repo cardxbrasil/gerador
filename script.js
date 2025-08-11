@@ -477,6 +477,60 @@ const generateIdeasFromReport = async (button) => {
 };
 
 
+
+
+        /**
+         * Valida os inputs essenciais antes de gerar conteúdo.
+         * @returns {boolean} True se os inputs são válidos, caso contrário, false.
+         */
+             
+        /**
+         * Itera sobre todas as seções do roteiro na ordem correta,
+         * renumera globalmente todas as cenas E recalcula o timestamp
+         * com base na duração estimada pela IA para cada cena.
+         */
+        
+    
+        /**
+         * Escapa um objeto JSON para ser usado com segurança dentro de um atributo onclick.
+         * @param {object} idea - O objeto da ideia a ser escapado.
+         * @returns {string} Uma string JSON segura para HTML.
+         */
+        const escapeIdeaForOnclick = (idea) => {
+            // Primeiro, converte o objeto para uma string JSON
+            const jsonString = JSON.stringify(idea);
+            // Em seguida, substitui os caracteres que quebram o HTML
+            // Escapa aspas duplas, aspas simples e barras invertidas
+            return jsonString.replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/\\/g, '&#92;');
+        };
+
+        // ==========================================================
+        // ===== COLE ESTA FUNÇÃO FALTANTE NO SEU JAVASCRIPT =====
+        // ==========================================================
+        /**
+         * Lida com a visibilidade da barra de ação flutuante com base na posição de rolagem.
+         */
+        window.handleFloatingActionBar = () => {
+            const bar = document.getElementById('floatingActionBar');
+            // O gatilho para a barra aparecer será a grade de inputs principais
+            const triggerElement = document.getElementById('mainInputsTabs'); 
+
+            if (!bar || !triggerElement) {
+                return; // Sai da função se os elementos não existirem
+            }
+
+            // Ponto de gatilho: quando o final do 'mainInputsGrid' passar pelo topo da tela
+            const triggerPoint = triggerElement.offsetTop + triggerElement.offsetHeight;
+
+            if (window.scrollY > triggerPoint) {
+                bar.classList.add('visible');
+            } else {
+                bar.classList.remove('visible');
+            }
+        };
+
+
+
 // =========================================================================
 // ====================  ===================
 // =========================================================================
