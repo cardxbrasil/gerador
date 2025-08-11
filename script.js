@@ -3289,71 +3289,57 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     if (!text || typeof text !== 'string') {
         return expectJson ? (arrayExpected ? [] : null) : '';
     }
-
     if (!expectJson) {
         return text.trim();
     }
-
     let jsonString;
     const trimmedText = text.trim();
-
-    // ETAPA 0: O DETETIVE DE INTENÇÃO 2.0 (Mantido 100%)
     const markdownMatch = trimmedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
     if (markdownMatch && markdownMatch[2]) {
         jsonString = markdownMatch[2].trim();
     } else {
         const startIndex = trimmedText.search(/[\{\[]/);
         if (startIndex === -1) {
-            console.error("FALHA DE DETECÇÃO: Nenhum início de JSON ('{' ou '[') encontrado no texto da IA.", text);
             throw new Error("A IA não retornou um formato JSON reconhecível.");
         }
         const lastBraceIndex = trimmedText.lastIndexOf('}');
         const lastBracketIndex = trimmedText.lastIndexOf(']');
         const endIndex = Math.max(lastBraceIndex, lastBracketIndex);
         if (endIndex === -1 || endIndex < startIndex) {
-            console.error("FALHA DE DETECÇÃO: JSON parece estar incompleto (sem '}' ou ']' de fechamento).", text);
             throw new Error("O JSON retornado pela IA parece estar incompleto.");
         }
         jsonString = trimmedText.substring(startIndex, endIndex + 1);
     }
-    
-    // ETAPA 1: PRÉ-CIRURGIA (NORMALIZAÇÃO) - Adicionada para maior robustez
     try {
-        // Corrige os erros mais comuns ANTES da primeira tentativa de parse.
-        // 1. Garante que as chaves dos objetos JSON estejam entre aspas duplas. Ex: { key: "value" } => { "key": "value" }
         jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
-        // 2. Converte aspas simples em aspas duplas para os valores. Ex: { "key": 'value' } => { "key": "value" }
         jsonString = jsonString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
-        // 3. Remove vírgulas extras antes de fechar colchetes ou chaves. Ex: [ "a", "b", ] => [ "a", "b" ]
         jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
     } catch (preSurgeryError) {
         console.warn("Erro durante a pré-cirurgia. O JSON pode estar muito malformado.", preSurgeryError);
     }
-
-    // ETAPA 2: CIRURGIA PREVENTIVA DE FECHAMENTO (Sua lógica, mantida 100%)
     let openBrackets = (jsonString.match(/\[/g) || []).length;
     let closeBrackets = (jsonString.match(/\]/g) || []).length;
     let openBraces = (jsonString.match(/\{/g) || []).length;
     let closeBraces = (jsonString.match(/\}/g) || []).length;
     while (openBraces > closeBraces) { jsonString += '}'; closeBraces++; }
     while (openBrackets > closeBrackets) { jsonString += ']'; closeBrackets++; }
-
-    // ETAPA 3: TENTATIVA INICIAL
     try {
         let parsedResult = JSON.parse(jsonString);
         if (arrayExpected && !Array.isArray(parsedResult)) {
-            console.warn("Correção Semântica: A IA retornou um objeto, mas um array era esperado.", parsedResult);
             return [parsedResult];
         }
         return parsedResult;
-
     } catch (initialError) {
         console.warn("Parse inicial falhou. O JSON extraído ainda tem erros. Iniciando reparos...", initialError.message);
-        
-        // ETAPA 4: CIRURGIAS AVANÇADAS (Sua lógica, mantida 100%)
-        let repairedString = jsonString; 
+        let repairedString = jsonString;
         try {
-            // Todas as suas regras de substituição permanecem intactas.
+            // ===============================================================
+            // >>>>> NOVA EVOLUÇÃO AQUI: A REGRA DE "DESINFECÇÃO" <<<<<
+            // ===============================================================
+            // Remove crases e outros caracteres de controle inválidos DENTRO das strings.
+            repairedString = repairedString.replace(/`/g, "'"); 
+            // ===============================================================
+
             repairedString = repairedString.replace(/(?<=")\s*[\r\n]+\s*(?=")/g, ',');
             repairedString = repairedString.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
             repairedString = repairedString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
@@ -3371,17 +3357,12 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/(?<!\\)\n/g, "\\n");
             repairedString = repairedString.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
 
-            // ETAPA 5: TENTATIVA FINAL
             let finalParsedResult = JSON.parse(repairedString);
-
             if (arrayExpected && !Array.isArray(finalParsedResult)) {
-                console.warn("Correção Semântica Pós-Reparo: A IA retornou um objeto, mas um array era esperado.", finalParsedResult);
                 return [finalParsedResult];
             }
-
             console.log("Cirurgia no JSON bem-sucedida!");
             return finalParsedResult;
-
         } catch (surgeryError) {
             console.error("FALHA CRÍTICA: A cirurgia no JSON não foi bem-sucedida.", surgeryError.message);
             console.error("JSON Problemático (Original):", text);
