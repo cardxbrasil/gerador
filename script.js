@@ -1116,7 +1116,7 @@ window.analyzeSectionRetention = async (button, sectionId) => {
 
         **MANUAL DE PONTUAÇÃO:**
         - **green:** Excelente. Prende a atenção. Sugestão: "Excelente fluidez.".
-        - **yellow:** Ponto de Atenção. Funcional, mas pode melhorar.
+        - **yellow:** Ponto de Atenção. Funcional, mas pode ser mais impactante.
         - **red:** Ponto de Risco. Confuso ou quebra o engajamento.
 
         **DADOS PARA ANÁLISE:**
@@ -1129,6 +1129,7 @@ window.analyzeSectionRetention = async (button, sectionId) => {
             throw new Error("A análise da IA retornou um formato inválido ou incompleto.");
         }
         
+        // Lógica de agrupamento de sugestões (da v5.0)
         if (analysis.length > 0) {
             let currentGroup = [];
             for (let i = 0; i < analysis.length; i++) {
@@ -1149,9 +1150,10 @@ window.analyzeSectionRetention = async (button, sectionId) => {
             }
         }
         
+        // Aplica as classes e tooltips nos parágrafos (lógica da v5.0)
         const newParagraphs = paragraphs.map(p => {
             const newP = p.cloneNode(true);
-            newP.className = 'retention-paragraph-live';
+            newP.className = 'retention-paragraph-live'; // Classe base para a interatividade
             newP.innerHTML = p.innerHTML.replace(/<div class="retention-tooltip">.*?<\/div>/g, '');
             p.parentNode.replaceChild(newP, p);
             return newP;
@@ -1181,7 +1183,6 @@ window.analyzeSectionRetention = async (button, sectionId) => {
                  p.addEventListener('mouseout', handleSuggestionMouseOut);
             }
         });
-
         window.showToast("Análise de retenção concluída!", 'success');
     } catch (error) {
         console.error("Erro detalhado em analyzeSectionRetention:", error);
@@ -1216,8 +1217,7 @@ window.optimizeGroup = async (button, suggestionText) => {
     const safeSelector = suggestionText.replace(/"/g, '\\"');
     const paragraphsToOptimize = document.querySelectorAll(`[data-suggestion-group="${safeSelector}"]`);
     if (paragraphsToOptimize.length === 0) {
-        window.showToast("Erro: parágrafos para otimizar não encontrados.", 'error');
-        return;
+        window.showToast("Erro: parágrafos para otimizar não encontrados.", 'error'); return;
     }
     const originalButtonText = button.innerHTML;
     button.innerHTML = '<div class="loading-spinner" style="width:16px; height:16px; border-width: 2px; margin: auto;"></div>';
@@ -1225,15 +1225,22 @@ window.optimizeGroup = async (button, suggestionText) => {
 
     try {
         const originalBlock = Array.from(paragraphsToOptimize).map(p => p.textContent.trim()).join('\n\n');
-        const prompt = `Você é um EDITOR DE ROTEIRO. Reescreva o "BLOCO ORIGINAL" para resolver o "PROBLEMA" apontado, mantendo o tom do roteiro. Retorne APENAS o texto reescrito.
-        PROBLEMA: "${suggestionText}"
-        BLOCO ORIGINAL: "${originalBlock}"`;
+        const prompt = `Você é um EDITOR DE ROTEIRO DE ELITE. Reescreva o "BLOCO DE TEXTO ORIGINAL" para resolver o "PROBLEMA" apontado, mantendo o tom e a consistência do roteiro. Retorne APENAS o texto reescrito.
+
+        **PROBLEMA A CORRIGIR:** "${suggestionText}"
+        
+        **BLOCO DE TEXTO ORIGINAL:**
+        ---
+        ${originalBlock}
+        ---`;
 
         const rawResult = await callGroqAPI(prompt, 3000);
         const newContent = removeMetaComments(rawResult.trim());
         const newParagraphs = newContent.split('\n').filter(p => p.trim() !== '');
 
         const firstParagraph = paragraphsToOptimize[0];
+        const sectionElement = firstParagraph.closest('.script-section');
+        
         firstParagraph.innerHTML = DOMPurify.sanitize(newParagraphs[0] || '');
         firstParagraph.classList.add('highlight-change');
         firstParagraph.removeAttribute('data-suggestion-group');
@@ -1264,7 +1271,7 @@ window.optimizeGroup = async (button, suggestionText) => {
 };
 
 window.deleteParagraphGroup = async (button, suggestionText) => {
-    const userConfirmed = await showConfirmationDialog('Confirmar Deleção', 'Tem certeza? Esta ação não pode ser desfeita.');
+    const userConfirmed = await showConfirmationDialog('Confirmar Deleção', 'Tem certeza que deseja deletar este bloco de parágrafos? Esta ação não pode ser desfeita.');
     if (!userConfirmed) return;
     
     const safeSelector = suggestionText.replace(/"/g, '\\"');
@@ -1283,6 +1290,7 @@ window.deleteParagraphGroup = async (button, suggestionText) => {
         paragraphsToDelete.forEach(p => p.remove());
         window.showToast("Bloco de parágrafos deletado com sucesso!", 'success');
     }, 300);
+};
 };
 // =========================================================================
 // ====================  ===================
