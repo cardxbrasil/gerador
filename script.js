@@ -176,22 +176,83 @@ const showConfirmationDialog = (title, message) => {
         const messageEl = document.getElementById('confirmationMessage');
         const btnYes = document.getElementById('confirmBtnYes');
         const btnNo = document.getElementById('confirmBtnNo');
+
         if (!overlay || !titleEl || !messageEl || !btnYes || !btnNo) {
-            console.error("Elementos do pop-up de confirmação não encontrados.");
-            resolve(false); return;
+            console.error("Elementos do pop-up de confirmação não foram encontrados no HTML.");
+            resolve(false);
+            return;
         }
+
         titleEl.textContent = title;
         messageEl.textContent = message;
         overlay.style.display = 'flex';
+
         const closeDialog = (result) => {
             overlay.style.display = 'none';
-            btnYes.onclick = null; btnNo.onclick = null;
+            // Remove os listeners para evitar chamadas duplicadas
+            const newBtnYes = btnYes.cloneNode(true);
+            btnYes.parentNode.replaceChild(newBtnYes, btnYes);
+            const newBtnNo = btnNo.cloneNode(true);
+            btnNo.parentNode.replaceChild(newBtnNo, btnNo);
             resolve(result);
         };
-        btnYes.onclick = () => closeDialog(true);
-        btnNo.onclick = () => closeDialog(false);
+
+        // TRUQUE PARA GARANTIR LISTENERS LIMPOS:
+        // Clonamos os botões para remover quaisquer event listeners antigos
+        const clonedBtnYes = btnYes.cloneNode(true);
+        const clonedBtnNo = btnNo.cloneNode(true);
+
+        // Adicionamos os novos listeners aos clones
+        clonedBtnYes.addEventListener('click', () => closeDialog(true), { once: true });
+        clonedBtnNo.addEventListener('click', () => closeDialog(false), { once: true });
+
+        // Substituímos os botões originais pelos clones com os novos listeners
+        btnYes.replaceWith(clonedBtnYes);
+        btnNo.replaceWith(clonedBtnNo);
     });
 };
+
+const auditGeneratedText = (originalText, annotatedText) => {
+    const cleanTextFromAI = annotatedText.replace(/\[.*?\]/g, '').trim();
+    const normalizedOriginal = originalText.replace(/\s+/g, ' ').trim();
+    const normalizedCleanAI = cleanTextFromAI.replace(/\s+/g, ' ').trim();
+    const isValid = normalizedOriginal === normalizedCleanAI;
+    return { isValid, cleanTextFromAI };
+};
+
+window.copyTextToClipboard = async (text) => {
+    try {
+        await navigator.clipboard.writeText(text);
+        window.showToast('Copiado!', 'success');
+    } catch (err) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        try {
+            document.execCommand('copy');
+            window.showToast('Copiado!', 'success');
+        } finally {
+            document.body.removeChild(ta);
+        }
+    }
+};
+
+window.showCopyFeedback = (buttonElement) => {
+    const originalText = buttonElement.innerHTML;
+    buttonElement.innerHTML = 'Copiado!';
+    buttonElement.classList.add('btn-success');
+    buttonElement.disabled = true;
+    setTimeout(() => {
+        buttonElement.innerHTML = originalText;
+        buttonElement.classList.remove('btn-success');
+        buttonElement.disabled = false;
+    }, 2000);
+};
+
+// As funções showInputDialog e handleEditingAction também fazem parte deste módulo.
+// Vamos garantir que elas também estejam aqui.
 
 const showInputDialog = (title, message, label, placeholder, suggestions = []) => {
     return new Promise(resolve => {
@@ -203,18 +264,23 @@ const showInputDialog = (title, message, label, placeholder, suggestions = []) =
         const btnConfirm = document.getElementById('inputBtnConfirm');
         const btnCancel = document.getElementById('inputBtnCancel');
         const suggestionsContainer = document.getElementById('inputDialogSuggestions');
+
         if (!overlay || !titleEl || !messageEl || !labelEl || !fieldEl || !btnConfirm || !btnCancel || !suggestionsContainer) {
-            console.error("Elementos do pop-up de input não encontrados.");
+            console.error("Elementos do pop-up de input não foram encontrados no HTML.");
             resolve(null); return;
         }
+
         suggestionsContainer.innerHTML = ''; fieldEl.value = '';
         titleEl.textContent = title; messageEl.textContent = message;
         labelEl.textContent = label; fieldEl.placeholder = placeholder;
+        
         const closeDialog = (result) => {
             overlay.style.display = 'none';
             btnConfirm.onclick = null; btnCancel.onclick = null;
+            suggestionsContainer.querySelectorAll('button').forEach(btn => btn.onclick = null);
             resolve(result);
         };
+
         if (suggestions && suggestions.length > 0) {
             suggestions.forEach(suggestionText => {
                 const suggestionBtn = document.createElement('button');
@@ -235,40 +301,41 @@ const showInputDialog = (title, message, label, placeholder, suggestions = []) =
     });
 };
 
-const escapeIdeaForOnclick = (idea) => {
-    const jsonString = JSON.stringify(idea);
-    return jsonString.replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/\\/g, '&#92;');
-};
+const handleEditingAction = async (action) => {
+    // Esta função será ativada por um listener de 'selectionchange' que adicionaremos depois.
+    // Por enquanto, apenas a transplantamos.
+    if (!userSelectionRange) return;
+    const selectedText = userSelectionRange.toString().trim();
+    if (!selectedText) return;
+    const editingMenu = document.getElementById('editing-menu');
+    editingMenu.classList.remove('visible');
 
-const validateInputs = () => {
-    // Lista de campos obrigatórios no painel de Estratégia
-    const requiredFields = [
-        { id: 'channelName', name: 'Nome do Canal' },
-        { id: 'videoTheme', name: 'Tema do Vídeo' },
-        { id: 'videoDescription', name: 'Descrição do Vídeo' },
-        { id: 'videoDuration', name: 'Duração Desejada' },
-        { id: 'visualPacing', name: 'Ritmo Visual' }
-    ];
-
-    for (const field of requiredFields) {
-        const element = document.getElementById(field.id);
-        if (!element || !element.value.trim()) {
-            // Mostra a aba onde o erro está, se ela estiver escondida
-            const pane = element.closest('.tab-pane');
-            if(pane && pane.classList.contains('hidden')) {
-                const tabButton = document.querySelector(`button[data-tab="${pane.id}"]`);
-                if(tabButton) tabButton.click();
-            }
-            
-            window.showToast(`Por favor, preencha o campo obrigatório: ${field.name}`, 'error');
-            element.focus(); // Coloca o foco no campo que falta
-            return false; // Interrompe a validação
+    const instructions = {
+        expand: "Sua tarefa é expandir este parágrafo, adicionando mais detalhes e contexto.",
+        summarize: "Sua tarefa é resumir este parágrafo, tornando-o mais conciso.",
+        correct: "Sua tarefa é corrigir a ortografia e gramática do texto a seguir."
+    };
+    const prompt = `Você é um editor de roteiros. ${instructions[action]} Responda APENAS com o texto reescrito. TEXTO ORIGINAL: "${selectedText}"`;
+    
+    try {
+        const rawResult = await callGroqAPI(prompt, 3000);
+        const refinedText = removeMetaComments(rawResult);
+        if (userSelectionRange) {
+            window.getSelection().removeAllRanges();
+            userSelectionRange.deleteContents();
+            const newNode = document.createElement('span');
+            newNode.className = 'highlight-change';
+            newNode.textContent = refinedText;
+            userSelectionRange.insertNode(newNode);
         }
+        window.showToast(`Texto refinado com sucesso!`, 'success');
+    } catch (err) {
+        console.error(`Erro ao tentar '${action}':`, err);
+        window.showToast(`Falha ao refinar o texto: ${err.message}`, 'error');
+    } finally {
+        userSelectionRange = null;
     }
-    return true; // Todos os campos estão preenchidos
 };
-
-// ...outras funções utilitárias menores (da v5.0) podem ser coladas aqui...
 
 // =========================================================================
 // ==================== ESQUELETO DAS FUNÇÕES PRINCIPAIS ===================
