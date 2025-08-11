@@ -1178,7 +1178,7 @@ ${fullTranscript.slice(0, 7500)}
 
 
 // =========================================================================
-// >>>>> PASSO 2: SUBSTITUA A FUNÇÃO 'insertViralSuggestion' INTEIRA <<<<<
+// >>>>> FUNÇÃO DE SUGERIR ELEMENTOS VIRAIS <<<<<
 // =========================================================================
 const insertViralSuggestion = (button) => {
     const { anchorParagraph, suggestedText } = button.dataset;
@@ -1190,31 +1190,54 @@ const insertViralSuggestion = (button) => {
 
     const allParagraphs = document.querySelectorAll('#scriptSectionsContainer div[id*="-p-"]');
     let inserted = false;
+    let sectionElement = null; // Variável para guardar a referência da seção alterada
 
     allParagraphs.forEach(p => {
         if (!inserted && p.textContent.trim().includes(anchorParagraph.trim())) {
+            // SUA LÓGICA ATUAL DE INSERÇÃO (100% MANTIDA)
             const newDiv = document.createElement('div');
             newDiv.id = `inserted-p-${Date.now()}`; 
             newDiv.innerHTML = `<span class="highlight-change">${suggestedText}</span>`;
             p.parentNode.insertBefore(newDiv, p.nextSibling);
             newDiv.innerHTML = DOMPurify.sanitize(newDiv.innerHTML, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
+            
             window.showToast("Elemento viral inserido com sucesso!", 'success');
-            const sectionElement = p.closest('.script-section');
+            
+            // SUA LÓGICA ATUAL DE INVALIDAÇÃO (100% MANTIDA)
+            sectionElement = p.closest('.script-section'); // Guardamos a referência aqui
             if (sectionElement) {
                 invalidateAndClearPerformance(sectionElement);
                 invalidateAndClearPrompts(sectionElement);
-                invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
+                invalidateAndClearEmotionalMap();
                 updateAllReadingTimes();
             }
             inserted = true;
         }
     });
 
+    // SUA LÓGICA DE VERIFICAÇÃO (100% MANTIDA)
     if (!inserted) {
         window.showToast("Não foi possível inserir. O parágrafo âncora pode ter sido editado.", 'info');
         return;
     }
+    
+    // =================================================================
+    // >>>>> AQUI ESTÁ A ÚNICA ADIÇÃO: Sincronização com AppState <<<<<
+    // =================================================================
+    if (sectionElement) {
+        const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
+        const scriptSectionId = sectionElement.id.replace('Section', '');
+        if (contentWrapper && AppState.generated.script[scriptSectionId]) {
+            AppState.generated.script[scriptSectionId].text = contentWrapper.textContent;
+            AppState.generated.script[scriptSectionId].html = contentWrapper.innerHTML;
+            console.log(`AppState para '${scriptSectionId}' foi atualizado após inserir elemento viral.`);
+        }
+    }
+    // =================================================================
+    // >>>>> FIM DA ADIÇÃO <<<<<
+    // =================================================================
 
+    // O RESTO DA SUA FUNÇÃO (100% MANTIDO)
     button.disabled = true;
     button.innerHTML = '<i class="fas fa-check mr-2"></i>Aplicada!';
     button.classList.remove('btn-primary');
