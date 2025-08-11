@@ -241,21 +241,31 @@ const escapeIdeaForOnclick = (idea) => {
 };
 
 const validateInputs = () => {
-    const required = [
+    // Lista de campos obrigatórios no painel de Estratégia
+    const requiredFields = [
         { id: 'channelName', name: 'Nome do Canal' },
         { id: 'videoTheme', name: 'Tema do Vídeo' },
         { id: 'videoDescription', name: 'Descrição do Vídeo' },
         { id: 'videoDuration', name: 'Duração Desejada' },
         { id: 'visualPacing', name: 'Ritmo Visual' }
     ];
-    for (const field of required) {
-        const el = document.getElementById(field.id);
-        if (!el || !el.value) {
-            window.showToast(`Por favor, preencha o campo: ${field.name}`, 'error');
-            return false;
+
+    for (const field of requiredFields) {
+        const element = document.getElementById(field.id);
+        if (!element || !element.value.trim()) {
+            // Mostra a aba onde o erro está, se ela estiver escondida
+            const pane = element.closest('.tab-pane');
+            if(pane && pane.classList.contains('hidden')) {
+                const tabButton = document.querySelector(`button[data-tab="${pane.id}"]`);
+                if(tabButton) tabButton.click();
+            }
+            
+            window.showToast(`Por favor, preencha o campo obrigatório: ${field.name}`, 'error');
+            element.focus(); // Coloca o foco no campo que falta
+            return false; // Interrompe a validação
         }
     }
-    return true;
+    return true; // Todos os campos estão preenchidos
 };
 
 // ...outras funções utilitárias menores (da v5.0) podem ser coladas aqui...
@@ -441,6 +451,14 @@ const selectIdea = (idea) => {
 };
 
 
+const applyStrategy = () => {
+    if (!validateInputs()) {
+        return; // A validação já mostra o toast de erro
+    }
+    markStepCompleted('strategy');
+    showPane('script');
+    window.showToast("Estratégia definida. Pronto para criar o roteiro.", 'success');
+};
 
 
 
@@ -459,7 +477,7 @@ const selectIdea = (idea) => {
 
 
 const suggestStrategy = async (button) => { console.log("Ação: Sugerir Estratégia"); window.showToast("Função 'Sugerir Estratégia' a ser conectada.", "info"); };
-const applyStrategy = () => { console.log("Ação: Aplicar Estratégia"); window.showToast("Função 'Aplicar Estratégia' a ser conectada.", "info"); };
+
 const generateStrategicOutline = async (button) => { console.log("Ação: Gerar Esboço"); window.showToast("Função 'Gerar Esboço' a ser conectada.", "info"); };
 const handleGenerateSection = async (button, sectionName, sectionTitle, elementId) => { console.log(`Ação: Gerar Seção ${sectionName}`); window.showToast(`Função 'Gerar Seção ${sectionName}' a ser conectada.`, "info"); };
 const generateConclusion = async (button) => { console.log("Ação: Gerar Conclusão"); window.showToast("Função 'Gerar Conclusão' a ser conectada.", "info"); };
