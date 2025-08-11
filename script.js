@@ -321,6 +321,88 @@ const handleInvestigate = async (button) => {
 };
 
 
+// =========================================================================
+// ====================  ===================
+// =========================================================================
+
+
+const generateIdeasFromReport = async (button) => {
+    const factCheckOutput = document.getElementById('factCheckOutput');
+    const { originalQuery, rawReport } = factCheckOutput.dataset;
+
+    if (!rawReport || !originalQuery) {
+        window.showToast("Erro: Relatório da investigação não encontrado.", 'error');
+        return;
+    }
+    
+    const activeTab = document.querySelector('#genreTabs .tab-button.tab-active');
+    const genre = activeTab ? activeTab.dataset.genre : 'geral';
+    const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português do Brasil' : 'English';
+    
+    const outputContainer = document.getElementById('ideasOutput');
+    showButtonLoading(button);
+    outputContainer.innerHTML = `<div class="md:col-span-2 flex flex-col items-center p-8"><div class="loading-spinner"></div><p class="mt-4" style="color: var(--text-muted);">Consultando especialista em ${genre}...</p></div>`;
+
+    // Usaremos um prompt simplificado aqui, mas que exige o formato JSON correto.
+    // A versão completa do PromptManager será transplantada depois.
+    const prompt = `Baseado estritamente no relatório a seguir, gere um array JSON com 6 ideias para vídeos no gênero "${genre}".
+    
+    RELATÓRIO: "${rawReport}"
+    
+    REGRAS INEGOCIÁVEIS:
+    1. A resposta DEVE ser APENAS um array JSON válido.
+    2. Cada objeto no array deve ter as chaves: "title", "angle", "videoDescription", "targetAudience", e "viralityScore".
+    3. TODO o texto DEVE estar em ${languageName}.`;
+
+    try {
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const ideas = cleanGeneratedText(rawResult, true, true); // Espera um array
+
+        if (!ideas || !Array.isArray(ideas) || ideas.length === 0 || !ideas[0].title) {
+            throw new Error("A IA não retornou ideias em um formato JSON válido. Tente novamente.");
+        }
+        AppState.generated.ideas = ideas;
+
+        const genreColorMap = {
+            'documentario': 'border-gray-500', 'inspiracional': 'border-violet-500',
+            'scifi': 'border-blue-500', 'terror': 'border-red-500',
+            'enigmas': 'border-purple-500', 'geral': 'border-emerald-500'
+        };
+        const colorClass = genreColorMap[genre] || 'border-emerald-500';
+
+        const allCardsHtml = ideas.map((idea, index) => {
+             const escapedIdea = escapeIdeaForOnclick(idea);
+             return `
+                <div class="card p-4 flex flex-col justify-between border-l-4 ${colorClass} animate-fade-in" style="border-left-color: var(--${genreColorMap[genre]?.split('-')[1] || 'success'}) !important;">
+                    <div>
+                        <div class="flex justify-between items-start gap-4">
+                            <h4 class="font-bold text-base flex-grow" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
+                            <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+                        </div>
+                        <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+                    </div>
+                    <span class="font-bold text-sm bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 py-1 px-2 rounded-lg self-start mt-3">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
+                </div>
+            `;
+        }).join('');
+        
+        outputContainer.innerHTML = allCardsHtml;
+
+        // Se gerou ideias com sucesso, consideramos a primeira etapa 100% concluída.
+        markStepCompleted('investigate');
+
+    } catch(err) {
+        window.showToast(`Erro ao gerar ideias: ${err.message}`, 'error');
+        outputContainer.innerHTML = `<p class="md:col-span-2" style="color: var(--danger);">${err.message}</p>`;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+
+// =========================================================================
+// ====================  ===================
+// =========================================================================
 
 
 
@@ -337,8 +419,6 @@ const handleInvestigate = async (button) => {
 
 
 
-
-const generateIdeasFromReport = async (button) => { console.log("Ação: Gerar Ideias"); window.showToast("Função 'Gerar Ideias' a ser conectada.", "info"); };
 const selectIdea = (idea) => { console.log("Ação: Selecionar Ideia"); window.showToast("Função 'Selecionar Ideia' a ser conectada.", "info"); };
 const suggestStrategy = async (button) => { console.log("Ação: Sugerir Estratégia"); window.showToast("Função 'Sugerir Estratégia' a ser conectada.", "info"); };
 const applyStrategy = () => { console.log("Ação: Aplicar Estratégia"); window.showToast("Função 'Aplicar Estratégia' a ser conectada.", "info"); };
