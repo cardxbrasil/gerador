@@ -265,7 +265,79 @@ const validateInputs = () => {
 // =========================================================================
 // O código real de cada uma destas funções será transplantado no Passo 2.
 
-const handleInvestigate = async (button) => { console.log("Ação: Investigar"); window.showToast("Função 'Investigar' a ser conectada.", "info"); };
+
+
+
+const handleInvestigate = async (button) => {
+    const query = document.getElementById('factCheckQuery').value.trim();
+    if (!query) {
+        window.showToast("Por favor, digite um tema para investigar.", 'error');
+        return;
+    }
+
+    showButtonLoading(button);
+    document.getElementById('ideaGenerationSection').classList.add('hidden');
+    document.getElementById('ideasOutput').innerHTML = '';
+    const outputContainer = document.getElementById('factCheckOutput');
+    outputContainer.innerHTML = '<div class="asset-card-placeholder"><div class="loading-spinner"></div><span style="margin-left: 1rem;">Investigando... Nossos agentes estão na busca.</span></div>';
+
+    try {
+        const workerUrl = "https://aged-dawn-f88c.david-souzan.workers.dev/";
+        const response = await fetch(workerUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: query }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Ocorreu um erro desconhecido.' }));
+            throw new Error(`Erro da Agência de Inteligência: ${errorData.error || response.statusText}`);
+        }
+
+        const { report } = await response.json();
+        if (!report) {
+            throw new Error("A agência não retornou um relatório válido.");
+        }
+        
+        AppState.generated.investigationReport = report;
+        outputContainer.dataset.rawReport = report;
+        outputContainer.dataset.originalQuery = query;
+        const converter = new showdown.Converter({ simplifiedAutoLink: true, tables: true });
+        const htmlReport = converter.makeHtml(report);
+        
+        // Usando as classes do novo layout para o relatório
+        outputContainer.innerHTML = `<div class="prose dark:prose-invert max-w-none p-4 card rounded-lg mt-4 border-l-4" style="border-color: var(--success);">${htmlReport}</div>`;
+        
+        document.getElementById('ideaGenerationSection').classList.remove('hidden');
+        window.showToast("Investigação concluída! Agora, gere ideias.", "success");
+
+    } catch (error) {
+        console.error("Erro detalhado em handleInvestigate:", error);
+        window.showToast(`Erro na investigação: ${error.message}`, 'error');
+        outputContainer.innerHTML = `<div class="asset-card-placeholder" style="color: var(--danger);">${error.message}</div>`;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const generateIdeasFromReport = async (button) => { console.log("Ação: Gerar Ideias"); window.showToast("Função 'Gerar Ideias' a ser conectada.", "info"); };
 const selectIdea = (idea) => { console.log("Ação: Selecionar Ideia"); window.showToast("Função 'Selecionar Ideia' a ser conectada.", "info"); };
 const suggestStrategy = async (button) => { console.log("Ação: Sugerir Estratégia"); window.showToast("Função 'Sugerir Estratégia' a ser conectada.", "info"); };
