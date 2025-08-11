@@ -807,10 +807,24 @@ const updateButtonStates = () => {
 
 
 
-
+// ==========================================================================================
+// >>>>> VERSÃO BLINDADA FINAL de 'constructScriptPrompt' (pede JSON) <<<<<
+// ==========================================================================================
+/**
+ * Constrói o prompt específico para cada seção do roteiro ou tipo de conteúdo.
+ * @param {string} sectionName - O nome da seção (ex: 'intro', 'titles_thumbnails').
+ * @param {string} sectionTitle - O título da seção para o prompt.
+ * @param {string|null} outlineDirective - Uma diretriz específica do esboço estratégico para esta seção.
+ * @param {string|null} contextText - O texto das seções anteriores para dar contexto à IA.
+ * @returns {{prompt: string, maxTokens: number}} O prompt e o limite de tokens.
+ */
+// ==========================================================================================
+// >>>>> VERSÃO REFINADA de 'constructScriptPrompt' (Pede Parágrafos Coesos) <<<<<
+// ==========================================================================================
 const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
     const baseContext = getBasePromptContext();
     const videoDuration = document.getElementById('videoDuration').value;
+    const selectedLanguage = document.getElementById('languageSelect').value;
     
     const targetWords = wordCountMap[videoDuration]?.[sectionName];
     let durationInstruction = '';
@@ -838,13 +852,52 @@ Sua tarefa é continuar a narrativa a partir daqui, sem repetições.`;
     prompt += `
 \n**REGRAS CRÍTICAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
 1.  **RESPOSTA EM JSON:** Sua resposta DEVE ser um array JSON válido, onde cada item do array é uma string representando um parágrafo do roteiro.
-2.  **ESTRUTURA OBRIGATÓRIA DOS PARÁGRAFOS:** CADA parágrafo (cada string no array) DEVE OBRIGATORIAMENTE conter **NO MÍNIMO 4 FRASES** e agrupar uma ideia coesa. Parágrafos com 1 ou 2 frases são inaceitáveis.
+2.  **ESTRUTURA OBRIGATÓRIA DOS PARÁGRAFOS:** CADA parágrafo (cada string no array) DEVE OBRIGATORIAMENTE conter **NO MÍNIMO 4 FRASES** e agrupar uma ideia coesa. Parágrafos com 1 ou 2 frases são inaceitáveis e serão considerados uma falha na execução da tarefa.
 3.  **CONTEÚDO PURO:** As strings devem conter APENAS o texto a ser narrado. É PROIBIDO incluir anotações como 'Narrador:', '(Cena: ...)', etc.
 4.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
 
-**AÇÃO FINAL:** Escreva agora a seção "${sectionTitle}", seguindo TODAS as diretrizes. Responda APENAS com o array JSON.`;
+**EXEMPLO DE FORMATO DE RESPOSTA PERFEITO:**
+[
+  "Este é o primeiro parágrafo, que introduz a ideia principal de forma completa. Ele contém múltiplas frases que se conectam para formar um pensamento coeso. Esta é a terceira frase para cumprir a regra.",
+  "O segundo parágrafo desenvolve essa ideia com mais detalhes, fornecendo exemplos ou aprofundando o argumento. Ele também é substancial e segue a regra das três frases. Sua estrutura é fundamental para o sucesso."
+]
+
+**AÇÃO FINAL:** Escreva agora a seção "${sectionTitle}", seguindo TODAS as diretrizes. Responda APENAS com o array JSON, garantindo que CADA parágrafo tenha no mínimo 4 frases.`;
 
     let maxTokens = 4000;
+
+    // A lógica para 'outline', 'titles_thumbnails' e 'description' permanece a mesma.
+    switch (sectionName) {
+        case 'outline':
+            prompt = `${baseContext}
+Você é uma API de geração de JSON que segue regras com precisão cirúrgica. Sua única tarefa é criar um esboço estratégico para um vídeo.
+**REGRAS INEGOCIÁVEIS:**
+1.  **JSON PURO:** Responda APENAS com um objeto JSON válido.
+2.  **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".
+3.  **VALORES:** O valor para CADA chave DEVE ser uma única string de texto (1-2 frases).
+**TAREFA:** Gere o objeto JSON perfeito.`;
+            maxTokens = 2000;
+            break;
+            
+        case 'titles_thumbnails':
+            prompt = `${baseContext}
+**TAREFA:** Gerar 5 sugestões de títulos e thumbnails.
+**REGRAS:**
+1. **FORMATO:** Responda APENAS com um array JSON.
+2. **ESTRUTURA:** Cada objeto no array deve ter 3 chaves: "suggested_title", "thumbnail_title", e "thumbnail_description".
+3. **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores.`;
+            maxTokens = 2000;
+            break;
+            
+        case 'description':
+            const languageName = new Intl.DisplayNames([selectedLanguage], { type: 'language' }).of(selectedLanguage);
+            prompt = `${baseContext}
+**TAREFA:** Gerar uma descrição otimizada e hashtags no idioma ${languageName}.
+**REGRAS:** Comece com um gancho, detalhe o conteúdo, finalize com CTA e liste 10 hashtags.
+**AÇÃO:** Responda APENAS com a descrição e hashtags.`;
+            maxTokens = 1000;
+            break;
+    }
     
     return { prompt, maxTokens };
 };
