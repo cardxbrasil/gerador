@@ -479,6 +479,39 @@ const generateIdeasFromReport = async (button) => {
 
 
 
+const validateInputs = () => {
+    const channelName = document.getElementById('channelName')?.value.trim();
+    const videoTheme = document.getElementById('videoTheme')?.value.trim();
+    const videoDescription = document.getElementById('videoDescription')?.value.trim();
+    const videoDuration = document.getElementById('videoDuration')?.value;
+    const visualPacing = document.getElementById('visualPacing')?.value;
+
+    if (!channelName) {
+        window.showToast("Por favor, insira o nome do canal.", 'error');
+        return false;
+    }
+    if (!videoTheme) {
+        window.showToast("Por favor, insira o tema do vídeo.", 'error');
+        return false;
+    }
+    if (!videoDescription) {
+        window.showToast("Por favor, insira a descrição do vídeo (para inspiração).", 'error');
+        return false;
+    }
+    if (!videoDuration || videoDuration === "") {
+        window.showToast("Por favor, selecione a Duração Desejada do vídeo.", 'error');
+        return false;
+    }
+    if (!visualPacing || visualPacing === "") {
+        window.showToast("Por favor, selecione o Ritmo Visual do vídeo.", 'error');
+        return false;
+    }
+    
+    return true;
+};
+
+
+
         /**
          * Valida os inputs essenciais antes de gerar conteúdo.
          * @returns {boolean} True se os inputs são válidos, caso contrário, false.
