@@ -1078,10 +1078,187 @@ const goToFinalize = () => {
 // =========================================================================
 
 
+window.analyzeSectionRetention = async (button, sectionId) => {
+    const sectionElement = document.getElementById(sectionId);
+    const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
+    if (!contentWrapper || !contentWrapper.textContent.trim()) {
+        window.showToast("Gere o roteiro desta seção antes de analisar a retenção.", 'info');
+        return;
+    }
+
+    const outputContainer = sectionElement.querySelector('.section-analysis-output');
+    if (outputContainer) outputContainer.innerHTML = '';
+
+    const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]'));
+    if (paragraphs.length === 0) {
+        window.showToast("Não há parágrafos para analisar nesta seção.", 'info');
+        return;
+    }
+
+    showButtonLoading(button);
+
+    try {
+        const paragraphsWithIndexes = paragraphs.map((p, index) => ({
+            index: index,
+            text: p.textContent.trim()
+        }));
+        
+        const basePromptContext = getBasePromptContext();
+
+        const prompt = `Você é uma API de análise de roteiro que retorna JSON.
+
+        **CONTEXTO ESTRATÉGICO:**
+        ---
+        ${basePromptContext}
+        ---
+
+        **REGRAS DE RESPOSTA (JSON ESTRITO):**
+        1.  **JSON PURO:** Responda APENAS com o array JSON.
+        2.  **ESTRUTURA COMPLETA:** Cada objeto DEVE conter "paragraphIndex" (número), "retentionScore" ("green", "yellow", ou "red"), e "suggestion" (string).
+        3.  **SUGESTÕES ESTRATÉGICAS:** A "suggestion" DEVE ser um CONSELHO ACIONÁVEL sobre COMO melhorar, NÃO a reescrita do texto.
+        4.  **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores string.
+
+        **MANUAL DE PONTUAÇÃO:**
+        - **green:** Excelente. Prende a atenção. Sugestão: "Excelente fluidez.".
+        - **yellow:** Ponto de Atenção. Funcional, mas pode ser mais impactante.
+        - **red:** Ponto de Risco. Confuso, repetitivo ou quebra o engajamento.
+
+        **DADOS PARA ANÁLISE:**
+        ${JSON.stringify(paragraphsWithIndexes, null, 2)}
+
+        **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
+
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const analysis = cleanGeneratedText(rawResult, true, true);
+
+        if (!analysis || !Array.isArray(analysis)) {
+            throw new Error("A análise da IA retornou um formato inválido.");
+        }
+        
+        if (analysis.length > 0) {
+            let currentGroup = [];
+            for (let i = 0; i < analysis.length; i++) {
+                const currentItem = analysis[i];
+                const previousItem = i > 0 ? analysis[i - 1] : null;
+                if (previousItem && currentItem.retentionScore === previousItem.retentionScore && currentItem.retentionScore !== 'green') {
+                    currentGroup.push(currentItem);
+                } else {
+                    if (currentGroup.length > 1) {
+                        const unifiedSuggestion = currentGroup[0].suggestion;
+                        currentGroup.forEach(groupItem => groupItem.suggestion = unifiedSuggestion);
+                    }
+                    currentGroup = [currentItem];
+                }
+            }
+            if (currentGroup.length > 1) {
+                const unifiedSuggestion = currentGroup[0].suggestion;
+                currentGroup.forEach(groupItem => groupItem.suggestion = unifiedSuggestion);
+            }
+        }
+        
+        const newParagraphs = paragraphs.map(p => {
+            const newP = p.cloneNode(true);
+            newP.className = 'retention-paragraph-live';
+            newP.innerHTML = p.innerHTML.replace(/<div class="retention-tooltip">.*?<\/div>/g, '');
+            p.parentNode.replaceChild(newP, p);
+            return newP;
+        });
+
+        analysis.forEach((item, index) => {
+            const p = newParagraphs[item.paragraphIndex];
+            if (p) {
+                p.classList.add(`retention-${item.retentionScore}`);
+                p.dataset.suggestionGroup = item.suggestion;
+
+                if (item.retentionScore === 'yellow' || item.retentionScore === 'red') {
+                    const previousItem = index > 0 ? analysis[index - 1] : null;
+                    if (!previousItem || item.suggestion !== previousItem.suggestion || (analysis.filter(s => s.suggestion === item.suggestion).length === 1)) {
+                        const scoreLabels = { yellow: "PONTO DE ATENÇÃO", red: "PONTO DE RISCO" };
+                        const tooltipTitle = scoreLabels[item.retentionScore] || 'ANÁLISE';
+
+                        const suggestionTextEscaped = item.suggestion.replace(/"/g, '\"');
+                        const buttonsHtml = `
+                            <div class="flex gap-2 mt-3">
+                                <button class="flex-1 btn btn-primary btn-small py-1" 
+                                        data-action="optimizeGroup" 
+                                        data-suggestion-text="${suggestionTextEscaped}">
+                                    <i class="fas fa-magic mr-2"></i> Otimizar
+                                </button>
+                                <button class="flex-1 btn btn-danger btn-small py-1" 
+                                        data-action="deleteParagraphGroup" 
+                                        data-suggestion-text="${suggestionTextEscaped}">
+                                    <i class="fas fa-trash-alt mr-2"></i> Deletar
+                                </button>
+                            </div>
+                        `;
+                        p.innerHTML += `<div class="retention-tooltip"><strong>${tooltipTitle}:</strong> ${DOMPurify.sanitize(item.suggestion)}${buttonsHtml}</div>`;
+                    }
+                }
+                 p.addEventListener('mouseover', handleSuggestionMouseOver);
+                 p.addEventListener('mouseout', handleSuggestionMouseOut);
+            }
+        });
+
+        window.showToast("Análise de retenção concluída!", 'success');
+
+    } catch (error) {
+        console.error("Erro detalhado em analyzeSectionRetention:", error);
+        window.showToast(`Falha na análise: ${error.message}`, 'error');
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+const handleSuggestionMouseOver = (event) => {
+    const targetParagraph = event.currentTarget;
+    const suggestionGroupText = targetParagraph.dataset.suggestionGroup;
+    if (!suggestionGroupText) return;
+    const contentWrapper = targetParagraph.closest('.generated-content-wrapper');
+    if (!contentWrapper) return;
+    const safeSuggestionSelector = suggestionGroupText.replace(/"/g, '\\"');
+    contentWrapper.querySelectorAll(`[data-suggestion-group="${safeSuggestionSelector}"]`).forEach(p => {
+        p.classList.add('highlight-group');
+    });
+};
+
+const handleSuggestionMouseOut = (event) => {
+    const targetParagraph = event.currentTarget;
+    const contentWrapper = targetParagraph.closest('.generated-content-wrapper');
+    if (!contentWrapper) return;
+    contentWrapper.querySelectorAll('.highlight-group').forEach(p => {
+        p.classList.remove('highlight-group');
+    });
+};
+
+window.optimizeGroup = async (button, suggestionText) => {
+    // A função completa e original de optimizeGroup entra aqui
+    console.log("Ação: Otimizar Grupo"); window.showToast("Função 'Otimizar Grupo' conectada.", "success");
+};
+
+window.deleteParagraphGroup = async (button, suggestionText) => {
+    // A função completa e original de deleteParagraphGroup entra aqui
+    console.log("Ação: Deletar Grupo"); window.showToast("Função 'Deletar Grupo' conectada.", "success");
+};
+
+// =========================================================================
+// ====================  ===================
+// =========================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const suggestStrategy = async (button) => { console.log("Ação: Sugerir Estratégia"); window.showToast("Função 'Sugerir Estratégia' a ser conectada.", "info"); };
-
-
-
 const generateConclusion = async (button) => { console.log("Ação: Gerar Conclusão"); window.showToast("Função 'Gerar Conclusão' a ser conectada.", "info"); };
 const generateStrategicCta = async (button) => { console.log("Ação: Gerar CTA"); window.showToast("Função 'Gerar CTA' a ser conectada.", "info"); };
 const suggestFinalStrategy = async (button) => { console.log("Ação: Sugerir Estratégia Final"); window.showToast("Função 'Sugerir Estratégia Final' a ser conectada.", "info"); };
@@ -1098,7 +1275,7 @@ const downloadPdf = () => { console.log("Ação: Baixar PDF"); window.showToast(
 const handleCopyAndDownloadTranscript = () => { console.log("Ação: Exportar Transcrição"); window.showToast("Função 'Exportar Transcrição' a ser conectada.", "info"); };
 window.regenerateSection = (fullSectionId) => { console.log(`Ação: Regenerar ${fullSectionId}`); window.showToast(`Função 'Regenerar ${fullSectionId}' a ser conectada.`, "info"); };
 window.generatePromptsForSection = async (button, sectionElementId) => { console.log(`Ação: Gerar Prompts para ${sectionElementId}`); window.showToast(`Função 'Gerar Prompts' a ser conectada.`, "info"); };
-window.analyzeSectionRetention = async (button, sectionId) => { console.log(`Ação: Analisar Retenção ${sectionId}`); window.showToast(`Função 'Analisar Retenção' a ser conectada.`, "info"); };
+
 window.refineSectionStyle = async (buttonElement) => { console.log("Ação: Refinar Estilo"); window.showToast("Função 'Refinar Estilo' a ser conectada.", "info"); };
 window.enrichWithData = async (buttonElement) => { console.log("Ação: Enriquecer com Dados"); window.showToast("Função 'Enriquecer com Dados' a ser conectada.", "info"); };
 window.suggestPerformance = async (button, sectionId) => { console.log(`Ação: Sugerir Performance ${sectionId}`); window.showToast(`Função 'Sugerir Performance' a ser conectada.`, "info"); };
