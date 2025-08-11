@@ -1087,7 +1087,7 @@ window.analyzeSectionRetention = async (button, sectionId) => {
     }
 
     const outputContainer = sectionElement.querySelector('.section-analysis-output');
-    if (outputContainer) outputContainer.innerHTML = ''; // Limpa o container antigo, se existir
+    if (outputContainer) outputContainer.innerHTML = '';
 
     const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]'));
     if (paragraphs.length === 0) {
@@ -1098,49 +1098,41 @@ window.analyzeSectionRetention = async (button, sectionId) => {
     showButtonLoading(button);
 
     try {
-        const paragraphsWithIndexes = paragraphs.map((p, index) => ({
-            index: index,
-            text: p.textContent.trim()
-        }));
-        
+        const paragraphsWithIndexes = paragraphs.map((p, index) => ({ index: index, text: p.textContent.trim() }));
         const basePromptContext = getBasePromptContext();
 
-        const prompt = `Você é uma API de análise de roteiro que retorna JSON.
+        const prompt = `Você é uma API de análise de roteiro que retorna JSON. Analise CADA parágrafo a seguir e retorne um array JSON perfeito.
 
         **CONTEXTO ESTRATÉGICO:**
         ---
         ${basePromptContext}
         ---
 
-        **REGRAS DE RESPOSTA (JSON ESTRITO):**
+        **REGRAS JSON (INEGOCIÁVEIS):**
         1.  **JSON PURO:** Responda APENAS com o array JSON.
         2.  **ESTRUTURA COMPLETA:** Cada objeto DEVE conter "paragraphIndex" (número), "retentionScore" ("green", "yellow", ou "red"), e "suggestion" (string).
-        3.  **SUGESTÕES ESTRATÉGICAS:** A "suggestion" DEVE ser um CONSELHO ACIONÁVEL sobre COMO melhorar.
-        4.  **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores string.
+        3.  **SUGESTÕES ACIONÁVEIS:** A "suggestion" DEVE ser um conselho sobre COMO melhorar.
+        4.  **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores.
 
         **MANUAL DE PONTUAÇÃO:**
         - **green:** Excelente. Prende a atenção. Sugestão: "Excelente fluidez.".
-        - **yellow:** Ponto de Atenção. Funcional, mas pode ser mais impactante.
-        - **red:** Ponto de Risco. Confuso, repetitivo ou quebra o engajamento.
+        - **yellow:** Ponto de Atenção. Funcional, mas pode melhorar.
+        - **red:** Ponto de Risco. Confuso ou quebra o engajamento.
 
         **DADOS PARA ANÁLISE:**
-        ${JSON.stringify(paragraphsWithIndexes, null, 2)}
-
-        **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
+        ${JSON.stringify(paragraphsWithIndexes, null, 2)}`;
 
         const rawResult = await callGroqAPI(prompt, 4000);
         const analysis = cleanGeneratedText(rawResult, true, true);
 
-        if (!analysis || !Array.isArray(analysis)) {
-            throw new Error("A análise da IA retornou um formato inválido.");
+        if (!analysis || !Array.isArray(analysis) || analysis.length < paragraphs.length) {
+            throw new Error("A análise da IA retornou um formato inválido ou incompleto.");
         }
         
-        // Lógica de agrupamento para sugestões
         if (analysis.length > 0) {
             let currentGroup = [];
             for (let i = 0; i < analysis.length; i++) {
-                const currentItem = analysis[i];
-                const previousItem = i > 0 ? analysis[i - 1] : null;
+                const currentItem = analysis[i]; const previousItem = i > 0 ? analysis[i - 1] : null;
                 if (previousItem && currentItem.retentionScore === previousItem.retentionScore && currentItem.retentionScore !== 'green') {
                     currentGroup.push(currentItem);
                 } else {
@@ -1179,18 +1171,9 @@ window.analyzeSectionRetention = async (button, sectionId) => {
                         const suggestionTextEscaped = item.suggestion.replace(/"/g, '\\"');
                         const buttonsHtml = `
                             <div class="flex gap-2 mt-3">
-                                <button class="flex-1 btn btn-primary btn-small py-1" 
-                                        data-action="optimizeGroup" 
-                                        data-suggestion-text="${suggestionTextEscaped}">
-                                    <i class="fas fa-magic mr-2"></i> Otimizar
-                                </button>
-                                <button class="flex-1 btn btn-danger btn-small py-1" 
-                                        data-action="deleteParagraphGroup" 
-                                        data-suggestion-text="${suggestionTextEscaped}">
-                                    <i class="fas fa-trash-alt mr-2"></i> Deletar
-                                </button>
-                            </div>
-                        `;
+                                <button class="flex-1 btn btn-primary btn-small py-1" data-action="optimizeGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-magic mr-2"></i> Otimizar</button>
+                                <button class="flex-1 btn btn-danger btn-small py-1" data-action="deleteParagraphGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-trash-alt mr-2"></i> Deletar</button>
+                            </div>`;
                         p.innerHTML += `<div class="retention-tooltip"><strong>${tooltipTitle}:</strong> ${DOMPurify.sanitize(item.suggestion)}${buttonsHtml}</div>`;
                     }
                 }
@@ -1200,7 +1183,6 @@ window.analyzeSectionRetention = async (button, sectionId) => {
         });
 
         window.showToast("Análise de retenção concluída!", 'success');
-
     } catch (error) {
         console.error("Erro detalhado em analyzeSectionRetention:", error);
         window.showToast(`Falha na análise: ${error.message}`, 'error');
@@ -1215,8 +1197,8 @@ const handleSuggestionMouseOver = (event) => {
     if (!suggestionGroupText) return;
     const contentWrapper = targetParagraph.closest('.generated-content-wrapper');
     if (!contentWrapper) return;
-    const safeSuggestionSelector = suggestionGroupText.replace(/"/g, '\\"');
-    contentWrapper.querySelectorAll(`[data-suggestion-group="${safeSuggestionSelector}"]`).forEach(p => {
+    const safeSelector = suggestionGroupText.replace(/"/g, '\\"');
+    contentWrapper.querySelectorAll(`[data-suggestion-group="${safeSelector}"]`).forEach(p => {
         p.classList.add('highlight-group');
     });
 };
@@ -1231,20 +1213,77 @@ const handleSuggestionMouseOut = (event) => {
 };
 
 window.optimizeGroup = async (button, suggestionText) => {
-    // Lógica completa e original de optimizeGroup
-    console.log("Ação: Otimizar Grupo"); window.showToast("Função 'Otimizar Grupo' conectada. Lógica completa a ser transplantada.", "info");
+    const safeSelector = suggestionText.replace(/"/g, '\\"');
+    const paragraphsToOptimize = document.querySelectorAll(`[data-suggestion-group="${safeSelector}"]`);
+    if (paragraphsToOptimize.length === 0) {
+        window.showToast("Erro: parágrafos para otimizar não encontrados.", 'error');
+        return;
+    }
+    const originalButtonText = button.innerHTML;
+    button.innerHTML = '<div class="loading-spinner" style="width:16px; height:16px; border-width: 2px; margin: auto;"></div>';
+    button.disabled = true;
+
+    try {
+        const originalBlock = Array.from(paragraphsToOptimize).map(p => p.textContent.trim()).join('\n\n');
+        const prompt = `Você é um EDITOR DE ROTEIRO. Reescreva o "BLOCO ORIGINAL" para resolver o "PROBLEMA" apontado, mantendo o tom do roteiro. Retorne APENAS o texto reescrito.
+        PROBLEMA: "${suggestionText}"
+        BLOCO ORIGINAL: "${originalBlock}"`;
+
+        const rawResult = await callGroqAPI(prompt, 3000);
+        const newContent = removeMetaComments(rawResult.trim());
+        const newParagraphs = newContent.split('\n').filter(p => p.trim() !== '');
+
+        const firstParagraph = paragraphsToOptimize[0];
+        firstParagraph.innerHTML = DOMPurify.sanitize(newParagraphs[0] || '');
+        firstParagraph.classList.add('highlight-change');
+        firstParagraph.removeAttribute('data-suggestion-group');
+
+        let lastElement = firstParagraph;
+        for (let i = 1; i < newParagraphs.length; i++) {
+            const newDiv = document.createElement('div');
+            newDiv.innerHTML = DOMPurify.sanitize(newParagraphs[i]);
+            newDiv.className = 'highlight-change';
+            firstParagraph.parentElement.insertBefore(newDiv, lastElement.nextSibling);
+            lastElement = newDiv;
+        }
+
+        for (let i = 1; i < paragraphsToOptimize.length; i++) {
+            paragraphsToOptimize[i].remove();
+        }
+
+        window.showToast("Bloco de parágrafos otimizado!", 'success');
+    } catch (error) {
+        console.error("Erro em optimizeGroup:", error);
+        window.showToast(`Falha ao otimizar o bloco: ${error.message}`, 'error');
+    } finally {
+        button.innerHTML = originalButtonText;
+        button.disabled = false;
+        const tooltip = button.closest('.retention-tooltip');
+        if (tooltip) tooltip.remove();
+    }
 };
 
 window.deleteParagraphGroup = async (button, suggestionText) => {
-    // Lógica completa e original de deleteParagraphGroup
     const userConfirmed = await showConfirmationDialog('Confirmar Deleção', 'Tem certeza? Esta ação não pode ser desfeita.');
     if (!userConfirmed) return;
+    
     const safeSelector = suggestionText.replace(/"/g, '\\"');
     const paragraphsToDelete = document.querySelectorAll(`[data-suggestion-group="${safeSelector}"]`);
-    paragraphsToDelete.forEach(p => p.remove());
-    window.showToast("Bloco de parágrafos deletado.", 'success');
-};
+    if (paragraphsToDelete.length === 0) {
+        window.showToast("Erro: Parágrafos para deletar não encontrados.", 'error');
+        return;
+    }
 
+    paragraphsToDelete.forEach(p => {
+        p.style.transition = 'opacity 0.3s ease-out';
+        p.style.opacity = '0';
+    });
+    
+    setTimeout(() => {
+        paragraphsToDelete.forEach(p => p.remove());
+        window.showToast("Bloco de parágrafos deletado com sucesso!", 'success');
+    }, 300);
+};
 // =========================================================================
 // ====================  ===================
 // =========================================================================
