@@ -758,6 +758,7 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
         }
     } finally {
         hideButtonLoading(button);
+        updateButtonStates();
     }
 };
 
