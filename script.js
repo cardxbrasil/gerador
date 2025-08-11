@@ -4641,7 +4641,7 @@ const renderIdeaCard = (idea, index, colorClass) => {
 
 
 // =========================================================================
-// >>>>> SUBSTITUA A FUNÇÃO 'applySuggestion' INTEIRA POR ESTA VERSÃO <<<<<
+// >>>>> FUNÇÃO DE ATUALIZAÇÃO DE TEXTO NO MAPA EMOCIONAL <<<<<
 // =========================================================================
 window.applySuggestion = (button) => {
     const { criterionName, problematicQuote, rewrittenQuote } = button.dataset;
@@ -4661,9 +4661,9 @@ window.applySuggestion = (button) => {
         return;
     }
 
+    // SUA LÓGICA AVANÇADA DE SUBSTITUIÇÃO (100% MANTIDA)
     let replaced = false;
     const paragraphs = contentWrapper.querySelectorAll('div[id^="' + sectionId.replace('Section','') + '-p-"]');
-
     paragraphs.forEach(p => {
         if (replaced) return;
         const childNodes = Array.from(p.childNodes);
@@ -4698,11 +4698,25 @@ window.applySuggestion = (button) => {
         return;
     }
     
+    // =================================================================
+    // >>>>> AQUI ESTÁ A ÚNICA ADIÇÃO: Sincronização com AppState <<<<<
+    // =================================================================
+    const scriptSectionId = sectionId.replace('Section', '');
+    if (AppState.generated.script[scriptSectionId]) {
+        AppState.generated.script[scriptSectionId].text = contentWrapper.textContent;
+        AppState.generated.script[scriptSectionId].html = contentWrapper.innerHTML;
+        console.log(`AppState para '${scriptSectionId}' foi atualizado após aplicar sugestão.`);
+    }
+    // =================================================================
+    // >>>>> FIM DA ADIÇÃO <<<<<
+    // =================================================================
+
+    // O resto da sua função (100% MANTIDO)
     window.showToast("Sugestão aplicada com sucesso!");
     
     invalidateAndClearPerformance(sectionElement);
     invalidateAndClearPrompts(sectionElement);
-    invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
+    invalidateAndClearEmotionalMap();
     updateAllReadingTimes();
 
     button.disabled = true;
