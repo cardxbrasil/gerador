@@ -5924,74 +5924,79 @@ const syncUiFromState = () => {
         const element = document.getElementById(id);
         if (element && element.type !== 'radio') {
             element.value = state.inputs[id];
+        } else if (state.inputs[id]) { // Lógica para Rádios
+            const radioToSelect = document.querySelector(`input[name="${id}"][value="${state.inputs[id]}"]`);
+            if (radioToSelect) {
+                radioToSelect.checked = true;
+            }
         }
     }
 
-    // <<< A CORREÇÃO ESTÁ AQUI: LÓGICA ESPECIAL PARA CARREGAR O RÁDIO CORRETO >>>
-    if (state.inputs && state.inputs.conclusionType) {
-        const radioToSelect = document.querySelector(`input[name="conclusionType"][value="${state.inputs.conclusionType}"]`);
-        if (radioToSelect) {
-            radioToSelect.checked = true;
-        }
-    } else {
-        // Se não houver estado salvo para o rádio, garante que o padrão "lesson" esteja marcado
-        const defaultRadio = document.querySelector('input[name="conclusionType"][value="lesson"]');
-        if (defaultRadio) defaultRadio.checked = true;
-    }
-
-    // O resto da função continua o mesmo...
+    // Chama as funções que dependem dos valores dos inputs restaurados
     updateNarrativeStructureOptions();
     toggleCustomImageStyleVisibility();
 
-    if (state.generated.strategicOutlineHTML) document.getElementById('outlineContent').innerHTML = state.generated.strategicOutlineHTML;
-    if (state.generated.titlesAndThumbnailsHTML) document.getElementById('titlesThumbnailsContent').innerHTML = state.generated.titlesAndThumbnailsHTML;
-    if (state.generated.descriptionHTML) document.getElementById('videoDescriptionContent').innerHTML = state.generated.descriptionHTML;
-    if (state.generated.soundtrackHTML) document.getElementById('soundtrackContent').innerHTML = state.generated.soundtrackHTML;
-    if (state.generated.emotionalMapHTML) document.getElementById('emotionalMapContent').innerHTML = state.generated.emotionalMapHTML;
+    // 2. Restaura o HTML dos painéis de conteúdo (com verificação)
+    if (state.generated.strategicOutlineHTML) {
+        const el = document.getElementById('outlineContent');
+        if (el) el.innerHTML = state.generated.strategicOutlineHTML;
+    }
+    if (state.generated.titlesAndThumbnailsHTML) {
+        const el = document.getElementById('titlesThumbnailsContent');
+        if (el) el.innerHTML = state.generated.titlesAndThumbnailsHTML;
+    }
+    if (state.generated.descriptionHTML) {
+        const el = document.getElementById('videoDescriptionContent');
+        if (el) el.innerHTML = state.generated.descriptionHTML;
+    }
+    if (state.generated.soundtrackHTML) {
+        const el = document.getElementById('soundtrackContent');
+        if (el) el.innerHTML = state.generated.soundtrackHTML;
+    }
+    if (state.generated.emotionalMapHTML) {
+        const el = document.getElementById('emotionalMapContent');
+        if (el) el.innerHTML = state.generated.emotionalMapHTML;
+    }
     
+    // 3. Restaura as seções do roteiro
     const scriptContainer = document.getElementById('scriptSectionsContainer');
-    scriptContainer.innerHTML = '';
-    const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
-    const sectionTitles = { intro: 'Introdução', development: 'Desenvolvimento', climax: 'Clímax', conclusion: 'Conclusão', cta: 'Call to Action (CTA)' };
-    let hasAnyScriptContent = false;
-
-    sectionOrder.forEach(id => {
-        const sectionData = state.generated.script[id];
-        const sectionDiv = document.createElement('div');
-        sectionDiv.id = `${id}Section`;
-        sectionDiv.className = 'script-section';
+    if (scriptContainer) {
+        scriptContainer.innerHTML = '';
+        const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
+        const sectionTitles = { intro: 'Introdução', development: 'Desenvolvimento', climax: 'Clímax', conclusion: 'Conclusão', cta: 'Call to Action (CTA)' };
         
-        if (sectionData && sectionData.html) {
-            hasAnyScriptContent = true;
-            const sectionElement = generateSectionHtmlContent(id, sectionTitles[id], sectionData.html);
-            sectionDiv.appendChild(sectionElement);
-            sectionDiv.classList.remove('card', 'card-placeholder', 'flex', 'justify-between', 'items-center');
-        }
-        scriptContainer.appendChild(sectionDiv);
-    });
-
-    if (state.generated.strategicOutline || hasAnyScriptContent) {
-        document.getElementById('projectDashboard').classList.remove('hidden');
+        sectionOrder.forEach(id => {
+            const sectionData = state.generated.script[id];
+            const sectionDiv = document.createElement('div');
+            sectionDiv.id = `${id}Section`;
+            sectionDiv.className = 'script-section';
+            
+            if (sectionData && sectionData.html) {
+                const sectionElement = generateSectionHtmlContent(id, sectionTitles[id], sectionData.html);
+                sectionDiv.appendChild(sectionElement);
+                sectionDiv.classList.remove('card', 'card-placeholder', 'flex', 'justify-between', 'items-center');
+            }
+            scriptContainer.appendChild(sectionDiv);
+        });
     }
 
-    if (AppState.generated.emotionalMap) {
-        window.emotionalMap = AppState.generated.emotionalMap;
-    }
-
-    if (AppState.generated.imagePrompts) {
-        window.allImagePrompts = AppState.generated.imagePrompts;
-    }
-    if (AppState.ui.promptPaginationState) {
-        window.promptPaginationState = AppState.ui.promptPaginationState;
+    // 4. Lida com a visibilidade dos painéis do Wizard
+    if (state.ui && state.ui.completedSteps) {
+        AppState.ui.completedSteps = new Set(Array.from(state.ui.completedSteps));
+        AppState.ui.completedSteps.forEach(stepId => markStepCompleted(stepId));
     }
     
+    // Mostra o painel correto salvo no estado, ou o inicial se não houver.
+    showPane(state.ui.currentPane || 'investigate');
+
+    // 5. Atualiza o resto da UI
+    // Usamos um setTimeout para garantir que o DOM foi atualizado antes de recalcular
     setTimeout(() => {
         updateProgressBar();
         updateButtonStates();
-        updateAllReadingTimes();
+        // updateAllReadingTimes(); // Adicionar esta função depois
     }, 100);
 };
-
 
 
 
