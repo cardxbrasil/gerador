@@ -907,35 +907,30 @@ const setupGenreTabs = () => {
 // >>>>> VERSÃO FINAL E CORRIGIDA de 'window.verifyFact' (Lógica Simplificada) <<<<<
 // ====================================================================================
 
+
 /**
  * Inicia a investigação de um tema. Agora, ela não reseta mais o projeto inteiro.
  * Apenas limpa os resultados da investigação anterior para um novo ciclo.
  * @param {HTMLElement} button - O botão que acionou a função.
  */
 window.verifyFact = async (button) => {
-    // 1. LIMPEZA FOCADA (continua igual)
+    // 1. LIMPEZA FOCADA: Limpa apenas os resultados da investigação anterior.
     document.getElementById('ideaGenerationSection').classList.add('hidden');
     document.getElementById('ideasOutput').innerHTML = '';
     const outputContainer = document.getElementById('factCheckOutput');
     outputContainer.innerHTML = '';
     outputContainer.removeAttribute('data-raw-report');
 
-    // 2. LEITURA E VALIDAÇÃO (continua igual)
-    const userQuery = document.getElementById('factCheckQuery').value.trim();
-    if (!userQuery) {
+    // 2. LEITURA E VALIDAÇÃO: Pega o que o usuário digitou.
+    const query = document.getElementById('factCheckQuery').value.trim();
+    if (!query) {
         window.showToast("Por favor, digite uma afirmação ou pergunta para investigar.", 'info');
         return;
     }
 
-    // <<< AQUI ESTÁ A MÁGICA >>>
-    // 3. ENRIQUECIMENTO DO PEDIDO
-    // Adicionamos um "sufixo de instrução" para guiar a IA do seu Worker.
-    const instructionSuffix = "\n\nPor favor, forneça um relatório detalhado sobre este tópico. O relatório deve resumir os pontos principais, mas com profundidade, incluindo datas importantes, pessoas-chave, dados relevantes e as conclusões mais significativas encontradas nas fontes.";
-    const fullQuery = userQuery + instructionSuffix; // Juntamos a pergunta do usuário com a nossa instrução.
-
-    // 4. EXECUÇÃO (agora usando a 'fullQuery')
+    // 3. EXECUÇÃO: Mostra o loading e chama a IA.
     showButtonLoading(button);
-    outputContainer.innerHTML = `<div class="text-center py-4"><div class="loading-spinner mx-auto"></div><p class="text-sm mt-2">Nossos agentes estão investigando em profundidade...</p></div>`;
+    outputContainer.innerHTML = `<div class="text-center py-4"><div class="loading-spinner mx-auto"></div><p class="text-sm mt-2">Nossos agentes estão investigando...</p></div>`;
 
     try {
         const workerUrl = "https://aged-dawn-f88c.david-souzan.workers.dev/";
@@ -943,7 +938,7 @@ window.verifyFact = async (button) => {
         const response = await fetch(workerUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ query: fullQuery }), // <<< ENVIAMOS A QUERY ENRIQUECIDA
+            body: JSON.stringify({ query: query }),
         });
 
         if (!response.ok) {
@@ -956,9 +951,9 @@ window.verifyFact = async (button) => {
             throw new Error("A agência não retornou um relatório válido.");
         }
         
-        // 5. EXIBIÇÃO (continua igual)
+        // 4. EXIBIÇÃO: Mostra os novos resultados.
         outputContainer.dataset.rawReport = report;
-        outputContainer.dataset.originalQuery = userQuery; // Salvamos a query original para referência
+        outputContainer.dataset.originalQuery = query;
         const converter = new showdown.Converter({ simplifiedAutoLink: true, tables: true });
         const htmlReport = converter.makeHtml(report);
         outputContainer.innerHTML = `<div class="prose dark:prose-invert max-w-none p-4 card rounded-lg mt-4 border-l-4 border-emerald-500">${htmlReport}</div>`;
@@ -966,7 +961,7 @@ window.verifyFact = async (button) => {
         const ideaGenerationSection = document.getElementById('ideaGenerationSection');
         if (ideaGenerationSection) {
             ideaGenerationSection.classList.remove('hidden');
-            window.showToast("Investigação detalhada concluída! Agora, gere ideias.", 'success');
+            window.showToast("Investigação concluída! Agora, gere ideias a partir dos fatos.", 'success');
             ideaGenerationSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         
