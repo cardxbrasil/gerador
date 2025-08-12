@@ -224,6 +224,34 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
 
 
+// =========================================================================
+// >>>>> VERSÃO REATORADA E EFICIENTE de 'getTranscriptOnly' <<<<<
+// =========================================================================
+/**
+ * Coleta e concatena o texto puro de todas as seções do roteiro na ordem correta,
+ * lendo diretamente do estado centralizado (AppState).
+ * @returns {string} A transcrição completa e limpa.
+ */
+const getTranscriptOnly = () => {
+    let transcript = '';
+    const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
+    
+    sectionOrder.forEach(sectionName => {
+        // Lê o texto da seção diretamente do "cérebro" da aplicação
+        const scriptSection = AppState.generated.script[sectionName];
+        if (scriptSection && scriptSection.text) {
+            transcript += scriptSection.text.trim() + '\n\n';
+        }
+    });
+    
+    return transcript.trim();
+};
+
+
+
+
+
+
 const removeMetaComments = (text) => {
     if (!text) return "";
     return text
