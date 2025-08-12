@@ -1295,16 +1295,10 @@ window.analyzeSectionRetention = async (button, sectionId) => {
         return;
     }
 
-    // Limpa a UI de análises anteriores
+    const outputContainer = sectionElement.querySelector('.section-analysis-output');
+    if (outputContainer) outputContainer.innerHTML = '';
+
     const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]'));
-    paragraphs.forEach(p => {
-        p.className = ''; // Remove classes de retenção
-        const tooltip = p.querySelector('.retention-tooltip');
-        if (tooltip) tooltip.remove();
-        p.removeEventListener('mouseover', handleSuggestionMouseOver);
-        p.removeEventListener('mouseout', handleSuggestionMouseOut);
-    });
-    
     if (paragraphs.length === 0) {
         window.showToast("Não há parágrafos para analisar nesta seção.", 'info');
         return;
@@ -1313,42 +1307,49 @@ window.analyzeSectionRetention = async (button, sectionId) => {
     showButtonLoading(button);
 
     try {
-        const paragraphsWithIndexes = paragraphs.map((p, index) => ({ index: index, text: p.textContent.trim() }));
+        const paragraphsWithIndexes = paragraphs.map((p, index) => ({
+            index: index,
+            text: p.textContent.trim()
+        }));
+        
         const basePromptContext = getBasePromptContext();
 
-        const prompt = `Você é uma API de análise de roteiro que retorna JSON. Analise CADA parágrafo a seguir e retorne um array JSON perfeito.
+        const prompt = `Você é uma API de análise de roteiro que retorna JSON.
 
-        **CONTEXTO ESTRATÉGICO:**
+        **CONTEXTO ESTRATÉGICO (A "ALMA" DO ROTEIRO):**
         ---
         ${basePromptContext}
         ---
+        Este contexto é sua ÚNICA bússola. TODAS as sugestões DEVEM estar alinhadas a ele.
 
-        **REGRAS JSON (INEGOCIÁVEIS):**
+        **REGRAS DE RESPOSTA (JSON ESTRITO E INEGOCIÁVEL):**
         1.  **JSON PURO:** Responda APENAS com o array JSON.
-        2.  **ESTRUTURA COMPLETA:** Cada objeto DEVE conter "paragraphIndex" (número), "retentionScore" ("green", "yellow", ou "red"), e "suggestion" (string).
-        3.  **SUGESTÕES ACIONÁVEIS:** A "suggestion" DEVE ser um conselho sobre COMO melhorar.
-        4.  **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores.
+        2.  **ESTRUTURA COMPLETA:** Cada objeto no array DEVE conter EXATAMENTE três chaves: "paragraphIndex" (número), "retentionScore" ("green", "yellow", ou "red"), e "suggestion" (string).
+        3.  **SUGESTÕES ESTRATÉGICAS, NÃO REESCRITAS:** O valor de "suggestion" DEVE ser um CONSELHO ACIONÁVEL sobre COMO melhorar o parágrafo, respeitando a "alma" do roteiro. NÃO reescreva o texto.
+        4.  **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores string.
 
-        **MANUAL DE PONTUAÇÃO:**
-        - **green:** Excelente. Prende a atenção. Sugestão: "Excelente fluidez.".
-        - **yellow:** Ponto de Atenção. Funcional, mas pode ser mais impactante.
-        - **red:** Ponto de Risco. Confuso ou quebra o engajamento.
+        **MANUAL DE PONTUAÇÃO (FOCO EM ENGAJAMENTO):**
+        - **green:** Excelente. O parágrafo prende a atenção, avança a narrativa e está alinhado com a estratégia. Sugestão: "Excelente fluidez e alinhamento estratégico.".
+        - **yellow:** Ponto de Atenção. O parágrafo é funcional, mas poderia ser mais impactante ou claro. O ritmo pode estar quebrando.
+        - **red:** Ponto de Risco. O parágrafo é confuso, repetitivo ou quebra o engajamento. Corre o risco de fazer o espectador sair do vídeo.
 
         **DADOS PARA ANÁLISE:**
-        ${JSON.stringify(paragraphsWithIndexes, null, 2)}`;
+        ${JSON.stringify(paragraphsWithIndexes, null, 2)}
+
+        **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
 
         const rawResult = await callGroqAPI(prompt, 4000);
         const analysis = cleanGeneratedText(rawResult, true, true);
 
-        if (!analysis || !Array.isArray(analysis) || analysis.length < paragraphs.length) {
-            throw new Error("A análise da IA retornou um formato inválido ou incompleto.");
+        if (!analysis || !Array.isArray(analysis)) {
+            throw new Error("A análise da IA retornou um formato inválido.");
         }
         
-        // Lógica de agrupamento de sugestões (da v5.0)
         if (analysis.length > 0) {
             let currentGroup = [];
             for (let i = 0; i < analysis.length; i++) {
-                const currentItem = analysis[i]; const previousItem = i > 0 ? analysis[i - 1] : null;
+                const currentItem = analysis[i];
+                const previousItem = i > 0 ? analysis[i - 1] : null;
                 if (previousItem && currentItem.retentionScore === previousItem.retentionScore && currentItem.retentionScore !== 'green') {
                     currentGroup.push(currentItem);
                 } else {
@@ -1365,11 +1366,18 @@ window.analyzeSectionRetention = async (button, sectionId) => {
             }
         }
         
-        // Aplica as classes e tooltips nos parágrafos (lógica da v5.0)
+        const newParagraphs = paragraphs.map(p => {
+            const newP = p.cloneNode(true);
+            newP.className = 'retention-paragraph-live';
+            newP.innerHTML = p.innerHTML.replace(/<div class="retention-tooltip">.*?<\/div>/g, '');
+            p.parentNode.replaceChild(newP, p);
+            return newP;
+        });
+
         analysis.forEach((item, index) => {
-            const p = paragraphs[item.paragraphIndex];
+            const p = newParagraphs[item.paragraphIndex];
             if (p) {
-                p.classList.add('retention-paragraph-live', `retention-${item.retentionScore}`);
+                p.classList.add(`retention-${item.retentionScore}`);
                 p.dataset.suggestionGroup = item.suggestion;
 
                 if (item.retentionScore === 'yellow' || item.retentionScore === 'red') {
@@ -1380,9 +1388,18 @@ window.analyzeSectionRetention = async (button, sectionId) => {
                         const suggestionTextEscaped = item.suggestion.replace(/"/g, '\\"');
                         const buttonsHtml = `
                             <div class="flex gap-2 mt-3">
-                                <button class="flex-1 btn btn-primary btn-small py-1" data-action="optimizeGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-magic mr-2"></i> Otimizar</button>
-                                <button class="flex-1 btn btn-danger btn-small py-1" data-action="deleteParagraphGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-trash-alt mr-2"></i> Deletar</button>
-                            </div>`;
+                                <button class="flex-1 btn btn-primary btn-small py-1" 
+                                        data-action="optimizeGroup" 
+                                        data-suggestion-text="${suggestionTextEscaped}">
+                                    <i class="fas fa-magic mr-2"></i> Otimizar
+                                </button>
+                                <button class="flex-1 btn btn-danger btn-small py-1" 
+                                        data-action="deleteParagraphGroup" 
+                                        data-suggestion-text="${suggestionTextEscaped}">
+                                    <i class="fas fa-trash-alt mr-2"></i> Deletar
+                                </button>
+                            </div>
+                        `;
                         p.insertAdjacentHTML('beforeend', `<div class="retention-tooltip"><strong>${tooltipTitle}:</strong> ${DOMPurify.sanitize(item.suggestion)}${buttonsHtml}</div>`);
                     }
                 }
@@ -1390,7 +1407,9 @@ window.analyzeSectionRetention = async (button, sectionId) => {
                  p.addEventListener('mouseout', handleSuggestionMouseOut);
             }
         });
+
         window.showToast("Análise de retenção concluída!", 'success');
+
     } catch (error) {
         console.error("Erro detalhado em analyzeSectionRetention:", error);
         window.showToast(`Falha na análise: ${error.message}`, 'error');
