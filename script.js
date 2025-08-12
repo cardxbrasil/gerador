@@ -3796,7 +3796,7 @@ const getProjectStateForExport = () => { /* LOGIC WILL BE TRANSPLANTED HERE */ r
 const syncUiFromState = () => { /* LOGIC WILL BE TRANSPLANTED HERE */ };
 const saveStateToLocalStorage = () => { /* LOGIC WILL BE TRANSPLANTED HERE */ };
 const loadStateFromLocalStorage = () => { /* LOGIC WILL BE TRANSPLANTED HERE */ };
-const importProject = (event) => { /* LOGIC WILL BE TRANSPLANTED HERE */ };
+
 const resetApplicationState = async () => {
     const confirmed = await showConfirmationDialog("Começar Novo Projeto?", "Isso limpará todos os campos e o trabalho salvo. Deseja continuar?");
     if (confirmed) {
