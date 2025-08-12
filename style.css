@@ -386,9 +386,9 @@ textarea.input { min-height: 84px; resize: vertical; }
 /* --- O Tooltip que contém os botões --- */
 .retention-tooltip { 
     position: absolute; 
-    bottom: 100%; 
+    bottom: 95%; /* << MUDANÇA AQUI */
     left: 0; 
-    transform: translateY(-10px); 
+    transform: translateY(0);
     background-color: var(--surface); 
     color: var(--text-body); 
     padding: 0.75rem; 
