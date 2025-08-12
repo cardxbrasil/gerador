@@ -3156,7 +3156,7 @@ window.enrichWithData = async (buttonElement) => {
     }
 
     showButtonLoading(buttonElement);
-    const sectionElement = buttonElement.closest('.script-section');
+    const sectionElement = buttonElement.closest('.accordion-item').querySelector('.script-section') || buttonElement.closest('.script-section');
 
     try {
         const prompt = `Você é um EDITOR DE ROTEIRO DE ALTO DESEMPENHO e um ESPECIALISTA EM INTEGRAÇÃO DE INFORMAÇÕES. Sua tarefa ÚNICA, CRÍTICA e INEGOCIÁVEL é REESCREVER um trecho de texto para integrar uma NOVA INFORMAÇÃO de forma TOTALMENTE NATURAL, FLUÍDA e PROFISSIONAL, sem comprometer a integridade do texto original.
