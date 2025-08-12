@@ -8,6 +8,7 @@
     --secondary-dark: #64748b;
     --success: #10b981;
     --danger: #ef4444;
+    --warning: #f59e0b;
     --bg: #f8fafc;
     --surface: #ffffff;
     --border: rgba(0,0,0,0.06);
@@ -26,6 +27,7 @@
     --secondary-dark: #374151;
     --success: #34d399;
     --danger: #f87171;
+    --warning: #facc15;
     --bg: #0f172a;
     --surface: #1e293b;
     --border: rgba(255,255,255,0.08);
@@ -40,7 +42,7 @@
 /* ======================= ESTRUTURA DO LAYOUT ======================= */
 /* ================================================================= */
 * { box-sizing: border-box; }
-html, body { height: 100%; }
+html, body { height: 100%; scroll-behavior: smooth; }
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
@@ -83,7 +85,8 @@ body {
 }
 .sidebar-title { font-weight: 700; color: var(--text-header); margin-bottom: 10px; }
 .sidebar-title.small { font-size: 13px; color: var(--text-muted); }
-.sidebar-divider { margin: 16px 0; border: none; border-top: 1px solid var(--border); }
+.sidebar-divider, .divider { margin: 16px 0; border: none; border-top: 1px solid var(--border); }
+.my-6 { margin-top: 1.5rem; margin-bottom: 1.5rem; }
 .step {
     display: flex;
     align-items: center;
@@ -107,10 +110,11 @@ body {
     align-items: center; justify-content: center;
     background: var(--surface);
     border: 1px solid var(--border);
-    color: var(--primary);
+    color: var(--text-header);
     font-weight: 700;
     transition: var(--transition);
 }
+.step.active .badge { color: var(--primary); }
 .step.completed .badge { background: var(--primary); color: white; }
 .step .step-title { font-weight: 600; color: var(--text-header); }
 
@@ -142,10 +146,10 @@ body {
     margin-bottom: 16px;
 }
 .grid-2, .grid-cols-1, .grid-cols-2 { display: grid; gap: 16px; }
-.md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.md\:grid-cols-2, .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .md\:col-span-2 { grid-column: span 2 / span 2; }
 .gap-4 { gap: 1rem; } .gap-6 { gap: 1.5rem; }
-.mt-4 { margin-top: 1rem; } .mt-6 { margin-top: 2rem; }
+.mt-4 { margin-top: 1rem; } .mt-6 { margin-top: 1.5rem; } .mt-10 { margin-top: 2.5rem; }
 .mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; }
 .p-4 { padding: 1rem; }
 .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
@@ -157,7 +161,7 @@ body {
 .text-sm { font-size: 0.875rem; } .text-lg { font-size: 1.125rem; } .text-xl { font-size: 1.25rem; }
 .border-b { border-bottom-width: 1px; } .border-t { border-top-width: 1px; }
 .border-gray-200 { border-color: var(--border); }
-.dark .border-gray-700 { border-color: var(--border); }
+.prose { max-width: 100%; }
 .dark .prose-invert { color: var(--text-body); }
 .prose h1, .prose h2, .prose h3 { color: var(--text-header); }
 
@@ -165,7 +169,7 @@ body {
 /* ======================== FORMULÁRIOS & BOTÕES ===================== */
 /* ================================================================= */
 .input-group { margin-bottom: 16px; }
-.input-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; color: var(--text-header); }
+.input-group label { display: flex; align-items: center; font-weight: 500; margin-bottom: 8px; font-size: 14px; color: var(--text-header); }
 .input, textarea.input, select.input {
     width: 100%;
     padding: 10px 14px;
@@ -186,6 +190,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 .btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 10px 16px;
     border-radius: 8px;
@@ -197,7 +202,7 @@ textarea.input { min-height: 84px; resize: vertical; }
     white-space: nowrap;
 }
 .btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
 .btn-secondary { background: var(--secondary); color: var(--text-header); }
 .btn-secondary:hover { background: color-mix(in srgb, var(--secondary) 80%, black); }
 .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-body); }
@@ -205,8 +210,9 @@ textarea.input { min-height: 84px; resize: vertical; }
 .btn-danger { background-color: var(--danger); color: white; }
 .btn-success { background-color: var(--success); color: white; }
 .btn-small { padding: 6px 12px; font-size: 13px; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .btn .mr-2 { margin-right: 0.5rem; }
+.cursor-pointer { cursor: pointer; }
 
 .controls { display: flex; gap: 12px; flex-wrap: wrap; }
 .output-container { margin-top: 16px; }
@@ -224,76 +230,34 @@ textarea.input { min-height: 84px; resize: vertical; }
     justify-content: center;
 }
 
-/* Radio Buttons */
-.radio-label {
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    border: 2px solid var(--border);
-    background-color: var(--surface);
-    transition: var(--transition);
-}
+.radio-label { display: inline-flex; align-items: center; cursor: pointer; padding: 0.75rem 1.25rem; border-radius: 8px; border: 2px solid var(--border); background-color: var(--surface); transition: var(--transition); }
 .radio-label:hover { border-color: var(--secondary); }
 .radio-label input[type="radio"] { display: none; }
 .radio-label input[type="radio"]:checked + span { color: var(--primary); font-weight: 600; }
-.radio-label:has(input:checked) {
-    border-color: var(--primary);
-    background-color: color-mix(in srgb, var(--primary) 10%, transparent);
-}
+.radio-label:has(input:checked) { border-color: var(--primary); background-color: color-mix(in srgb, var(--primary) 10%, transparent); }
 .opacity-50 { opacity: 0.5; }
 
 /* ================================================================= */
 /* ======================== ABAS (TABS) ============================ */
 /* ================================================================= */
-.tab-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-weight: 500;
-    color: var(--text-muted);
-    border-bottom: 2px solid transparent;
-    transition: var(--transition);
-    border-radius: 6px 6px 0 0;
-}
-.tab-button:hover {
-    color: var(--text-header);
-    background-color: color-mix(in srgb, var(--border) 40%, transparent);
-}
-.tab-active {
-    font-weight: 600;
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-}
-.tab-pane.hidden { display: none; }
+.tab-button { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border: none; background: none; cursor: pointer; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid transparent; transition: var(--transition); border-radius: 6px 6px 0 0; }
+.tab-button:hover { color: var(--text-header); background-color: color-mix(in srgb, var(--border) 40%, transparent); }
+.tab-active { font-weight: 600; color: var(--primary); border-bottom-color: var(--primary); }
 .tab-pane { animation: fadeIn 0.3s ease-in-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ================================================================= */
 /* ========================= COMPONENTES UI ======================== */
 /* ================================================================= */
-/* Spinner */
-.loading-spinner, .spinner {
-    width: 20px; height: 20px;
-    border: 3px solid var(--border);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
+.loading-spinner, .spinner { width: 20px; height: 20px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-spinner-small { width: 16px; height: 16px; border-width: 2px; }
 
-/* Acordeão (para o roteiro) */
 .accordion-item { border-bottom: 1px solid var(--border); }
 .accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; cursor: pointer; transition: var(--transition); }
 .accordion-header:hover { background-color: color-mix(in srgb, var(--border) 20%, transparent); }
 .header-title-group { display: flex; align-items: center; gap: 0.75rem; flex-grow: 1; }
-.header-title-group h3 { font-weight: 600; font-size: 1.1rem; color: var(--text-header); }
+.header-title-group h3 { font-weight: 600; font-size: 1.1rem; color: var(--text-header); margin:0; }
 .header-title-group .text-xs { color: var(--text-muted); font-size: 0.75rem; white-space: nowrap; }
 .header-actions-group { display: flex; align-items: center; gap: 1rem; }
 .header-buttons { display: flex; align-items: center; gap: 0.75rem; }
@@ -303,49 +267,57 @@ textarea.input { min-height: 84px; resize: vertical; }
 .accordion-arrow.open { transform: rotate(180deg); }
 .accordion-body { padding: 0 1.5rem 1.5rem 1.5rem; display: none; }
 .accordion-body.open { display: block; animation: fadeIn 0.4s ease; }
-.generated-content-wrapper { font-family: 'Source Serif Pro', serif; line-height: 1.7; font-size: 1.1rem; }
+.generated-content-wrapper { font-family: 'Source Serif Pro', serif; line-height: 1.7; font-size: 1rem; }
+.generated-content-wrapper:focus { outline: none; }
 
-/* Tooltip & Popover */
-.help-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background-color: var(--border); color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: help; margin-left: 8px; transition: var(--transition); }
+.help-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background-color: color-mix(in srgb, var(--border) 50%, transparent); color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: help; margin-left: 8px; transition: var(--transition); }
 .help-icon:hover { background-color: var(--primary); color: white; }
 .tooltip-container { position: relative; display: inline-flex; }
-.tooltip-container .tooltip-text { visibility: hidden; opacity: 0; width: 300px; background-color: var(--bg); color: var(--text-header); text-align: left; border-radius: 8px; padding: 1rem; position: absolute; z-index: 1001; bottom: 115%; left: 50%; transform: translateX(-50%); box-shadow: var(--shadow); border: 1px solid var(--border); transition: opacity 0.3s; pointer-events: none; font-size: 1rem; font-weight: 500; line-height: 1.6; }
+.tooltip-container .tooltip-text { visibility: hidden; opacity: 0; width: 300px; background-color: var(--bg); color: var(--text-header); text-align: left; border-radius: 8px; padding: 1rem; position: absolute; z-index: 1001; bottom: 115%; left: 50%; transform: translateX(-50%); box-shadow: var(--shadow); border: 1px solid var(--border); transition: opacity 0.3s; pointer-events: none; font-size: 0.9rem; font-weight: 400; line-height: 1.6; }
 .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
 .tooltip-text strong { font-weight: 700; color: var(--primary); }
-.popover-bg { background-color: var(--dark-bg); }
+.popover-bg { background-color: var(--bg); }
 
-/* Menu de Edição Contextual */
 #editing-menu { position: absolute; background-color: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); padding: 0.5rem; z-index: 1002; display: flex; gap: 0.25rem; opacity: 0; visibility: hidden; transition: opacity 0.2s, transform 0.2s; transform: translateY(10px); }
 #editing-menu.visible { opacity: 1; visibility: visible; transform: translateY(0); }
 #editing-menu button { display: inline-flex; align-items: center; gap: 0.5rem; background-color: transparent; border: none; color: var(--text-header); padding: 0.5rem 0.75rem; cursor: pointer; border-radius: 6px; font-weight: 500; white-space: nowrap; transition: var(--transition); }
 #editing-menu button:hover { background-color: var(--border); color: var(--primary); }
 
-/* Dialogs/Modals */
-.dialog-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; display: none; }
+.dialog-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; display: flex; opacity: 0; visibility: hidden; transition: opacity 0.2s; }
+.dialog-overlay.visible { opacity: 1; visibility: visible; }
 .dialog-card { max-width: 500px; width: 90%; background: var(--surface); animation: fadeIn 0.3s ease; }
 #inputDialogSuggestions .btn { white-space: normal; text-align: left; justify-content: start; height: auto; padding-top: 0.75rem; padding-bottom: 0.75rem; }
 
-/* Toast */
 .toast { position: fixed; right: 18px; bottom: 18px; padding: 12px 18px; border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); border-left: 5px solid var(--primary); display: flex; gap: 12px; align-items: center; transform: translateY(24px); opacity: 0; transition: all .25s ease; z-index: 9000; }
 .toast.show { transform: translateY(0); opacity: 1; }
 
-/* Análise de Retenção */
-.highlight-change { animation: fade-out-highlight 2s ease-out forwards; border-radius: 4px; outline-offset: 2px; }
-@keyframes fade-out-highlight {
-  from { background-color: color-mix(in srgb, #f59e0b 25%, transparent); outline: 2px solid #f59e0b; }
-  to { background-color: transparent; outline: 2px solid transparent; }
-}
+/* ================================================================= */
+/* =================== ESTILOS DE CONTEÚDO GERADO ================== */
+/* ================================================================= */
+.retention-paragraph-live { position: relative; padding: 0.5rem; border-radius: 6px; transition: background-color 0.3s; cursor: default; }
+.retention-green { background-color: color-mix(in srgb, var(--success) 10%, transparent); }
+.retention-yellow { background-color: color-mix(in srgb, var(--warning) 15%, transparent); }
+.retention-red { background-color: color-mix(in srgb, var(--danger) 15%, transparent); }
+.retention-tooltip { position: absolute; bottom: 95%; left: 0; transform: translateY(0); background-color: var(--surface); color: var(--text-body); padding: 0.75rem; border-radius: 8px; box-shadow: var(--shadow); width: 90%; z-index: 10; font-size: 0.8rem; border: 1px solid var(--border); opacity: 0; visibility: hidden; transition: opacity 0.3s, transform 0.3s; pointer-events: none; }
+.retention-paragraph-live:hover .retention-tooltip { opacity: 1; visibility: visible; transform: translateY(-5px); pointer-events: auto; }
+.highlight-group { outline: 2px solid var(--primary); outline-offset: 2px; box-shadow: 0 0 15px color-mix(in srgb, var(--primary) 30%, transparent); }
+@keyframes fade-out-highlight { from { background-color: color-mix(in srgb, var(--warning) 40%, transparent); outline: 2px solid var(--warning); } to { background-color: transparent; outline: 2px solid transparent; } }
+.highlight-change { animation: fade-out-highlight 2.5s ease-out forwards; border-radius: 4px; outline-offset: 2px; }
+
 .tag { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
 .tag-pace { background-color: color-mix(in srgb, var(--secondary) 20%, transparent); color: var(--secondary-dark); }
 .dark .tag-pace { color: var(--text-muted); }
+.generated-output-box { background-color: color-mix(in srgb, var(--bg) 50%, var(--surface)); border-left: 4px solid var(--primary); padding: 1rem 1.5rem; border-radius: 8px; line-height: 1.6; }
+.generated-output-box .output-subtitle { font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border); }
 
 /* ================================================================= */
 /* ==================== RESPONSIVIDADE E IMPRESSÃO ================= */
 /* ================================================================= */
 @media (max-width: 980px) {
-  .app { grid-template-columns: 1fr; padding: 12px; }
+  .app { grid-template-columns: 1fr; }
+  .container { padding: 12px; }
   .sidebar { order: -1; position: static; margin-bottom: 20px; }
-  .md\:grid-cols-2 { grid-template-columns: 1fr; }
+  .md\:grid-cols-2, .grid-2 { grid-template-columns: 1fr; }
   .md\:col-span-2 { grid-column: auto; }
 }
 
@@ -355,90 +327,5 @@ textarea.input { min-height: 84px; resize: vertical; }
     .app { display: block; }
     .card, .header, .sidebar { box-shadow: none; border: 1px solid #ccc; }
     .btn { display: none; }
-    #print-container { display: block !important; }
     h1, h2, h3, h4, h5, h6 { color: #000 !important; }
-}
-
-/* ================================================================= */
-/* =================== MÓDULO DE ANÁLISE DE RETENÇÃO =============== */
-/* ================================================================= */
-
-/* --- O parágrafo interativo --- */
-.retention-paragraph-live { 
-    position: relative; 
-    padding: 0.5rem; 
-    border-radius: 6px; 
-    transition: background-color 0.3s; 
-    cursor: default; 
-}
-
-/* --- As cores de feedback --- */
-.retention-green { 
-    background-color: color-mix(in srgb, var(--success) 10%, transparent); 
-}
-.retention-yellow { 
-    background-color: color-mix(in srgb, #f59e0b 15%, transparent); 
-}
-.retention-red { 
-    background-color: color-mix(in srgb, var(--danger) 15%, transparent); 
-}
-
-/* --- O Tooltip que contém os botões --- */
-.retention-tooltip { 
-    position: absolute; 
-    bottom: 95%; /* << MUDANÇA AQUI */
-    left: 0; 
-    transform: translateY(0);
-    background-color: var(--surface); 
-    color: var(--text-body); 
-    padding: 0.75rem; 
-    border-radius: 8px; 
-    box-shadow: var(--shadow);
-    width: 90%; 
-    z-index: 10; 
-    font-size: 0.8rem; 
-    border: 1px solid var(--border); 
-    opacity: 0; 
-    visibility: hidden; 
-    transition: opacity 0.3s, transform 0.3s;
-    pointer-events: none; /* Impede que o tooltip interaja com o mouse quando escondido */
-}
-
-/* --- A MÁGICA: Mostrar o tooltip ao passar o mouse no parágrafo pai --- */
-.retention-paragraph-live:hover .retention-tooltip { 
-    opacity: 1; 
-    visibility: visible; 
-    transform: translateY(-5px);
-    pointer-events: auto; /* Permite clicar nos botões quando visível */
-}
-
-/* --- Destaque visual para grupos de parágrafos --- */
-.highlight-group { 
-    outline: 2px solid var(--primary); 
-    outline-offset: 2px; 
-    box-shadow: 0 0 15px color-mix(in srgb, var(--primary) 30%, transparent); 
-}
-
-
-/* ================================================================= */
-/* =================== FEEDBACK VISUAL DE ALTERAÇÃO ================ */
-/* ================================================================= */
-
-/* --- Define a animação "fade-out-highlight" --- */
-@keyframes fade-out-highlight {
-  from {
-    background-color: color-mix(in srgb, #f59e0b 40%, transparent); /* Amarelo/Laranja inicial */
-    outline: 2px solid #f59e0b;
-  }
-  to {
-    background-color: transparent;
-    outline: 2px solid transparent;
-  }
-}
-
-/* --- Aplica a animação a qualquer elemento com esta classe --- */
-.highlight-change {
-  animation: fade-out-highlight 2.5s ease-out forwards; /* Duração de 2.5 segundos */
-  border-radius: 4px;
-  outline-offset: 2px;
 }
