@@ -3818,7 +3818,7 @@ const resetApplicationState = async () => {
 // ==================== EVENTOS E INICIALIZAÇÃO ===============
 // ==========================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Mapa de ações para o listener de clique global
+    // Mapa de ações completo para o listener de clique global
     const actions = {
         'investigate': handleInvestigate, 'generateIdeasFromReport': generateIdeasFromReport,
         'select-idea': (btn) => { const ideaString = btn.dataset.idea; if (ideaString) selectIdea(JSON.parse(ideaString.replace(/&quot;/g, '"'))); },
@@ -3834,7 +3834,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'exportProject': exportProject, 'exportPdf': downloadPdf, 'exportTranscript': handleCopyAndDownloadTranscript,
         'resetProject': resetApplicationState,
         'regenerate': (btn) => window.regenerateSection(btn.dataset.sectionId),
-        'copy': (btn) => { /* Lógica de cópia aqui */ },
+        'copy': (btn) => { const content = btn.closest('.accordion-item')?.querySelector('.generated-content-wrapper'); if (content) { window.copyTextToClipboard(content.textContent); window.showCopyFeedback(btn); }},
         'generate-prompts': (btn) => window.generatePromptsForSection(btn, btn.dataset.sectionId),
         'analyzeRetention': (btn) => window.analyzeSectionRetention(btn, btn.dataset.sectionId),
         'refineStyle': (btn) => window.refineSectionStyle(btn),
@@ -3849,22 +3849,37 @@ document.addEventListener('DOMContentLoaded', () => {
         'goToFinalize': goToFinalize,
     };
 
+    // Listener de clique global (agora com a lógica de acordeão correta)
     document.body.addEventListener('click', (event) => {
+        const accordionHeader = event.target.closest('.accordion-header');
+        if (accordionHeader && !event.target.closest('.header-buttons button')) {
+            const body = accordionHeader.nextElementSibling;
+            const arrow = accordionHeader.querySelector('.accordion-arrow');
+            if (body && arrow) {
+                const isOpen = body.classList.toggle('open');
+                body.style.display = isOpen ? 'block' : 'none'; 
+                arrow.classList.toggle('open', isOpen);
+            }
+        }
+
         const button = event.target.closest('button[data-action]');
         if (button && actions[button.dataset.action]) {
             actions[button.dataset.action](button);
         }
+
         const step = event.target.closest('.step[data-step]');
         if (step) {
             showPane(step.dataset.step);
         }
+        
         const genreButton = event.target.closest('#genreTabs .tab-button');
-        if (genreButton) {
+        if(genreButton) {
             document.querySelectorAll('#genreTabs .tab-button').forEach(b => b.classList.remove('tab-active'));
             genreButton.classList.add('tab-active');
         }
     });
 
+    // Lógica do Dark Mode
     const toggle = document.getElementById('darkModeToggle');
     const setDarkMode = (isDark) => {
         const moonIcon = document.getElementById('moonIcon'); const sunIcon = document.getElementById('sunIcon');
@@ -3887,11 +3902,13 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
     });
     
+    // Listeners de Auto-save e Importação
     document.querySelectorAll('.input, textarea.input, select.input, input[type="radio"]').forEach(el => {
         el.addEventListener('change', saveStateToLocalStorage);
     });
     document.getElementById('importFileInput')?.addEventListener('change', importProject);
 
+    // Inicialização final da aplicação
     loadStateFromLocalStorage();
     showPane(AppState.ui.currentPane || 'investigate');
 });
