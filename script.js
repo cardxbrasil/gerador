@@ -36,21 +36,6 @@ const wordCountMap = {
 };
 
 // ==========================================================
-// =================== GERENCIADOR DE PROMPTS (A ALMA) =======
-// ==========================================================
-// *** TODO O CONTEÚDO DO PromptManager DA v5.0 FOI COLADO AQUI, SEM ALTERAÇÕES ***
-// (O código é muito extenso para colar novamente, mas imagine as 1000+ linhas do PromptManager aqui)
-const PromptManager = {
-    getIdeasPrompt: (genre, context) => { /* ...código completo da v5.0... */ },
-    getOutlinePrompt: (context) => { /* ...código completo da v5.0... */ },
-    getScriptSectionPrompt: (context) => { /* ...código completo da v5.0... */ },
-    getTitlesAndThumbnailsPrompt: (context) => { /* ...código completo da v5.0... */ },
-    getVideoDescriptionPrompt: (context) => { /* ...código completo da v5.0... */ },
-    getSoundtrackPrompt: (fullTranscript) => { /* ...código completo da v5.0... */ }
-};
-
-
-// ==========================================================
 // ==================== LÓGICA DO WIZARD UI ===================
 // ==========================================================
 const showPane = (paneId) => {
@@ -68,9 +53,6 @@ const showPane = (paneId) => {
     const activeStep = document.getElementById(`step-${paneId}`);
     if (activeStep) {
         activeStep.classList.add('active');
-        if (AppState.ui.currentPane) {
-           activeStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
     }
     AppState.ui.currentPane = paneId;
 };
@@ -96,115 +78,67 @@ const updateProgressBar = () => {
     progressText.textContent = `${percentage}%`;
 };
 
-// ==========================================================
-// ==================== FUNÇÕES UTILITÁRIAS ===================
-// ==========================================================
-// *** TODAS AS FUNÇÕES UTILITÁRIAS DA v5.0 FORAM COLADAS AQUI ***
-// Incluindo: showToast, show/hideButtonLoading, callGroqAPI, cleanGeneratedText, 
-// removeMetaComments, showConfirmationDialog, showInputDialog, etc.
-
-// =========================================================================
-// ==================== FUNÇÕES PRINCIPAIS TRANSPLANTADAS ===================
-// =========================================================================
-// *** AQUI VEM A LÓGICA CENTRAL DA v5.0, ADAPTADA PARA A NOVA UI ***
-
-const handleInvestigate = async (button) => {
-    // A função `verifyFact` da v5.0 foi renomeada e integrada aqui.
-    // ... (código completo da função, sem alterações na lógica interna)
-};
-
-const generateIdeasFromReport = async (button) => {
-    // A função da v5.0, sem alterações na lógica interna.
-    // ... (código completo da função)
-};
-
-const selectIdea = (idea) => {
-    // A função da v5.0, com uma adição crucial no final:
-    document.getElementById('videoTheme').value = idea.title || '';
-    document.getElementById('videoDescription').value = idea.videoDescription || '';
-    // ... (preenchimento dos outros campos) ...
-
-    // ADIÇÃO: Navega para o próximo passo do wizard
-    window.showToast("Ideia selecionada! Agora, refine a estratégia.", 'success');
-    markStepCompleted('investigate');
-    showPane('strategy');
-};
-
-const applyStrategy = () => {
-    if (!validateInputs()) return;
-    markStepCompleted('strategy');
-    showPane('script');
-    window.showToast("Estratégia definida. Pronto para criar o roteiro.", 'success');
-};
-
-const generateStrategicOutline = async (button) => {
-    // Função da v5.0, com uma pequena adaptação.
-    // ... (toda a lógica de limpeza e chamada de API) ...
-    // ADAPTAÇÃO: Em vez de mostrar um dashboard, cria os placeholders no painel de roteiro.
-    createScriptSectionPlaceholders();
-};
-
-const createScriptSectionPlaceholders = () => {
-    // ... (lógica para criar os placeholders de Intro, Dev, Climax no #scriptSectionsContainer)
-};
-
-const handleGenerateSection = async (button, sectionName, sectionTitle, elementId) => {
-    // Função da v5.0, perfeitamente transplantada.
-    // ... (código completo, sem alterações na lógica interna)
-};
-
-const generateConclusion = async (button) => {
-    // Função da v5.0, perfeitamente transplantada.
-    // ... (código completo)
-};
-
-const generateStrategicCta = async (button) => {
-    // Função da v5.0, perfeitamente transplantada.
-    // ... (código completo)
-};
-
-const goToFinalize = () => {
-    const { script } = AppState.generated;
-    if (!script.intro?.text || !script.development?.text || !script.climax?.text) {
-        window.showToast("Gere ao menos as seções principais do roteiro antes de finalizar.", 'info');
-        return;
-    }
-    markStepCompleted('script');
-    showPane('finalize');
-    window.showToast("Roteiro pronto! Bem-vindo à área de finalização.", 'success');
-};
-
-// ... E ASSIM POR DIANTE PARA TODAS AS OUTRAS FUNÇÕES:
-// - generateTitlesAndThumbnails
-// - generateVideoDescription
-// - generateSoundtrack
-// - mapEmotionsAndPacing
-// - analyzeFullScript
-// - analyzeRetentionHooks
-// - suggestViralElements
-// - Funções de análise (refineStyle, enrichWithData, etc.)
-// - Funções de exportação (PDF, RTF, JSON)
-// - Funções de salvamento (LocalStorage)
+// As funções detalhadas serão coladas nas próximas partes.
+// Aqui apenas declaramos para que o mapa de ações não dê erro.
+let PromptManager, callGroqAPI, cleanGeneratedText, removeMetaComments, showConfirmationDialog, showInputDialog, handleEditingAction;
+let handleInvestigate, generateIdeasFromReport, selectIdea, applyStrategy, suggestStrategy, generateStrategicOutline;
+let createScriptSectionPlaceholders, handleGenerateSection, generateConclusion, generateStrategicCta, suggestFinalStrategy, addDevelopmentChapter, goToFinalize;
+let mapEmotionsAndPacing, generateTitlesAndThumbnails, generateVideoDescription, generateSoundtrack;
+let analyzeFullScript, analyzeRetentionHooks, suggestViralElements, analyzeScriptPart, createReportSection, applySuggestion, applyAllSuggestions, applyHookSuggestion, insertViralSuggestion;
+let refineSectionStyle, enrichWithData, suggestPerformance, analyzeSectionRetention, optimizeGroup, deleteParagraphGroup;
+let regenerateSection, generatePromptsForSection, renderPaginatedPrompts, navigatePrompts;
+let exportProject, downloadPdf, handleCopyAndDownloadTranscript, resetApplicationState;
+let saveStateToLocalStorage, loadStateFromLocalStorage, syncUiFromState, getProjectStateForExport;
+let updateButtonStates, updateAllReadingTimes, invalidateAndClearEmotionalMap, invalidateAndClearPerformance, invalidateAndClearPrompts;
+let escapeRtf, escapeIdeaForOnclick, updateNarrativeStructureOptions, updateMainTooltip, updateGoalPopover, toggleCustomImageStyleVisibility, validateInputs;
+let getBasePromptContext, constructScriptPrompt, getTranscriptOnly, generateSectionHtmlContent;
 
 // ==========================================================
 // ==================== EVENTOS E INICIALIZAÇÃO ===============
 // ==========================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // O mapa de ações completo da v5.0 é usado aqui, garantindo que cada `data-action` funcione.
     const actions = {
-        'investigate': handleInvestigate,
-        'generateIdeasFromReport': generateIdeasFromReport,
-        'select-idea': (btn) => { /*...*/ },
-        'applyStrategy': applyStrategy,
-        'generateOutline': generateStrategicOutline,
+        'investigate': (btn) => handleInvestigate(btn),
+        'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn),
+        'select-idea': (btn) => { const ideaString = btn.dataset.idea; if (ideaString) selectIdea(JSON.parse(ideaString.replace(/&quot;/g, '"'))); },
+        'suggestStrategy': (btn) => suggestStrategy(btn),
+        'applyStrategy': (btn) => applyStrategy(btn),
+        'generateOutline': (btn) => generateStrategicOutline(btn),
         'generateIntro': (btn) => handleGenerateSection(btn, 'intro', 'Introdução', 'intro'),
-        // ... (todas as outras ações mapeadas)
-        'goToFinalize': goToFinalize,
+        'generateDevelopment': (btn) => handleGenerateSection(btn, 'development', 'Desenvolvimento', 'development'),
+        'generateClimax': (btn) => handleGenerateSection(btn, 'climax', 'Clímax', 'climax'),
+        'generateConclusion': (btn) => generateConclusion(btn),
+        'generateCta': (btn) => generateStrategicCta(btn),
+        'suggestFinalStrategy': (btn) => suggestFinalStrategy(btn),
+        'addDevelopmentChapter': (btn) => addDevelopmentChapter(btn),
+        'mapEmotions': (btn) => mapEmotionsAndPacing(btn),
+        'generateTitlesAndThumbnails': (btn) => generateTitlesAndThumbnails(btn),
+        'generateDescription': (btn) => generateVideoDescription(btn),
+        'generateSoundtrack': (btn) => generateSoundtrack(btn),
+        'analyzeScript': (btn) => analyzeFullScript(btn),
+        'analyzeHooks': (btn) => analyzeRetentionHooks(btn),
+        'suggestViralElements': (btn) => suggestViralElements(btn),
+        'exportProject': (btn) => exportProject(btn),
+        'exportPdf': (btn) => downloadPdf(btn),
+        'exportTranscript': (btn) => handleCopyAndDownloadTranscript(btn),
+        'resetProject': (btn) => resetApplicationState(btn),
+        'regenerate': (btn) => regenerateSection(btn.dataset.sectionId),
+        'copy': (btn) => { const content = btn.closest('.accordion-item')?.querySelector('.generated-content-wrapper'); if (content) { copyTextToClipboard(content.textContent); showCopyFeedback(btn); }},
+        'generate-prompts': (btn) => generatePromptsForSection(btn, btn.dataset.sectionId),
+        'analyzeRetention': (btn) => analyzeSectionRetention(btn, btn.dataset.sectionId),
+        'refineStyle': (btn) => refineSectionStyle(btn),
+        'enrichWithData': (btn) => enrichWithData(btn),
+        'suggestPerformance': (btn) => suggestPerformance(btn, btn.dataset.sectionId),
+        'optimizeGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) optimizeGroup(btn, text); },
+        'deleteParagraphGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) deleteParagraphGroup(btn, text); },
+        'applySuggestion': (btn) => applySuggestion(btn),
+        'applyAllSuggestions': (btn) => applyAllSuggestions(btn),
+        'applyHookSuggestion': (btn) => applyHookSuggestion(btn),
+        'insertViralSuggestion': (btn) => insertViralSuggestion(btn),
+        'goToFinalize': (btn) => goToFinalize(btn),
     };
 
-    // Listener de clique global adaptado para a nova estrutura.
     document.body.addEventListener('click', (event) => {
-        // Lógica para o acordeão
         const accordionHeader = event.target.closest('.accordion-header');
         if (accordionHeader && !event.target.closest('.header-buttons button')) {
             const body = accordionHeader.nextElementSibling;
@@ -217,21 +151,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // Lógica para os botões de ação
         const button = event.target.closest('button[data-action]');
         if (button && actions[button.dataset.action]) {
             actions[button.dataset.action](button);
         }
 
-        // Lógica para a navegação na sidebar
         const step = event.target.closest('.step[data-step]');
         if (step) {
             showPane(step.dataset.step);
         }
         
-        // Lógica para as abas (tanto de input quanto de gênero)
         const tabButton = event.target.closest('.tab-button');
-        if (tabButton) {
+        if(tabButton) {
             const nav = tabButton.parentElement;
             nav.querySelectorAll('.tab-button').forEach(b => b.classList.remove('tab-active'));
             tabButton.classList.add('tab-active');
@@ -244,9 +175,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ... (toda a lógica de inicialização restante, dark mode, listeners de auto-save, etc.)
+    const setDarkMode = (isDark) => {
+        const moonIcon = document.getElementById('moonIcon'); 
+        const sunIcon = document.getElementById('sunIcon');
+        if (isDark) {
+            document.documentElement.classList.add('dark');
+            if (moonIcon) moonIcon.classList.add('hidden');
+            if (sunIcon) sunIcon.classList.remove('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            if (moonIcon) moonIcon.classList.remove('hidden');
+            if (sunIcon) sunIcon.classList.add('hidden');
+        }
+    };
+    const toggle = document.getElementById('darkModeToggle');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const storedTheme = localStorage.getItem('theme');
+    setDarkMode(storedTheme === 'dark' || (!storedTheme && prefersDark));
+    toggle?.addEventListener('click', () => {
+        const isDark = !document.documentElement.classList.contains('dark');
+        setDarkMode(isDark);
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
     
-    // Inicialização final da aplicação
-    // loadStateFromLocalStorage(); // Carrega o estado salvo se existir
-    showPane(AppState.ui.currentPane || 'investigate'); // Mostra o painel correto
+    // loadStateFromLocalStorage();
+    showPane(AppState.ui.currentPane || 'investigate');
 });
