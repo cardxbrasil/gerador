@@ -1158,6 +1158,7 @@ Você é uma API de geração de JSON que segue regras com precisão cirúrgica.
 const generateSectionHtmlContent = (sectionId, title, content) => {
     const accordionItem = document.createElement('div');
     accordionItem.className = 'accordion-item card !p-0 mb-4 animate-fade-in';
+    accordionItem.id = `${sectionId}Section`; // Adiciona o ID ao elemento principal do acordeão
 
     const accordionHeader = document.createElement('div');
     accordionHeader.className = 'accordion-header';
@@ -1165,6 +1166,7 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
     const accordionBody = document.createElement('div');
     accordionBody.id = `${sectionId}Body`;
     accordionBody.className = 'accordion-body';
+    accordionBody.style.display = 'none'; // Começa fechado por padrão
 
     const headerTitleGroup = document.createElement('div');
     headerTitleGroup.className = 'header-title-group';
@@ -1172,8 +1174,6 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
     h3.textContent = title;
     const timeSpan = document.createElement('span');
     timeSpan.className = 'text-xs font-normal text-gray-500';
-    // const time = calculateReadingTime(content);
-    // timeSpan.textContent = time;
     headerTitleGroup.appendChild(h3);
     headerTitleGroup.appendChild(timeSpan);
 
@@ -1183,14 +1183,12 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
     headerButtons.className = 'header-buttons';
 
     const regenerateBtn = document.createElement('button');
-    regenerateBtn.className = 'regenerate-btn';
     regenerateBtn.title = 'Re-gerar esta seção';
     regenerateBtn.dataset.action = 'regenerate';
     regenerateBtn.dataset.sectionId = `${sectionId}Section`;
     regenerateBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/></svg>`;
 
     const copyBtn = document.createElement('button');
-    copyBtn.className = 'copy-btn';
     copyBtn.title = 'Copiar Roteiro';
     copyBtn.dataset.action = 'copy';
     copyBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5-.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>`;
@@ -1221,37 +1219,34 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z"/></svg> 
                 Adicionar Capítulo
             </button>
-        </div>
-    ` : '';
+        </div>` : '';
     
-    const toolsHtml = `
-        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-6">
+    analysisTools.innerHTML = `
+        <div class="mt-6 pt-4 border-t border-dashed border-gray-700 space-y-6">
             <div class="text-center">
-                <h5 class="font-semibold text-base mb-2 text-gray-800 dark:text-gray-200">Passo 1: Diagnóstico e Criativo</h5>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Analise, edite ou enriqueça o texto para máxima qualidade.</p>
+                <h5 class="font-semibold text-base mb-2">Passo 1: Diagnóstico e Criativo</h5>
+                <p class="text-xs text-muted mb-3">Analise, edite ou enriqueça o texto para máxima qualidade.</p>
                 <div class="flex items-center justify-center gap-2 flex-wrap">
-                    <div class="tooltip-container"><button class="btn btn-secondary btn-small" data-action="analyzeRetention" data-section-id="${sectionId}Section">Analisar Retenção</button><span class="tooltip-text"><strong>Função:</strong> Diagnóstico.<br><strong>O que faz:</strong> Age como um "médico". Ele escaneia o texto e te diz: "Aqui está bom...".</span></div>
-                    <div class="tooltip-container"><button class="btn btn-secondary btn-small" data-action="refineStyle">Refinar Estilo</button><span class="tooltip-text"><strong>Função:</strong> Polimento.<br><strong>O que faz:</strong> Age como um "polidor de carros".</span></div>
-                    <div class="tooltip-container"><button class="btn btn-secondary btn-small" data-action="enrichWithData">Enriquecer com Dados</button><span class="tooltip-text"><strong>Função:</strong> Adição.<br><strong>O que faz:</strong> Age como um "engenheiro de reforço".</span></div>
+                    <div class="tooltip-container"><button class="btn btn-secondary btn-small" data-action="analyzeRetention" data-section-id="${sectionId}Section">Analisar Retenção</button><span class="tooltip-text"><strong>Função:</strong> Diagnóstico.<br><strong>O que faz:</strong> Age como um "médico". Ele escaneia o texto e te diz: "Aqui está bom, aqui tem um ponto de atenção, e aqui tem um ponto de risco". Ele te dá o diagnóstico, mas não a cura.</span></div>
+                    <div class="tooltip-container"><button class="btn btn-secondary btn-small" data-action="refineStyle" data-section-id="${sectionId}Section"><i class="fas fa-gem" style="margin-right: 8px;"></i>Refinar Estilo</button><span class="tooltip-text"><strong>Função:</strong> Polimento.<br><strong>O que faz:</strong> Age como um "polidor de carros". Ele pega o texto inteiro, remove repetições e melhora a fluidez.</span></div>
+                    <div class="tooltip-container"><button class="btn btn-secondary btn-small" data-action="enrichWithData" data-section-id="${sectionId}Section"><i class="fas fa-plus" style="margin-right: 8px;"></i>Enriquecer com Dados</button><span class="tooltip-text"><strong>Função:</strong> Adição.<br><strong>O que faz:</strong> Age como um "engenheiro de reforço". Você seleciona um trecho e ele o reforça com mais credibilidade.</span></div>
                     ${addChapterButtonHtml}
                 </div>
                 <div id="analysis-output-${sectionId}" class="section-analysis-output mt-3 text-left"></div>
             </div>
-            <div class="pt-4 border-t border-dashed border-gray-200 dark:border-gray-700 text-center">
-                 <h5 class="font-semibold text-base mb-2 text-gray-800 dark:text-gray-200">Passo 2: Estrutura de Narração</h5>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Adicione sugestões de performance para guiar a narração.</p>
+            <div class="pt-4 border-t border-dashed border-gray-700 text-center">
+                 <h5 class="font-semibold text-base mb-2">Passo 2: Estrutura de Narração</h5>
+                <p class="text-xs text-muted mb-3">Adicione sugestões de performance para guiar a narração.</p>
                 <div class="flex items-center justify-center gap-2"><button class="btn btn-secondary btn-small" data-action="suggestPerformance" data-section-id="${sectionId}Section">Sugerir Performance</button></div>
                 <div class="section-performance-output mt-3 text-left"></div> 
             </div>
-            <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 text-center">
-                <h5 class="font-semibold text-base mb-2 text-gray-800 dark:text-gray-200">Passo 3: Recursos Visuais</h5>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Crie o storyboard visual para esta seção do roteiro.</p>
+            <div class="mt-6 pt-4 border-t border-dashed border-gray-700 text-center">
+                <h5 class="font-semibold text-base mb-2">Passo 3: Recursos Visuais</h5>
+                <p class="text-xs text-muted mb-3">Crie o storyboard visual para esta seção do roteiro.</p>
                 <button class="btn btn-secondary btn-small" data-action="generate-prompts" data-section-id="${sectionId}Section">Gerar Prompts de Imagem</button>
                 <div class="prompt-container mt-4 text-left"></div>
             </div>
-        </div>
-    `;
-    analysisTools.innerHTML = DOMPurify.sanitize(toolsHtml, { ADD_TAGS: ["svg", "path", "span", "br", "strong"], ADD_ATTR: ["d", "fill", "viewBox", "xmlns", "width", "height", "class"] });
+        </div>`;
     
     accordionBody.appendChild(contentWrapper);
     accordionBody.appendChild(analysisTools);
@@ -3014,7 +3009,7 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
 window.refineSectionStyle = async (buttonElement) => {
     showButtonLoading(buttonElement);
 
-    const sectionElement = buttonElement.closest('.accordion-item').querySelector('.script-section') || buttonElement.closest('.script-section');
+    const sectionElement = buttonElement.closest('.accordion-item');
     if (!sectionElement) {
         window.showToast("Erro: Seção do roteiro não encontrada.", 'error');
         hideButtonLoading(buttonElement);
@@ -3055,7 +3050,7 @@ ${originalText}
 **AÇÃO FINAL:** Reescreva AGORA o texto fornecido, aplicando EXATAMENTE todas as regras acima para entregar uma versão significativamente mais refinada, fluida, impactante e livre de repetições. Responda APENAS com o texto final refinado.
 `;
 
-    try {
+try {
         const rawResult = await callGroqAPI(prompt, 4000);
         const refinedText = removeMetaComments(rawResult);
 
@@ -3063,28 +3058,89 @@ ${originalText}
         const sectionId = sectionElement.id.replace('Section', '');
         
         const newHtml = newParagraphs.map((p, index) => 
-            `<div id="${sectionId}-p-${index}">${p}</div>`
+            `<div id="${sectionId}-p-${index}">${DOMPurify.sanitize(p)}</div>`
         ).join('');
 
-        contentWrapper.innerHTML = DOMPurify.sanitize(newHtml);
+        contentWrapper.innerHTML = newHtml;
 
-        invalidateAndClearPerformance(sectionElement);
-        invalidateAndClearPrompts(sectionElement);
-        invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
-        
-        const analysisOutput = sectionElement.querySelector('.section-analysis-output');
-        if (analysisOutput) {
-            analysisOutput.innerHTML = '';
+        // Atualiza o estado central
+        if (AppState.generated.script[sectionId]) {
+            AppState.generated.script[sectionId].html = newHtml;
+            AppState.generated.script[sectionId].text = refinedText;
         }
 
-        updateAllReadingTimes();
+        // Invalida as análises que dependem do texto
+        // invalidateAndClearPerformance(sectionElement);
+        // invalidateAndClearPrompts(sectionElement);
+        // invalidateAndClearEmotionalMap();
+        
         window.showToast("Estilo do roteiro refinado com sucesso!", 'success');
 
     } catch (error) {
         console.error("Erro detalhado em refineSectionStyle:", error);
-        window.showToast(`Falha ao refinar o estilo: ${error.message}`);
+        window.showToast(`Falha ao refinar o estilo: ${error.message}`, 'error');
     } finally {
         hideButtonLoading(buttonElement);
+    }
+};
+
+window.enrichWithData = async (buttonElement) => {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0 || selection.toString().trim() === '') {
+        window.showToast("Por favor, selecione primeiro o trecho de texto que deseja enriquecer.", 'info');
+        return;
+    }
+    
+    userSelectionRange = selection.getRangeAt(0).cloneRange();
+    const selectedText = selection.toString().trim();
+
+    const newData = await showInputDialog(
+        'Enriquecer com Dados',
+        'Cole abaixo o dado, fonte ou exemplo que você quer adicionar ao trecho selecionado.',
+        'Nova Informação:',
+        'Ex: Fonte: Forbes 2023; Segundo o Dr. especialista...'
+    );
+
+    if (!newData) {
+        window.showToast("Operação cancelada.", 'info');
+        userSelectionRange = null;
+        return;
+    }
+
+    showButtonLoading(buttonElement);
+    const sectionElement = buttonElement.closest('.accordion-item');
+
+    try {
+        const prompt = `Você é um EDITOR DE ROTEIRO. Integre a "Nova Informação" de forma natural no "Trecho Original". Retorne APENAS o parágrafo reescrito.
+        TRECHO ORIGINAL: "${selectedText}"
+        NOVA INFORMAÇÃO: "${newData}"`;
+
+        const rawResult = await callGroqAPI(prompt, 1000);
+        const enrichedText = removeMetaComments(rawResult);
+
+        if (userSelectionRange) {
+            selection.removeAllRanges();
+            selection.addRange(userSelectionRange);
+            document.execCommand('insertHTML', false, DOMPurify.sanitize(`<span class="highlight-change">${enrichedText}</span>`));
+            
+            // Atualiza o estado após a modificação do DOM
+            if (sectionElement) {
+                const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
+                const sectionId = sectionElement.id.replace('Section', '');
+                if (AppState.generated.script[sectionId]) {
+                    AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
+                    AppState.generated.script[sectionId].text = contentWrapper.textContent;
+                }
+            }
+        }
+        
+        window.showToast("Texto enriquecido com sucesso!", 'success');
+    } catch (error) {
+        console.error("Erro detalhado em enrichWithData:", error);
+        window.showToast(`Falha ao enriquecer o texto: ${error.message}`, 'error');
+    } finally {
+        hideButtonLoading(buttonElement);
+        userSelectionRange = null;
     }
 };
 
