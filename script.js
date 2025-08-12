@@ -35,6 +35,23 @@ const wordCountMap = {
     'long': { intro: 225, development: 750, climax: 300, conclusion: 225 },
 };
 
+
+const showToast = (message, type = 'info') => {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    if (!toast || !toastMessage) return;
+
+    let borderColor = 'var(--primary)';
+    if (type === 'success') borderColor = 'var(--success)';
+    if (type === 'error') borderColor = 'var(--danger)';
+    
+    toast.style.borderLeftColor = borderColor;
+    toastMessage.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => { toast.classList.remove('show'); }, 4000);
+};
+
+
 // ==========================================================
 // ==================== LÓGICA DO WIZARD UI ===================
 // ==========================================================
