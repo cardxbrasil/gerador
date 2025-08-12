@@ -1172,7 +1172,7 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
     h3.textContent = title;
     const timeSpan = document.createElement('span');
     timeSpan.className = 'text-xs font-normal text-gray-500';
-    // const time = calculateReadingTime(content); // Será reativado quando a função for transplantada
+    // const time = calculateReadingTime(content);
     // timeSpan.textContent = time;
     headerTitleGroup.appendChild(h3);
     headerTitleGroup.appendChild(timeSpan);
@@ -1230,36 +1230,9 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
                 <h5 class="font-semibold text-base mb-2 text-gray-800 dark:text-gray-200">Passo 1: Diagnóstico e Criativo</h5>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Analise, edite ou enriqueça o texto para máxima qualidade.</p>
                 <div class="flex items-center justify-center gap-2 flex-wrap">
-                    
-                    <div class="tooltip-container">
-                        <button class="btn btn-secondary btn-small" data-action="analyzeRetention" data-section-id="${sectionId}Section">Analisar Retenção</button>
-                        <span class="tooltip-text">
-                            <strong>Função:</strong> Diagnóstico.<br>
-                            <strong>O que faz:</strong> Age como um "médico". Ele escaneia o texto e te diz: "Aqui está bom, aqui tem um ponto de atenção, e aqui tem um ponto de risco". Ele te dá o diagnóstico, mas não a cura.
-                        </span>
-                    </div>
-
-                    <div class="tooltip-container">
-                        <button class="btn btn-secondary btn-small" data-action="refineStyle">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gem" viewBox="0 0 16 16"><path d="M3.1.7a.5.5 0 0 1 .4-.2h9a.5.5 0 0 1 .4.2l2.976 3.974c.149.199.224.458.224.726v1.2a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5v-1.2c0-.268.075-.527.224-.726L3.1.7zM1.49 4.107l-1.18-1.575a.5.5 0 0 1 .4-.8h13.56a.5.5 0 0 1 .4.8L14.51 4.107H1.49zM.5 5.5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1 0-1H1v-1H.5a.5.5 0 0 1 0-1H1v-1H.5a.5.5 0 0 1 0-1H1v-1H.5a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v7a.5.5 0 0 1 0 1h-.5a.5.5 0 0 1 0-1H15v-1h-.5a.5.5 0 0 1 0-1H15v-1h-.5a.5.5 0 0 1 0-1H15v-1h.5a.5.5 0 0 1 .5-.5v-1a.5.5 0 0 1-.5.5zM2 13.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>
-                            Refinar Estilo
-                        </button>
-                        <span class="tooltip-text">
-                            <strong>Função:</strong> Polimento.<br>
-                            <strong>O que faz:</strong> Age como um "polidor de carros". Ele pega o texto inteiro, remove repetições e melhora a fluidez.
-                        </span>
-                    </div>
-
-                    <div class="tooltip-container">
-                        <button class="btn btn-secondary btn-small" data-action="enrichWithData">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8.5 2a.5.5 0 0 1 .5.5v11a.5.5 0 0 1-1 0v-11a.5.5 0 0 1 .5-.5z"/><path d="M2 7.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>
-                            Enriquecer com Dados
-                        </button>
-                        <span class="tooltip-text">
-                            <strong>Função:</strong> Adição.<br>
-                            <strong>O que faz:</strong> Age como um "engenheiro de reforço". Você seleciona um trecho e ele o reforça com mais credibilidade.
-                        </span>
-                    </div>
+                    <div class="tooltip-container"><button class="btn btn-secondary btn-small" data-action="analyzeRetention" data-section-id="${sectionId}Section">Analisar Retenção</button><span class="tooltip-text"><strong>Função:</strong> Diagnóstico.<br><strong>O que faz:</strong> Age como um "médico". Ele escaneia o texto e te diz: "Aqui está bom...".</span></div>
+                    <div class="tooltip-container"><button class="btn btn-secondary btn-small" data-action="refineStyle">Refinar Estilo</button><span class="tooltip-text"><strong>Função:</strong> Polimento.<br><strong>O que faz:</strong> Age como um "polidor de carros".</span></div>
+                    <div class="tooltip-container"><button class="btn btn-secondary btn-small" data-action="enrichWithData">Enriquecer com Dados</button><span class="tooltip-text"><strong>Função:</strong> Adição.<br><strong>O que faz:</strong> Age como um "engenheiro de reforço".</span></div>
                     ${addChapterButtonHtml}
                 </div>
                 <div id="analysis-output-${sectionId}" class="section-analysis-output mt-3 text-left"></div>
@@ -1284,16 +1257,6 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
     accordionBody.appendChild(analysisTools);
     accordionItem.appendChild(accordionHeader);
     accordionItem.appendChild(accordionBody);
-
-    // Adiciona o listener para abrir/fechar
-    accordionItem.querySelector('.accordion-header').addEventListener('click', (e) => {
-        if(!e.target.closest('.header-buttons')) {
-            const body = accordionItem.querySelector('.accordion-body');
-            const arrow = accordionItem.querySelector('.accordion-arrow');
-            const isOpen = body.classList.toggle('open');
-            body.style.display = isOpen ? 'block' : 'none';
-        }
-    });
 
     return accordionItem;
 };
