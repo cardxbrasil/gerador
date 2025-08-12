@@ -1240,10 +1240,10 @@ window.analyzeSectionRetention = async (button, sectionId) => {
         return;
     }
 
-    // Limpa apenas a UI, não o conteúdo do roteiro
+    // Limpa a UI de análises anteriores
     const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]'));
     paragraphs.forEach(p => {
-        p.className = ''; // Remove classes de retenção antigas
+        p.className = ''; // Remove classes de retenção
         const tooltip = p.querySelector('.retention-tooltip');
         if (tooltip) tooltip.remove();
         p.removeEventListener('mouseover', handleSuggestionMouseOver);
@@ -1399,7 +1399,6 @@ window.optimizeGroup = async (button, suggestionText) => {
         let lastElement = firstParagraph;
         for (let i = 1; i < newParagraphs.length; i++) {
             const newDiv = document.createElement('div');
-            // Mantém o ID original se possível, para consistência
             const originalP = paragraphsToOptimize[i];
             if(originalP) newDiv.id = originalP.id;
             newDiv.innerHTML = DOMPurify.sanitize(newParagraphs[i]);
