@@ -127,6 +127,8 @@ const callGroqAPI = async (prompt, maxTokens = 4000) => {
 // ============================
 // >>>>> FILTRO JSON <<<<<
 // ============================
+
+
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
         return expectJson ? (arrayExpected ? [] : null) : '';
@@ -213,6 +215,14 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 };
+
+
+
+// ============================
+// >>>>> FILTRO JSON <<<<<
+// ============================
+
+
 
 const removeMetaComments = (text) => {
     if (!text) return "";
