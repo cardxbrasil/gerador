@@ -1240,10 +1240,16 @@ window.analyzeSectionRetention = async (button, sectionId) => {
         return;
     }
 
-    const outputContainer = sectionElement.querySelector('.section-analysis-output');
-    if (outputContainer) outputContainer.innerHTML = '';
-
+    // Limpa apenas a UI, não o conteúdo do roteiro
     const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]'));
+    paragraphs.forEach(p => {
+        p.className = ''; // Remove classes de retenção antigas
+        const tooltip = p.querySelector('.retention-tooltip');
+        if (tooltip) tooltip.remove();
+        p.removeEventListener('mouseover', handleSuggestionMouseOver);
+        p.removeEventListener('mouseout', handleSuggestionMouseOut);
+    });
+    
     if (paragraphs.length === 0) {
         window.showToast("Não há parágrafos para analisar nesta seção.", 'info');
         return;
@@ -1305,18 +1311,10 @@ window.analyzeSectionRetention = async (button, sectionId) => {
         }
         
         // Aplica as classes e tooltips nos parágrafos (lógica da v5.0)
-        const newParagraphs = paragraphs.map(p => {
-            const newP = p.cloneNode(true);
-            newP.className = 'retention-paragraph-live'; // Classe base para a interatividade
-            newP.innerHTML = p.innerHTML.replace(/<div class="retention-tooltip">.*?<\/div>/g, '');
-            p.parentNode.replaceChild(newP, p);
-            return newP;
-        });
-
         analysis.forEach((item, index) => {
-            const p = newParagraphs[item.paragraphIndex];
+            const p = paragraphs[item.paragraphIndex];
             if (p) {
-                p.classList.add(`retention-${item.retentionScore}`);
+                p.classList.add('retention-paragraph-live', `retention-${item.retentionScore}`);
                 p.dataset.suggestionGroup = item.suggestion;
 
                 if (item.retentionScore === 'yellow' || item.retentionScore === 'red') {
@@ -1330,7 +1328,7 @@ window.analyzeSectionRetention = async (button, sectionId) => {
                                 <button class="flex-1 btn btn-primary btn-small py-1" data-action="optimizeGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-magic mr-2"></i> Otimizar</button>
                                 <button class="flex-1 btn btn-danger btn-small py-1" data-action="deleteParagraphGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-trash-alt mr-2"></i> Deletar</button>
                             </div>`;
-                        p.innerHTML += `<div class="retention-tooltip"><strong>${tooltipTitle}:</strong> ${DOMPurify.sanitize(item.suggestion)}${buttonsHtml}</div>`;
+                        p.insertAdjacentHTML('beforeend', `<div class="retention-tooltip"><strong>${tooltipTitle}:</strong> ${DOMPurify.sanitize(item.suggestion)}${buttonsHtml}</div>`);
                     }
                 }
                  p.addEventListener('mouseover', handleSuggestionMouseOver);
@@ -1393,7 +1391,6 @@ window.optimizeGroup = async (button, suggestionText) => {
         const newParagraphs = newContent.split('\n').filter(p => p.trim() !== '');
 
         const firstParagraph = paragraphsToOptimize[0];
-        const sectionElement = firstParagraph.closest('.script-section');
         
         firstParagraph.innerHTML = DOMPurify.sanitize(newParagraphs[0] || '');
         firstParagraph.classList.add('highlight-change');
@@ -1402,6 +1399,9 @@ window.optimizeGroup = async (button, suggestionText) => {
         let lastElement = firstParagraph;
         for (let i = 1; i < newParagraphs.length; i++) {
             const newDiv = document.createElement('div');
+            // Mantém o ID original se possível, para consistência
+            const originalP = paragraphsToOptimize[i];
+            if(originalP) newDiv.id = originalP.id;
             newDiv.innerHTML = DOMPurify.sanitize(newParagraphs[i]);
             newDiv.className = 'highlight-change';
             firstParagraph.parentElement.insertBefore(newDiv, lastElement.nextSibling);
