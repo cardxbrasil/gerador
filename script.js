@@ -124,9 +124,16 @@ const callGroqAPI = async (prompt, maxTokens = 4000) => {
     return result.choices?.[0]?.message?.content || "";
 };
 
+// ============================
+// >>>>> FILTRO JSON <<<<<
+// ============================
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
-    if (!text || typeof text !== 'string') return expectJson ? (arrayExpected ? [] : null) : '';
-    if (!expectJson) return text.trim();
+    if (!text || typeof text !== 'string') {
+        return expectJson ? (arrayExpected ? [] : null) : '';
+    }
+    if (!expectJson) {
+        return text.trim();
+    }
     let jsonString;
     const trimmedText = text.trim();
     const markdownMatch = trimmedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
@@ -134,26 +141,74 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         jsonString = markdownMatch[2].trim();
     } else {
         const startIndex = trimmedText.search(/[\{\[]/);
-        if (startIndex === -1) { throw new Error("A IA não retornou um formato JSON reconhecível."); }
+        if (startIndex === -1) {
+            throw new Error("A IA não retornou um formato JSON reconhecível.");
+        }
         const lastBraceIndex = trimmedText.lastIndexOf('}');
         const lastBracketIndex = trimmedText.lastIndexOf(']');
         const endIndex = Math.max(lastBraceIndex, lastBracketIndex);
-        if (endIndex === -1 || endIndex < startIndex) { throw new Error("O JSON retornado pela IA parece estar incompleto."); }
+        if (endIndex === -1 || endIndex < startIndex) {
+            throw new Error("O JSON retornado pela IA parece estar incompleto.");
+        }
         jsonString = trimmedText.substring(startIndex, endIndex + 1);
     }
     try {
+        jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
+        jsonString = jsonString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
+        jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
+    } catch (preSurgeryError) {
+        console.warn("Erro durante a pré-cirurgia. O JSON pode estar muito malformado.", preSurgeryError);
+    }
+    let openBrackets = (jsonString.match(/\[/g) || []).length;
+    let closeBrackets = (jsonString.match(/\]/g) || []).length;
+    let openBraces = (jsonString.match(/\{/g) || []).length;
+    let closeBraces = (jsonString.match(/\}/g) || []).length;
+    while (openBraces > closeBraces) { jsonString += '}'; closeBraces++; }
+    while (openBrackets > closeBrackets) { jsonString += ']'; closeBrackets++; }
+    try {
         let parsedResult = JSON.parse(jsonString);
-        if (arrayExpected && !Array.isArray(parsedResult)) return [parsedResult];
+        if (arrayExpected && !Array.isArray(parsedResult)) {
+            return [parsedResult];
+        }
         return parsedResult;
     } catch (initialError) {
+        console.warn("Parse inicial falhou. O JSON extraído ainda tem erros. Iniciando reparos...", initialError.message);
+        let repairedString = jsonString;
         try {
-            let repairedString = jsonString.replace(/,\s*([}\]])/g, '$1');
+            // ===============================================================
+            // >>>>> NOVA EVOLUÇÃO AQUI: A REGRA DE "DESINFECÇÃO" <<<<<
+            // ===============================================================
+            // Remove crases e outros caracteres de controle inválidos DENTRO das strings.
+            repairedString = repairedString.replace(/`/g, "'"); 
+            // ===============================================================
+
+            repairedString = repairedString.replace(/(?<=")\s*[\r\n]+\s*(?=")/g, ',');
+            repairedString = repairedString.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
+            repairedString = repairedString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
+            repairedString = repairedString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
+            repairedString = repairedString.replace(/,\s*([}\]])/g, '$1');
+            repairedString = repairedString.replace(/"\s*[;.,]\s*([,}\]])/g, '"$1');
+            repairedString = repairedString.replace(/:\s*"([^"]*)"/g, (match, content) => {
+                if (content.includes('"') && !content.includes('\\"')) {
+                    const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
+                    return `: "${escapedContent}"`;
+                }
+                return match;
+            });
+            repairedString = repairedString.replace(/}\s*"/g, '},"');
+            repairedString = repairedString.replace(/(?<!\\)\n/g, "\\n");
+            repairedString = repairedString.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+
             let finalParsedResult = JSON.parse(repairedString);
-            if (arrayExpected && !Array.isArray(finalParsedResult)) return [finalParsedResult];
+            if (arrayExpected && !Array.isArray(finalParsedResult)) {
+                return [finalParsedResult];
+            }
             console.log("Cirurgia no JSON bem-sucedida!");
             return finalParsedResult;
         } catch (surgeryError) {
-            console.error("FALHA CRÍTICA: Cirurgia no JSON falhou.", surgeryError.message, "JSON problemático:", jsonString);
+            console.error("FALHA CRÍTICA: A cirurgia no JSON não foi bem-sucedida.", surgeryError.message);
+            console.error("JSON Problemático (Original):", text);
+            console.error("JSON Pós-Cirurgia (Falhou):", repairedString);
             throw new Error(`A IA retornou um JSON com sintaxe inválida que não pôde ser corrigido.`);
         }
     }
