@@ -1426,20 +1426,13 @@ window.optimizeGroup = async (button, suggestionText) => {
     if (paragraphsToOptimize.length === 0) {
         window.showToast("Erro: parágrafos para otimizar não encontrados.", 'error'); return;
     }
-    const originalButtonText = button.innerHTML;
-    button.innerHTML = '<div class="loading-spinner" style="width:16px; height:16px; border-width: 2px; margin: auto;"></div>';
-    button.disabled = true;
+    showButtonLoading(button);
 
     try {
         const originalBlock = Array.from(paragraphsToOptimize).map(p => p.textContent.trim()).join('\n\n');
-        const prompt = `Você é um EDITOR DE ROTEIRO DE ELITE. Reescreva o "BLOCO DE TEXTO ORIGINAL" para resolver o "PROBLEMA" apontado, mantendo o tom e a consistência do roteiro. Retorne APENAS o texto reescrito.
-
-        **PROBLEMA A CORRIGIR:** "${suggestionText}"
-        
-        **BLOCO DE TEXTO ORIGINAL:**
-        ---
-        ${originalBlock}
-        ---`;
+        const prompt = `Você é um EDITOR DE ROTEIRO. Reescreva o "BLOCO ORIGINAL" para resolver o "PROBLEMA", mantendo o tom. Retorne APENAS o texto reescrito.
+        PROBLEMA: "${suggestionText}"
+        BLOCO ORIGINAL: "${originalBlock}"`;
 
         const rawResult = await callGroqAPI(prompt, 3000);
         const newContent = removeMetaComments(rawResult.trim());
@@ -1465,14 +1458,12 @@ window.optimizeGroup = async (button, suggestionText) => {
         for (let i = 1; i < paragraphsToOptimize.length; i++) {
             paragraphsToOptimize[i].remove();
         }
-
         window.showToast("Bloco de parágrafos otimizado!", 'success');
     } catch (error) {
         console.error("Erro em optimizeGroup:", error);
         window.showToast(`Falha ao otimizar o bloco: ${error.message}`, 'error');
     } finally {
-        button.innerHTML = originalButtonText;
-        button.disabled = false;
+        hideButtonLoading(button);
         const tooltip = button.closest('.retention-tooltip');
         if (tooltip) tooltip.remove();
     }
@@ -1488,12 +1479,10 @@ window.deleteParagraphGroup = async (button, suggestionText) => {
         window.showToast("Erro: Parágrafos para deletar não encontrados.", 'error');
         return;
     }
-
     paragraphsToDelete.forEach(p => {
         p.style.transition = 'opacity 0.3s ease-out';
         p.style.opacity = '0';
     });
-    
     setTimeout(() => {
         paragraphsToDelete.forEach(p => p.remove());
         window.showToast("Bloco de parágrafos deletado com sucesso!", 'success');
