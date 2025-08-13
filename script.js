@@ -469,32 +469,39 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     if (markdownMatch && markdownMatch[2]) {
         jsonString = markdownMatch[2].trim();
     } else {
-        // Busca manual por JSON usando análise de pilha
-        const stack = [];
-        let startIdx = -1;
-        let endIdx = -1;
+        // Busca manual por JSON usando análise de pilha avançada
+        const candidates = [];
+        let currentCandidate = '';
+        let stack = [];
 
         for (let i = 0; i < trimmedText.length; i++) {
             const char = trimmedText[i];
             
             if ((char === '{' || char === '[') && stack.length === 0) {
-                startIdx = i;
                 stack.push(char);
+                currentCandidate = char;
             } else if ((char === '}' && stack[stack.length - 1] === '{') ||
                       (char === ']' && stack[stack.length - 1] === '[')) {
                 stack.pop();
+                currentCandidate += char;
                 
                 if (stack.length === 0) {
-                    endIdx = i;
-                    break;
+                    candidates.push(currentCandidate);
+                    currentCandidate = '';
                 }
             } else if ((char === '{' || char === '[') && stack.length > 0) {
                 stack.push(char);
+                currentCandidate += char;
+            } else if (stack.length > 0) {
+                currentCandidate += char;
             }
         }
 
-        if (startIdx !== -1 && endIdx !== -1) {
-            jsonString = trimmedText.substring(startIdx, endIdx + 1);
+        // Seleciona o candidato mais longo e completo
+        if (candidates.length > 0) {
+            jsonString = candidates.reduce((longest, candidate) => 
+                candidate.length > longest.length ? candidate : longest
+            );
         } else {
             throw new Error("A IA não retornou um formato JSON reconhecível.");
         }
