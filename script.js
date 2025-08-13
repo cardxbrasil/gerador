@@ -448,6 +448,10 @@ const setupInputTabs = () => {
 
 
 
+         // ==========================================================
+        //  FILTRO JSON
+        // ==========================================================
+
 
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
@@ -456,24 +460,45 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     if (!expectJson) {
         return text.trim();
     }
+    
     let jsonString;
     const trimmedText = text.trim();
     const markdownMatch = trimmedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
+
     if (markdownMatch && markdownMatch[2]) {
         jsonString = markdownMatch[2].trim();
     } else {
-        const startIndex = trimmedText.search(/[\{\[]/);
-        if (startIndex === -1) {
+        // >>>>> INÍCIO DA LÓGICA DE EXTRAÇÃO APRIMORADA <<<<<
+        let startIndex = -1;
+        let endIndex = -1;
+        
+        const firstBrace = trimmedText.indexOf('{');
+        const firstBracket = trimmedText.indexOf('[');
+        
+        if (firstBrace === -1 && firstBracket === -1) {
             throw new Error("A IA não retornou um formato JSON reconhecível.");
         }
-        const lastBraceIndex = trimmedText.lastIndexOf('}');
-        const lastBracketIndex = trimmedText.lastIndexOf(']');
-        const endIndex = Math.max(lastBraceIndex, lastBracketIndex);
-        if (endIndex === -1 || endIndex < startIndex) {
-            throw new Error("O JSON retornado pela IA parece estar incompleto.");
+        
+        if (firstBracket !== -1 && (firstBracket < firstBrace || firstBrace === -1)) {
+            // É um array
+            startIndex = firstBracket;
+            endIndex = trimmedText.lastIndexOf(']');
+            if (endIndex <= startIndex) {
+                throw new Error("O JSON retornado (array) parece estar incompleto.");
+            }
+        } else {
+            // É um objeto
+            startIndex = firstBrace;
+            endIndex = trimmedText.lastIndexOf('}');
+            if (endIndex <= startIndex) {
+                 throw new Error("O JSON retornado (objeto) parece estar incompleto.");
+            }
         }
+
         jsonString = trimmedText.substring(startIndex, endIndex + 1);
+        // >>>>> FIM DA LÓGICA DE EXTRAÇÃO APRIMORADA <<<<<
     }
+
     try {
         jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
         jsonString = jsonString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
@@ -481,12 +506,14 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     } catch (preSurgeryError) {
         console.warn("Erro durante a pré-cirurgia. O JSON pode estar muito malformado.", preSurgeryError);
     }
+
     let openBrackets = (jsonString.match(/\[/g) || []).length;
     let closeBrackets = (jsonString.match(/\]/g) || []).length;
     let openBraces = (jsonString.match(/\{/g) || []).length;
     let closeBraces = (jsonString.match(/\}/g) || []).length;
     while (openBraces > closeBraces) { jsonString += '}'; closeBraces++; }
     while (openBrackets > closeBrackets) { jsonString += ']'; closeBrackets++; }
+
     try {
         let parsedResult = JSON.parse(jsonString);
         if (arrayExpected && !Array.isArray(parsedResult)) {
@@ -497,10 +524,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         console.warn("Parse inicial falhou. O JSON extraído ainda tem erros. Iniciando reparos...", initialError.message);
         let repairedString = jsonString;
         try {
-            // >>>>> A REGRA DE "DESINFECÇÃO" DA FERRARI <<<<<
+            // >>>>> LÓGICA DE REPARO AVANÇADA DA FERRARI V5.0 (INTOCADA) <<<<<
             repairedString = repairedString.replace(/`/g, "'"); 
-            
-            // >>>>> LÓGICA DE REPARO AVANÇADA DA FERRARI <<<<<
             repairedString = repairedString.replace(/(?<=")\s*[\r\n]+\s*(?=")/g, ',');
             repairedString = repairedString.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
             repairedString = repairedString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
@@ -532,6 +557,13 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 };
+
+
+
+
+
+
+
 
 const removeMetaComments = (text) => {
     if (!text) return "";
@@ -1121,15 +1153,24 @@ for (const key in keyToElementIdMap) {
     if (strategy[key]) {
         const element = document.getElementById(keyToElementIdMap[key]);
         if (element) {
-            // PRIMEIRO, VERIFICA SE O ELEMENTO É UM SELECT
+            let valueToSet = strategy[key];
+
+            // >>>>> AQUI ESTÁ A BLINDAGEM <<<<<
+            // Se o valor for um objeto (e não nulo), o convertemos para uma string JSON
+            // Isso nos ajuda a depurar, mas o ideal é que a IA retorne uma string.
+            if (typeof valueToSet === 'object' && valueToSet !== null) {
+                console.warn(`A IA retornou um objeto para o campo '${key}':`, valueToSet);
+                // Tentamos pegar uma propriedade comum como 'name' ou 'text', se não, stringify.
+                valueToSet = valueToSet.name || valueToSet.text || JSON.stringify(valueToSet);
+            }
+            // >>>>> FIM DA BLINDAGEM <<<<<
+
             if (element.tagName === 'SELECT') {
-                // Se for um select, verifica se a opção existe antes de atribuir
-                if ([...element.options].some(o => o.value === strategy[key])) {
-                    element.value = strategy[key];
+                if ([...element.options].some(o => o.value === valueToSet)) {
+                    element.value = valueToSet;
                 }
             } else {
-                // Se não for um select (é um input ou textarea), apenas atribui o valor
-                element.value = strategy[key];
+                element.value = valueToSet;
             }
         }
     }
@@ -1194,6 +1235,7 @@ ${durationInstruction}`;
 2.  **ESTRUTURA OBRIGATÓRIA DOS PARÁGRAFOS:** CADA parágrafo (cada string no array) DEVE OBRIGATORIAMENTE conter **NO MÍNIMO 4 FRASES** e agrupar uma ideia coesa. Parágrafos com 1 ou 2 frases são inaceitáveis.
 3.  **CONTEÚDO PURO:** As strings devem conter APENAS o texto a ser narrado. É PROIBIDO incluir anotações como 'Narrador:', '(Cena: ...)', etc.
 4.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
+5.  **RESPOSTA EXCLUSIVA:** Sua resposta inteira deve ser APENAS o array JSON. Não inclua nenhum texto introdutório, comentários, contagem de palavras ou qualquer outra coisa fora do JSON.**
 
 **AÇÃO FINAL:** Escreva agora a seção "${sectionTitle}", seguindo TODAS as diretrizes. Responda APENAS com o array JSON.`;
 
