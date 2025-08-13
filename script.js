@@ -366,35 +366,53 @@ const hideButtonLoading = (button) => {
     button.disabled = false;
 };
 
-const callGroqAPI = async (prompt, maxTokens = 4000) => {
-    const workerUrl = "https://royal-bird-81cb.david-souzan.workers.dev/";
+
+
+
+
+// =========================================================================
+// >>>>> SUBSTITUA A FUNÇÃO callGroqAPI PELA VERSÃO SIMPLES E DIRETA <<<<<
+// =========================================================================
+const callGroqAPI = async (prompt, maxTokens) => {
+    // >>> COLE A URL DO SEU WORKER AQUI <<<
+    const workerUrl = "https://royal-bird-81cb.david-souzan.workers.dev/"; 
+
+    const payload = { prompt, maxTokens };
+    const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    };
+
     try {
-        const response = await fetch(workerUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt, maxTokens })
-        });
+        const response = await fetch(workerUrl, requestOptions);
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido do servidor.' }));
             throw new Error(`Erro da API: ${errorData.error || response.statusText}`);
         }
         const result = await response.json();
         const rawContent = result.choices?.[0]?.message?.content;
-        if (!rawContent) {
-            throw new Error("Resposta inesperada da API (conteúdo vazio).");
+        if (rawContent) {
+            return rawContent;
+        } else {
+            throw new Error("Resposta inesperada da API.");
         }
-        return rawContent;
     } catch (error) {
-         if (error.message && error.message.toLowerCase().includes('fault filter abort')) {
-            const customError = new Error("O tema ou texto fornecido foi bloqueado pelo filtro de segurança da IA. Por favor, reformule com outras palavras.");
+        console.error("Falha na chamada à API via Worker:", error);
+        // --- LÓGICA INTELIGENTE AQUI ---
+        if (error.message && error.message.toLowerCase().includes('fault filter abort')) {
+            const customError = new Error("O tema ou texto que você forneceu foi bloqueado pelo filtro de segurança da IA. Por favor, tente reformular com outras palavras.");
             window.showToast(customError.message, 'error');
             throw customError;
         } else {
-            window.showToast(`Falha na comunicação com a API: ${error.message}`, 'error');
+            window.showToast(`Falha na API: ${error.message}`, 'error');
             throw error;
         }
     }
 };
+
+
+
 
 
 
@@ -426,6 +444,8 @@ const setupInputTabs = () => {
         }
     });
 };
+
+
 
 
 
