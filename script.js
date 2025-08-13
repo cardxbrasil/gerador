@@ -448,11 +448,9 @@ const setupInputTabs = () => {
 
 
 
-         // ==========================================================
-        //  FILTRO JSON
-        // ==========================================================
-
-
+// ============================
+// >>>>> FILTRO JSON <<<<<
+// ============================
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
         return expectJson ? (arrayExpected ? [] : null) : '';
@@ -460,76 +458,70 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     if (!expectJson) {
         return text.trim();
     }
-    
     let jsonString;
     const trimmedText = text.trim();
     const markdownMatch = trimmedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
-
     if (markdownMatch && markdownMatch[2]) {
         jsonString = markdownMatch[2].trim();
     } else {
-        let startIndex = -1;
-        let endIndex = -1;
-        
-        const firstBrace = trimmedText.indexOf('{');
-        const firstBracket = trimmedText.indexOf('[');
-        
-        if (firstBrace === -1 && firstBracket === -1) {
+        const startIndex = trimmedText.search(/[\{\[]/);
+        if (startIndex === -1) {
             throw new Error("A IA não retornou um formato JSON reconhecível.");
         }
-        
-        if (firstBracket !== -1 && (firstBracket < firstBrace || firstBrace === -1)) {
-            startIndex = firstBracket;
-            endIndex = trimmedText.lastIndexOf(']');
-            if (endIndex <= startIndex) throw new Error("O JSON retornado (array) parece estar incompleto.");
-        } else {
-            startIndex = firstBrace;
-            endIndex = trimmedText.lastIndexOf('}');
-            if (endIndex <= startIndex) throw new Error("O JSON retornado (objeto) parece estar incompleto.");
+        const lastBraceIndex = trimmedText.lastIndexOf('}');
+        const lastBracketIndex = trimmedText.lastIndexOf(']');
+        const endIndex = Math.max(lastBraceIndex, lastBracketIndex);
+        if (endIndex === -1 || endIndex < startIndex) {
+            throw new Error("O JSON retornado pela IA parece estar incompleto.");
         }
         jsonString = trimmedText.substring(startIndex, endIndex + 1);
     }
-
     try {
-        // Pré-cirurgia leve
+        jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
+        jsonString = jsonString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
         jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
     } catch (preSurgeryError) {
-        console.warn("Erro durante a pré-cirurgia.", preSurgeryError);
+        console.warn("Erro durante a pré-cirurgia. O JSON pode estar muito malformado.", preSurgeryError);
     }
-    
+    let openBrackets = (jsonString.match(/\[/g) || []).length;
+    let closeBrackets = (jsonString.match(/\]/g) || []).length;
+    let openBraces = (jsonString.match(/\{/g) || []).length;
+    let closeBraces = (jsonString.match(/\}/g) || []).length;
+    while (openBraces > closeBraces) { jsonString += '}'; closeBraces++; }
+    while (openBrackets > closeBrackets) { jsonString += ']'; closeBrackets++; }
     try {
         let parsedResult = JSON.parse(jsonString);
-        if (arrayExpected && !Array.isArray(parsedResult)) return [parsedResult];
+        if (arrayExpected && !Array.isArray(parsedResult)) {
+            return [parsedResult];
+        }
         return parsedResult;
     } catch (initialError) {
-        console.warn("Parse inicial falhou. Iniciando reparos...", initialError.message);
+        console.warn("Parse inicial falhou. O JSON extraído ainda tem erros. Iniciando reparos...", initialError.message);
         let repairedString = jsonString;
         try {
-            // Kit de cirurgia completo da Ferrari V5.0
-            repairedString = repairedString.replace(/:\s*"(.*?)"/g, (match, content) => {
-                const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
-                return `: "${escapedContent}"`;
-            });
-            repairedString = repairedString.replace(/',\s*$/gm, '",');
-            repairedString = repairedString.replace(/'\s*([}\]]\s*)$/gm, '"$1');
+            // ===============================================================
+            // >>>>> NOVA EVOLUÇÃO AQUI: A REGRA DE "DESINFECÇÃO" <<<<<
+            // ===============================================================
+            // Remove crases e outros caracteres de controle inválidos DENTRO das strings.
             repairedString = repairedString.replace(/`/g, "'"); 
+            // ===============================================================
+
             repairedString = repairedString.replace(/(?<=")\s*[\r\n]+\s*(?=")/g, ',');
             repairedString = repairedString.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
             repairedString = repairedString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
             repairedString = repairedString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
             repairedString = repairedString.replace(/,\s*([}\]])/g, '$1');
             repairedString = repairedString.replace(/"\s*[;.,]\s*([,}\]])/g, '"$1');
+            repairedString = repairedString.replace(/:\s*"([^"]*)"/g, (match, content) => {
+                if (content.includes('"') && !content.includes('\\"')) {
+                    const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
+                    return `: "${escapedContent}"`;
+                }
+                return match;
+            });
             repairedString = repairedString.replace(/}\s*"/g, '},"');
             repairedString = repairedString.replace(/(?<!\\)\n/g, "\\n");
             repairedString = repairedString.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
-
-            // Adiciona fechamento de chaves/colchetes se necessário
-            let openBrackets = (repairedString.match(/\[/g) || []).length;
-            let closeBrackets = (repairedString.match(/\]/g) || []).length;
-            let openBraces = (repairedString.match(/\{/g) || []).length;
-            let closeBraces = (repairedString.match(/\}/g) || []).length;
-            while (openBraces > closeBraces) { repairedString += '}'; closeBraces++; }
-            while (openBrackets > closeBrackets) { repairedString += ']'; closeBrackets++; }
 
             let finalParsedResult = JSON.parse(repairedString);
             if (arrayExpected && !Array.isArray(finalParsedResult)) {
@@ -545,6 +537,11 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 };
+
+
+// ============================
+// >>>>> FILTRO JSON <<<<<
+// ============================
 
 
 
