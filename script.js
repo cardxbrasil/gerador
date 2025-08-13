@@ -450,7 +450,7 @@ const setupInputTabs = () => {
 
 
 // ============================
-// >>>>> FILTRO JSON <<<<<
+// >>>>> FILTRO JSON AVANÇADO <<<<<
 // ============================
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
@@ -464,47 +464,104 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let jsonString = '';
     const trimmedText = text.trim();
 
-    // Tenta extrair JSON de blocos markdown
-    const markdownMatch = trimmedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
-    if (markdownMatch && markdownMatch[2]) {
-        jsonString = markdownMatch[2].trim();
-    } else {
-        // Busca manual por JSON usando análise de pilha avançada
-        const candidates = [];
-        let currentCandidate = '';
-        let stack = [];
-
-        for (let i = 0; i < trimmedText.length; i++) {
-            const char = trimmedText[i];
+    // Tenta extrair JSON de várias formas
+    const extractionMethods = [
+        // Método 1: Blocos markdown
+        () => {
+            const markdownMatch = trimmedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
+            return markdownMatch ? markdownMatch[2].trim() : null;
+        },
+        
+        // Método 2: Análise de pilha completa
+        () => {
+            const candidates = [];
+            let currentCandidate = '';
+            let stack = [];
             
-            if ((char === '{' || char === '[') && stack.length === 0) {
-                stack.push(char);
-                currentCandidate = char;
-            } else if ((char === '}' && stack[stack.length - 1] === '{') ||
-                      (char === ']' && stack[stack.length - 1] === '[')) {
-                stack.pop();
-                currentCandidate += char;
+            for (let i = 0; i < trimmedText.length; i++) {
+                const char = trimmedText[i];
                 
-                if (stack.length === 0) {
-                    candidates.push(currentCandidate);
-                    currentCandidate = '';
+                if ((char === '{' || char === '[') && stack.length === 0) {
+                    stack.push(char);
+                    currentCandidate = char;
+                } else if ((char === '}' && stack[stack.length - 1] === '{') ||
+                          (char === ']' && stack[stack.length - 1] === '[')) {
+                    stack.pop();
+                    currentCandidate += char;
+                    
+                    if (stack.length === 0) {
+                        candidates.push(currentCandidate);
+                        currentCandidate = '';
+                    }
+                } else if ((char === '{' || char === '[') && stack.length > 0) {
+                    stack.push(char);
+                    currentCandidate += char;
+                } else if (stack.length > 0) {
+                    currentCandidate += char;
                 }
-            } else if ((char === '{' || char === '[') && stack.length > 0) {
-                stack.push(char);
-                currentCandidate += char;
-            } else if (stack.length > 0) {
-                currentCandidate += char;
             }
-        }
-
-        // Seleciona o candidato mais longo e completo
-        if (candidates.length > 0) {
-            jsonString = candidates.reduce((longest, candidate) => 
-                candidate.length > longest.length ? candidate : longest
+            
+            return candidates.length > 0 ? 
+                candidates.reduce((longest, candidate) => 
+                    candidate.length > longest.length ? candidate : longest
+                ) : null;
+        },
+        
+        // Método 3: Busca por chaves/colchetes isolados
+        () => {
+            const firstBrace = trimmedText.search(/[\{\[]/);
+            const lastBrace = Math.max(
+                trimmedText.lastIndexOf('}'),
+                trimmedText.lastIndexOf(']')
             );
-        } else {
-            throw new Error("A IA não retornou um formato JSON reconhecível.");
+            
+            return firstBrace !== -1 && lastBrace !== -1 ?
+                trimmedText.substring(firstBrace, lastBrace + 1) : null;
+        },
+        
+        // Método 4: Busca por palavras-chave comuns
+        () => {
+            const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:'];
+            for (const keyword of keywords) {
+                const index = trimmedText.indexOf(keyword);
+                if (index !== -1) {
+                    // Encontramos uma possível posição de início
+                    let braceCount = 0;
+                    let bracketCount = 0;
+                    let endIndex = index;
+                    
+                    for (let j = index; j < trimmedText.length; j++) {
+                        const char = trimmedText[j];
+                        
+                        if (char === '{') braceCount++;
+                        if (char === '}') braceCount--;
+                        if (char === '[') bracketCount++;
+                        if (char === ']') bracketCount--;
+                        
+                        if ((braceCount === 0 && bracketCount === 0) || j === trimmedText.length - 1) {
+                            endIndex = j;
+                            break;
+                        }
+                    }
+                    
+                    return trimmedText.substring(index, endIndex + 1);
+                }
+            }
+            return null;
         }
+    ];
+
+    // Executa os métodos de extração até encontrar um JSON válido
+    for (const method of extractionMethods) {
+        const result = method();
+        if (result) {
+            jsonString = result;
+            break;
+        }
+    }
+
+    if (!jsonString) {
+        throw new Error("A IA não retornou um formato JSON reconhecível.");
     }
 
     try {
