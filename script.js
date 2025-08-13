@@ -1553,11 +1553,11 @@ const downloadPdf = async () => { /* ... Implementação completa da v5.0 ... */
 const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa da v5.0 ... */ };
 
 // --- FUNÇÕES DE EDIÇÃO AVANÇADA DO ACORDEÃO ---
-const window.refineSectionStyle = async (button) => { /* ... Implementação completa da v5.0 ... */ };
-const window.enrichWithData = async (button) => { /* ... Implementação completa da v5.0 ... */ };
-const window.addDevelopmentChapter = async (button) => { /* ... Implementação completa da v5.0 ... */ };
-const window.suggestPerformance = async (button) => { /* ... Implementação completa da v5.0 ... */ };
-const window.analyzeSectionRetention = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+window.refineSectionStyle = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+window.enrichWithData = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+window.addDevelopmentChapter = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+window.suggestPerformance = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+window.analyzeSectionRetention = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 
 
 
