@@ -1632,27 +1632,7 @@ const resetApplicationState = async () => {
     }
 };
 
-const importProject = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const loadedState = JSON.parse(e.target.result);
-            Object.assign(AppState, loadedState);
-            AppState.ui.completedSteps = new Set(Array.from(AppState.ui.completedSteps || []));
-            syncUiFromState();
-            showPane(AppState.ui.currentPane || 'investigate');
-            updateProgressBar();
-            window.showToast("Projeto importado com sucesso!", 'success');
-        } catch (err) {
-            window.showToast("Erro: Arquivo de projeto inválido ou corrompido.", 'error');
-            console.error("Erro ao importar projeto:", err);
-        }
-    };
-    reader.readAsText(file);
-    event.target.value = '';
-};
+
 
 const exportProject = () => {
     const projectData = getProjectStateForExport();
