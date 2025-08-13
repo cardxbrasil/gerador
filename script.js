@@ -2625,10 +2625,7 @@ window.suggestPerformance = async (button) => {
         tempDiv.querySelectorAll('.retention-tooltip').forEach(el => el.remove());
         
         const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map(p => p.textContent.trim());
-
-        if (originalParagraphs.length === 0) {
-            throw new Error("Não foram encontrados parágrafos estruturados para análise.");
-        }
+        if (originalParagraphs.length === 0) throw new Error("Não foram encontrados parágrafos estruturados para análise.");
 
         const batchSize = 15;
         const apiPromises = [];
@@ -2663,25 +2660,26 @@ ${promptContext}`;
         }
 
         const allBatchResults = await Promise.all(apiPromises);
-        const annotations = allBatchResults.flat();
+        
+        // >>>>> A CORREÇÃO CRÍTICA ESTÁ AQUI <<<<<
+        // Garante que o número de anotações NUNCA seja maior que o de parágrafos.
+        const annotations = allBatchResults.flat().slice(0, originalParagraphs.length);
 
-        if (!Array.isArray(annotations) || annotations.length !== originalParagraphs.length) { 
-            console.warn(`Discrepância no número de anotações: Esperado ${originalParagraphs.length}, Recebido ${annotations?.length || 0}. O processo continuará.`);
+        if (!Array.isArray(annotations)) { 
+            throw new Error("A IA não retornou um array de anotações válido.");
         }
         
         let annotatedParagraphs = [];
         originalParagraphs.forEach((p, index) => {
             const annotationData = (annotations && annotations[index]) ? annotations[index] : { general_annotation: '', emphasis_words: [] };
             let annotatedParagraph = p;
-
-            if (annotationData && annotationData.emphasis_words && Array.isArray(annotationData.emphasis_words) && annotationData.emphasis_words.length > 0) {
-                annotationData.emphasis_words.forEach(word => {
-                    if (word && typeof word === 'string' && word.trim() !== '') {
-                        const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-                        const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                        annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1']`);
-                    }
-                });
+            if (annotationData?.emphasis_words?.length > 0) {
+                const word = annotationData.emphasis_words[0];
+                if (word && typeof word === 'string' && word.trim() !== '') {
+                    const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                    const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
+                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1']`);
+                }
             }
             const finalParagraph = `${annotationData.general_annotation || ''} ${annotatedParagraph}`;
             annotatedParagraphs.push(finalParagraph.trim());
@@ -2690,11 +2688,7 @@ ${promptContext}`;
         const finalAnnotatedText = annotatedParagraphs.join('\n\n');
         const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span style="color: var(--primary); font-weight: 600; font-style: italic;">$1</span>');
 
-        outputContainer.innerHTML = `
-            <div class="card" style="background: var(--bg);">
-                <h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5>
-                <p class="whitespace-pre-wrap">${highlightedText}</p>
-            </div>`;
+        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><p class="whitespace-pre-wrap">${highlightedText}</p></div>`;
             
     } catch (error) {
         outputContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">Falha ao sugerir performance: ${error.message}</p>`;
