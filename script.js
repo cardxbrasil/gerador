@@ -3140,31 +3140,67 @@ const resetApplicationState = async () => {
 // ==========================================================
 document.addEventListener('DOMContentLoaded', () => {
     const actions = {
-        'investigate': handleInvestigate, 'generateIdeasFromReport': generateIdeasFromReport,
-        'select-idea': (btn) => { const idea = JSON.parse(btn.dataset.idea.replace(/&quot;/g, '"')); selectIdea(idea); },
-        'suggestStrategy': suggestStrategy, 'applyStrategy': applyStrategy,
-        'generateOutline': generateStrategicOutline,
+        // ETAPA 1
+        'investigate': (btn) => handleInvestigate(btn),
+        'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn),
+        'select-idea': (btn) => {
+            const ideaString = btn.dataset.idea;
+            if(ideaString) selectIdea(JSON.parse(ideaString.replace(/&quot;/g, '"')));
+        },
+
+        // ETAPA 2
+        'suggestStrategy': (btn) => suggestStrategy(btn),
+        'applyStrategy': (btn) => applyStrategy(btn),
+        
+        // ETAPA 3
+        'generateOutline': (btn) => generateStrategicOutline(btn),
         'generateIntro': (btn) => handleGenerateSection(btn, 'intro', 'Introdução', 'intro'),
         'generateDevelopment': (btn) => handleGenerateSection(btn, 'development', 'Desenvolvimento', 'development'),
         'generateClimax': (btn) => handleGenerateSection(btn, 'climax', 'Clímax', 'climax'),
-        'generateConclusion': generateConclusion, 'generateCta': generateStrategicCta, 'suggestFinalStrategy': suggestFinalStrategy,
-        'goToFinalize': goToFinalize, 'analyzeScript': analyzeFullScript,
-        'analyzeHooks': analyzeRetentionHooks, 'suggestViralElements': suggestViralElements,
-        'generateTitlesAndThumbnails': generateTitlesAndThumbnails, 'generateDescription': generateVideoDescription,
-        'generateSoundtrack': generateSoundtrack, 'mapEmotions': mapEmotionsAndPacing,
-        'exportProject': exportProject, 'exportPdf': downloadPdf, 'exportTranscript': handleCopyAndDownloadTranscript,
-        'resetProject': resetApplicationState,
+        'generateConclusion': (btn) => generateConclusion(btn),
+        'generateCta': (btn) => generateStrategicCta(btn),
+        'suggestFinalStrategy': (btn) => suggestFinalStrategy(btn),
+        'goToFinalize': (btn) => goToFinalize(btn),
+
+        // ETAPA 4
+        'analyzeScript': (btn) => analyzeFullScript(btn),
+        'analyzeHooks': (btn) => analyzeRetentionHooks(btn),
+        'suggestViralElements': (btn) => suggestViralElements(btn),
+        'generateTitlesAndThumbnails': (btn) => generateTitlesAndThumbnails(btn),
+        'generateDescription': (btn) => generateVideoDescription(btn),
+        'generateSoundtrack': (btn) => generateSoundtrack(btn),
+        'mapEmotions': (btn) => mapEmotionsAndPacing(btn),
+        'exportProject': () => exportProject(),
+        'exportPdf': () => downloadPdf(),
+        'exportTranscript': () => handleCopyAndDownloadTranscript(),
+        'resetProject': async () => { 
+            const confirmed = await showConfirmationDialog("Começar um Novo Projeto?","Isso limpará todos os campos e o trabalho realizado. Esta ação não pode ser desfeita. Deseja continuar?");
+            if (confirmed) resetApplicationState();
+        },
+
+        // AÇÕES DO ACORDEÃO (FERRAMENTAS) - CORRIGIDAS
         'regenerate': (btn) => window.regenerateSection(btn.dataset.sectionId),
-        'copy': (btn) => { const wrapper = btn.closest('.accordion-item')?.querySelector('.generated-content-wrapper'); if(wrapper) window.copyTextToClipboard(wrapper.textContent); window.showCopyFeedback(btn); },
-        'generate-prompts': (btn) => window.generatePromptsForSection(btn, btn.dataset.sectionId),
-        'analyzeRetention': (btn) => window.analyzeSectionRetention(btn, btn.dataset.sectionId),
-        'refineStyle': (btn) => window.refineSectionStyle(btn), 'enrichWithData': (btn) => window.enrichWithData(btn),
-        'suggestPerformance': (btn) => window.suggestPerformance(btn, btn.dataset.sectionId),
+        'copy': (btn) => {
+            const content = btn.closest('.accordion-item')?.querySelector('.generated-content-wrapper');
+            if (content) {
+                window.copyTextToClipboard(content.textContent);
+                window.showCopyFeedback(btn);
+            }
+        },
+        'analyzeRetention': (btn) => window.analyzeSectionRetention(btn),
+        'refineStyle': (btn) => window.refineSectionStyle(btn),
+        'enrichWithData': (btn) => window.enrichWithData(btn),
+        'suggestPerformance': (btn) => window.suggestPerformance(btn),
+        'addDevelopmentChapter': (btn) => window.addDevelopmentChapter(btn),
+        'generate-prompts': (btn) => window.generatePromptsForSection(btn),
+        
+        // AÇÕES DE CALLBACK (DOS TOOLTIPS DE ANÁLISE)
         'optimizeGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.optimizeGroup(btn, text); },
         'deleteParagraphGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.deleteParagraphGroup(btn, text); },
-        'applySuggestion': (btn) => window.applySuggestion(btn), 'applyAllSuggestions': applyAllSuggestions,
-        'applyHookSuggestion': applyHookSuggestion, 'insertViralSuggestion': insertViralSuggestion,
-        'addDevelopmentChapter': (btn) => window.addDevelopmentChapter(btn),
+        'applySuggestion': (btn) => window.applySuggestion(btn),
+        'applyAllSuggestions': (btn) => applyAllSuggestions(btn),
+        'applyHookSuggestion': (btn) => applyHookSuggestion(btn),
+        'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
     };
 
     document.body.addEventListener('click', (event) => {
