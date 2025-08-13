@@ -469,21 +469,35 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     if (markdownMatch && markdownMatch[2]) {
         jsonString = markdownMatch[2].trim();
     } else {
-        // Busca manual por chaves/colchetes
-        const startIndex = trimmedText.search(/[\{\[]/);
-        if (startIndex === -1) {
+        // Busca manual por JSON usando análise de pilha
+        const stack = [];
+        let startIdx = -1;
+        let endIdx = -1;
+
+        for (let i = 0; i < trimmedText.length; i++) {
+            const char = trimmedText[i];
+            
+            if ((char === '{' || char === '[') && stack.length === 0) {
+                startIdx = i;
+                stack.push(char);
+            } else if ((char === '}' && stack[stack.length - 1] === '{') ||
+                      (char === ']' && stack[stack.length - 1] === '[')) {
+                stack.pop();
+                
+                if (stack.length === 0) {
+                    endIdx = i;
+                    break;
+                }
+            } else if ((char === '{' || char === '[') && stack.length > 0) {
+                stack.push(char);
+            }
+        }
+
+        if (startIdx !== -1 && endIdx !== -1) {
+            jsonString = trimmedText.substring(startIdx, endIdx + 1);
+        } else {
             throw new Error("A IA não retornou um formato JSON reconhecível.");
         }
-        
-        const lastBraceIndex = trimmedText.lastIndexOf('}');
-        const lastBracketIndex = trimmedText.lastIndexOf(']');
-        const endIndex = Math.max(lastBraceIndex, lastBracketIndex);
-        
-        if (endIndex === -1 || endIndex < startIndex) {
-            throw new Error("O JSON retornado pela IA parece estar incompleto.");
-        }
-        
-        jsonString = trimmedText.substring(startIndex, endIndex + 1);
     }
 
     try {
