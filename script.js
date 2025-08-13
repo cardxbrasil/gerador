@@ -1094,16 +1094,23 @@ const suggestStrategy = async (button) => {
                 'shocking_ending_hook': 'shockingEndingHook', 'research_data': 'researchData',
                 'narrative_structure': 'narrativeStructure'
             };
-            for (const key in keyToElementIdMap) {
-                if (strategy[key]) {
-                    const element = document.getElementById(keyToElementIdMap[key]);
-                    if (element && [...element.options].some(o => o.value === strategy[key])) {
-                         element.value = strategy[key]; 
-                    } else if (element) {
-                        element.value = strategy[key];
-                    }
+for (const key in keyToElementIdMap) {
+    if (strategy[key]) {
+        const element = document.getElementById(keyToElementIdMap[key]);
+        if (element) {
+            // PRIMEIRO, VERIFICA SE O ELEMENTO É UM SELECT
+            if (element.tagName === 'SELECT') {
+                // Se for um select, verifica se a opção existe antes de atribuir
+                if ([...element.options].some(o => o.value === strategy[key])) {
+                    element.value = strategy[key];
                 }
+            } else {
+                // Se não for um select (é um input ou textarea), apenas atribui o valor
+                element.value = strategy[key];
             }
+        }
+    }
+}
             updateMainTooltip();
         }, 100);
 
