@@ -1174,7 +1174,7 @@ ${durationInstruction}`;
 
 **AÇÃO FINAL:** Escreva agora a seção "${sectionTitle}", seguindo TODAS as diretrizes. Responda APENAS com o array JSON.`;
 
-    let maxTokens = 4000;
+    let maxTokens = 8000;
 
     switch (sectionName) {
         case 'outline':
