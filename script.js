@@ -470,9 +470,14 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     } else {
         let startIndex = -1;
         let endIndex = -1;
+        
         const firstBrace = trimmedText.indexOf('{');
         const firstBracket = trimmedText.indexOf('[');
-        if (firstBrace === -1 && firstBracket === -1) throw new Error("A IA não retornou um formato JSON reconhecível.");
+        
+        if (firstBrace === -1 && firstBracket === -1) {
+            throw new Error("A IA não retornou um formato JSON reconhecível.");
+        }
+        
         if (firstBracket !== -1 && (firstBracket < firstBrace || firstBrace === -1)) {
             startIndex = firstBracket;
             endIndex = trimmedText.lastIndexOf(']');
@@ -486,36 +491,27 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     }
 
     try {
-        jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
-        jsonString = jsonString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
+        // Pré-cirurgia leve
         jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
     } catch (preSurgeryError) {
-        console.warn("Erro durante a pré-cirurgia. O JSON pode estar muito malformado.", preSurgeryError);
+        console.warn("Erro durante a pré-cirurgia.", preSurgeryError);
     }
-
-    let openBrackets = (jsonString.match(/\[/g) || []).length;
-    let closeBrackets = (jsonString.match(/\]/g) || []).length;
-    let openBraces = (jsonString.match(/\{/g) || []).length;
-    let closeBraces = (jsonString.match(/\}/g) || []).length;
-    while (openBraces > closeBraces) { jsonString += '}'; closeBraces++; }
-    while (openBrackets > closeBrackets) { jsonString += ']'; closeBrackets++; }
-
+    
     try {
         let parsedResult = JSON.parse(jsonString);
         if (arrayExpected && !Array.isArray(parsedResult)) return [parsedResult];
         return parsedResult;
     } catch (initialError) {
-        console.warn("Parse inicial falhou. O JSON extraído ainda tem erros. Iniciando reparos...", initialError.message);
+        console.warn("Parse inicial falhou. Iniciando reparos...", initialError.message);
         let repairedString = jsonString;
         try {
-            // >>>>> EVOLUÇÃO INTEGRADA AQUI <<<<<
-            // CIRURGIA #1: Escapa aspas duplas internas que quebram o JSON.
+            // Kit de cirurgia completo da Ferrari V5.0
             repairedString = repairedString.replace(/:\s*"(.*?)"/g, (match, content) => {
                 const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
                 return `: "${escapedContent}"`;
             });
-            
-            // >>>>> LÓGICA DE REPARO AVANÇADA DA FERRARI V5.0 (INTOCADA) <<<<<
+            repairedString = repairedString.replace(/',\s*$/gm, '",');
+            repairedString = repairedString.replace(/'\s*([}\]]\s*)$/gm, '"$1');
             repairedString = repairedString.replace(/`/g, "'"); 
             repairedString = repairedString.replace(/(?<=")\s*[\r\n]+\s*(?=")/g, ',');
             repairedString = repairedString.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
@@ -526,6 +522,14 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/}\s*"/g, '},"');
             repairedString = repairedString.replace(/(?<!\\)\n/g, "\\n");
             repairedString = repairedString.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+
+            // Adiciona fechamento de chaves/colchetes se necessário
+            let openBrackets = (repairedString.match(/\[/g) || []).length;
+            let closeBrackets = (repairedString.match(/\]/g) || []).length;
+            let openBraces = (repairedString.match(/\{/g) || []).length;
+            let closeBraces = (repairedString.match(/\}/g) || []).length;
+            while (openBraces > closeBraces) { repairedString += '}'; closeBraces++; }
+            while (openBrackets > closeBrackets) { repairedString += ']'; closeBrackets++; }
 
             let finalParsedResult = JSON.parse(repairedString);
             if (arrayExpected && !Array.isArray(finalParsedResult)) {
