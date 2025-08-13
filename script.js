@@ -1396,112 +1396,6 @@ const exportProject = () => {
 };
 
 
-// ==========================================================
-// ==================== EVENTOS E INICIALIZAÇÃO ===============
-// ==========================================================
-document.addEventListener('DOMContentLoaded', () => {
-    const actions = {
-        'investigate': handleInvestigate, 'generateIdeasFromReport': generateIdeasFromReport,
-        'select-idea': (btn) => { const idea = JSON.parse(btn.dataset.idea.replace(/&quot;/g, '"')); selectIdea(idea); },
-        'suggestStrategy': suggestStrategy, 'applyStrategy': applyStrategy,
-        'generateOutline': generateStrategicOutline,
-        'generateIntro': (btn) => handleGenerateSection(btn, 'intro', 'Introdução', 'intro'),
-        'generateDevelopment': (btn) => handleGenerateSection(btn, 'development', 'Desenvolvimento', 'development'),
-        'generateClimax': (btn) => handleGenerateSection(btn, 'climax', 'Clímax', 'climax'),
-        'generateConclusion': generateConclusion, 'generateCta': generateStrategicCta, 'suggestFinalStrategy': suggestFinalStrategy,
-        'goToFinalize': goToFinalize, 'analyzeScript': analyzeFullScript,
-        'analyzeHooks': analyzeRetentionHooks, 'suggestViralElements': suggestViralElements,
-        'generateTitlesAndThumbnails': generateTitlesAndThumbnails, 'generateDescription': generateVideoDescription,
-        'generateSoundtrack': generateSoundtrack, 'mapEmotions': mapEmotionsAndPacing,
-        'exportProject': exportProject, 'exportPdf': downloadPdf, 'exportTranscript': handleCopyAndDownloadTranscript,
-        'resetProject': resetApplicationState,
-        'regenerate': (btn) => window.regenerateSection(btn.dataset.sectionId),
-        'copy': (btn) => { const wrapper = btn.closest('.accordion-item')?.querySelector('.generated-content-wrapper'); if(wrapper) window.copyTextToClipboard(wrapper.textContent); window.showCopyFeedback(btn); },
-        'generate-prompts': (btn) => window.generatePromptsForSection(btn, btn.dataset.sectionId),
-        'analyzeRetention': (btn) => window.analyzeSectionRetention(btn, btn.dataset.sectionId),
-        'refineStyle': (btn) => window.refineSectionStyle(btn), 'enrichWithData': (btn) => window.enrichWithData(btn),
-        'suggestPerformance': (btn) => window.suggestPerformance(btn, btn.dataset.sectionId),
-        'optimizeGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.optimizeGroup(btn, text); },
-        'deleteParagraphGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.deleteParagraphGroup(btn, text); },
-        'applySuggestion': (btn) => window.applySuggestion(btn), 'applyAllSuggestions': applyAllSuggestions,
-        'applyHookSuggestion': applyHookSuggestion, 'insertViralSuggestion': insertViralSuggestion,
-        'addDevelopmentChapter': (btn) => window.addDevelopmentChapter(btn),
-    };
-
-    document.body.addEventListener('click', (event) => {
-        const step = event.target.closest('.step[data-step]');
-        if (step) {
-            showPane(step.dataset.step);
-            return;
-        }
-
-        const button = event.target.closest('button[data-action]');
-        if (button && actions[button.dataset.action]) {
-            actions[button.dataset.action](button);
-            return;
-        }
-        
-        const accordionHeader = event.target.closest('.accordion-header');
-        if (accordionHeader && !event.target.closest('.header-buttons button')) {
-            const body = accordionHeader.nextElementSibling;
-            const arrow = accordionHeader.querySelector('.accordion-arrow');
-            if (body && arrow) {
-                const isOpen = body.style.display === 'block';
-                body.style.display = isOpen ? 'none' : 'block';
-                arrow.classList.toggle('open', !isOpen);
-            }
-        }
-        
-        const tabButton = event.target.closest('.tab-button');
-        if (tabButton) {
-            const nav = tabButton.parentElement;
-            nav.querySelectorAll('.tab-button').forEach(b => b.classList.remove('tab-active'));
-            tabButton.classList.add('tab-active');
-            if(nav.id === 'inputTabsNav') {
-                const tabId = tabButton.dataset.tab;
-                document.querySelectorAll('#inputTabContent .tab-pane').forEach(p => p.classList.add('hidden'));
-                document.getElementById(tabId)?.classList.remove('hidden');
-            }
-        }
-    });
-
-    const setDarkMode = (isDark) => {
-        const moonIcon = document.getElementById('moonIcon'); const sunIcon = document.getElementById('sunIcon');
-        if (isDark) {
-            document.documentElement.classList.add('dark');
-            if (moonIcon) moonIcon.classList.add('hidden'); if (sunIcon) sunIcon.classList.remove('hidden');
-        } else {
-            document.documentElement.classList.remove('dark');
-            if (moonIcon) moonIcon.classList.remove('hidden'); if (sunIcon) sunIcon.classList.add('hidden');
-        }
-    };
-    const toggle = document.getElementById('darkModeToggle');
-    toggle?.addEventListener('click', () => {
-        const isDark = !document.documentElement.classList.contains('dark');
-        setDarkMode(isDark);
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    });
-    
-    document.querySelectorAll('.input, textarea.input, select.input, input[type="radio"]').forEach(el => {
-        el.addEventListener('change', saveStateToLocalStorage);
-    });
-    document.getElementById('importFileInput')?.addEventListener('change', importProject);
-    document.getElementById('narrativeGoal')?.addEventListener('change', updateNarrativeStructureOptions);
-    document.getElementById('narrativeStructure')?.addEventListener('change', updateMainTooltip);
-    document.getElementById('imageStyleSelect')?.addEventListener('change', toggleCustomImageStyleVisibility);
-
-    // INICIALIZAÇÃO
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const storedTheme = localStorage.getItem('theme');
-    setDarkMode(storedTheme === 'dark' || (!storedTheme && prefersDark));
-
-    loadStateFromLocalStorage();
-    showPane(AppState.ui.currentPane || 'investigate');
-    AppState.ui.completedSteps.forEach(stepId => markStepCompleted(stepId, false));
-    updateProgressBar();
-});
-
-
 
 
 // ==========================================================
@@ -1632,20 +1526,6 @@ const resetApplicationState = async () => {
     }
 };
 
-
-
-const exportProject = () => {
-    const projectData = getProjectStateForExport();
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectData, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    const fileName = (document.getElementById('videoTheme').value.trim() || 'roteiro_viral').replace(/[^a-zA-Z0-9]/gi, '_').toLowerCase();
-    downloadAnchorNode.setAttribute("download", `${fileName}_projeto.json`);
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-    window.showToast("Projeto exportado com sucesso!", 'success');
-};
 
 
 // ==========================================================
