@@ -3,5 +3,5 @@ main = "worker-code.js"
 compatibility_date = "2024-07-25"
 
 [[kv_namespaces]]
-binding = "API_KEYS_KV"
+binding = "API_KEY_STATE"
 id = "28362e9a85e744e3844c9ea1abd92196" # <-- COLE O SEU ID AQUI
