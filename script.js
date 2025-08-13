@@ -468,7 +468,6 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     if (markdownMatch && markdownMatch[2]) {
         jsonString = markdownMatch[2].trim();
     } else {
-        // >>>>> INÍCIO DA LÓGICA DE EXTRAÇÃO APRIMORADA <<<<<
         let startIndex = -1;
         let endIndex = -1;
         
@@ -480,23 +479,19 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
         
         if (firstBracket !== -1 && (firstBracket < firstBrace || firstBrace === -1)) {
-            // É um array
             startIndex = firstBracket;
             endIndex = trimmedText.lastIndexOf(']');
             if (endIndex <= startIndex) {
                 throw new Error("O JSON retornado (array) parece estar incompleto.");
             }
         } else {
-            // É um objeto
             startIndex = firstBrace;
             endIndex = trimmedText.lastIndexOf('}');
             if (endIndex <= startIndex) {
                  throw new Error("O JSON retornado (objeto) parece estar incompleto.");
             }
         }
-
         jsonString = trimmedText.substring(startIndex, endIndex + 1);
-        // >>>>> FIM DA LÓGICA DE EXTRAÇÃO APRIMORADA <<<<<
     }
 
     try {
@@ -524,6 +519,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         console.warn("Parse inicial falhou. O JSON extraído ainda tem erros. Iniciando reparos...", initialError.message);
         let repairedString = jsonString;
         try {
+            // >>>>> EVOLUÇÃO INTEGRADA <<<<<
+            repairedString = repairedString.replace(/',\s*$/gm, '",');
+            repairedString = repairedString.replace(/'\s*([}\]]\s*)$/gm, '"$1');
+            
             // >>>>> LÓGICA DE REPARO AVANÇADA DA FERRARI V5.0 (INTOCADA) <<<<<
             repairedString = repairedString.replace(/`/g, "'"); 
             repairedString = repairedString.replace(/(?<=")\s*[\r\n]+\s*(?=")/g, ',');
