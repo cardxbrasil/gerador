@@ -2817,9 +2817,145 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
 
 
 
+window.optimizeGroup = async (button, suggestionText) => {
+    if (!button || !suggestionText) return;
 
-window.optimizeGroup = async (button, suggestionText) => { /* ... Implementação completa da v5.0 ... */ };
-window.deleteParagraphGroup = async (button, suggestionText) => { /* ... Implementação completa da v5.0 ... */ };
+    const safeSelector = suggestionText.replace(/"/g, '\\"');
+    const paragraphsToOptimize = document.querySelectorAll(`[data-suggestion-group="${safeSelector}"]`);
+
+    if (paragraphsToOptimize.length === 0) {
+        window.showToast("Erro: parágrafos para otimizar não encontrados.", 'error');
+        return;
+    }
+
+    const originalButtonHTML = button.innerHTML;
+    button.innerHTML = '<div class="loading-spinner" style="width:16px; height:16px; border-width: 2px; margin: auto;"></div>';
+    button.disabled = true;
+
+    try {
+        const originalBlock = Array.from(paragraphsToOptimize).map(p => p.textContent.trim()).join('\n\n');
+        if (!originalBlock.trim()) throw new Error("O bloco de texto original está vazio.");
+
+        const basePromptContext = getBasePromptContext();
+        const fullScriptContext = getTranscriptOnly();   
+        
+        const prompt = `Você é um EDITOR DE ROTEIRO DE ELITE e um ESPECIALISTA EM REESCRITA (Copywriter). Sua tarefa é REESCREVER um bloco de texto problemático para que ele se alinhe PERFEITAMENTE ao tom e estilo do roteiro, resolvendo o problema apontado.
+
+**REGRAS CRÍTICAS:**
+1.  **RESPOSTA PURA:** Responda APENAS com o novo bloco de texto reescrito.
+2.  **FLUXO NATURAL:** O novo bloco deve fluir de forma coesa com o restante do roteiro.
+3.  **RESPEITO AO TOM:** Mantenha o tom e estilo definidos no contexto.
+
+**CONTEXTO GERAL DO PROJETO:**
+---
+${basePromptContext}
+---
+
+**ROTEIRO COMPLETO (PARA CONSISTÊNCIA):**
+---
+${fullScriptContext.substring(0, 2000)}...
+---
+
+**TAREFA:**
+- **PROBLEMA A CORRIGIR:** "${suggestionText}"
+- **BLOCO DE TEXTO ORIGINAL (PARA REESCREVER):**
+---
+${originalBlock}
+---
+
+Reescreva o bloco de texto acima, corrigindo o problema. Responda APENAS com o novo texto.`;
+
+        const rawResult = await callGroqAPI(prompt, 3000);
+        const newContent = removeMetaComments(rawResult.trim());
+        if (!newContent.trim()) throw new Error("A IA não retornou um conteúdo válido.");
+
+        const newParagraphs = newContent.split('\n').filter(p => p.trim() !== '');
+
+        const firstParagraph = paragraphsToOptimize[0];
+        const contentWrapper = firstParagraph.parentElement;
+        const sectionElement = firstParagraph.closest('.accordion-item');
+        
+        firstParagraph.innerHTML = DOMPurify.sanitize(newParagraphs[0] || '');
+        firstParagraph.classList.add('highlight-change');
+        firstParagraph.removeAttribute('data-suggestion-group');
+        // Remove os event listeners antigos para evitar duplicação
+        firstParagraph.removeEventListener('mouseover', handleSuggestionMouseOver);
+        firstParagraph.removeEventListener('mouseout', handleSuggestionMouseOut);
+
+        let lastElement = firstParagraph;
+        for (let i = 1; i < newParagraphs.length; i++) {
+            const newDiv = document.createElement('div');
+            newDiv.innerHTML = DOMPurify.sanitize(newParagraphs[i]);
+            newDiv.className = 'highlight-change';
+            contentWrapper.insertBefore(newDiv, lastElement.nextSibling);
+            lastElement = newDiv;
+        }
+
+        for (let i = 1; i < paragraphsToOptimize.length; i++) {
+            paragraphsToOptimize[i].remove();
+        }
+
+        if (sectionElement) {
+            invalidateAndClearPerformance(sectionElement);
+            invalidateAndClearPrompts(sectionElement);
+            invalidateAndClearEmotionalMap();
+        }
+
+        window.showToast("Bloco de parágrafos otimizado!", 'success');
+
+    } catch (error) {
+        window.showToast(`Falha ao otimizar o bloco: ${error.message}`, 'error');
+    } finally {
+        button.innerHTML = originalButtonHTML;
+        button.disabled = false;
+        const tooltip = button.closest('.retention-tooltip');
+        if (tooltip) tooltip.remove();
+    }
+};
+
+window.deleteParagraphGroup = async (button, suggestionText) => {
+    const userConfirmed = await showConfirmationDialog('Confirmar Deleção', 'Tem certeza que deseja deletar este bloco de parágrafos? Esta ação não pode ser desfeita.');
+    if (!userConfirmed) return;
+
+    const safeSelector = suggestionText.replace(/"/g, '\\"');
+    const paragraphsToDelete = document.querySelectorAll(`[data-suggestion-group="${safeSelector}"]`);
+
+    if (paragraphsToDelete.length === 0) {
+        window.showToast("Erro: Parágrafos para deletar não encontrados.", 'error');
+        return;
+    }
+
+    const sectionElement = paragraphsToDelete[0].closest('.accordion-item');
+
+    paragraphsToDelete.forEach(p => {
+        p.style.transition = 'opacity 0.3s ease-out';
+        p.style.opacity = '0';
+    });
+    
+    setTimeout(() => {
+        paragraphsToDelete.forEach(p => p.remove());
+
+        if (sectionElement) {
+            invalidateAndClearPerformance(sectionElement);
+            invalidateAndClearPrompts(sectionElement);
+            updateAllReadingTimes();
+        }
+        
+        window.showToast("Bloco de parágrafos deletado com sucesso!", 'success');
+    }, 300);
+};
+
+
+
+
+
+
+
+
+
+
+
+
 window.enrichWithData = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 window.suggestPerformance = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 
