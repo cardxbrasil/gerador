@@ -2749,8 +2749,9 @@ ${promptContext}`;
 // =========================================================================
 // >>>>> VERSÃO OTIMIZADA que NÃO SALVA o styleBlock repetidamente <<<<<
 // =========================================================================
-window.generatePromptsForSection = async (button, sectionElementId) => {
-    const sectionElement = document.getElementById(sectionElementId);
+window.generatePromptsForSection = async (button) => {
+    const sectionId = button.dataset.sectionId;
+    const sectionElement = document.getElementById(sectionId);
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
     const promptContainer = sectionElement?.querySelector('.prompt-container');
 
@@ -2770,7 +2771,7 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
             if (child.classList.contains('font-bold') && child.textContent.includes('Capítulo:')) {
                 currentChapterTitle = child.textContent.replace('Capítulo:', '').trim();
             } else if (child.id && child.id.includes('-p-')) {
-                paragraphsWithContext.push({ text: child.textContent.trim().replace(/\[.*?\]/g, ''), chapter: currentChapterTitle, originalId: child.id });
+                paragraphsWithContext.push({ text: child.textContent.trim().replace(/\[.*?\]/g, ''), chapter: currentChapterTitle });
             }
         });
 
@@ -2859,7 +2860,7 @@ ${promptContextForAI}
 
 Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
             
-    apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true, true)));
+            apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true, true)));
         }
 
         const allBatchResults = await Promise.all(apiPromises);
@@ -2868,37 +2869,101 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
             throw new Error("A IA não retornou um prompt para cada parágrafo.");
         }
 
-        const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
+        const curatedPrompts = allGeneratedPrompts.slice(0, paragraphsWithContext.length).map((promptData, index) => ({
             scriptPhrase: paragraphsWithContext[index].text,
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
             estimated_duration: promptData.estimated_duration || 5
         }));
 
         const applyCinematicStyle = document.getElementById('imageStyleSelect').value === 'cinematic';
-        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts.map(p => ({
-            ...p, applyStyleBlock: applyCinematicStyle
+        AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({
+            ...p,
+            applyStyleBlock: applyCinematicStyle
         }));
         
-        AppState.ui.promptPaginationState[sectionElementId] = 0;
-
-        // ** AVISO: A função renderPaginatedPrompts ainda não foi transplantada.
-        // O código abaixo irá falhar até que a transplantemos.
+        AppState.ui.promptPaginationState[sectionId] = 0;
+        
         promptContainer.innerHTML = `
             <div class="prompt-pagination-wrapper space-y-4">
                 <div class="prompt-nav-container flex items-center justify-center gap-4"></div>
                 <div class="prompt-items-container space-y-4"></div>
             </div>
         `;
-        // renderPaginatedPrompts(sectionElementId); // Esta linha vai dar erro por enquanto
-
-        // Solução temporária para mostrar que funcionou:
-         promptContainer.innerHTML = `<div class="card" style="background: var(--bg);"><p>${curatedPrompts.length} prompts gerados! A renderização será consertada a seguir.</p></div>`;
-
+        renderPaginatedPrompts(sectionId);
 
     } catch (error) {
-        promptContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar prompts: ${error.message}</p>`;
+        promptContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
+    }
+};
+
+const renderPaginatedPrompts = (sectionElementId) => {
+    const sectionElement = document.getElementById(sectionElementId);
+    if (!sectionElement) return;
+
+    const itemsPerPage = 4;
+    const prompts = AppState.generated.imagePrompts[sectionElementId] || [];
+    if (prompts.length === 0) return;
+    
+    const currentPage = AppState.ui.promptPaginationState[sectionElementId] || 0;
+    const totalPages = Math.ceil(prompts.length / itemsPerPage);
+    const promptItemsContainer = sectionElement.querySelector('.prompt-items-container');
+    const navContainer = sectionElement.querySelector('.prompt-nav-container');
+
+    if (!promptItemsContainer || !navContainer) return;
+    promptItemsContainer.innerHTML = '';
+
+    const startIndex = currentPage * itemsPerPage;
+    const promptsToShow = prompts.slice(startIndex, startIndex + itemsPerPage);
+    
+    promptsToShow.forEach((promptData) => {
+        const fullPromptText = promptData.applyStyleBlock
+            ? `${promptData.imageDescription} ${CINEMATIC_STYLE_BLOCK}`
+            : promptData.imageDescription;
+        
+        const styleIndicatorHtml = promptData.applyStyleBlock
+            ? `<p class="text-xs italic" style="color: var(--primary);">[Estilo Cinematográfico Aplicado]</p>`
+            : '';
+
+        const promptHtml = `
+            <div class="card !p-3 animate-fade-in" style="background: var(--bg);">
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-sm italic text-muted">"${DOMPurify.sanitize(promptData.scriptPhrase.substring(0, 80))}..."</p>
+                    <button class="btn btn-ghost btn-small" onclick="window.copyTextToClipboard(this.nextElementSibling.textContent); window.showCopyFeedback(this)" title="Copiar Prompt Completo"><i class="fas fa-copy"></i></button>
+                    <pre class="hidden">${DOMPurify.sanitize(fullPromptText)}</pre>
+                </div>
+                <p>${DOMPurify.sanitize(promptData.imageDescription)}</p>
+                ${styleIndicatorHtml}
+            </div>
+        `;
+        promptItemsContainer.innerHTML += promptHtml;
+    });
+    
+    if (totalPages > 1) {
+        navContainer.innerHTML = `
+            <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', -1)" ${currentPage === 0 ? 'disabled' : ''}>
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span class="text-sm font-medium">Página ${currentPage + 1} de ${totalPages}</span>
+            <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', 1)" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        `;
+    } else {
+        navContainer.innerHTML = '';
+    }
+};
+
+window.navigatePrompts = (sectionElementId, direction) => {
+    const prompts = AppState.generated.imagePrompts[sectionElementId] || [];
+    const itemsPerPage = 4;
+    const totalPages = Math.ceil(prompts.length / itemsPerPage);
+    let currentPage = AppState.ui.promptPaginationState[sectionElementId] || 0;
+    const newPage = currentPage + direction;
+    if (newPage >= 0 && newPage < totalPages) {
+        AppState.ui.promptPaginationState[sectionElementId] = newPage;
+        renderPaginatedPrompts(sectionElementId);
     }
 };
 
