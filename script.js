@@ -1705,8 +1705,224 @@ const applyAllSuggestions = async (button) => {
     button.innerHTML = 'Tudo Aplicado!';
 };
 
-const analyzeRetentionHooks = async (button) => { /* ... Implementação completa da v5.0 ... */ };
-const suggestViralElements = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+const applyHookSuggestion = (button) => {
+    const { problematicQuote, rewrittenQuote } = button.dataset;
+    if (!problematicQuote || !rewrittenQuote) {
+        window.showToast("Erro: Informações da sugestão não encontradas.", 'error');
+        return;
+    }
+    const scriptSections = document.querySelectorAll('#scriptSectionsContainer .generated-content-wrapper');
+    let replaced = false;
+    let sectionElement = null;
+    scriptSections.forEach(wrapper => {
+        if (replaced) return;
+        const paragraphs = wrapper.querySelectorAll('div[id*="-p-"]');
+        paragraphs.forEach(p => {
+            if (replaced) return;
+            if (p.textContent.includes(problematicQuote)) {
+                const newHtmlContent = p.innerHTML.replace(problematicQuote, `<span class="highlight-change">${rewrittenQuote}</span>`);
+                p.innerHTML = DOMPurify.sanitize(newHtmlContent, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
+                window.showToast("Gancho aprimorado com sucesso!", 'success');
+                sectionElement = p.closest('.accordion-item');
+                if (sectionElement) {
+                    invalidateAndClearPerformance(sectionElement);
+                    invalidateAndClearPrompts(sectionElement);
+                    invalidateAndClearEmotionalMap();
+                    updateAllReadingTimes();
+                }
+                replaced = true;
+            }
+        });
+    });
+    if (!replaced) {
+        window.showToast("Não foi possível aplicar. O texto pode ter sido editado.", 'info');
+        return;
+    }
+    if (sectionElement) {
+        const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
+        const scriptSectionId = sectionElement.id.replace('Section', '');
+        if (contentWrapper && AppState.generated.script[scriptSectionId]) {
+            AppState.generated.script[scriptSectionId].text = contentWrapper.textContent;
+            AppState.generated.script[scriptSectionId].html = contentWrapper.innerHTML;
+        }
+    }
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-check mr-2"></i>Aplicada!';
+    button.classList.remove('btn-primary');
+    button.classList.add('btn-success');
+};
+
+const analyzeRetentionHooks = async (button) => {
+    const fullTranscript = getTranscriptOnly();
+    if (!fullTranscript) {
+        window.showToast("Gere o roteiro completo primeiro para caçar os ganchos.", 'info');
+        return;
+    }
+    showButtonLoading(button);
+    const reportContainer = document.getElementById('hooksReportContainer');
+    reportContainer.innerHTML = `<div class="my-4"><div class="loading-spinner-small mx-auto"></div><p class="text-sm mt-2">Caçando e refinando ganchos...</p></div>`;
+    const prompt = `Você é uma API ESPECIALISTA EM ANÁLISE DE RETENÇÃO. Sua tarefa é analisar o roteiro, identificar "ganchos de retenção" e sugerir melhorias.
+
+**ROTEIRO COMPLETO:**
+---
+${fullTranscript.slice(0, 7500)}
+---
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
+- **JSON PURO E PERFEITO:** Responda APENAS com um array JSON válido.
+- **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
+- **CHAVES E TIPOS EXATOS:** Cada objeto no array DEVE conter EXATAMENTE estas cinco chaves: "hook_phrase" (String), "rewritten_hook" (String), "hook_type" (String de ['Pergunta Direta', 'Loop Aberto (Mistério)', 'Dado Surpreendente', 'Conflito/Tensão', 'Anedota Pessoal', 'Afirmação Polêmica']), "justification" (String), e "effectiveness_score" (Número).
+
+**AÇÃO FINAL:** Analise o roteiro. Responda APENAS com o array JSON perfeito.`;
+    try {
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const hooks = cleanGeneratedText(rawResult, true);
+        if (!hooks || !Array.isArray(hooks) || hooks.length === 0) throw new Error("A IA não encontrou ganchos ou retornou um formato inválido.");
+        let reportHtml = `<div class="space-y-4">`;
+        hooks.forEach((hook) => {
+            const problematicQuoteEscaped = (hook.hook_phrase || '').replace(/"/g, '\"');
+            const rewrittenQuoteEscaped = (hook.rewritten_hook || '').replace(/"/g, '\"');
+            const scoreColor = hook.effectiveness_score >= 8 ? 'text-green-500' : hook.effectiveness_score >= 5 ? 'text-yellow-500' : 'text-red-500';
+            reportHtml += `
+                <div class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 animate-fade-in">
+                    <p class="text-base italic text-gray-500 dark:text-gray-400 mb-2">Original: "${DOMPurify.sanitize(hook.hook_phrase)}"</p>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                        <span class="tag tag-pace !bg-purple-100 !text-purple-700 dark:!bg-purple-900/50 dark:!text-purple-300"><i class="fas fa-anchor mr-2"></i> ${DOMPurify.sanitize(hook.hook_type)}</span>
+                        <span class="font-bold ${scoreColor}">Eficácia Original: ${DOMPurify.sanitize(String(hook.effectiveness_score))}/10</span>
+                    </div>
+                    <p class="text-sm mt-3 text-gray-600 dark:text-gray-400"><strong>Justificativa da Melhoria:</strong> ${DOMPurify.sanitize(hook.justification)}</p>
+                    <div class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
+                        <p class="text-sm flex-1"><strong class="text-green-600 dark:text-green-400">Sugestão:</strong> "${DOMPurify.sanitize(hook.rewritten_hook)}"</p>
+                        <button class="btn btn-primary btn-small flex-shrink-0" data-action="applyHookSuggestion" data-problematic-quote="${problematicQuoteEscaped}" data-rewritten-quote="${rewrittenQuoteEscaped}">Aplicar</button>
+                    </div>
+                </div>`;
+        });
+        reportHtml += `</div>`;
+        reportContainer.innerHTML = reportHtml;
+        window.showToast(`${hooks.length} ganchos analisados!`, 'success');
+    } catch (error) {
+        console.error("Erro em analyzeRetentionHooks:", error);
+        reportContainer.innerHTML = `<p class="text-red-500 text-sm">${error.message}</p>`;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+const insertViralSuggestion = (button) => {
+    const { anchorParagraph, suggestedText } = button.dataset;
+    if (!anchorParagraph || !suggestedText) {
+        window.showToast("Erro: Informações da sugestão não encontradas.", 'error');
+        return;
+    }
+    const allParagraphs = document.querySelectorAll('#scriptSectionsContainer div[id*="-p-"]');
+    let inserted = false;
+    let sectionElement = null;
+    allParagraphs.forEach(p => {
+        if (!inserted && p.textContent.trim().includes(anchorParagraph.trim())) {
+            const newDiv = document.createElement('div');
+            newDiv.id = `inserted-p-${Date.now()}`; 
+            newDiv.innerHTML = `<span class="highlight-change">${suggestedText}</span>`;
+            p.parentNode.insertBefore(newDiv, p.nextSibling);
+            newDiv.innerHTML = DOMPurify.sanitize(newDiv.innerHTML, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
+            window.showToast("Elemento viral inserido!", 'success');
+            sectionElement = p.closest('.accordion-item');
+            if (sectionElement) {
+                invalidateAndClearPerformance(sectionElement);
+                invalidateAndClearPrompts(sectionElement);
+                invalidateAndClearEmotionalMap();
+                updateAllReadingTimes();
+            }
+            inserted = true;
+        }
+    });
+    if (!inserted) {
+        window.showToast("Não foi possível inserir. O parágrafo âncora pode ter sido editado.", 'info');
+        return;
+    }
+    if (sectionElement) {
+        const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
+        const scriptSectionId = sectionElement.id.replace('Section', '');
+        if (contentWrapper && AppState.generated.script[scriptSectionId]) {
+            AppState.generated.script[scriptSectionId].text = contentWrapper.textContent;
+            AppState.generated.script[scriptSectionId].html = contentWrapper.innerHTML;
+        }
+    }
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-check mr-2"></i>Aplicada!';
+    button.classList.remove('btn-primary');
+    button.classList.add('btn-success');
+};
+
+const suggestViralElements = async (button) => {
+    const fullTranscript = getTranscriptOnly();
+    const videoTheme = document.getElementById('videoTheme')?.value.trim();
+    if (!fullTranscript || !videoTheme) {
+        window.showToast("Gere o roteiro e defina um tema para receber sugestões virais.", 'info');
+        return;
+    }
+    showButtonLoading(button);
+    const reportContainer = document.getElementById('viralSuggestionsContainer');
+    reportContainer.innerHTML = `<div class="my-4"><div class="loading-spinner-small mx-auto"></div><p class="text-sm mt-2">O Arquiteto da Viralidade está analisando...</p></div>`;
+    const basePromptContext = getBasePromptContext();
+    const prompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA DE CONTEÚDO VIRAL. Sua tarefa é analisar um roteiro e seu contexto para propor 3 elementos que aumentem a viralidade de forma INTELIGENTE e ALINHADA.
+
+**CONTEXTO ESTRATÉGICO ("DNA" DO VÍDEO):**
+---
+${basePromptContext}
+---
+
+**ROTEIRO COMPLETO (FOCO NOS PRIMEIROS 7500 CHARS):**
+---
+${fullTranscript.slice(0, 7500)}
+---
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
+1.  **JSON PURO E PERFEITO:** Responda APENAS com um array JSON válido.
+2.  **ESTRUTURA COMPLETA:** Cada objeto DEVE conter EXATAMENTE estas cinco chaves: "anchor_paragraph", "suggested_text", "element_type", "potential_impact_score", "implementation_idea".
+3.  **SINTAXE DAS STRINGS:** Todas as chaves e valores string DEVEM usar aspas duplas ("").
+
+**MANUAL DE ANÁLISE E CRIAÇÃO:**
+- **"anchor_paragraph":** Cópia EXATA de um parágrafo existente.
+- **"suggested_text":** Um parágrafo completo e coeso para ser inserido.
+- **"element_type":** Escolha de: ["Dado Surpreendente", "Citação de Autoridade", "Mini-Revelação (Teaser)", "Pergunta Compartilhável", "Anedota Pessoal Rápida"].
+- **"potential_impact_score":** Nota de 1 a 10 para o potencial de engajamento.
+- **"implementation_idea":** Explique o VALOR ESTRATÉGICO da inserção.
+
+**AÇÃO FINAL:** Analise o roteiro e o contexto. Responda APENAS com o array JSON perfeito.`;
+    try {
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const suggestions = cleanGeneratedText(rawResult, true);
+        if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
+        let reportHtml = `<div class="space-y-4">`;
+        suggestions.forEach(suggestion => {
+            const anchorParagraphEscaped = (suggestion.anchor_paragraph || '').replace(/"/g, '\"');
+            const suggestedTextEscaped = (suggestion.suggested_text || '').replace(/"/g, '\"');
+            const score = suggestion.potential_impact_score || 0;
+            const scoreColor = score >= 8 ? 'text-green-500' : score >= 5 ? 'text-yellow-500' : 'text-red-500';
+            reportHtml += `
+                <div class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 animate-fade-in">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm mb-2">
+                        <span class="tag !bg-blue-100 !text-blue-700 dark:!bg-blue-900/50 dark:!text-blue-300"><i class="fas fa-lightbulb mr-2"></i> ${DOMPurify.sanitize(suggestion.element_type)}</span>
+                        <span class="font-bold ${scoreColor}">Impacto Potencial: ${DOMPurify.sanitize(String(score))}/10</span>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1"><strong>Local Sugerido:</strong> Após o parágrafo que contém "${DOMPurify.sanitize((suggestion.anchor_paragraph || '').substring(0, 70))}..."</p>
+                    <p class="text-sm mt-3 text-gray-600 dark:text-gray-400"><strong>Ideia de Implementação:</strong> ${DOMPurify.sanitize(suggestion.implementation_idea)}</p>
+                    <div class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
+                         <p class="text-sm flex-1"><strong class="text-green-600 dark:text-green-400">Texto a Inserir:</strong> "${DOMPurify.sanitize(suggestion.suggested_text)}"</p>
+                        <button class="btn btn-primary btn-small flex-shrink-0" data-action="insertViralSuggestion" data-anchor-paragraph="${anchorParagraphEscaped}" data-suggested-text="${suggestedTextEscaped}">Aplicar</button>
+                    </div>
+                </div>`;
+        });
+        reportHtml += `</div>`;
+        reportContainer.innerHTML = reportHtml;
+        window.showToast(`${suggestions.length} sugestões virais encontradas!`, 'success');
+    } catch (error) {
+        console.error("Erro em suggestViralElements:", error);
+        reportContainer.innerHTML = `<p class="text-red-500 text-sm">${error.message}</p>`;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
 const generateTitlesAndThumbnails = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 const generateVideoDescription = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 const generateSoundtrack = async (button) => { /* ... Implementação completa da v5.0 ... */ };
