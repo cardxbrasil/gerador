@@ -1267,6 +1267,17 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
     const accordionItem = document.createElement('div');
     accordionItem.className = 'accordion-item card !p-0 mb-4 animate-fade-in';
     
+    // O ID agora é colocado no elemento raiz do acordeão
+    accordionItem.id = `${sectionId}Section`;
+
+    const addChapterButtonHtml = sectionId === 'development' ? `
+        <div class="tooltip-container">
+            <button class="btn btn-primary btn-small" data-action="addDevelopmentChapter">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z"/></svg> 
+                Adicionar Capítulo
+            </button>
+        </div>` : '';
+
     accordionItem.innerHTML = `
         <div class="accordion-header">
             <div class="header-title-group">
@@ -1287,9 +1298,35 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
         </div>
         <div class="accordion-body" style="display: none;">
             <div class="generated-content-wrapper" contenteditable="true">${content}</div>
-            <div class="mt-6 pt-4 border-t border-dashed" style="border-color: var(--border);">
-                <!-- Ferramentas de Análise e Edição... -->
+            
+            <div class="mt-6 pt-4 border-t" style="border-color: var(--border); border-style: dashed;">
+                <div class="space-y-6">
+                    <div class="text-center">
+                        <h5 class="font-semibold text-base mb-2">Passo 1: Diagnóstico e Criativo</h5>
+                        <p class="text-xs text-muted mb-3">Analise, edite ou enriqueça o texto para máxima qualidade.</p>
+                        <div class="flex items-center justify-center gap-2 flex-wrap">
+                            <button class="btn btn-secondary btn-small" data-action="analyzeRetention" data-section-id="${sectionId}Section">Analisar Retenção</button>
+                            <button class="btn btn-secondary btn-small" data-action="refineStyle"><i class="fas fa-gem mr-2"></i>Refinar Estilo</button>
+                            <button class="btn btn-secondary btn-small" data-action="enrichWithData"><i class="fas fa-plus mr-2"></i>Enriquecer com Dados</button>
+                            ${addChapterButtonHtml}
+                        </div>
+                        <div id="analysis-output-${sectionId}" class="section-analysis-output mt-3 text-left"></div>
+                    </div>
+                    <div class="pt-4 border-t border-dashed text-center" style="border-color: var(--border);">
+                        <h5 class="font-semibold text-base mb-2">Passo 2: Estrutura de Narração</h5>
+                        <p class="text-xs text-muted mb-3">Adicione sugestões de performance para guiar a narração.</p>
+                        <button class="btn btn-secondary btn-small" data-action="suggestPerformance" data-section-id="${sectionId}Section">Sugerir Performance</button>
+                        <div class="section-performance-output mt-3 text-left"></div> 
+                    </div>
+                    <div class="pt-4 border-t border-dashed text-center" style="border-color: var(--border);">
+                        <h5 class="font-semibold text-base mb-2">Passo 3: Recursos Visuais</h5>
+                        <p class="text-xs text-muted mb-3">Crie o storyboard visual para esta seção do roteiro.</p>
+                        <button class="btn btn-secondary btn-small" data-action="generate-prompts" data-section-id="${sectionId}Section">Gerar Prompts de Imagem</button>
+                        <div class="prompt-container mt-4 text-left"></div>
+                    </div>
+                </div>
             </div>
+
         </div>
     `;
     return accordionItem;
