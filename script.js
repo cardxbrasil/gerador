@@ -450,7 +450,7 @@ const setupInputTabs = () => {
 
 
 // ============================
-// >>>>> FILTRO JSON AVANÇADO <<<<<
+// >>>>> FILTRO JSON FINAL <<<<<
 // ============================
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
@@ -464,6 +464,26 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let jsonString = '';
     const trimmedText = text.trim();
 
+    // Função auxiliar para remover texto explicativo
+    const removeExplanatoryText = (str) => {
+        // Expressões regulares para remover textos explicativos comuns
+        const patterns = [
+            /Aqui estão os prompts visuais.*?\[/,
+            /Resposta em formato JSON.*?\[/,
+            /JSON gerado.*?\[/,
+            /Resultado da geração.*?\[/,
+            /\d+\.\s*Resposta.*?\[/
+        ];
+        
+        for (const pattern of patterns) {
+            const match = str.match(pattern);
+            if (match) {
+                return str.slice(match.index + match[0].length - 1);
+            }
+        }
+        return str;
+    };
+
     // Tenta extrair JSON de várias formas
     const extractionMethods = [
         // Método 1: Blocos markdown
@@ -472,7 +492,14 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             return markdownMatch ? markdownMatch[2].trim() : null;
         },
         
-        // Método 2: Análise de pilha completa
+        // Método 2: Remover texto explicativo primeiro
+        () => {
+            const cleanedText = removeExplanatoryText(trimmedText);
+            const markdownMatch = cleanedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
+            return markdownMatch ? markdownMatch[2].trim() : null;
+        },
+        
+        // Método 3: Análise de pilha completa
         () => {
             const candidates = [];
             let currentCandidate = '';
@@ -507,7 +534,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 ) : null;
         },
         
-        // Método 3: Busca por chaves/colchetes isolados
+        // Método 4: Busca por chaves/colchetes isolados
         () => {
             const firstBrace = trimmedText.search(/[\{\[]/);
             const lastBrace = Math.max(
@@ -519,7 +546,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 trimmedText.substring(firstBrace, lastBrace + 1) : null;
         },
         
-        // Método 4: Busca por palavras-chave comuns
+        // Método 5: Busca por palavras-chave comuns
         () => {
             const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:'];
             for (const keyword of keywords) {
