@@ -464,7 +464,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let jsonString = '';
     const trimmedText = text.trim();
 
-    // Função auxiliar para remover texto explicativo
+    // Função para remover texto explicativo
     const removeExplanatoryText = (str) => {
         // Expressões regulares para remover textos explicativos comuns
         const patterns = [
@@ -484,6 +484,57 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return str;
     };
 
+    // Função para extrair JSON mesmo quando mal formatado
+    const extractMalformedJson = (str) => {
+        // Procura por blocos que começam com [ ou {
+        const brackets = [];
+        let current = '';
+        let inString = false;
+        let escapeChar = false;
+        
+        for (let i = 0; i < str.length; i++) {
+            const char = str[i];
+            
+            if (char === '"' && !escapeChar) {
+                inString = !inString;
+            }
+            
+            if (char === '\\' && inString) {
+                escapeChar = true;
+            } else {
+                escapeChar = false;
+            }
+            
+            if (!inString) {
+                if (char === '[' || char === '{') {
+                    brackets.push({char, pos: i});
+                } else if (char === ']' || char === '}') {
+                    if (brackets.length > 0) {
+                        const last = brackets[brackets.length - 1];
+                        if ((last.char === '[' && char === ']') || 
+                            (last.char === '{' && char === '}')) {
+                            brackets.pop();
+                        }
+                    }
+                }
+            }
+            
+            current += char;
+            
+            // Se encontramos um bloco fechado, tentamos parsear
+            if (brackets.length === 0 && current.trim()) {
+                try {
+                    JSON.parse(current);
+                    return current;
+                } catch (e) {
+                    // Continua buscando
+                }
+            }
+        }
+        
+        return null;
+    };
+
     // Tenta extrair JSON de várias formas
     const extractionMethods = [
         // Método 1: Blocos markdown
@@ -499,7 +550,12 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             return markdownMatch ? markdownMatch[2].trim() : null;
         },
         
-        // Método 3: Análise de pilha completa
+        // Método 3: Extrair JSON mal formatado
+        () => {
+            return extractMalformedJson(trimmedText);
+        },
+        
+        // Método 4: Análise de pilha completa
         () => {
             const candidates = [];
             let currentCandidate = '';
@@ -534,7 +590,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 ) : null;
         },
         
-        // Método 4: Busca por chaves/colchetes isolados
+        // Método 5: Busca por chaves/colchetes isolados
         () => {
             const firstBrace = trimmedText.search(/[\{\[]/);
             const lastBrace = Math.max(
@@ -546,7 +602,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 trimmedText.substring(firstBrace, lastBrace + 1) : null;
         },
         
-        // Método 5: Busca por palavras-chave comuns
+        // Método 6: Busca por palavras-chave comuns
         () => {
             const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:'];
             for (const keyword of keywords) {
