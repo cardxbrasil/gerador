@@ -477,7 +477,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         console.warn("Parse inicial falhou. O JSON extraído ainda tem erros. Iniciando reparos...", initialError.message);
         let repairedString = jsonString;
         try {
+            // >>>>> A REGRA DE "DESINFECÇÃO" DA FERRARI <<<<<
             repairedString = repairedString.replace(/`/g, "'"); 
+            
+            // >>>>> LÓGICA DE REPARO AVANÇADA DA FERRARI <<<<<
             repairedString = repairedString.replace(/(?<=")\s*[\r\n]+\s*(?=")/g, ',');
             repairedString = repairedString.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
             repairedString = repairedString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
