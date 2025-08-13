@@ -448,9 +448,7 @@ const setupInputTabs = () => {
 
 
 
-// ============================
-// >>>>> FILTRO JSON <<<<<
-// ============================
+
 // ============================
 // >>>>> FILTRO JSON <<<<<
 // ============================
@@ -463,7 +461,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return text.trim();
     }
 
-    let jsonString = ''; // Inicializa como string vazia
+    let jsonString = '';
     const trimmedText = text.trim();
 
     // Tenta extrair JSON de blocos markdown
@@ -517,7 +515,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         try {
             let repairedString = jsonString;
             
-            // Regras de desinfecção
+            // Regras de desinfecção melhoradas
             repairedString = repairedString.replace(/`/g, "'");
             repairedString = repairedString.replace(/(?<=")\s*[\r\n]+\s*(?=")/g, ',');
             repairedString = repairedString.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
@@ -535,6 +533,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/}\s*"/g, '},"');
             repairedString = repairedString.replace(/(?<!\\)\n/g, "\\n");
             repairedString = repairedString.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+            
+            // Trata quebras de linha entre objetos
+            repairedString = repairedString.replace(/},\s*\n\s*{/, '},{');
+            repairedString = repairedString.replace(/],\s*\n\s*\[/, '],[');
             
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
