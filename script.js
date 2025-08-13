@@ -1022,7 +1022,6 @@ const applyHookSuggestion = (button) => {
     
     const scriptSections = document.querySelectorAll('#scriptSectionsContainer .generated-content-wrapper');
     let replaced = false;
-    let sectionElement = null; // Variável para guardar a referência da seção alterada
 
     scriptSections.forEach(wrapper => {
         if (replaced) return;
@@ -1030,18 +1029,14 @@ const applyHookSuggestion = (button) => {
         paragraphs.forEach(p => {
             if (replaced) return;
             if (p.textContent.includes(problematicQuote)) {
-                // SUA LÓGICA ATUAL DE SUBSTITUIÇÃO (100% MANTIDA)
                 const newHtmlContent = p.innerHTML.replace(problematicQuote, `<span class="highlight-change">${rewrittenQuote}</span>`);
                 p.innerHTML = DOMPurify.sanitize(newHtmlContent, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
-                
                 window.showToast("Gancho aprimorado com sucesso!", 'success');
-
-                // SUA LÓGICA ATUAL DE INVALIDAÇÃO (100% MANTIDA)
-                sectionElement = p.closest('.script-section'); // Guardamos a referência aqui
+                const sectionElement = p.closest('.script-section');
                 if (sectionElement) {
                     invalidateAndClearPerformance(sectionElement);
                     invalidateAndClearPrompts(sectionElement);
-                    invalidateAndClearEmotionalMap();
+                    invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
                     updateAllReadingTimes();
                 }
                 replaced = true;
@@ -1054,23 +1049,6 @@ const applyHookSuggestion = (button) => {
         return;
     }
 
-    // =================================================================
-    // >>>>> AQUI ESTÁ A ÚNICA ADIÇÃO: Sincronização com AppState <<<<<
-    // =================================================================
-    if (sectionElement) {
-        const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
-        const scriptSectionId = sectionElement.id.replace('Section', '');
-        if (contentWrapper && AppState.generated.script[scriptSectionId]) {
-            AppState.generated.script[scriptSectionId].text = contentWrapper.textContent;
-            AppState.generated.script[scriptSectionId].html = contentWrapper.innerHTML;
-            console.log(`AppState para '${scriptSectionId}' foi atualizado após aplicar gancho.`);
-        }
-    }
-    // =================================================================
-    // >>>>> FIM DA ADIÇÃO <<<<<
-    // =================================================================
-
-    // O RESTO DA SUA FUNÇÃO (100% MANTIDO)
     button.disabled = true;
     button.innerHTML = '<i class="fas fa-check mr-2"></i>Aplicada!';
     button.classList.remove('btn-primary');
@@ -1178,7 +1156,7 @@ ${fullTranscript.slice(0, 7500)}
 
 
 // =========================================================================
-// >>>>> FUNÇÃO DE SUGERIR ELEMENTOS VIRAIS <<<<<
+// >>>>> PASSO 2: SUBSTITUA A FUNÇÃO 'insertViralSuggestion' INTEIRA <<<<<
 // =========================================================================
 const insertViralSuggestion = (button) => {
     const { anchorParagraph, suggestedText } = button.dataset;
@@ -1190,54 +1168,31 @@ const insertViralSuggestion = (button) => {
 
     const allParagraphs = document.querySelectorAll('#scriptSectionsContainer div[id*="-p-"]');
     let inserted = false;
-    let sectionElement = null; // Variável para guardar a referência da seção alterada
 
     allParagraphs.forEach(p => {
         if (!inserted && p.textContent.trim().includes(anchorParagraph.trim())) {
-            // SUA LÓGICA ATUAL DE INSERÇÃO (100% MANTIDA)
             const newDiv = document.createElement('div');
             newDiv.id = `inserted-p-${Date.now()}`; 
             newDiv.innerHTML = `<span class="highlight-change">${suggestedText}</span>`;
             p.parentNode.insertBefore(newDiv, p.nextSibling);
             newDiv.innerHTML = DOMPurify.sanitize(newDiv.innerHTML, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
-            
             window.showToast("Elemento viral inserido com sucesso!", 'success');
-            
-            // SUA LÓGICA ATUAL DE INVALIDAÇÃO (100% MANTIDA)
-            sectionElement = p.closest('.script-section'); // Guardamos a referência aqui
+            const sectionElement = p.closest('.script-section');
             if (sectionElement) {
                 invalidateAndClearPerformance(sectionElement);
                 invalidateAndClearPrompts(sectionElement);
-                invalidateAndClearEmotionalMap();
+                invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
                 updateAllReadingTimes();
             }
             inserted = true;
         }
     });
 
-    // SUA LÓGICA DE VERIFICAÇÃO (100% MANTIDA)
     if (!inserted) {
         window.showToast("Não foi possível inserir. O parágrafo âncora pode ter sido editado.", 'info');
         return;
     }
-    
-    // =================================================================
-    // >>>>> AQUI ESTÁ A ÚNICA ADIÇÃO: Sincronização com AppState <<<<<
-    // =================================================================
-    if (sectionElement) {
-        const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
-        const scriptSectionId = sectionElement.id.replace('Section', '');
-        if (contentWrapper && AppState.generated.script[scriptSectionId]) {
-            AppState.generated.script[scriptSectionId].text = contentWrapper.textContent;
-            AppState.generated.script[scriptSectionId].html = contentWrapper.innerHTML;
-            console.log(`AppState para '${scriptSectionId}' foi atualizado após inserir elemento viral.`);
-        }
-    }
-    // =================================================================
-    // >>>>> FIM DA ADIÇÃO <<<<<
-    // =================================================================
 
-    // O RESTO DA SUA FUNÇÃO (100% MANTIDO)
     button.disabled = true;
     button.innerHTML = '<i class="fas fa-check mr-2"></i>Aplicada!';
     button.classList.remove('btn-primary');
@@ -1587,16 +1542,12 @@ const createReportSection = (analysisData) => {
             const problematicQuoteEscaped = (point.problematic_quote || '').replace(/"/g, '"');
             const rewrittenQuoteEscaped = (point.rewritten_quote || '').replace(/"/g, '"');
 
-            // <<< AQUI ESTÁ A CORREÇÃO >>>
-            // Agora estamos adicionando o texto de `point.rewritten_quote` ao lado da palavra "Sugestão".
             return `
             <div class="mt-4 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
-                <p class="text-sm italic text-gray-500 dark:text-gray-400 mb-1">Citação: "${DOMPurify.sanitize(point.problematic_quote || 'N/A')}"</p>
+                <p class="text-sm italic text-gray-500 dark:text-gray-400 mb-1">" ${DOMPurify.sanitize(point.problematic_quote || '')} "</p>
                 <p class="text-sm"><strong class="text-yellow-600 dark:text-yellow-400">Crítica:</strong> ${DOMPurify.sanitize(point.critique || '')}</p>
                 <div class="flex items-center justify-between gap-2 mt-2">
-                    <p class="text-sm flex-1">
-                        <strong class="text-green-600 dark:text-green-400">Sugestão:</strong> Substituir por: "${DOMPurify.sanitize(point.rewritten_quote || '')}"
-                    </p>
+                    <p class="text-sm flex-1"><strong class="text-green-600 dark:text-green-400">Sugestão:</strong> ${DOMPurify.sanitize(point.suggestion_text || '')}</p>
                     
                     <button class="btn btn-primary btn-small flex-shrink-0"
                             data-action="applySuggestion"
@@ -3935,6 +3886,7 @@ Você é uma API de geração de JSON que segue regras com precisão cirúrgica.
 // =========================================================================
 // >>>>> SUBSTITUA A FUNÇÃO callGroqAPI PELA VERSÃO SIMPLES E DIRETA <<<<<
 // =========================================================================
+// index.html - Versão final com Cloudflare Worker
 const callGroqAPI = async (prompt, maxTokens) => {
     // >>> COLE A URL DO SEU WORKER AQUI <<<
     const workerUrl = "https://royal-bird-81cb.david-souzan.workers.dev/"; 
@@ -3959,18 +3911,18 @@ const callGroqAPI = async (prompt, maxTokens) => {
         } else {
             throw new Error("Resposta inesperada da API.");
         }
-    } catch (error) {
-        console.error("Falha na chamada à API via Worker:", error);
-        // --- LÓGICA INTELIGENTE AQUI ---
-        if (error.message && error.message.toLowerCase().includes('fault filter abort')) {
-            const customError = new Error("O tema ou texto que você forneceu foi bloqueado pelo filtro de segurança da IA. Por favor, tente reformular com outras palavras.");
-            window.showToast(customError.message, 'error');
-            throw customError;
-        } else {
-            window.showToast(`Falha na API: ${error.message}`, 'error');
-            throw error;
-        }
+} catch (error) {
+    console.error("Falha na chamada à API via Worker:", error);
+    // --- LÓGICA INTELIGENTE AQUI ---
+    if (error.message && error.message.toLowerCase().includes('fault filter abort')) {
+        const customError = new Error("O tema ou texto que você forneceu foi bloqueado pelo filtro de segurança da IA. Por favor, tente reformular com outras palavras.");
+        window.showToast(customError.message);
+        throw customError;
+    } else {
+        window.showToast(`Falha na API: ${error.message}`);
+        throw error;
     }
+}
 };
 
         /**
@@ -4266,13 +4218,17 @@ ${existingText}
 window.analyzeSectionRetention = async (button, sectionId) => {
     const sectionElement = document.getElementById(sectionId);
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
+
     if (!contentWrapper || !contentWrapper.textContent.trim()) {
         window.showToast("Gere o roteiro desta seção antes de analisar a retenção.", 'info');
         return;
     }
 
-    const outputContainer = sectionElement.querySelector('.section-analysis-output');
-    if (outputContainer) outputContainer.innerHTML = '';
+    // Limpa os resultados de outras análises para evitar confusão na UI
+    invalidateAndClearPerformance(sectionElement);
+    const analysisOutput = sectionElement.querySelector('.section-analysis-output');
+    if(analysisOutput) analysisOutput.innerHTML = '';
+
 
     const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]'));
     if (paragraphs.length === 0) {
@@ -4290,36 +4246,41 @@ window.analyzeSectionRetention = async (button, sectionId) => {
         
         const basePromptContext = getBasePromptContext();
 
+        // O NOVO PROMPT BLINDADO
         const prompt = `Você é uma API de análise de roteiro que retorna JSON.
 
-        **CONTEXTO ESTRATÉGICO:**
-        ---
-        ${basePromptContext}
-        ---
+**CONTEXTO ESTRATÉGICO (A "ALMA" DO ROTEIRO):**
+---
+${basePromptContext}
+---
+Este contexto é sua ÚNICA bússola. TODAS as sugestões DEVEM estar alinhadas a ele.
 
-        **REGRAS DE RESPOSTA (JSON ESTRITO):**
-        1.  **JSON PURO:** Responda APENAS com o array JSON.
-        2.  **ESTRUTURA COMPLETA:** Cada objeto DEVE conter "paragraphIndex" (número), "retentionScore" ("green", "yellow", ou "red"), e "suggestion" (string).
-        3.  **SUGESTÕES ESTRATÉGICAS:** A "suggestion" DEVE ser um CONSELHO ACIONÁVEL sobre COMO melhorar, NÃO a reescrita do texto.
-        4.  **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores string.
+**REGRAS DE RESPOSTA (JSON ESTRITO E INEGOCIÁVEL):**
+1.  **JSON PURO:** Responda APENAS com o array JSON.
+2.  **ESTRUTURA COMPLETA:** Cada objeto no array DEVE conter EXATAMENTE três chaves: "paragraphIndex" (número), "retentionScore" ("green", "yellow", ou "red"), e "suggestion" (string).
+3.  **SUGESTÕES ESTRATÉGICAS, NÃO REESCRITAS:** O valor de "suggestion" DEVE ser um CONSELHO ACIONÁVEL sobre COMO melhorar o parágrafo, respeitando a "alma" do roteiro. NÃO reescreva o texto.
+    - **BOM:** "Este parágrafo é denso. Quebre-o com uma pergunta que conecte com a 'Pergunta Central' do vídeo para reengajar."
+    - **RUIM:** "Reescreva para: 'Mas o que isso significa?'"
+4.  **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores string.
 
-        **MANUAL DE PONTUAÇÃO:**
-        - **green:** Excelente. Prende a atenção. Sugestão: "Excelente fluidez.".
-        - **yellow:** Ponto de Atenção. Funcional, mas pode ser mais impactante.
-        - **red:** Ponto de Risco. Confuso, repetitivo ou quebra o engajamento.
+**MANUAL DE PONTUAÇÃO (FOCO EM ENGAJAMENTO):**
+- **green:** Excelente. O parágrafo prende a atenção, avança a narrativa e está alinhado com a estratégia. Sugestão: "Excelente fluidez e alinhamento estratégico.".
+- **yellow:** Ponto de Atenção. O parágrafo é funcional, mas poderia ser mais impactante ou claro. O ritmo pode estar quebrando.
+- **red:** Ponto de Risco. O parágrafo é confuso, repetitivo ou quebra o engajamento. Corre o risco de fazer o espectador sair do vídeo.
 
-        **DADOS PARA ANÁLISE:**
-        ${JSON.stringify(paragraphsWithIndexes, null, 2)}
+**DADOS PARA ANÁLISE:**
+${JSON.stringify(paragraphsWithIndexes, null, 2)}
 
-        **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
+**AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
 
         const rawResult = await callGroqAPI(prompt, 4000);
-        const analysis = cleanGeneratedText(rawResult, true, true);
+        const analysis = cleanGeneratedText(rawResult, true);
 
         if (!analysis || !Array.isArray(analysis)) {
             throw new Error("A análise da IA retornou um formato inválido.");
         }
         
+        // A lógica de agrupamento e renderização continua a mesma, pois é robusta.
         if (analysis.length > 0) {
             let currentGroup = [];
             for (let i = 0; i < analysis.length; i++) {
@@ -4369,7 +4330,7 @@ window.analyzeSectionRetention = async (button, sectionId) => {
                                         data-suggestion-text="${suggestionTextEscaped}">
                                     <i class="fas fa-magic mr-2"></i> Otimizar
                                 </button>
-                                <button class="flex-1 btn btn-danger btn-small py-1" 
+                                <button class="flex-1 btn bg-red-600 hover:bg-red-700 text-white btn-small py-1" 
                                         data-action="deleteParagraphGroup" 
                                         data-suggestion-text="${suggestionTextEscaped}">
                                     <i class="fas fa-trash-alt mr-2"></i> Deletar
@@ -4388,41 +4349,10 @@ window.analyzeSectionRetention = async (button, sectionId) => {
 
     } catch (error) {
         console.error("Erro detalhado em analyzeSectionRetention:", error);
-        window.showToast(`Falha na análise: ${error.message}`, 'error');
+        window.showToast(`Falha na análise: ${error.message}`);
     } finally {
         hideButtonLoading(button);
     }
-};
-
-const handleSuggestionMouseOver = (event) => {
-    const targetParagraph = event.currentTarget;
-    const suggestionGroupText = targetParagraph.dataset.suggestionGroup;
-    if (!suggestionGroupText) return;
-    const contentWrapper = targetParagraph.closest('.generated-content-wrapper');
-    if (!contentWrapper) return;
-    const safeSuggestionSelector = suggestionGroupText.replace(/"/g, '\\"');
-    contentWrapper.querySelectorAll(`[data-suggestion-group="${safeSuggestionSelector}"]`).forEach(p => {
-        p.classList.add('highlight-group');
-    });
-};
-
-const handleSuggestionMouseOut = (event) => {
-    const targetParagraph = event.currentTarget;
-    const contentWrapper = targetParagraph.closest('.generated-content-wrapper');
-    if (!contentWrapper) return;
-    contentWrapper.querySelectorAll('.highlight-group').forEach(p => {
-        p.classList.remove('highlight-group');
-    });
-};
-
-window.optimizeGroup = async (button, suggestionText) => {
-    // A função completa e original de optimizeGroup entra aqui
-    console.log("Ação: Otimizar Grupo"); window.showToast("Função 'Otimizar Grupo' conectada.", "success");
-};
-
-window.deleteParagraphGroup = async (button, suggestionText) => {
-    // A função completa e original de deleteParagraphGroup entra aqui
-    console.log("Ação: Deletar Grupo"); window.showToast("Função 'Deletar Grupo' conectada.", "success");
 };
 
 // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -4707,7 +4637,7 @@ const renderIdeaCard = (idea, index, colorClass) => {
 
 
 // =========================================================================
-// >>>>> FUNÇÃO DE ATUALIZAÇÃO DE TEXTO NO MAPA EMOCIONAL <<<<<
+// >>>>> SUBSTITUA A FUNÇÃO 'applySuggestion' INTEIRA POR ESTA VERSÃO <<<<<
 // =========================================================================
 window.applySuggestion = (button) => {
     const { criterionName, problematicQuote, rewrittenQuote } = button.dataset;
@@ -4727,9 +4657,9 @@ window.applySuggestion = (button) => {
         return;
     }
 
-    // SUA LÓGICA AVANÇADA DE SUBSTITUIÇÃO (100% MANTIDA)
     let replaced = false;
     const paragraphs = contentWrapper.querySelectorAll('div[id^="' + sectionId.replace('Section','') + '-p-"]');
+
     paragraphs.forEach(p => {
         if (replaced) return;
         const childNodes = Array.from(p.childNodes);
@@ -4764,25 +4694,11 @@ window.applySuggestion = (button) => {
         return;
     }
     
-    // =================================================================
-    // >>>>> AQUI ESTÁ A ÚNICA ADIÇÃO: Sincronização com AppState <<<<<
-    // =================================================================
-    const scriptSectionId = sectionId.replace('Section', '');
-    if (AppState.generated.script[scriptSectionId]) {
-        AppState.generated.script[scriptSectionId].text = contentWrapper.textContent;
-        AppState.generated.script[scriptSectionId].html = contentWrapper.innerHTML;
-        console.log(`AppState para '${scriptSectionId}' foi atualizado após aplicar sugestão.`);
-    }
-    // =================================================================
-    // >>>>> FIM DA ADIÇÃO <<<<<
-    // =================================================================
-
-    // O resto da sua função (100% MANTIDO)
     window.showToast("Sugestão aplicada com sucesso!");
     
     invalidateAndClearPerformance(sectionElement);
     invalidateAndClearPrompts(sectionElement);
-    invalidateAndClearEmotionalMap();
+    invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
     updateAllReadingTimes();
 
     button.disabled = true;
@@ -4844,14 +4760,13 @@ const applyAllSuggestions = async (button) => {
 // >>>>> PASSO 2: SUBSTITUA A FUNÇÃO 'window.enrichWithData' INTEIRA POR ESTA <<<<<
 // =========================================================================
 
-window.enrichWithData = async (button) => {
+window.enrichWithData = async (buttonElement) => {
     const selection = window.getSelection();
-    if (selection.rangeCount === 0 || selection.toString().trim().length < 10) {
-        window.showToast("Por favor, selecione um trecho de texto com pelo menos 10 caracteres para enriquecer.", 'info');
+    if (selection.rangeCount === 0 || selection.toString().trim() === '') {
+        window.showToast("Por favor, selecione primeiro o trecho de texto que deseja enriquecer.", 'info');
         return;
     }
     
-    // Armazena a seleção EXATA que o usuário fez
     userSelectionRange = selection.getRangeAt(0).cloneRange();
     const selectedText = selection.toString().trim();
 
@@ -4864,16 +4779,14 @@ window.enrichWithData = async (button) => {
 
     if (!newData) {
         window.showToast("Operação cancelada.", 'info');
-        userSelectionRange = null; // Limpa a seleção armazenada se o usuário cancelar
+        userSelectionRange = null;
         return;
     }
 
-    showButtonLoading(button);
-    const sectionElement = button.closest('.accordion-item');
+    showButtonLoading(buttonElement);
+    const sectionElement = buttonElement.closest('.script-section');
 
     try {
-
-
         const prompt = `Você é um EDITOR DE ROTEIRO DE ALTO DESEMPENHO e um ESPECIALISTA EM INTEGRAÇÃO DE INFORMAÇÕES. Sua tarefa ÚNICA, CRÍTICA e INEGOCIÁVEL é REESCREVER um trecho de texto para integrar uma NOVA INFORMAÇÃO de forma TOTALMENTE NATURAL, FLUÍDA e PROFISSIONAL, sem comprometer a integridade do texto original.
 
 **TRECHO ORIGINAL DO ROTEIRO (PARA SER REESCRITO):**
@@ -4901,52 +4814,31 @@ ${newData}
 **AÇÃO FINAL:** Reescreva AGORA o trecho, integrando a nova informação com MÁXIMA habilidade e conformidade. Responda APENAS com o texto final reescrito e integrado.
 `;
 
-const rawResult = await callGroqAPI(prompt, 1000);
+        const rawResult = await callGroqAPI(prompt, 1000);
         const enrichedText = removeMetaComments(rawResult);
 
-        // Usa a seleção armazenada para substituir o texto no local exato
         if (userSelectionRange) {
-            // Limpa a seleção atual da tela e restaura a seleção original
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(userSelectionRange);
-            
-            // Usa um método mais compatível para inserir o HTML
-            document.execCommand('insertHTML', false, DOMPurify.sanitize(`<span class="highlight-change">${enrichedText}</span>`, {ADD_TAGS: ['span'], ADD_ATTR: ['class']}));
+            selection.removeAllRanges();
+            selection.addRange(userSelectionRange);
+            document.execCommand('insertHTML', false, DOMPurify.sanitize(`<span class="highlight-change">${enrichedText}</span>`));
         }
         
         if (sectionElement) {
-            const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
-            const sectionId = sectionElement.id.replace('Section', '');
-            
-            // Sincroniza o AppState com o novo conteúdo do contentWrapper
-            if (AppState.generated.script[sectionId]) {
-                AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
-                AppState.generated.script[sectionId].text = contentWrapper.textContent;
-            }
-            
-            // Invalida as análises que dependem do texto
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
-            invalidateAndClearEmotionalMap();
-            updateAllReadingTimes();
+            invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
         }
 
         window.showToast("Texto enriquecido com sucesso!", 'success');
+
     } catch (error) {
-        window.showToast(`Falha ao enriquecer o texto: ${error.message}`, 'error');
+        console.error("Erro detalhado em enrichWithData:", error);
+        window.showToast(`Falha ao enriquecer o texto: ${error.message}`);
     } finally {
-        hideButtonLoading(button);
-        userSelectionRange = null; // Limpa a seleção após o uso
+        hideButtonLoading(buttonElement);
+        userSelectionRange = null;
     }
 };
-
-
-
-
-
-
-
-
 
      
 // Esta UMA função substitui as SEIS antigas
@@ -6381,74 +6273,65 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const speakingPaceSelect = document.getElementById('speakingPace');
     if (speakingPaceSelect) { speakingPaceSelect.addEventListener('change', updateAllReadingTimes); }
-
-
-
     
-const actions = {
-    // ETAPA 1
-    'investigate': (btn) => handleInvestigate(btn),
-    'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn),
-    'select-idea': (btn) => {
-        const ideaString = btn.dataset.idea;
-        if(ideaString) selectIdea(JSON.parse(ideaString.replace(/&quot;/g, '"')));
-    },
-
-    // ETAPA 2
-    'suggestStrategy': (btn) => suggestStrategy(btn),
-    'applyStrategy': (btn) => applyStrategy(btn),
-    
-    // ETAPA 3
-    'generateOutline': (btn) => generateStrategicOutline(btn),
-    'generateIntro': (btn) => handleGenerateSection(btn, 'intro', 'Introdução', 'intro'),
-    'generateDevelopment': (btn) => handleGenerateSection(btn, 'development', 'Desenvolvimento', 'development'),
-    'generateClimax': (btn) => handleGenerateSection(btn, 'climax', 'Clímax', 'climax'),
-    'generateConclusion': (btn) => generateConclusion(btn),
-    'generateCta': (btn) => generateStrategicCta(btn),
-    'suggestFinalStrategy': (btn) => suggestFinalStrategy(btn),
-    'goToFinalize': (btn) => goToFinalize(btn),
-
-    // ETAPA 4
-    'analyzeScript': (btn) => analyzeFullScript(btn),
-    'analyzeHooks': (btn) => analyzeRetentionHooks(btn),
-    'suggestViralElements': (btn) => suggestViralElements(btn),
-    'generateTitlesAndThumbnails': (btn) => generateTitlesAndThumbnails(btn),
-    'generateDescription': (btn) => generateVideoDescription(btn),
-    'generateSoundtrack': (btn) => generateSoundtrack(btn),
-    'mapEmotions': (btn) => mapEmotionsAndPacing(btn),
-    'exportProject': () => exportProject(),
-    'exportPdf': () => downloadPdf(),
-    'exportTranscript': () => handleCopyAndDownloadTranscript(),
-    'resetProject': async () => { 
-        const confirmed = await showConfirmationDialog("Começar um Novo Projeto?","Isso limpará todos os campos e o trabalho realizado. Esta ação não pode ser desfeita. Deseja continuar?");
-        if (confirmed) resetApplicationState();
-    },
-
-    // AÇÕES DO ACORDEÃO (FERRAMENTAS)
-    'regenerate': (btn) => window.regenerateSection(btn.dataset.sectionId),
-    'copy': (btn) => {
-        const content = btn.closest('.accordion-item')?.querySelector('.generated-content-wrapper');
-        if (content) window.copyTextToClipboard(content.textContent); window.showCopyFeedback(btn);
-    },
-    'analyzeRetention': (btn) => window.analyzeSectionRetention(btn),
-    'refineStyle': (btn) => window.refineSectionStyle(btn),
-    'enrichWithData': (btn) => window.enrichWithData(btn),
-    'suggestPerformance': (btn) => window.suggestPerformance(btn),
-    'addDevelopmentChapter': (btn) => window.addDevelopmentChapter(btn),
-    'generate-prompts': (btn) => window.generatePromptsForSection(btn),
-    
-    // AÇÕES DE CALLBACK (DOS TOOLTIPS DE ANÁLISE)
-    'optimizeGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.optimizeGroup(btn, text); },
-    'deleteParagraphGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.deleteParagraphGroup(btn, text); },
-    'applySuggestion': (btn) => window.applySuggestion(btn),
-    'applyAllSuggestions': (btn) => applyAllSuggestions(btn),
-    'applyHookSuggestion': (btn) => applyHookSuggestion(btn),
-    'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
-};
-
-
-
-    
+    // --- 4. O "GERENTE DE CLIQUES" (OBJETO 'actions') ---
+    const actions = {
+        'investigate': (btn) => window.verifyFact(btn),
+        'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn),
+        'select-idea': (btn) => { 
+            const ideaString = btn.dataset.idea;
+            if(ideaString) selectIdea(JSON.parse(ideaString.replace(/&quot;/g, '"')));
+        },
+        'suggestStrategy': (btn) => suggestStrategy(btn),
+        'startCrafting': (btn) => startCrafting(),
+        'generateOutline': (btn) => generateStrategicOutline(btn),
+        'generateIntro': (btn) => handleGenerateSection(btn, 'intro', 'Introdução', 'intro'),
+        'generateDevelopment': (btn) => handleGenerateSection(btn, 'development', 'Desenvolvimento', 'development'),
+        'generateClimax': (btn) => handleGenerateSection(btn, 'climax', 'Clímax', 'climax'),
+        'generateConclusion': (btn) => generateConclusion(btn),
+        'generateCta': (btn) => generateStrategicCta(btn),
+        'suggestFinalStrategy': (btn) => suggestFinalStrategy(btn),
+        'addDevelopmentChapter': (btn) => window.addDevelopmentChapter(btn),
+        'mapEmotions': (btn) => mapEmotionsAndPacing(btn),
+        'generateTitlesAndThumbnails': (btn) => generateTitlesAndThumbnails(btn),
+        'generateDescription': (btn) => generateVideoDescription(btn),
+        'generateSoundtrack': (btn) => generateSoundtrack(btn),
+        'analyzeScript': (btn) => analyzeFullScript(btn),
+        'analyzeHooks': (btn) => analyzeRetentionHooks(btn),
+        'suggestViralElements': (btn) => suggestViralElements(btn),
+        'exportProject': () => exportProject(),
+        'exportPdf': () => downloadPdf(),
+        'exportTranscript': () => handleCopyAndDownloadTranscript(),
+        'resetProject': async () => { 
+            const confirmed = await showConfirmationDialog("Começar um Novo Projeto?","Isso limpará todos os campos e o trabalho realizado. Esta ação não pode ser desfeita. Deseja continuar?");
+            if (confirmed) { resetApplicationState(); }
+        },
+        'regenerate': (btn) => window.regenerateSection(btn.dataset.sectionId),
+        'copy': (btn) => {
+            const content = btn.closest('.accordion-item')?.querySelector('.generated-content-wrapper');
+            if (content) {
+                window.copyTextToClipboard(content.textContent);
+                window.showCopyFeedback(btn);
+            }
+        },
+        'generate-prompts': (btn) => window.generatePromptsForSection(btn, btn.dataset.sectionId),
+        'analyzeRetention': (btn) => window.analyzeSectionRetention(btn, btn.dataset.sectionId),
+        'refineStyle': (btn) => window.refineSectionStyle(btn),
+        'enrichWithData': (btn) => window.enrichWithData(btn),
+        'suggestPerformance': (btn) => window.suggestPerformance(btn, btn.dataset.sectionId),
+        'optimizeGroup': (btn) => {
+            const suggestionText = btn.dataset.suggestionText;
+            if (suggestionText) window.optimizeGroup(btn, suggestionText);
+        },
+        'deleteParagraphGroup': (btn) => {
+            const suggestionText = btn.dataset.suggestionText;
+            if (suggestionText) window.deleteParagraphGroup(btn, suggestionText);
+        },
+        'applySuggestion': (btn) => window.applySuggestion(btn),
+        'applyAllSuggestions': (btn) => applyAllSuggestions(btn),
+        'applyHookSuggestion': (btn) => applyHookSuggestion(btn),
+        'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
+    };
 
 // SUBSTITUA PELO NOVO BLOCO ABAIXO
 const scriptContainerForEdits = document.getElementById('scriptSectionsContainer');
