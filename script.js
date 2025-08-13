@@ -2755,7 +2755,7 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
     const promptContainer = sectionElement?.querySelector('.prompt-container');
 
     if (!contentWrapper || !contentWrapper.textContent.trim() || !promptContainer) {
-        window.showToast("Gere o conteúdo do roteiro desta seção primeiro.");
+        window.showToast("Gere o conteúdo do roteiro desta seção primeiro.", 'info');
         return;
     }
 
@@ -2776,7 +2776,6 @@ window.generatePromptsForSection = async (button, sectionElementId) => {
 
         if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
 
-        // A lógica de chamada da IA em lotes permanece a mesma
         const batchSize = 3;
         const apiPromises = [];
         const visualPacing = document.getElementById('visualPacing').value;
@@ -2860,13 +2859,11 @@ ${promptContextForAI}
 
 Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
             
-            // Usamos a versão evoluída do filtro, esperando um array
-            apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true, true)));
+    apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true, true)));
         }
 
         const allBatchResults = await Promise.all(apiPromises);
         let allGeneratedPrompts = allBatchResults.flat();
-
         if (!Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length < paragraphsWithContext.length) {
             throw new Error("A IA não retornou um prompt para cada parágrafo.");
         }
@@ -2877,38 +2874,31 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
             estimated_duration: promptData.estimated_duration || 5
         }));
 
-        // <<<< AQUI ESTÁ A MUDANÇA-CHAVE >>>>
-        // 1. Verificamos se o estilo cinematográfico deve ser aplicado.
         const applyCinematicStyle = document.getElementById('imageStyleSelect').value === 'cinematic';
-
-        // 2. Salvamos no AppState APENAS a informação e o SINALIZADOR, não o bloco de texto.
         AppState.generated.imagePrompts[sectionElementId] = curatedPrompts.map(p => ({
-            ...p,
-            applyStyleBlock: applyCinematicStyle // Salva 'true' ou 'false'
+            ...p, applyStyleBlock: applyCinematicStyle
         }));
-        // <<<< FIM DA MUDANÇA >>>>
-
-        // O resto da função para preparar a renderização continua igual
+        
         AppState.ui.promptPaginationState[sectionElementId] = 0;
-        if (typeof window.allImagePrompts === 'undefined') window.allImagePrompts = {};
-        if (typeof window.promptPaginationState === 'undefined') window.promptPaginationState = {};
-        window.allImagePrompts[sectionElementId] = AppState.generated.imagePrompts[sectionElementId];
-        window.promptPaginationState[sectionElementId] = AppState.ui.promptPaginationState[sectionElementId];
 
+        // ** AVISO: A função renderPaginatedPrompts ainda não foi transplantada.
+        // O código abaixo irá falhar até que a transplantemos.
         promptContainer.innerHTML = `
             <div class="prompt-pagination-wrapper space-y-4">
                 <div class="prompt-nav-container flex items-center justify-center gap-4"></div>
                 <div class="prompt-items-container space-y-4"></div>
             </div>
         `;
-        renderPaginatedPrompts(sectionElementId);
+        // renderPaginatedPrompts(sectionElementId); // Esta linha vai dar erro por enquanto
+
+        // Solução temporária para mostrar que funcionou:
+         promptContainer.innerHTML = `<div class="card" style="background: var(--bg);"><p>${curatedPrompts.length} prompts gerados! A renderização será consertada a seguir.</p></div>`;
+
 
     } catch (error) {
         promptContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar prompts: ${error.message}</p>`;
-        console.error("Erro detalhado em generatePromptsForSection:", error);
     } finally {
         hideButtonLoading(button);
-        updateButtonStates();
     }
 };
 
