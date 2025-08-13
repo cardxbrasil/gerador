@@ -452,22 +452,49 @@ const setupInputTabs = () => {
 // >>>>> FILTRO JSON <<<<<
 // ============================
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
-    // ... (a parte de extração inicial continua a mesma) ...
+    if (!text || typeof text !== 'string') {
+        return expectJson ? (arrayExpected ? [] : null) : '';
+    }
+    if (!expectJson) {
+        return text.trim();
+    }
+    
+    let jsonString; // Declarada aqui
+    const trimmedText = text.trim();
+    const markdownMatch = trimmedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
+
+    if (markdownMatch && markdownMatch[2]) {
+        jsonString = markdownMatch[2].trim();
+    } else {
+        let startIndex = -1;
+        let endIndex = -1;
+        const firstBrace = trimmedText.indexOf('{');
+        const firstBracket = trimmedText.indexOf('[');
+        if (firstBrace === -1 && firstBracket === -1) throw new Error("A IA não retornou um formato JSON reconhecível.");
+        if (firstBracket !== -1 && (firstBracket < firstBrace || firstBrace === -1)) {
+            startIndex = firstBracket;
+            endIndex = trimmedText.lastIndexOf(']');
+            if (endIndex <= startIndex) throw new Error("O JSON retornado (array) parece estar incompleto.");
+        } else {
+            startIndex = firstBrace;
+            endIndex = trimmedText.lastIndexOf('}');
+            if (endIndex <= startIndex) throw new Error("O JSON retornado (objeto) parece estar incompleto.");
+        }
+        jsonString = trimmedText.substring(startIndex, endIndex + 1);
+    }
+
     try {
-        let parsedResult = JSON.parse(jsonString);
+        let parsedResult = JSON.parse(jsonString); // Primeira tentativa de parse
         if (arrayExpected && !Array.isArray(parsedResult)) return [parsedResult];
         return parsedResult;
     } catch (initialError) {
         console.warn("Parse inicial falhou. Iniciando reparos...", initialError.message);
-        let repairedString = jsonString;
+        let repairedString = jsonString; // A cirurgia usa o jsonString que falhou
         try {
-            // >>>>> FERRAMENTA NUCLEAR DE EXTRAÇÃO <<<<<
-            // Se parece com [{ "texto" }, ...], remove os objetos e mantém só o texto.
+            // Kit de cirurgia completo...
             if (repairedString.trim().startsWith('[{\\"')) {
                  repairedString = repairedString.replace(/\{\s*"/g, '"').replace(/"\s*\}/g, '"');
             }
-            
-            // >>>>> KIT CIRÚRGICO COMPLETO DA FERRARI V5.0 <<<<<
             repairedString = repairedString.replace(/:\s*"(.*?)"/g, (match, content) => {
                 const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
                 return `: "${escapedContent}"`;
