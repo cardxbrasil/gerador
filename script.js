@@ -2194,13 +2194,368 @@ const handleSuggestionMouseOut = (event) => {
     event.currentTarget.closest('.generated-content-wrapper').querySelectorAll('.highlight-group').forEach(p => p.classList.remove('highlight-group'));
 };
 
+
+
+window.refineSectionStyle = async (button) => {
+    const sectionElement = button.closest('.accordion-item');
+    if (!sectionElement) return;
+    const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
+    const originalText = contentWrapper?.textContent.trim();
+    if (!originalText) {
+        window.showToast("Não há texto para refinar nesta seção.", 'info');
+        return;
+    }
+
+    showButtonLoading(button);
+    try {
+        const prompt = `Você é um EDITOR DE ESTILO (Copy Editor) DE ALTO DESEMPENHO. Sua tarefa é REESCREVER o texto fornecido para elevar sua QUALIDADE, FLUÍDEZ e IMPACTO, sem alterar o significado ou tom.
+
+**TEXTO ORIGINAL (PARA REFINAMENTO):**
+---
+${originalText}
+---
+
+**REGRAS CRÍTICAS:**
+1.  **ELIMINE REPETIÇÕES:** Remova palavras, ideias e estruturas de frases repetitivas.
+2.  **MELHORE A FLUÍDEZ:** Use conectivos inteligentes para um fluxo narrativo suave.
+3.  **NÃO ALTERE O SIGNIFICADO:** Sua função é POLIR, não recriar o conteúdo.
+4.  **RESPOSTA PURA:** Responda APENAS com o texto refinado.
+
+**AÇÃO FINAL:** Reescreva o texto, aplicando as regras acima.`;
+
+        const rawResult = await callGroqAPI(prompt, 8000);
+        const refinedText = removeMetaComments(rawResult);
+        const newParagraphs = refinedText.split('\n').filter(p => p.trim() !== '');
+        const sectionId = sectionElement.id.replace('Section', '');
+        const newHtml = newParagraphs.map((p, index) => `<div id="${sectionId}-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
+        
+        contentWrapper.innerHTML = newHtml;
+
+        if (AppState.generated.script[sectionId]) {
+            AppState.generated.script[sectionId].html = newHtml;
+            AppState.generated.script[sectionId].text = refinedText;
+        }
+
+        invalidateAndClearPerformance(sectionElement);
+        invalidateAndClearPrompts(sectionElement);
+        invalidateAndClearEmotionalMap();
+        updateAllReadingTimes();
+        window.showToast("Estilo do roteiro refinado com sucesso!", 'success');
+    } catch (error) {
+        window.showToast(`Falha ao refinar o estilo: ${error.message}`, 'error');
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+window.enrichWithData = async (button) => {
+    const selection = window.getSelection();
+    if (selection.rangeCount === 0 || selection.toString().trim() === '') {
+        window.showToast("Por favor, selecione primeiro o trecho de texto que deseja enriquecer.", 'info');
+        return;
+    }
+    
+    userSelectionRange = selection.getRangeAt(0).cloneRange();
+    const selectedText = selection.toString().trim();
+
+    const newData = await showInputDialog(
+        'Enriquecer com Dados',
+        'Cole abaixo o dado, fonte ou exemplo que você quer adicionar ao trecho selecionado.',
+        'Nova Informação:',
+        'Ex: Fonte: Forbes 2023; Segundo o Dr. especialista...'
+    );
+
+    if (!newData) {
+        window.showToast("Operação cancelada.", 'info');
+        userSelectionRange = null;
+        return;
+    }
+
+    showButtonLoading(button);
+    const sectionElement = button.closest('.accordion-item');
+
+    try {
+        const prompt = `Você é um EDITOR DE ROTEIRO especialista em integração de informações. Sua tarefa é REESCREVER o "Trecho Original" para integrar a "Nova Informação" de forma natural e fluída.
+
+**TRECHO ORIGINAL DO ROTEIRO:**
+---
+${selectedText}
+---
+
+**NOVA INFORMAÇÃO A SER INTEGRADA:**
+---
+${newData}
+---
+
+**REGRAS CRÍTICAS:**
+1.  O resultado DEVE ser um parágrafo coeso e bem escrito.
+2.  Mantenha o TOM e o RITMO do texto original.
+3.  **RESPOSTA PURA:** Responda APENAS com o texto final reescrito e integrado.
+
+**AÇÃO FINAL:** Reescreva o trecho, integrando a nova informação.`;
+
+        const rawResult = await callGroqAPI(prompt, 1000);
+        const enrichedText = removeMetaComments(rawResult);
+
+        if (userSelectionRange) {
+            selection.removeAllRanges();
+            selection.addRange(userSelectionRange);
+            document.execCommand('insertHTML', false, DOMPurify.sanitize(`<span class="highlight-change">${enrichedText}</span>`));
+        }
+        
+        if (sectionElement) {
+            const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
+            const sectionId = sectionElement.id.replace('Section', '');
+            if (AppState.generated.script[sectionId]) {
+                AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
+                AppState.generated.script[sectionId].text = contentWrapper.textContent;
+            }
+            invalidateAndClearPerformance(sectionElement);
+            invalidateAndClearPrompts(sectionElement);
+            invalidateAndClearEmotionalMap();
+        }
+
+        window.showToast("Texto enriquecido com sucesso!", 'success');
+    } catch (error) {
+        window.showToast(`Falha ao enriquecer o texto: ${error.message}`, 'error');
+    } finally {
+        hideButtonLoading(button);
+        userSelectionRange = null;
+    }
+};
+
+
+
+window.addDevelopmentChapter = async (button) => {
+    const sectionElement = button.closest('.accordion-item');
+    const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
+    const existingText = contentWrapper?.textContent.trim();
+    if (!existingText) {
+        window.showToast("Gere o desenvolvimento inicial primeiro.", 'info');
+        return;
+    }
+
+    showButtonLoading(button);
+    try {
+        const suggestionPrompt = `Você é um ARQUITETO DA CONTINUIDADE. Analise o final do roteiro a seguir e proponha 3 temas distintos e coerentes para o PRÓXIMO capítulo.
+
+**ROTEIRO ATUAL (Últimos 3000 caracteres):**
+---
+${existingText.slice(-3000)} 
+---
+
+**REGRAS JSON:**
+1.  **JSON PURO:** Responda APENAS com um array JSON.
+2.  **ESTRUTURA:** O array deve conter EXATAMENTE 3 strings.
+3.  **QUALIDADE:** As sugestões devem ser específicas e avançar a narrativa.
+
+**AÇÃO FINAL:** Gere o array JSON.`;
+
+        const rawSuggestions = await callGroqAPI(suggestionPrompt, 400);
+        const chapterSuggestions = cleanGeneratedText(rawSuggestions, true) || [];
+        
+        hideButtonLoading(button);
+
+        const chapterTheme = await showInputDialog(
+            'Adicionar Novo Capítulo',
+            'Escolha uma sugestão ou digite seu próprio tema.',
+            'Tema personalizado:',
+            'Digite seu tema aqui...',
+            chapterSuggestions
+        );
+
+        if (!chapterTheme) {
+            window.showToast("Operação cancelada.", 'info');
+            return;
+        }
+
+        showButtonLoading(button);
+
+        const basePrompt = getBasePromptContext();
+        const continuationPrompt = `${basePrompt}
+
+**TAREFA CRÍTICA:** Escrever o próximo capítulo do roteiro com o tema: "${chapterTheme}".
+
+**ROTEIRO ESCRITO ATÉ AGORA (CONTEXTO):**
+---
+${existingText}
+---
+
+**REGRAS:**
+1.  **RESPOSTA PURA:** Responda APENAS com o texto narrado.
+2.  **SEM FORMATAÇÃO EXTRA:** Proibido 'Narrador:', '(Cena: ...)', ou o título do capítulo na resposta.
+3.  **CONTINUIDADE E NOVIDADE:** Comece de onde o roteiro parou e introduza novas informações. Não repita o que já foi dito.
+
+**AÇÃO FINAL:** Escreva o texto para o novo capítulo.`;
+        
+        const rawResult = await callGroqAPI(continuationPrompt, 4000);
+        const newChapter = removeMetaComments(rawResult.trim());
+        if (!newChapter) throw new Error("A IA não retornou conteúdo para o capítulo.");
+
+        const chapterTitleHtml = `<div class="font-bold text-lg mt-6 mb-3 pb-1 border-b" style="border-color: var(--border);">Capítulo: ${DOMPurify.sanitize(chapterTheme)}</div>`;
+        const existingParagraphsCount = contentWrapper.querySelectorAll('div[id]').length;
+        const newParagraphs = newChapter.split('\n').filter(p => p.trim() !== '');
+        const newContentWithDivs = newParagraphs.map((p, index) => `<div id="development-p-${existingParagraphsCount + index}">${DOMPurify.sanitize(p)}</div>`).join('');
+
+        contentWrapper.insertAdjacentHTML('beforeend', chapterTitleHtml + newContentWithDivs);
+        
+        // Atualiza AppState
+        const sectionId = sectionElement.id.replace('Section', '');
+        if(AppState.generated.script[sectionId]){
+            AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
+            AppState.generated.script[sectionId].text = contentWrapper.textContent;
+        }
+
+        invalidateAndClearPerformance(sectionElement);
+        invalidateAndClearPrompts(sectionElement);
+        invalidateAndClearEmotionalMap();
+        updateAllReadingTimes();
+        window.showToast("Novo capítulo adicionado!", 'success');
+        contentWrapper.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    } catch (error) {
+        window.showToast(`Falha ao adicionar capítulo: ${error.message}`, 'error');
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+window.suggestPerformance = async (button) => {
+    const sectionId = button.dataset.sectionId;
+    const sectionElement = document.getElementById(sectionId);
+    const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
+    const outputContainer = sectionElement?.querySelector('.section-performance-output');
+    if (!contentWrapper || !contentWrapper.textContent.trim() || !outputContainer) {
+        window.showToast("Gere o roteiro desta seção primeiro.", 'info');
+        return;
+    }
+
+    showButtonLoading(button);
+    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
+    
+    try {
+        const originalParagraphs = Array.from(contentWrapper.querySelectorAll('div[id]')).map(p => p.textContent.trim());
+        if (originalParagraphs.length === 0) throw new Error("Não foram encontrados parágrafos para análise.");
+
+        const prompt = `Você é uma API de análise de roteiro. Para cada parágrafo, sugira uma anotação de performance.
+
+**REGRAS JSON:**
+1.  Responda APENAS com um array JSON.
+2.  O array deve conter ${originalParagraphs.length} objetos.
+3.  Cada objeto deve ter duas chaves: "general_annotation" (string) e "emphasis_words" (um array com no máximo 1 string).
+4.  Se não precisar de anotação, retorne valores vazios: {"general_annotation": "", "emphasis_words": []}.
+
+**ROTEIRO:**
+${JSON.stringify(originalParagraphs)}
+
+**AÇÃO:** Gere o array JSON.`;
+
+        const rawResult = await callGroqAPI(prompt, 3000);
+        const annotations = cleanGeneratedText(rawResult, true);
+        if (!Array.isArray(annotations) || annotations.length !== originalParagraphs.length) { 
+            console.warn(`Discrepância de anotações: Esperado ${originalParagraphs.length}, Recebido ${annotations?.length || 0}.`);
+        }
+        
+        let annotatedParagraphs = originalParagraphs.map((p, index) => {
+            const annotationData = (annotations && annotations[index]) ? annotations[index] : { general_annotation: '', emphasis_words: [] };
+            let annotatedParagraph = p;
+            if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
+                const word = annotationData.emphasis_words[0];
+                if (word && typeof word === 'string' && word.trim() !== '') {
+                    const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                    const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
+                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1']`);
+                }
+            }
+            return `${annotationData.general_annotation || ''} ${annotatedParagraph}`.trim();
+        });
+        
+        const finalAnnotatedText = annotatedParagraphs.join('\n\n');
+        const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span style="color: var(--primary); font-weight: 600; font-style: italic;">$1</span>');
+
+        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><p class="whitespace-pre-wrap">${highlightedText}</p></div>`;
+            
+    } catch (error) {
+        outputContainer.innerHTML = `<p style="color: var(--danger);">${error.message}</p>`;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+
+
+window.generatePromptsForSection = async (button) => {
+    const sectionId = button.dataset.sectionId;
+    const sectionElement = document.getElementById(sectionId);
+    const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
+    const promptContainer = sectionElement?.querySelector('.prompt-container');
+    if (!contentWrapper || !contentWrapper.textContent.trim() || !promptContainer) {
+        window.showToast("Gere o roteiro desta seção primeiro.", 'info');
+        return;
+    }
+
+    showButtonLoading(button);
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
+
+    try {
+        const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]')).map(p => p.textContent.trim());
+        const visualPacing = document.getElementById('visualPacing').value;
+        const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
+        const durationRange = durationMap[visualPacing] || '3 e 8';
+        
+        const prompt = `Você é um especialista em criar prompts visuais cinematográficos. Para cada parágrafo do roteiro, gere uma descrição de imagem.
+
+**REGRAS JSON:**
+1.  Responda APENAS com um array JSON com ${paragraphs.length} objetos.
+2.  Cada objeto deve ter DUAS chaves: "imageDescription" (string detalhada) e "estimated_duration" (número inteiro entre ${durationRange} segundos).
+
+**DADOS PARA ANÁLISE:**
+---
+${JSON.stringify(paragraphs)}
+---
+
+**AÇÃO FINAL:** Gere o array JSON.`;
+        
+        const rawResult = await callGroqAPI(prompt, 8000);
+        const generatedPrompts = cleanGeneratedText(rawResult, true, true);
+        if (!Array.isArray(generatedPrompts) || generatedPrompts.length < paragraphs.length) {
+            throw new Error("A IA não retornou um prompt para cada parágrafo.");
+        }
+
+        const curatedPrompts = generatedPrompts.map((promptData, index) => ({
+            scriptPhrase: paragraphs[index],
+            imageDescription: promptData.imageDescription || "Falha na descrição.",
+            estimated_duration: promptData.estimated_duration || 5
+        }));
+
+        const applyCinematicStyle = document.getElementById('imageStyleSelect').value === 'cinematic';
+        AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({
+            ...p,
+            applyStyleBlock: applyCinematicStyle
+        }));
+        
+        AppState.ui.promptPaginationState[sectionId] = 0;
+        // A renderização dos prompts paginados será chamada aqui
+        // Por enquanto, vamos apenas mostrar que funcionou
+        promptContainer.innerHTML = `<div class="card" style="background: var(--bg);"><p>${curatedPrompts.length} prompts de imagem gerados com sucesso!</p></div>`;
+        window.showToast(`${curatedPrompts.length} prompts gerados!`, 'success');
+
+    } catch (error) {
+        promptContainer.innerHTML = `<p style="color: var(--danger);">${error.message}</p>`;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+
+
+
+
 window.optimizeGroup = async (button, suggestionText) => { /* ... Implementação completa da v5.0 ... */ };
 window.deleteParagraphGroup = async (button, suggestionText) => { /* ... Implementação completa da v5.0 ... */ };
-window.refineSectionStyle = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 window.enrichWithData = async (button) => { /* ... Implementação completa da v5.0 ... */ };
-window.addDevelopmentChapter = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 window.suggestPerformance = async (button) => { /* ... Implementação completa da v5.0 ... */ };
-window.generatePromptsForSection = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+
 
 
 // ==========================================================
