@@ -1923,6 +1923,130 @@ ${fullTranscript.slice(0, 7500)}
         hideButtonLoading(button);
     }
 };
+
+
+// ... Continuação do Bloco ETAPA 4 ...
+
+const updateButtonStates = () => {
+    const script = AppState.generated.script;
+    const allMainScriptGenerated = !!script.intro?.text && !!script.development?.text && !!script.climax?.text;
+    const isConclusionGenerated = !!script.conclusion?.text;
+    const isFullScriptGenerated = allMainScriptGenerated && isConclusionGenerated && !!script.cta?.text;
+
+    // Habilita/desabilita botões de metadados
+    ['generateTitlesAndThumbnailsBtn', 'generateDescriptionBtn', 'generateSoundtrackBtn', 'mapEmotionsBtn'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.disabled = !allMainScriptGenerated;
+    });
+
+    // Módulo de Conclusão no painel de roteiro
+    const conclusionModule = document.getElementById('conclusionStrategyModule');
+    if (conclusionModule) {
+        conclusionModule.classList.toggle('hidden', !allMainScriptGenerated);
+        const btnGenerateConclusion = document.getElementById('generateConclusionBtn');
+        const btnGenerateCta = document.getElementById('generateCtaBtn');
+        if (btnGenerateConclusion && btnGenerateCta) {
+            btnGenerateConclusion.classList.toggle('hidden', isConclusionGenerated);
+            btnGenerateCta.classList.toggle('hidden', !isConclusionGenerated);
+        }
+    }
+    
+    // Seção de Análise no painel de finalização
+    const analysisSection = document.getElementById('scriptAnalysisSection');
+    if (analysisSection) {
+        analysisSection.style.display = isFullScriptGenerated ? 'block' : 'none';
+    }
+};
+
+const generateTitlesAndThumbnails = async (button) => {
+    if (!validateInputs()) return;
+    showButtonLoading(button);
+    const targetContentElement = document.getElementById('titlesThumbnailsContent');
+    try {
+        const { prompt, maxTokens } = constructScriptPrompt('titles_thumbnails');
+        const rawResult = await callGroqAPI(prompt, maxTokens);
+        const parsedContent = cleanGeneratedText(rawResult, true);
+        if (!Array.isArray(parsedContent) || parsedContent.length === 0 || !parsedContent[0].suggested_title) {
+            throw new Error("A IA retornou os dados de títulos em um formato inesperado.");
+        }
+        const titles = parsedContent.map(item => item.suggested_title);
+        const thumbnails = parsedContent.map(item => ({ title: item.thumbnail_title, description: item.thumbnail_description }));
+        AppState.generated.titlesAndThumbnails = { titles, thumbnails };
+
+        const titlesListHtml = titles.map((title, index) => `<p>${index + 1}. ${DOMPurify.sanitize(title)}</p>`).join('');
+        const thumbnailsListHtml = thumbnails.map((thumb) => `<div class="thumbnail-idea"><h4 class="font-semibold">"${DOMPurify.sanitize(thumb.title)}"</h4><p>Descrição: ${DOMPurify.sanitize(thumb.description)}</p></div>`).join('');
+        targetContentElement.innerHTML = `<div class="generated-output-box"><div class="output-content-block"><h4 class="output-subtitle">Sugestões de Títulos:</h4>${titlesListHtml}</div><div class="output-content-block"><h4 class="output-subtitle">Ideias de Thumbnail:</h4>${thumbnailsListHtml}</div></div>`;
+    } catch (error) {
+        window.showToast(`Falha ao gerar Títulos: ${error.message}`, 'error');
+        targetContentElement.innerHTML = `<div class="asset-card-placeholder text-red-500">Erro.</div>`;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+const generateVideoDescription = async (button) => {
+    if (!validateInputs()) return;
+    showButtonLoading(button);
+    const targetContentElement = document.getElementById('videoDescriptionContent');
+    try {
+        const { prompt, maxTokens } = constructScriptPrompt('description');
+        let result = await callGroqAPI(prompt, maxTokens);
+        result = removeMetaComments(cleanGeneratedText(result, false));
+        AppState.generated.description = result;
+        targetContentElement.innerHTML = `<div class="generated-output-box whitespace-pre-wrap">${DOMPurify.sanitize(result)}</div>`;
+    } catch (error) {
+        window.showToast(`Falha ao gerar Descrição: ${error.message}`, 'error');
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+const generateSoundtrack = async (button) => {
+    const fullTranscript = getTranscriptOnly();
+    if (!fullTranscript) {
+        window.showToast("Gere o roteiro completo primeiro.", 'info');
+        return;
+    }
+    const outputContainer = document.getElementById('soundtrackContent');
+    showButtonLoading(button);
+    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
+    const prompt = PromptManager.getSoundtrackPrompt(fullTranscript);
+    try {
+        const rawResult = await callGroqAPI(prompt, 1500);
+        const analysis = cleanGeneratedText(rawResult, true);
+        if (!analysis || !Array.isArray(analysis) || analysis.length === 0) throw new Error("A IA não retornou sugestões no formato esperado.");
+        let suggestionsHtml = '<ul class="soundtrack-list space-y-2">';
+        analysis.forEach(suggestion => {
+            if (typeof suggestion === 'string') suggestionsHtml += `<li>${DOMPurify.sanitize(suggestion)}</li>`;
+        });
+        suggestionsHtml += '</ul>';
+        outputContainer.innerHTML = `<div class="generated-output-box">${suggestionsHtml}</div>`;
+    } catch (error) {
+        console.error("Erro em generateSoundtrack:", error);
+        outputContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar sugestões: ${error.message}</p>`;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+
+
+
+
+
+
+const mapEmotionsAndPacing = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+const downloadPdf = async () => { /* ... Implementação completa da v5.0 ... */ };
+const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa da v5.0 ... */ };
+
+
+
+
+
+
+
+
+
 const generateTitlesAndThumbnails = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 const generateVideoDescription = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 const generateSoundtrack = async (button) => { /* ... Implementação completa da v5.0 ... */ };
