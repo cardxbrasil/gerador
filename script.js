@@ -1106,6 +1106,7 @@ const suggestStrategy = async (button) => {
     AppState.ui.isSettingStrategy = true;
     
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
+
     const prompt = `Você é uma API de Estratégia de Conteúdo Viral. Sua única função é gerar um objeto JSON com uma estratégia de vídeo completa.
 
 **REGRAS CRÍTICAS DE SINTAXE JSON (INEGOCIÁVEIS):**
@@ -1119,7 +1120,7 @@ const suggestStrategy = async (button) => {
 -   "narrative_structure": Baseado no "narrative_goal", escolha a estrutura MAIS IMPACTANTE. Se 'storytelling', escolha de: ["documentary", "heroes_journey", "pixar_spine", "mystery_loop", "twist"]. Se 'storyselling', escolha de: ["pas", "bab", "aida", "underdog_victory", "discovery_mentor"].
 -   "narrative_theme": A "grande ideia" em uma frase.
 -   "narrative_tone": Escolha UM de: 'inspirador', 'serio', 'emocional'.
--   "narrative_voice": Crie uma PERSONA para o narrador.
+-   "narrative_voice": Descreva a persona do narrador em 2 ou 3 adjetivos (Ex: "Confiante, Sábia, Misteriosa").
 -   "central_question": Formule a pergunta que gera MISTÉRIO.
 -   "emotional_hook": Crie uma MINI-HISTÓRIA humana.
 -   "shocking_ending_hook": Crie a PRIMEIRA FRASE do vídeo.
@@ -1155,15 +1156,17 @@ for (const key in keyToElementIdMap) {
         if (element) {
             let valueToSet = strategy[key];
 
-            // >>>>> AQUI ESTÁ A BLINDAGEM <<<<<
-            // Se o valor for um objeto (e não nulo), o convertemos para uma string JSON
-            // Isso nos ajuda a depurar, mas o ideal é que a IA retorne uma string.
-            if (typeof valueToSet === 'object' && valueToSet !== null) {
-                console.warn(`A IA retornou um objeto para o campo '${key}':`, valueToSet);
-                // Tentamos pegar uma propriedade comum como 'name' ou 'text', se não, stringify.
-                valueToSet = valueToSet.name || valueToSet.text || JSON.stringify(valueToSet);
-            }
-            // >>>>> FIM DA BLINDAGEM <<<<<
+          if (typeof valueToSet === 'object' && valueToSet !== null) {
+    console.warn(`A IA retornou um objeto para o campo '${key}':`, valueToSet);
+    // Se for a voz do narrador e tiver uma propriedade 'persona' ou 'descricao', use-a.
+    // Senão, junte os valores do objeto em uma string legível.
+    if (key === 'narrative_voice' && (valueToSet.persona || valueToSet.descricao || valueToSet.adjetivos)) {
+        valueToSet = valueToSet.persona || valueToSet.descricao || valueToSet.adjetivos;
+    } else {
+        // Concatena os valores do objeto em uma string mais amigável
+        valueToSet = Object.values(valueToSet).join(', ');
+    }
+}
 
             if (element.tagName === 'SELECT') {
                 if ([...element.options].some(o => o.value === valueToSet)) {
