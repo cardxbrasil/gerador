@@ -2115,7 +2115,7 @@ window.suggestPerformance = async (button) => { /* ... Implementação completa 
 
 
 // ==========================================================
-// ===== FUNÇÕES DE EDIÇÃO AVANÇADA DO ACORDEÃO (v5.0) ======
+// ===== ANALISE DE RETENÇÃO ======
 // ==========================================================
 
 window.analyzeSectionRetention = async (button) => {
@@ -2123,21 +2123,30 @@ window.analyzeSectionRetention = async (button) => {
     const sectionElement = document.getElementById(sectionId);
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
     if (!contentWrapper || !contentWrapper.textContent.trim()) {
-        window.showToast("Gere o roteiro desta seção antes de analisar.", 'info');
+        window.showToast("Gere o roteiro desta seção antes de analisar a retenção.", 'info');
         return;
     }
+
+    // A função original não tinha esta linha, mas ela é importante para limpar análises antigas
+    const outputContainer = sectionElement.querySelector('.section-analysis-output');
+    if (outputContainer) outputContainer.innerHTML = '';
+
+    const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]'));
+    if (paragraphs.length === 0) {
+        window.showToast("Não há parágrafos para analisar nesta seção.", 'info');
+        return;
+    }
+
     showButtonLoading(button);
 
-    // Limpa parágrafos antigos para evitar duplicação de listeners
-    const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]')).map(p => {
-        const newP = p.cloneNode(true);
-        p.parentNode.replaceChild(newP, p);
-        return newP;
-    });
-
     try {
-        const paragraphsWithIndexes = paragraphs.map((p, index) => ({ index: index, text: p.textContent.trim() }));
+        const paragraphsWithIndexes = paragraphs.map((p, index) => ({
+            index: index,
+            text: p.textContent.trim()
+        }));
+        
         const basePromptContext = getBasePromptContext();
+
         const prompt = `Você é uma API de análise de roteiro que retorna JSON.
 
         **CONTEXTO ESTRATÉGICO:**
@@ -2163,25 +2172,80 @@ window.analyzeSectionRetention = async (button) => {
 
         const rawResult = await callGroqAPI(prompt, 4000);
         const analysis = cleanGeneratedText(rawResult, true, true);
-        if (!analysis || !Array.isArray(analysis)) throw new Error("Análise da IA retornou um formato inválido.");
 
-        analysis.forEach((item) => {
-            const p = paragraphs[item.paragraphIndex];
+        if (!analysis || !Array.isArray(analysis)) {
+            throw new Error("A análise da IA retornou um formato inválido.");
+        }
+        
+        // Lógica de agrupamento da v5.0 (Ferrari)
+        if (analysis.length > 0) {
+            let currentGroup = [];
+            for (let i = 0; i < analysis.length; i++) {
+                const currentItem = analysis[i];
+                const previousItem = i > 0 ? analysis[i - 1] : null;
+                if (previousItem && currentItem.retentionScore === previousItem.retentionScore && currentItem.retentionScore !== 'green') {
+                    currentGroup.push(currentItem);
+                } else {
+                    if (currentGroup.length > 1) {
+                        const unifiedSuggestion = currentGroup[0].suggestion;
+                        currentGroup.forEach(groupItem => groupItem.suggestion = unifiedSuggestion);
+                    }
+                    currentGroup = [currentItem];
+                }
+            }
+            if (currentGroup.length > 1) {
+                const unifiedSuggestion = currentGroup[0].suggestion;
+                currentGroup.forEach(groupItem => groupItem.suggestion = unifiedSuggestion);
+            }
+        }
+        
+        const newParagraphs = paragraphs.map(p => {
+            const newP = p.cloneNode(true);
+            newP.className = 'retention-paragraph-live';
+            newP.innerHTML = p.innerHTML.replace(/<div class="retention-tooltip">.*?<\/div>/g, '');
+            p.parentNode.replaceChild(newP, p);
+            return newP;
+        });
+
+        analysis.forEach((item, index) => {
+            const p = newParagraphs[item.paragraphIndex];
             if (p) {
-                p.className = 'retention-paragraph-live';
                 p.classList.add(`retention-${item.retentionScore}`);
                 p.dataset.suggestionGroup = item.suggestion;
-                if (item.retentionScore !== 'green') {
-                    const suggestionTextEscaped = item.suggestion.replace(/"/g, '\"');
-                    const tooltipHtml = `<div class="retention-tooltip"><strong>ANÁLISE:</strong> ${DOMPurify.sanitize(item.suggestion)}<div class="flex gap-2 mt-3"><button class="flex-1 btn btn-primary btn-small py-1" data-action="optimizeGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-magic mr-2"></i> Otimizar</button><button class="flex-1 btn btn-danger btn-small py-1" data-action="deleteParagraphGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-trash-alt mr-2"></i> Deletar</button></div></div>`;
-                    p.insertAdjacentHTML('beforeend', tooltipHtml);
+
+                if (item.retentionScore === 'yellow' || item.retentionScore === 'red') {
+                    const previousItem = index > 0 ? analysis[index - 1] : null;
+                    if (!previousItem || item.suggestion !== previousItem.suggestion || (analysis.filter(s => s.suggestion === item.suggestion).length === 1)) {
+                        const scoreLabels = { yellow: "PONTO DE ATENÇÃO", red: "PONTO DE RISCO" };
+                        const tooltipTitle = scoreLabels[item.retentionScore] || 'ANÁLISE';
+
+                        const suggestionTextEscaped = item.suggestion.replace(/"/g, '\"');
+                        const buttonsHtml = `
+                            <div class="flex gap-2 mt-3">
+                                <button class="flex-1 btn btn-primary btn-small py-1" 
+                                        data-action="optimizeGroup" 
+                                        data-suggestion-text="${suggestionTextEscaped}">
+                                    <i class="fas fa-magic mr-2"></i> Otimizar
+                                </button>
+                                <button class="flex-1 btn btn-danger btn-small py-1" 
+                                        data-action="deleteParagraphGroup" 
+                                        data-suggestion-text="${suggestionTextEscaped}">
+                                    <i class="fas fa-trash-alt mr-2"></i> Deletar
+                                </button>
+                            </div>
+                        `;
+                        p.innerHTML += `<div class="retention-tooltip"><strong>${tooltipTitle}:</strong> ${DOMPurify.sanitize(item.suggestion)}${buttonsHtml}</div>`;
+                    }
                 }
-                p.addEventListener('mouseover', handleSuggestionMouseOver);
-                p.addEventListener('mouseout', handleSuggestionMouseOut);
+                 p.addEventListener('mouseover', handleSuggestionMouseOver);
+                 p.addEventListener('mouseout', handleSuggestionMouseOut);
             }
         });
+
         window.showToast("Análise de retenção concluída!", 'success');
+
     } catch (error) {
+        console.error("Erro detalhado em analyzeSectionRetention:", error);
         window.showToast(`Falha na análise: ${error.message}`, 'error');
     } finally {
         hideButtonLoading(button);
@@ -2192,17 +2256,27 @@ const handleSuggestionMouseOver = (event) => {
     const targetParagraph = event.currentTarget;
     const suggestionGroupText = targetParagraph.dataset.suggestionGroup;
     if (!suggestionGroupText) return;
-    const safeSelector = suggestionGroupText.replace(/"/g, '\\"');
-    targetParagraph.closest('.generated-content-wrapper').querySelectorAll(`[data-suggestion-group="${safeSelector}"]`).forEach(p => p.classList.add('highlight-group'));
+    const contentWrapper = targetParagraph.closest('.generated-content-wrapper');
+    if (!contentWrapper) return;
+    const safeSuggestionSelector = suggestionGroupText.replace(/"/g, '\\"');
+    contentWrapper.querySelectorAll(`[data-suggestion-group="${safeSuggestionSelector}"]`).forEach(p => {
+        p.classList.add('highlight-group');
+    });
 };
 
 const handleSuggestionMouseOut = (event) => {
-    event.currentTarget.closest('.generated-content-wrapper').querySelectorAll('.highlight-group').forEach(p => p.classList.remove('highlight-group'));
+    const targetParagraph = event.currentTarget;
+    const contentWrapper = targetParagraph.closest('.generated-content-wrapper');
+    if (!contentWrapper) return;
+    contentWrapper.querySelectorAll('.highlight-group').forEach(p => {
+        p.classList.remove('highlight-group');
+    });
 };
 
 
-
-
+// ==========================================================
+// ===== FIM DE ANALISE DE RETENÇÃO ======
+// ==========================================================
 
 
 
