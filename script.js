@@ -1357,49 +1357,7 @@ window.regenerateSection = (fullSectionId) => {
 // ==========================================================
 // ==================== SALVAR / CARREGAR (v5.0) =====================
 // ==========================================================
-const LOCAL_STORAGE_KEY = 'viralScriptGeneratorProject_v6';
 
-const getProjectStateForExport = () => {
-    const stateToExport = JSON.parse(JSON.stringify(AppState));
-    const formElements = document.querySelectorAll('#appRoot input, #appRoot select, #appRoot textarea');
-    stateToExport.inputs = {};
-    formElements.forEach(el => {
-        if (el.id && el.type !== 'file') {
-             if (el.type === 'radio') {
-                if (el.checked) stateToExport.inputs[el.name] = el.value;
-            } else {
-                stateToExport.inputs[el.id] = el.value;
-            }
-        }
-    });
-    return stateToExport;
-};
-
-const saveStateToLocalStorage = () => {
-    try {
-        const stateToSave = getProjectStateForExport();
-        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(stateToSave));
-    } catch (error) {
-        console.error("Erro ao salvar projeto no localStorage:", error);
-    }
-};
-
-const loadStateFromLocalStorage = () => {
-    try {
-        const savedStateString = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (savedStateString) {
-            const loadedState = JSON.parse(savedStateString);
-            Object.assign(AppState, loadedState);
-            // Recria o Set de completedSteps que não é salvo corretamente em JSON
-            AppState.ui.completedSteps = new Set(Array.from(AppState.ui.completedSteps));
-            syncUiFromState();
-            window.showToast("Seu projeto anterior foi carregado!", 'success');
-        }
-    } catch (error) {
-        console.error("Erro ao carregar projeto do localStorage:", error);
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-    }
-};
 
 const syncUiFromState = () => {
     const state = AppState;
@@ -1474,13 +1432,6 @@ const syncUiFromState = () => {
     updateAllReadingTimes();
 };
 
-const resetApplicationState = async () => {
-    const confirmed = await showConfirmationDialog("Começar Novo Projeto?", "Isso limpará todos os campos e o trabalho salvo. Deseja continuar?");
-    if (confirmed) {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-        window.location.reload();
-    }
-};
 
 const importProject = (event) => {
     const file = event.target.files[0];
