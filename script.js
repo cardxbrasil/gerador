@@ -2047,7 +2047,7 @@ const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa 
 
 
 
-const generateTitlesAndThumbnails = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+
 const generateVideoDescription = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 const generateSoundtrack = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 const mapEmotionsAndPacing = async (button) => { /* ... Implementação completa da v5.0 ... */ };
