@@ -3139,11 +3139,21 @@ const syncUiFromState = () => {
 
     // Restaura outputs
     if (state.generated.investigationReport) {
-        const converter = new showdown.Converter({ simplifiedAutoLink: true, tables: true });
-        const htmlReport = converter.makeHtml(state.generated.investigationReport);
-        document.getElementById('factCheckOutput').innerHTML = `<div class="prose dark:prose-invert max-w-none p-4 card rounded-lg mt-4 border-l-4" style="border-color: var(--success);">${htmlReport}</div>`;
-        document.getElementById('ideaGenerationSection').classList.remove('hidden');
+    const outputContainer = document.getElementById('factCheckOutput'); // <-- Adicionamos esta linha para referência
+    const converter = new showdown.Converter({ simplifiedAutoLink: true, tables: true });
+    const htmlReport = converter.makeHtml(state.generated.investigationReport);
+    
+    // >>>>> AQUI ESTÁ A ADIÇÃO CIRÚRGICA <<<<<
+    // Coloca os dados brutos no dataset para a função "Gerar Ideias" encontrar
+    outputContainer.dataset.rawReport = state.generated.investigationReport;
+    if (state.inputs && state.inputs.factCheckQuery) {
+        outputContainer.dataset.originalQuery = state.inputs.factCheckQuery;
     }
+    // >>>>> FIM DA ADIÇÃO <<<<<
+
+    outputContainer.innerHTML = `<div class="prose dark:prose-invert max-w-none p-4 card rounded-lg mt-4 border-l-4" style="border-color: var(--success);">${htmlReport}</div>`;
+    document.getElementById('ideaGenerationSection').classList.remove('hidden');
+}
     if(state.generated.strategicOutline){
         const outlineContentDiv = document.getElementById('outlineContent');
         const titleTranslations = { 'introduction': 'Introdução', 'development': 'Desenvolvimento', 'climax': 'Clímax', 'conclusion': 'Conclusão', 'cta': 'CTA' };
