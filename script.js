@@ -1542,7 +1542,169 @@ const goToFinalize = () => {
 
 // --- ETAPA 4: FINALIZAR E EXPORTAR ---
 
-const analyzeFullScript = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+const analyzeScriptPart = async (criterion, text, context = {}) => {
+    const sectionKeyMap = {
+        'Introdução (Hook)': 'introduction',
+        'Desenvolvimento (Ritmo e Retenção)': 'development',
+        'Clímax': 'climax',
+        'Conclusão': 'conclusion',
+        'CTA (Call to Action)': 'cta'
+    };
+    const outlineKey = sectionKeyMap[criterion];
+    const outlineDirective = context.outline?.[outlineKey] || 'Nenhuma diretriz estratégica específica foi definida para esta seção.';
+
+    const prompt = `
+Você é uma API de Análise Crítica de Roteiros. Sua única função é retornar um objeto JSON.
+
+**CONTEXTO ESTRATÉGICO:**
+- **Tema do Vídeo:** "${context.theme || 'Não definido'}"
+- **Objetivo desta Seção (${criterion}):** "${outlineDirective}"
+
+**TRECHO PARA ANÁLISE:**
+---
+${text.slice(0, 7000)}
+---
+
+**REGRAS CRÍTICAS DE RESPOSTA (JSON ESTRITO):**
+1.  **JSON PURO:** Responda APENAS com um objeto JSON válido.
+2.  **CHAVES E TIPOS OBRIGATÓRIOS:** O objeto DEVE conter EXATAMENTE estas 6 chaves: "criterion_name", "score" (Número), "positive_points" (String), "problematic_quote" (String - cópia literal ou "Nenhum"), "critique" (String), e "rewritten_quote" (String).
+3.  **SINTAXE:** Todas as chaves e valores string DEVEM usar aspas duplas ("").
+
+**AÇÃO FINAL:** Analise o trecho e retorne APENAS o objeto JSON perfeito.`;
+
+    try {
+        const rawResult = await callGroqAPI(prompt, 1500);
+        const analysisData = cleanGeneratedText(rawResult, true); 
+        if (!analysisData || !('score' in analysisData)) throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
+        
+        const formattedData = {
+            criterion_name: criterion,
+            score: analysisData.score,
+            positive_points: analysisData.positive_points,
+            improvement_points: []
+        };
+
+        if (analysisData.critique.toLowerCase() !== "nenhuma crítica significativa.") {
+            formattedData.improvement_points.push({
+                suggestion_text: "Substituir por:",
+                problematic_quote: analysisData.problematic_quote,
+                critique: analysisData.critique,
+                rewritten_quote: analysisData.rewritten_quote 
+            });
+        }
+        return formattedData;
+
+    } catch (error) {
+        console.error(`Erro ao analisar a seção '${criterion}':`, error);
+        return { 
+            criterion_name: criterion, score: 'Erro', positive_points: 'A análise desta seção falhou.', 
+            improvement_points: [{ critique: 'Falha na Análise', suggestion_text: `Detalhe: ${error.message}`, problematic_quote: 'N/A', rewritten_quote: 'N/A' }]
+        };
+    }
+};
+
+const createReportSection = (analysisData) => {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = 'p-4 border rounded-lg mb-4 bg-gray-50 dark:bg-gray-800 animate-fade-in';
+    if (!analysisData || typeof analysisData.score === 'undefined') {
+        sectionDiv.innerHTML = `<h4 class="font-bold text-lg text-red-500">${analysisData.criterion_name || 'Erro'}</h4><p>Falha ao processar a análise.</p>`;
+        return sectionDiv;
+    }
+    let improvementHtml = '';
+    if (analysisData.improvement_points && analysisData.improvement_points.length > 0) {
+        improvementHtml = analysisData.improvement_points.map(point => {
+            const problematicQuoteEscaped = (point.problematic_quote || '').replace(/"/g, '\"');
+            const rewrittenQuoteEscaped = (point.rewritten_quote || '').replace(/"/g, '\"');
+            return `
+            <div class="mt-4 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
+                <p class="text-sm italic text-gray-500 dark:text-gray-400 mb-1">Citação: "${DOMPurify.sanitize(point.problematic_quote || 'N/A')}"</p>
+                <p class="text-sm"><strong class="text-yellow-600 dark:text-yellow-400">Crítica:</strong> ${DOMPurify.sanitize(point.critique || '')}</p>
+                <div class="flex items-center justify-between gap-2 mt-2">
+                    <p class="text-sm flex-1"><strong class="text-green-600 dark:text-green-400">Sugestão:</strong> Substituir por: "${DOMPurify.sanitize(point.rewritten_quote || '')}"</p>
+                    <button class="btn btn-primary btn-small flex-shrink-0" data-action="applySuggestion" data-criterion-name="${DOMPurify.sanitize(analysisData.criterion_name)}" data-problematic-quote="${problematicQuoteEscaped}" data-rewritten-quote="${rewrittenQuoteEscaped}">Aplicar</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+    sectionDiv.innerHTML = `
+        <div class="flex justify-between items-center">
+            <h4 class="font-bold text-lg">${DOMPurify.sanitize(analysisData.criterion_name)}</h4>
+            <span class="font-bold text-xl text-primary">${analysisData.score}/10</span>
+        </div>
+        <div class="mt-2">
+            <p class="text-sm"><strong class="text-indigo-500">Pontos Fortes:</strong> ${DOMPurify.sanitize(analysisData.positive_points)}</p>
+            ${improvementHtml}
+        </div>`;
+    return sectionDiv;
+};
+
+const analyzeFullScript = async (button) => {
+    showButtonLoading(button);
+    const reportContainer = document.getElementById('analysisReportContainer');
+    reportContainer.innerHTML = `<div class="my-4"><div class="loading-spinner-small mx-auto"></div><p class="text-sm mt-2 text-center">Analisando...</p></div>`;
+    try {
+        const script = AppState.generated.script;
+        if (!script.intro.text || !script.development.text || !script.climax.text || !script.conclusion.text || !script.cta.text) {
+            throw new Error("Todas as 5 seções do roteiro devem ser geradas primeiro.");
+        }
+        const lightContext = {
+            theme: document.getElementById('videoTheme')?.value.trim() || 'Não definido',
+            centralQuestion: document.getElementById('centralQuestion')?.value.trim() || 'Não definida',
+            outline: AppState.generated.strategicOutline || {}
+        };
+        const results = await Promise.allSettled([
+            analyzeScriptPart('Introdução (Hook)', script.intro.text, lightContext),
+            analyzeScriptPart('Desenvolvimento (Ritmo e Retenção)', script.development.text, lightContext),
+            analyzeScriptPart('Clímax', script.climax.text, lightContext),
+            analyzeScriptPart('Conclusão', script.conclusion.text, lightContext),
+            analyzeScriptPart('CTA (Call to Action)', script.cta.text, lightContext)
+        ]);
+        reportContainer.innerHTML = ''; 
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'flex justify-between items-center mb-4 p-3 rounded-lg';
+        headerDiv.innerHTML = DOMPurify.sanitize(`<h3 class="text-lg font-bold">Relatório de Análise</h3><button id="applyAllSuggestionsBtn" data-action="applyAllSuggestions" class="btn btn-secondary btn-small">Aplicar Todas</button>`);
+        reportContainer.appendChild(headerDiv);
+
+        results.forEach(result => {
+            if (result.status === 'fulfilled') {
+                reportContainer.appendChild(createReportSection(result.value));
+            } else {
+                console.error("Uma micro-análise falhou:", result.reason);
+            }
+        });
+        window.showToast("Análise do roteiro concluída!", 'success');
+    } catch (error) {
+        console.error("Erro em analyzeFullScript:", error);
+        window.showToast(`Falha na análise: ${error.message}`, 'error');
+        reportContainer.innerHTML = `<p class="text-red-500 text-sm">${error.message}</p>`;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+const applyAllSuggestions = async (button) => {
+    const allApplyButtons = document.querySelectorAll('#analysisReportContainer button[data-action="applySuggestion"]:not(:disabled)');
+    if (allApplyButtons.length === 0) {
+        window.showToast("Nenhuma sugestão nova para aplicar.", 'info');
+        return;
+    }
+    showButtonLoading(button);
+    let appliedCount = 0;
+    for (const applyBtn of allApplyButtons) {
+        try {
+            window.applySuggestion(applyBtn);
+            appliedCount++;
+            await new Promise(resolve => setTimeout(resolve, 100)); 
+        } catch (error) {
+            console.error("Erro ao aplicar uma sugestão no modo 'Aplicar Todas':", error);
+        }
+    }
+    hideButtonLoading(button);
+    window.showToast(`${appliedCount} sugestões aplicadas com sucesso!`, 'success');
+    button.disabled = true;
+    button.innerHTML = 'Tudo Aplicado!';
+};
+
 const analyzeRetentionHooks = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 const suggestViralElements = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 const generateTitlesAndThumbnails = async (button) => { /* ... Implementação completa da v5.0 ... */ };
@@ -1558,7 +1720,6 @@ window.enrichWithData = async (button) => { /* ... Implementação completa da v
 window.addDevelopmentChapter = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 window.suggestPerformance = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 window.analyzeSectionRetention = async (button) => { /* ... Implementação completa da v5.0 ... */ };
-
 
 
 
