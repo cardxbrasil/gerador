@@ -470,26 +470,17 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     } else {
         let startIndex = -1;
         let endIndex = -1;
-        
         const firstBrace = trimmedText.indexOf('{');
         const firstBracket = trimmedText.indexOf('[');
-        
-        if (firstBrace === -1 && firstBracket === -1) {
-            throw new Error("A IA não retornou um formato JSON reconhecível.");
-        }
-        
+        if (firstBrace === -1 && firstBracket === -1) throw new Error("A IA não retornou um formato JSON reconhecível.");
         if (firstBracket !== -1 && (firstBracket < firstBrace || firstBrace === -1)) {
             startIndex = firstBracket;
             endIndex = trimmedText.lastIndexOf(']');
-            if (endIndex <= startIndex) {
-                throw new Error("O JSON retornado (array) parece estar incompleto.");
-            }
+            if (endIndex <= startIndex) throw new Error("O JSON retornado (array) parece estar incompleto.");
         } else {
             startIndex = firstBrace;
             endIndex = trimmedText.lastIndexOf('}');
-            if (endIndex <= startIndex) {
-                 throw new Error("O JSON retornado (objeto) parece estar incompleto.");
-            }
+            if (endIndex <= startIndex) throw new Error("O JSON retornado (objeto) parece estar incompleto.");
         }
         jsonString = trimmedText.substring(startIndex, endIndex + 1);
     }
@@ -511,17 +502,18 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     try {
         let parsedResult = JSON.parse(jsonString);
-        if (arrayExpected && !Array.isArray(parsedResult)) {
-            return [parsedResult];
-        }
+        if (arrayExpected && !Array.isArray(parsedResult)) return [parsedResult];
         return parsedResult;
     } catch (initialError) {
         console.warn("Parse inicial falhou. O JSON extraído ainda tem erros. Iniciando reparos...", initialError.message);
         let repairedString = jsonString;
         try {
-            // >>>>> EVOLUÇÃO INTEGRADA <<<<<
-            repairedString = repairedString.replace(/',\s*$/gm, '",');
-            repairedString = repairedString.replace(/'\s*([}\]]\s*)$/gm, '"$1');
+            // >>>>> EVOLUÇÃO INTEGRADA AQUI <<<<<
+            // CIRURGIA #1: Escapa aspas duplas internas que quebram o JSON.
+            repairedString = repairedString.replace(/:\s*"(.*?)"/g, (match, content) => {
+                const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
+                return `: "${escapedContent}"`;
+            });
             
             // >>>>> LÓGICA DE REPARO AVANÇADA DA FERRARI V5.0 (INTOCADA) <<<<<
             repairedString = repairedString.replace(/`/g, "'"); 
@@ -531,13 +523,6 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
             repairedString = repairedString.replace(/,\s*([}\]])/g, '$1');
             repairedString = repairedString.replace(/"\s*[;.,]\s*([,}\]])/g, '"$1');
-            repairedString = repairedString.replace(/:\s*"([^"]*)"/g, (match, content) => {
-                if (content.includes('"') && !content.includes('\\"')) {
-                    const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
-                    return `: "${escapedContent}"`;
-                }
-                return match;
-            });
             repairedString = repairedString.replace(/}\s*"/g, '},"');
             repairedString = repairedString.replace(/(?<!\\)\n/g, "\\n");
             repairedString = repairedString.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
