@@ -985,18 +985,26 @@ const generateIdeasFromReport = async (button) => {
         };
         const colorClass = genreColorMap[genre] || 'border-emerald-500';
 
-        const allCardsHtml = ideas.map((idea, index) => {
+const allCardsHtml = ideas.map((idea, index) => {
              const escapedIdea = escapeIdeaForOnclick(idea);
              return `
                 <div class="card p-4 flex flex-col justify-between border-l-4 ${colorClass}" style="animation: fadeIn 0.5s ${index * 0.1}s ease forwards; opacity: 0;">
                     <div>
                         <div class="flex justify-between items-start gap-4">
                             <h4 class="font-bold text-base flex-grow" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                            <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+                            
+                            <!-- A CORREÇÃO ESTÁ AQUI -->
+                            <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>
+                                Usar
+                            </button>
+                            <!-- FIM DA CORREÇÃO -->
+
                         </div>
                         <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
                     </div>
-                    <span class="font-bold text-sm bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 py-1 px-2 rounded-lg self-start mt-3">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
+                    <span class="font-bold text-sm bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 py-1 px-2 rounded-lg self-start mt-3">
+                        Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
+                    </span>
                 </div>
             `;
         }).join('');
