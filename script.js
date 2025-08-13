@@ -2035,9 +2035,6 @@ const generateSoundtrack = async (button) => {
 
 
 
-const mapEmotionsAndPacing = async (button) => { /* ... Implementação completa da v5.0 ... */ };
-const downloadPdf = async () => { /* ... Implementação completa da v5.0 ... */ };
-const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa da v5.0 ... */ };
 
 
 
@@ -2048,8 +2045,11 @@ const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa 
 
 
 
-const generateVideoDescription = async (button) => { /* ... Implementação completa da v5.0 ... */ };
-const generateSoundtrack = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+
+
+
+
+
 const mapEmotionsAndPacing = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 const downloadPdf = async () => { /* ... Implementação completa da v5.0 ... */ };
 const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa da v5.0 ... */ };
