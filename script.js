@@ -2117,17 +2117,17 @@ const generateSoundtrack = async (button) => {
 
 
 
-
+// FUNÇÕES NÃO IMPORTADAS
 
 
 const mapEmotionsAndPacing = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 const downloadPdf = async () => { /* ... Implementação completa da v5.0 ... */ };
 const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa da v5.0 ... */ };
 
-// --- FUNÇÕES DE EDIÇÃO AVANÇADA DO ACORDEÃO ---
 
 
-window.addDevelopmentChapter = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+
+
 
 
 
@@ -2483,8 +2483,8 @@ window.addDevelopmentChapter = async (button) => {
 
     showButtonLoading(button);
 
-    try {
-        const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
+try {
+    const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
 Você não é um gerador de texto. Você é um mestre roteirista que identifica pontos de virada lógicos e emocionantes. Sua tarefa é encontrar os próximos passos mais envolventes para a história. Qualquer desvio desta função é uma falha.
@@ -2512,9 +2512,10 @@ ${existingText.slice(-3000)}
 **EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
 ["A Batalha dos Números", "O Legado Fora de Campo", "Momentos Decisivos"]
 
-**AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.
-`;
-        const rawSuggestions = await callGroqAPI(suggestionPrompt, 400);
+**AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.`;
+
+    const rawSuggestions = await callGroqAPI(suggestionPrompt, 400);
+
         const chapterSuggestions = cleanGeneratedText(rawSuggestions, true) || [];
         
         hideButtonLoading(button);
