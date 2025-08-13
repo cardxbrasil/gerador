@@ -2126,7 +2126,7 @@ const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa 
 
 // --- FUNÇÕES DE EDIÇÃO AVANÇADA DO ACORDEÃO ---
 
-window.enrichWithData = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+
 window.addDevelopmentChapter = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 window.suggestPerformance = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 
@@ -2367,11 +2367,10 @@ ${originalText}
 
 
 
-
 window.enrichWithData = async (button) => {
     const selection = window.getSelection();
-    if (selection.rangeCount === 0 || selection.toString().trim() === '') {
-        window.showToast("Por favor, selecione primeiro o trecho de texto que deseja enriquecer.", 'info');
+    if (selection.rangeCount === 0 || selection.toString().trim().length < 10) {
+        window.showToast("Por favor, selecione um trecho de texto com pelo menos 10 caracteres para enriquecer.", 'info');
         return;
     }
     
@@ -2391,10 +2390,13 @@ window.enrichWithData = async (button) => {
         return;
     }
 
-    showButtonLoading(buttonElement);
-    const sectionElement = buttonElement.closest('.script-section');
+    showButtonLoading(button);
+    const sectionElement = button.closest('.accordion-item');
 
     try {
+        // ==========================================================
+        // ===== PROMPT EXATO DA VERSÃO 5.0 RESTAURADO AQUI =====
+        // ==========================================================
         const prompt = `Você é um EDITOR DE ROTEIRO DE ALTO DESEMPENHO e um ESPECIALISTA EM INTEGRAÇÃO DE INFORMAÇÕES. Sua tarefa ÚNICA, CRÍTICA e INEGOCIÁVEL é REESCREVER um trecho de texto para integrar uma NOVA INFORMAÇÃO de forma TOTALMENTE NATURAL, FLUÍDA e PROFISSIONAL, sem comprometer a integridade do texto original.
 
 **TRECHO ORIGINAL DO ROTEIRO (PARA SER REESCRITO):**
@@ -2419,35 +2421,40 @@ ${newData}
 3.  **SEM DESVIO DE TAREFA:** É ESTRITAMENTE PROIBIDO desviar-se da tarefa precisa de reescrever e integrar. Foque exclusivamente na fusão perfeita dos dois textos.
 4.  **PRESERVAÇÃO DO CONTEXTO:** NÃO altere o significado central ou o tom do "Trecho Original". A nova informação deve se encaixar como uma peça complementar, não como uma substituição.
 
-**AÇÃO FINAL:** Reescreva AGORA o trecho, integrando a nova informação com MÁXIMA habilidade e conformidade. Responda APENAS com o texto final reescrito e integrado.
-`;
+**AÇÃO FINAL:** Reescreva AGORA o trecho, integrando a nova informação com MÁXIMA habilidade e conformidade. Responda APENAS com o texto final reescrito e integrado.`;
 
         const rawResult = await callGroqAPI(prompt, 1000);
         const enrichedText = removeMetaComments(rawResult);
 
         if (userSelectionRange) {
-            selection.removeAllRanges();
-            selection.addRange(userSelectionRange);
-            document.execCommand('insertHTML', false, DOMPurify.sanitize(`<span class="highlight-change">${enrichedText}</span>`));
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(userSelectionRange);
+            document.execCommand('insertHTML', false, DOMPurify.sanitize(`<span class="highlight-change">${enrichedText}</span>`, {ADD_TAGS: ['span'], ADD_ATTR: ['class']}));
         }
         
         if (sectionElement) {
+            const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
+            const sectionId = sectionElement.id.replace('Section', '');
+            if (AppState.generated.script[sectionId]) {
+                AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
+                AppState.generated.script[sectionId].text = contentWrapper.textContent;
+            }
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
-            invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
+            invalidateAndClearEmotionalMap();
+            updateAllReadingTimes();
         }
 
         window.showToast("Texto enriquecido com sucesso!", 'success');
 
     } catch (error) {
         console.error("Erro detalhado em enrichWithData:", error);
-        window.showToast(`Falha ao enriquecer o texto: ${error.message}`);
+        window.showToast(`Falha ao enriquecer o texto: ${error.message}`, 'error');
     } finally {
-        hideButtonLoading(buttonElement);
+        hideButtonLoading(button);
         userSelectionRange = null;
     }
 };
-
 
 
 
@@ -2976,7 +2983,7 @@ window.deleteParagraphGroup = async (button, suggestionText) => {
 
 
 
-window.enrichWithData = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+
 window.suggestPerformance = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 
 
