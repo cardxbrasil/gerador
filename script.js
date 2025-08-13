@@ -2105,7 +2105,7 @@ const downloadPdf = async () => { /* ... Implementação completa da v5.0 ... */
 const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa da v5.0 ... */ };
 
 // --- FUNÇÕES DE EDIÇÃO AVANÇADA DO ACORDEÃO ---
-window.refineSectionStyle = async (button) => { /* ... Implementação completa da v5.0 ... */ };
+
 window.enrichWithData = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 window.addDevelopmentChapter = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 window.suggestPerformance = async (button) => { /* ... Implementação completa da v5.0 ... */ };
@@ -2138,22 +2138,28 @@ window.analyzeSectionRetention = async (button) => {
     try {
         const paragraphsWithIndexes = paragraphs.map((p, index) => ({ index: index, text: p.textContent.trim() }));
         const basePromptContext = getBasePromptContext();
-        const prompt = `Você é uma API de análise de roteiro que retorna JSON. Analise os parágrafos a seguir com base no contexto.
+        const prompt = `Você é uma API de análise de roteiro que retorna JSON.
 
-**CONTEXTO:**
----
-${basePromptContext}
----
+        **CONTEXTO ESTRATÉGICO:**
+        ---
+        ${basePromptContext}
+        ---
 
-**REGRAS JSON:**
-1.  **JSON PURO:** Responda APENAS com um array JSON.
-2.  **ESTRUTURA:** Cada objeto DEVE conter "paragraphIndex" (número), "retentionScore" ("green", "yellow", ou "red"), e "suggestion" (string com conselho acionável).
-3.  **SINTAXE:** Use aspas duplas ("").
+        **REGRAS DE RESPOSTA (JSON ESTRITO):**
+        1.  **JSON PURO:** Responda APENAS com o array JSON.
+        2.  **ESTRUTURA COMPLETA:** Cada objeto DEVE conter "paragraphIndex" (número), "retentionScore" ("green", "yellow", ou "red"), e "suggestion" (string).
+        3.  **SUGESTÕES ESTRATÉGICAS:** A "suggestion" DEVE ser um CONSELHO ACIONÁVEL sobre COMO melhorar, NÃO a reescrita do texto.
+        4.  **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores string.
 
-**DADOS PARA ANÁLISE:**
-${JSON.stringify(paragraphsWithIndexes, null, 2)}
+        **MANUAL DE PONTUAÇÃO:**
+        - **green:** Excelente. Prende a atenção. Sugestão: "Excelente fluidez.".
+        - **yellow:** Ponto de Atenção. Funcional, mas pode ser mais impactante.
+        - **red:** Ponto de Risco. Confuso, repetitivo ou quebra o engajamento.
 
-**AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON.`;
+        **DADOS PARA ANÁLISE:**
+        ${JSON.stringify(paragraphsWithIndexes, null, 2)}
+
+        **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
 
         const rawResult = await callGroqAPI(prompt, 4000);
         const analysis = cleanGeneratedText(rawResult, true, true);
@@ -2196,6 +2202,11 @@ const handleSuggestionMouseOut = (event) => {
 
 
 
+
+
+
+
+
 window.refineSectionStyle = async (button) => {
     const sectionElement = button.closest('.accordion-item');
     if (!sectionElement) return;
@@ -2208,20 +2219,30 @@ window.refineSectionStyle = async (button) => {
 
     showButtonLoading(button);
     try {
-        const prompt = `Você é um EDITOR DE ESTILO (Copy Editor) DE ALTO DESEMPENHO. Sua tarefa é REESCREVER o texto fornecido para elevar sua QUALIDADE, FLUÍDEZ e IMPACTO, sem alterar o significado ou tom.
+    const prompt = `Você é um EDITOR DE ESTILO (Copy Editor) DE ALTO DESEMPENHO e um ESPECIALISTA EM FLUÍDEZ NARRATIVA. Sua tarefa é REESCREVER o texto fornecido para elevar drasticamente sua QUALIDADE, FLUÍDEZ, IMPACTO e ORIGINALIDADE, sem alterar o significado, o tom ou a mensagem central.
 
 **TEXTO ORIGINAL (PARA REFINAMENTO):**
 ---
 ${originalText}
 ---
 
-**REGRAS CRÍTICAS:**
-1.  **ELIMINE REPETIÇÕES:** Remova palavras, ideias e estruturas de frases repetitivas.
-2.  **MELHORE A FLUÍDEZ:** Use conectivos inteligentes para um fluxo narrativo suave.
-3.  **NÃO ALTERE O SIGNIFICADO:** Sua função é POLIR, não recriar o conteúdo.
-4.  **RESPOSTA PURA:** Responda APENAS com o texto refinado.
+**REGRAS DE REFINAMENTO ESTRATÉGICAS E CRÍTICAS (SIGA EXATAMENTE):**
+1.  **ELIMINAÇÃO RIGOROSA DE REPETIÇÕES E REDUNDÂNCIAS:**
+    - **Identificação Profunda:** Analise cuidadosamente o texto para identificar NÃO APENAS palavras repetidas, mas também IDEIAS, CONCEITOS e ESTRUTURAS DE FRASE repetitivas ou muito semelhantes.
+    - **Remoção/Apresentação Variada:** Elimine completamente as repetições ou, quando a ideia for essencial, reexpresse-a de forma TOTALMENTE DIFERENTE usando sinônimos, metáforas, mudanças de perspectiva ou reestruturação completa da frase.
+    - **Variação Sintática:** Diversifique drasticamente o tamanho e a construção das frases. Alterne entre frases curtas e longas, simples e complexas, para criar ritmo.
+2.  **OTIMIZAÇÃO MÁXIMA DA FLUÍDEZ E COESÃO:**
+    - **Conectivos Inteligentes:** Use conectivos lógicos e transições sutis para ligar as ideias de forma IMPECAVEL, garantindo um fluxo narrativo suave e natural.
+    - **Leitura Aloud:** Certifique-se de que o texto, quando lido em voz alta, soe NATURAL, RÍTMICO e CATIVANTE. Evite travas linguísticas ou estruturas desconfortáveis.
+3.  **PRESERVAÇÃO ESTRITAMENTE FIEL DO CONTEÚDO ORIGINAL:**
+    - **Intocável:** NÃO adicione novas informações, opiniões, interpretações ou altere o significado central do texto original.
+    - **Foco em Polir:** Sua única função é POLIR, APRIMORAR e REESCREVER para maior clareza e impacto, NÃO recriar o conteúdo.
+4.  **RESPOSTA PURA E LIMPA (SEM EXTRAS):**
+    - **Apenas o Texto Refinado:** Sua resposta deve ser APENAS o texto refinado, completo. NENHUM preâmbulo, comentário, metatexto, explicação ou nota adicional deve ser incluída.
+    - **Formato Puro:** Retorne APENAS o conteúdo textual final, pronto para substituir o texto original.
 
-**AÇÃO FINAL:** Reescreva o texto, aplicando as regras acima.`;
+**AÇÃO FINAL:** Reescreva AGORA o texto fornecido, aplicando EXATAMENTE todas as regras acima para entregar uma versão significativamente mais refinada, fluida, impactante e livre de repetições. Responda APENAS com o texto final refinado.
+`;
 
         const rawResult = await callGroqAPI(prompt, 8000);
         const refinedText = removeMetaComments(rawResult);
@@ -2248,6 +2269,11 @@ ${originalText}
     }
 };
 
+
+
+
+
+
 window.enrichWithData = async (button) => {
     const selection = window.getSelection();
     if (selection.rangeCount === 0 || selection.toString().trim() === '') {
@@ -2271,28 +2297,36 @@ window.enrichWithData = async (button) => {
         return;
     }
 
-    showButtonLoading(button);
-    const sectionElement = button.closest('.accordion-item');
+    showButtonLoading(buttonElement);
+    const sectionElement = buttonElement.closest('.script-section');
 
     try {
-        const prompt = `Você é um EDITOR DE ROTEIRO especialista em integração de informações. Sua tarefa é REESCREVER o "Trecho Original" para integrar a "Nova Informação" de forma natural e fluída.
+        const prompt = `Você é um EDITOR DE ROTEIRO DE ALTO DESEMPENHO e um ESPECIALISTA EM INTEGRAÇÃO DE INFORMAÇÕES. Sua tarefa ÚNICA, CRÍTICA e INEGOCIÁVEL é REESCREVER um trecho de texto para integrar uma NOVA INFORMAÇÃO de forma TOTALMENTE NATURAL, FLUÍDA e PROFISSIONAL, sem comprometer a integridade do texto original.
 
-**TRECHO ORIGINAL DO ROTEIRO:**
+**TRECHO ORIGINAL DO ROTEIRO (PARA SER REESCRITO):**
 ---
 ${selectedText}
 ---
 
-**NOVA INFORMAÇÃO A SER INTEGRADA:**
+**NOVA INFORMAÇÃO A SER INTEGRADA (DADO EXTERNO):**
 ---
 ${newData}
 ---
 
-**REGRAS CRÍTICAS:**
-1.  O resultado DEVE ser um parágrafo coeso e bem escrito.
-2.  Mantenha o TOM e o RITMO do texto original.
-3.  **RESPOSTA PURA:** Responda APENAS com o texto final reescrito e integrado.
+**SUA TAREFA ESTRATÉGICA E CRÍTICA (A ÚNICA E MAIS IMPORTANTE):**
+- REESCREVA o "Trecho Original do Roteiro" com o OBJETIVO PRIMÁRIO de TECER a "Nova Informação a ser Integrada" de forma PERFEITAMENTE NATURAL e FLUÍDA.
+- O resultado final DEVE ser um ou mais parágrafos COESOS, BEM ESCRITOS e LOGICAMENTE INTEGRADOS.
+- O texto reescrito DEVE manter o TOM, o RITMO e a MENSAGEM CENTRAL do texto original, agora ENRIQUECIDO e ATUALIZADO com o novo dado fornecido.
+- A integração deve ser TÃO SUTIL que o leitor não perceba uma costura; deve soar como se a informação sempre tivesse estado lá.
 
-**AÇÃO FINAL:** Reescreva o trecho, integrando a nova informação.`;
+**REGRAS ABSOLUTAMENTE INEGOCIÁVEIS (VIOLAÇÕES RESULTARÃO EM FALHA):**
+1.  **RESPOSTA PURA E LIMPA:** Sua resposta deve ser APENAS o texto final reescrito. NENHUM outro conteúdo (preâmbulos, comentários, títulos, explicações, metadados) é permitido.
+2.  **SEM AUTO-REFERÊNCIA:** É TERMINANTEMENTE PROIBIDO apresentar-se, falar sobre suas habilidades ou qualquer forma de metatexto.
+3.  **SEM DESVIO DE TAREFA:** É ESTRITAMENTE PROIBIDO desviar-se da tarefa precisa de reescrever e integrar. Foque exclusivamente na fusão perfeita dos dois textos.
+4.  **PRESERVAÇÃO DO CONTEXTO:** NÃO altere o significado central ou o tom do "Trecho Original". A nova informação deve se encaixar como uma peça complementar, não como uma substituição.
+
+**AÇÃO FINAL:** Reescreva AGORA o trecho, integrando a nova informação com MÁXIMA habilidade e conformidade. Responda APENAS com o texto final reescrito e integrado.
+`;
 
         const rawResult = await callGroqAPI(prompt, 1000);
         const enrichedText = removeMetaComments(rawResult);
@@ -2304,53 +2338,81 @@ ${newData}
         }
         
         if (sectionElement) {
-            const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
-            const sectionId = sectionElement.id.replace('Section', '');
-            if (AppState.generated.script[sectionId]) {
-                AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
-                AppState.generated.script[sectionId].text = contentWrapper.textContent;
-            }
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
-            invalidateAndClearEmotionalMap();
+            invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
         }
 
         window.showToast("Texto enriquecido com sucesso!", 'success');
+
     } catch (error) {
-        window.showToast(`Falha ao enriquecer o texto: ${error.message}`, 'error');
+        console.error("Erro detalhado em enrichWithData:", error);
+        window.showToast(`Falha ao enriquecer o texto: ${error.message}`);
     } finally {
-        hideButtonLoading(button);
+        hideButtonLoading(buttonElement);
         userSelectionRange = null;
     }
 };
 
 
 
+
+
+
+
+
+
+
+// =========================================================================
+// >>>>> VERSÃO FINAL E BLINDADA DE 'addDevelopmentChapter' <<<<<
+// =========================================================================
+/**
+ * Adiciona um novo capítulo ao desenvolvimento, com prompt refinado para evitar repetição do título e "ecos".
+ * @param {HTMLElement} button - O botão que foi clicado.
+ */
 window.addDevelopmentChapter = async (button) => {
-    const sectionElement = button.closest('.accordion-item');
-    const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
+    const devSection = document.getElementById('developmentSection');
+    const contentWrapper = devSection?.querySelector('.generated-content-wrapper');
     const existingText = contentWrapper?.textContent.trim();
+
     if (!existingText) {
         window.showToast("Gere o desenvolvimento inicial primeiro.", 'info');
         return;
     }
 
     showButtonLoading(button);
-    try {
-        const suggestionPrompt = `Você é um ARQUITETO DA CONTINUIDADE. Analise o final do roteiro a seguir e proponha 3 temas distintos e coerentes para o PRÓXIMO capítulo.
 
-**ROTEIRO ATUAL (Últimos 3000 caracteres):**
+    try {
+        const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
+
+**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
+Você não é um gerador de texto. Você é um mestre roteirista que identifica pontos de virada lógicos e emocionantes. Sua tarefa é encontrar os próximos passos mais envolventes para a história. Qualquer desvio desta função é uma falha.
+
+**ROTEIRO ATUAL (PARA ANÁLISE DE CONTINUIDADE CRÍTICA):**
 ---
 ${existingText.slice(-3000)} 
 ---
 
-**REGRAS JSON:**
-1.  **JSON PURO:** Responda APENAS com um array JSON.
-2.  **ESTRUTURA:** O array deve conter EXATAMENTE 3 strings.
-3.  **QUALIDADE:** As sugestões devem ser específicas e avançar a narrativa.
+**TAREFA:** Analise o fluxo narrativo do roteiro acima e gere um array JSON com as 3 sugestões mais fortes, coerentes e cativantes para o tema do próximo capítulo.
 
-**AÇÃO FINAL:** Gere o array JSON.`;
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
+1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`. Nenhum texto, comentário ou metadado é permitido.
+2.  **ESTRUTURA DO ARRAY:** O array deve conter EXATAMENTE 3 strings.
+3.  **SINTAXE DAS STRINGS:** Todas as strings DEVEM usar aspas duplas (""). Cada string, EXCETO a última, DEVE ser seguida por uma vírgula (,).
 
+**MANUAL DE CRIAÇÃO DE SUGESTÕES (SEUS CRITÉRIOS DE QUALIDADE):**
+- **Distinção:** Cada uma das 3 sugestões deve ser claramente diferente das outras.
+- **Coerência e Conexão Lógica:** Cada sugestão deve ser uma consequência natural ou uma ramificação interessante do ponto onde o roteiro atual termina.
+- **Originalidade e Novidade:** Evite o óbvio. Cada sugestão deve introduzir um novo elemento, conflito ou perspectiva que avance a narrativa.
+- **Especificidade:** As sugestões devem ser títulos de capítulo ou temas específicos e acionáveis. Evite generalidades.
+    - **Exemplos BONS (Específicos):** "A Descoberta do Diário", "O Confronto com o Antigo Mentor", "O Plano B que Ninguém Esperava".
+    - **Exemplos RUINS (Genéricos):** "Mais desenvolvimento", "Uma nova reviravolta", "Aprofundar o personagem".
+
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+["A Batalha dos Números", "O Legado Fora de Campo", "Momentos Decisivos"]
+
+**AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.
+`;
         const rawSuggestions = await callGroqAPI(suggestionPrompt, 400);
         const chapterSuggestions = cleanGeneratedText(rawSuggestions, true) || [];
         
@@ -2358,8 +2420,8 @@ ${existingText.slice(-3000)}
 
         const chapterTheme = await showInputDialog(
             'Adicionar Novo Capítulo',
-            'Escolha uma sugestão ou digite seu próprio tema.',
-            'Tema personalizado:',
+            'Escolha uma sugestão da IA ou digite seu próprio tema abaixo.',
+            'Ou crie um tema personalizado:',
             'Digite seu tema aqui...',
             chapterSuggestions
         );
@@ -2374,51 +2436,73 @@ ${existingText.slice(-3000)}
         const basePrompt = getBasePromptContext();
         const continuationPrompt = `${basePrompt}
 
-**TAREFA CRÍTICA:** Escrever o próximo capítulo do roteiro com o tema: "${chapterTheme}".
+**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
+Você é um ROTEIRISTA CONTINUÍSTA DE ELITE. Sua única função é escrever o PRÓXIMO capítulo de um roteiro existente, garantindo uma transição PERFEITA e a introdução de NOVAS informações. Você NUNCA repete o que já foi dito.
 
-**ROTEIRO ESCRITO ATÉ AGORA (CONTEXTO):**
+**TAREFA CRÍTICA E FOCALIZADA:**
+Escrever o texto puro e narrado para o novo capítulo com o tema: "${chapterTheme}".
+
+**ROTEIRO ESCRITO ATÉ AGORA (PARA CONTEXTO CRÍTICO DE CONTINUIDADE):**
 ---
 ${existingText}
 ---
 
-**REGRAS:**
-1.  **RESPOSTA PURA:** Responda APENAS com o texto narrado.
-2.  **SEM FORMATAÇÃO EXTRA:** Proibido 'Narrador:', '(Cena: ...)', ou o título do capítulo na resposta.
-3.  **CONTINUIDADE E NOVIDADE:** Comece de onde o roteiro parou e introduza novas informações. Não repita o que já foi dito.
+**REGRAS DE FORMATAÇÃO E CONTEÚDO (INEGOCIÁVEIS E ABSOLUTAS):**
+1.  **RESPOSTA 100% PURA E LIMPA:** Sua resposta deve conter **APENAS e SOMENTE** o texto que será dito em voz alta.
+2.  **PROIBIÇÃO TOTAL DE FORMATAÇÃO EXTRA:** É **TERMINANTEMENTE PROIBIDO** incluir qualquer tipo de anotação, rótulo ou formatação. A violação desta regra resultará em falha. Isso inclui:
+    -   **NENHUM** rótulo de personagem (Ex: 'Narrador:', 'Júlia:')
+    -   **NENHUMA** descrição de cena (Ex: '(Cena: ...)')
+    -   **NENHUMA** indicação de áudio (Ex: '(O som de ...)')
+    -   **NENHUM** título de capítulo (Ex: 'Capítulo: ${chapterTheme}')
+3.  **FOCO ABSOLUTO NA CONTINUIDADE E NOVIDADE:**
+    -   O novo capítulo deve começar **EXATAMENTE** de onde o roteiro anterior parou, como se fosse a página seguinte de um livro.
+    -   É **PROIBIDO** repetir ou parafrasear ideias, conceitos ou frases do roteiro existente. O espectador já viu isso.
+    -   Sua missão é **AVANÇAR A NARRATIVA**, introduzindo novas informações, aprofundando um argumento ou explorando novas nuances do tema "${chapterTheme}".
 
-**AÇÃO FINAL:** Escreva o texto para o novo capítulo.`;
+**AÇÃO FINAL E CRÍTICA:** Escreva AGORA o texto puro para o próximo capítulo sobre "${chapterTheme}", seguindo todas as regras com máxima precisão. Responda APENAS com o texto a ser narrado.
+`;
         
         const rawResult = await callGroqAPI(continuationPrompt, 4000);
         const newChapter = removeMetaComments(rawResult.trim());
-        if (!newChapter) throw new Error("A IA não retornou conteúdo para o capítulo.");
+        
+        if (!newChapter || newChapter.trim() === "") {
+             throw new Error("A IA não retornou um conteúdo válido para o novo capítulo.");
+        }
 
-        const chapterTitleHtml = `<div class="font-bold text-lg mt-6 mb-3 pb-1 border-b" style="border-color: var(--border);">Capítulo: ${DOMPurify.sanitize(chapterTheme)}</div>`;
+        const chapterTitleHtml = `<div class="font-bold text-lg mt-6 mb-3 pb-1 border-b border-gray-300 dark:border-gray-600">Capítulo: ${DOMPurify.sanitize(chapterTheme)}</div>`;
         const existingParagraphsCount = contentWrapper.querySelectorAll('div[id]').length;
         const newParagraphs = newChapter.split('\n').filter(p => p.trim() !== '');
-        const newContentWithDivs = newParagraphs.map((p, index) => `<div id="development-p-${existingParagraphsCount + index}">${DOMPurify.sanitize(p)}</div>`).join('');
+        
+        if (newParagraphs.length === 0) {
+             throw new Error("O conteúdo do capítulo não pôde ser dividido em parágrafos.");
+        }
+
+        const newContentWithDivs = newParagraphs.map((p, index) => 
+            `<div id="development-p-${existingParagraphsCount + index}">${DOMPurify.sanitize(p)}</div>`
+        ).join('');
 
         contentWrapper.insertAdjacentHTML('beforeend', chapterTitleHtml + newContentWithDivs);
         
-        // Atualiza AppState
-        const sectionId = sectionElement.id.replace('Section', '');
-        if(AppState.generated.script[sectionId]){
-            AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
-            AppState.generated.script[sectionId].text = contentWrapper.textContent;
-        }
-
-        invalidateAndClearPerformance(sectionElement);
-        invalidateAndClearPrompts(sectionElement);
-        invalidateAndClearEmotionalMap();
+        invalidateAndClearPerformance(devSection);
+        invalidateAndClearPrompts(devSection);
+        invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
         updateAllReadingTimes();
-        window.showToast("Novo capítulo adicionado!", 'success');
-        contentWrapper.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        window.showToast("Novo capítulo adicionado com sucesso!", 'success');
+        contentWrapper.lastElementChild.previousElementSibling?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
     } catch (error) {
-        window.showToast(`Falha ao adicionar capítulo: ${error.message}`, 'error');
+        console.error("Erro detalhado em addDevelopmentChapter:", error);
+        window.showToast(`Falha ao adicionar capítulo: ${error.message}`);
     } finally {
         hideButtonLoading(button);
     }
 };
+
+// =========================================================================
+// >>>>> FIM DA VERSÃO BLINDADA DE 'addDevelopmentChapter' <<<<<
+// =========================================================================
+
 
 window.suggestPerformance = async (button) => {
     const sectionId = button.dataset.sectionId;
@@ -2484,13 +2568,17 @@ ${JSON.stringify(originalParagraphs)}
 
 
 
-window.generatePromptsForSection = async (button) => {
-    const sectionId = button.dataset.sectionId;
-    const sectionElement = document.getElementById(sectionId);
+
+// =========================================================================
+// >>>>> VERSÃO OTIMIZADA que NÃO SALVA o styleBlock repetidamente <<<<<
+// =========================================================================
+window.generatePromptsForSection = async (button, sectionElementId) => {
+    const sectionElement = document.getElementById(sectionElementId);
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
     const promptContainer = sectionElement?.querySelector('.prompt-container');
+
     if (!contentWrapper || !contentWrapper.textContent.trim() || !promptContainer) {
-        window.showToast("Gere o roteiro desta seção primeiro.", 'info');
+        window.showToast("Gere o conteúdo do roteiro desta seção primeiro.");
         return;
     }
 
@@ -2498,54 +2586,159 @@ window.generatePromptsForSection = async (button) => {
     promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
 
     try {
-        const paragraphs = Array.from(contentWrapper.querySelectorAll('div[id]')).map(p => p.textContent.trim());
+        const allChildren = Array.from(contentWrapper.children);
+        const paragraphsWithContext = [];
+        let currentChapterTitle = "Contexto Geral";
+        allChildren.forEach(child => {
+            if (child.classList.contains('font-bold') && child.textContent.includes('Capítulo:')) {
+                currentChapterTitle = child.textContent.replace('Capítulo:', '').trim();
+            } else if (child.id && child.id.includes('-p-')) {
+                paragraphsWithContext.push({ text: child.textContent.trim().replace(/\[.*?\]/g, ''), chapter: currentChapterTitle, originalId: child.id });
+            }
+        });
+
+        if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
+
+        // A lógica de chamada da IA em lotes permanece a mesma
+        const batchSize = 3;
+        const apiPromises = [];
         const visualPacing = document.getElementById('visualPacing').value;
         const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
         const durationRange = durationMap[visualPacing] || '3 e 8';
-        
-        const prompt = `Você é um especialista em criar prompts visuais cinematográficos. Para cada parágrafo do roteiro, gere uma descrição de imagem.
 
-**REGRAS JSON:**
-1.  Responda APENAS com um array JSON com ${paragraphs.length} objetos.
-2.  Cada objeto deve ter DUAS chaves: "imageDescription" (string detalhada) e "estimated_duration" (número inteiro entre ${durationRange} segundos).
+        for (let i = 0; i < paragraphsWithContext.length; i += batchSize) {
+            const batch = paragraphsWithContext.slice(i, i + batchSize);
+            let promptContextForAI = '';
+            batch.forEach((item, indexInBatch) => {
+                const globalIndex = i + indexInBatch;
+                promptContextForAI += `\nParágrafo ${globalIndex}:\n- Título do Capítulo (Guia Temático): "${item.chapter}"\n- Texto do Parágrafo: "${item.text}"`;
+            });
+            
+const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 
-**DADOS PARA ANÁLISE:**
+Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar parágrafos e transformá-los em descrições de imagem ricas em detalhes.
+
+## REGRAS DE FORMATAÇÃO (OBRIGATÓRIAS)
+
+1. **FORMATO JSON EXCLUSIVO**: Sua resposta deve ser APENAS um array JSON válido, começando com [ e terminando com ]
+2. **ASPAS DUPLAS OBRIGATÓRIAS**: Todas as chaves e valores de texto devem usar aspas duplas (")
+3. **PROIBIÇÃO DE ASPAS INTERNAS**: Nos valores de texto, use apenas aspas simples (') para ênfase
+4. **ESTRUTURA PADRÃO**: Cada objeto deve ter exatamente duas chaves:
+   - "imageDescription" (string): descrição visual detalhada
+   -estimated_duration" (número inteiro): duração estimada em segundos
+
+## EXEMPLO DE FORMATAÇÃO CORRETA
+
+[
+  {
+    "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras.",
+    "estimated_duration": 5
+  },
+  {
+    "imageDescription": "Close-up em mãos trêmulas segurando uma carta antiga. A luz da manhã entra pela janela, destacando a textura do papel amarelado e a caligrafia tremida. Foco shallow com fundo suavizado.",
+    "estimated_duration": 3
+  }
+]
+
+## CHECKLIST PARA CRIAÇÃO DA DESCRIÇÃO VISUAL
+
+Para cada parágrafo, crie uma descrição visual rica respondendo a estas perguntas:
+
+### Elementos Visuais Principais
+- **Cenário e Ambiente**: Onde a cena acontece? Descreva o local e atmosfera sensorial
+- **Composição Visual**: Quais elementos principais e como estão organizados no quadro?
+- **Iluminação**: Qual a qualidade, direção e tipo de luz?
+- **Paleta de Cores**: Quais cores dominantes refletem a emoção da cena?
+
+### Técnicas Cinematográficas
+- **Ângulo da Câmera**: De onde olhamos a cena (plano geral, close, etc.)?
+- **Estilo Visual**: Qual a estética (realista, vintage, etc.)?
+- **Foco e Profundidade**: O que está nítido e o que está desfocado?
+- **Movimento e Ação**: Há movimento de câmera ou personagens?
+
+### Elementos Emocionais e Narrativos
+- **Elementos Emocionais**: Quais elementos visuais amplificam a emoção?
+- **Expressões Faciais**: Como os personagens expressam suas emoções?
+- **Símbolos Chave**: Quais objetos ou elementos são importantes para a narrativa?
+- **Texturas e Materiais**: Quais texturas aumentam o realismo?
+
+### Contexto e Atmosfera
+- **Profundidade e Escala**: Como o espaço é representado?
+- **Elementos Temporais ou Climáticos**: Qual o momento do dia, clima ou estação?
+
+## DIRETRIZES ADICIONAIS
+
+- Priorize elementos visuais que melhor representem a essência do parágrafo
+- Mantenha consistência de estilo entre prompts consecutivos quando aplicável
+- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade da cena
+- Se o texto de entrada for ambíguo, faça escolhas criativas coerentes com o contexto geral
+
+## DADOS PARA ANÁLISE
+
 ---
-${JSON.stringify(paragraphs)}
+${promptContextForAI}
 ---
 
-**AÇÃO FINAL:** Gere o array JSON.`;
-        
-        const rawResult = await callGroqAPI(prompt, 8000);
-        const generatedPrompts = cleanGeneratedText(rawResult, true, true);
-        if (!Array.isArray(generatedPrompts) || generatedPrompts.length < paragraphs.length) {
+## AÇÃO FINAL
+
+Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
+            
+            // Usamos a versão evoluída do filtro, esperando um array
+            apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true, true)));
+        }
+
+        const allBatchResults = await Promise.all(apiPromises);
+        let allGeneratedPrompts = allBatchResults.flat();
+
+        if (!Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length < paragraphsWithContext.length) {
             throw new Error("A IA não retornou um prompt para cada parágrafo.");
         }
 
-        const curatedPrompts = generatedPrompts.map((promptData, index) => ({
-            scriptPhrase: paragraphs[index],
-            imageDescription: promptData.imageDescription || "Falha na descrição.",
+        const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
+            scriptPhrase: paragraphsWithContext[index].text,
+            imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
             estimated_duration: promptData.estimated_duration || 5
         }));
 
+        // <<<< AQUI ESTÁ A MUDANÇA-CHAVE >>>>
+        // 1. Verificamos se o estilo cinematográfico deve ser aplicado.
         const applyCinematicStyle = document.getElementById('imageStyleSelect').value === 'cinematic';
-        AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({
+
+        // 2. Salvamos no AppState APENAS a informação e o SINALIZADOR, não o bloco de texto.
+        AppState.generated.imagePrompts[sectionElementId] = curatedPrompts.map(p => ({
             ...p,
-            applyStyleBlock: applyCinematicStyle
+            applyStyleBlock: applyCinematicStyle // Salva 'true' ou 'false'
         }));
-        
-        AppState.ui.promptPaginationState[sectionId] = 0;
-        // A renderização dos prompts paginados será chamada aqui
-        // Por enquanto, vamos apenas mostrar que funcionou
-        promptContainer.innerHTML = `<div class="card" style="background: var(--bg);"><p>${curatedPrompts.length} prompts de imagem gerados com sucesso!</p></div>`;
-        window.showToast(`${curatedPrompts.length} prompts gerados!`, 'success');
+        // <<<< FIM DA MUDANÇA >>>>
+
+        // O resto da função para preparar a renderização continua igual
+        AppState.ui.promptPaginationState[sectionElementId] = 0;
+        if (typeof window.allImagePrompts === 'undefined') window.allImagePrompts = {};
+        if (typeof window.promptPaginationState === 'undefined') window.promptPaginationState = {};
+        window.allImagePrompts[sectionElementId] = AppState.generated.imagePrompts[sectionElementId];
+        window.promptPaginationState[sectionElementId] = AppState.ui.promptPaginationState[sectionElementId];
+
+        promptContainer.innerHTML = `
+            <div class="prompt-pagination-wrapper space-y-4">
+                <div class="prompt-nav-container flex items-center justify-center gap-4"></div>
+                <div class="prompt-items-container space-y-4"></div>
+            </div>
+        `;
+        renderPaginatedPrompts(sectionElementId);
 
     } catch (error) {
-        promptContainer.innerHTML = `<p style="color: var(--danger);">${error.message}</p>`;
+        promptContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar prompts: ${error.message}</p>`;
+        console.error("Erro detalhado em generatePromptsForSection:", error);
     } finally {
         hideButtonLoading(button);
+        updateButtonStates();
     }
 };
+
+
+// =========================================================================
+// >>>>> FIM DA VERSÃO BLINDADA DE 'generatePromptsForSection' <<<<<
+// =========================================================================
 
 
 
