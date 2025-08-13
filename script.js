@@ -450,7 +450,7 @@ const setupInputTabs = () => {
 
 
 // ============================
-// >>>>> FILTRO JSON FINAL <<<<<
+// >>>>> FILTRO JSON ROBUSTO <<<<<
 // ============================
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
@@ -466,7 +466,6 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     // Função para remover texto explicativo
     const removeExplanatoryText = (str) => {
-        // Expressões regulares para remover textos explicativos comuns
         const patterns = [
             /Aqui estão os prompts visuais.*?\[/,
             /Resposta em formato JSON.*?\[/,
@@ -484,9 +483,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return str;
     };
 
-    // Função para extrair JSON mesmo quando mal formatado
+    // Função para extrair JSON mal formatado
     const extractMalformedJson = (str) => {
-        // Procura por blocos que começam com [ ou {
         const brackets = [];
         let current = '';
         let inString = false;
@@ -535,6 +533,21 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return null;
     };
 
+    // Função para tentar extrair JSON mesmo quando mal formatado
+    const tryFixAndExtract = (str) => {
+        // Remove quebras de linha desnecessárias
+        str = str.replace(/[\r\n]+/g, ' ');
+        
+        // Remove aspas simples
+        str = str.replace(/'/g, '"');
+        
+        // Remove texto explicativo
+        str = removeExplanatoryText(str);
+        
+        // Tenta extrair JSON
+        return extractMalformedJson(str);
+    };
+
     // Tenta extrair JSON de várias formas
     const extractionMethods = [
         // Método 1: Blocos markdown
@@ -555,7 +568,12 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             return extractMalformedJson(trimmedText);
         },
         
-        // Método 4: Análise de pilha completa
+        // Método 4: Tentar consertar e extrair
+        () => {
+            return tryFixAndExtract(trimmedText);
+        },
+        
+        // Método 5: Análise de pilha completa
         () => {
             const candidates = [];
             let currentCandidate = '';
@@ -590,7 +608,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 ) : null;
         },
         
-        // Método 5: Busca por chaves/colchetes isolados
+        // Método 6: Busca por chaves/colchetes isolados
         () => {
             const firstBrace = trimmedText.search(/[\{\[]/);
             const lastBrace = Math.max(
@@ -602,13 +620,12 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 trimmedText.substring(firstBrace, lastBrace + 1) : null;
         },
         
-        // Método 6: Busca por palavras-chave comuns
+        // Método 7: Busca por palavras-chave comuns
         () => {
             const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
-                    // Encontramos uma possível posição de início
                     let braceCount = 0;
                     let bracketCount = 0;
                     let endIndex = index;
