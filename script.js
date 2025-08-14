@@ -487,11 +487,13 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     // Função para remover texto explicativo
     const removeExplanatoryText = (str) => {
         const patterns = [
-            /Aqui estão.*?JSON.*?:\s*\n*/,
-            /Resposta.*?formato.*?JSON.*?:\s*\n*/,
-            /JSON.*?gerado.*?:\s*\n*/,
-            /Resultado.*?:\s*\n*/,
-            /\d+\.\s*(Resposta|Descrição).*?:\s*\n*/
+            /Aqui estão.*?JSON.*?:\s*\n*/i,
+            /Resposta.*?formato.*?JSON.*?:\s*\n*/i,
+            /JSON.*?gerado.*?:\s*\n*/i,
+            /Resultado.*?:\s*\n*/i,
+            /\d+\.\s*(Resposta|Descrição|Prompt).*?:\s*\n*/i,
+            /Based on the instructions.*?:\s*\n*/i,
+            /Here are the results.*?:\s*\n*/i
         ];
         
         for (const pattern of patterns) {
@@ -626,6 +628,50 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return null;
     };
 
+    // Função para extrair JSON de texto com explicações antes
+    const extractJsonWithIntro = (str) => {
+        const lines = str.split('\n');
+        let jsonLines = [];
+        let inJson = false;
+        let bracketCount = 0;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const trimmedLine = line.trim();
+            
+            if (!inJson) {
+                // Procura pelo início do JSON
+                if (trimmedLine.startsWith('[') || trimmedLine.startsWith('{')) {
+                    inJson = true;
+                    jsonLines.push(line);
+                    // Conta os colchetes/chaves na linha
+                    for (let j = 0; j < line.length; j++) {
+                        if (line[j] === '[' || line[j] === '{') bracketCount++;
+                        if (line[j] === ']' || line[j] === '}') bracketCount--;
+                    }
+                }
+            } else {
+                jsonLines.push(line);
+                // Conta os colchetes/chaves na linha
+                for (let j = 0; j < line.length; j++) {
+                    if (line[j] === '[' || line[j] === '{') bracketCount++;
+                    if (line[j] === ']' || line[j] === '}') bracketCount--;
+                }
+                
+                // Se fechou todos os colchetes, termina
+                if (bracketCount === 0) {
+                    break;
+                }
+            }
+        }
+        
+        if (jsonLines.length > 0) {
+            return jsonLines.join('\n');
+        }
+        
+        return null;
+    };
+
     // Tenta extrair JSON de várias formas
     const extractionMethods = [
         // Método 1: Blocos markdown
@@ -700,7 +746,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Método 7: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:', '[\n  {'];
+            const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:', '[\n  {', '[\n\t{'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -751,6 +797,11 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         // Método 10: Extrair JSON de markdown com explicação
         () => {
             return extractMarkdownWithExplanation(trimmedText);
+        },
+        
+        // Método 11: Extrair JSON com texto introdutório
+        () => {
+            return extractJsonWithIntro(trimmedText);
         }
     ];
 
@@ -856,6 +907,22 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             // Remove barras invertidas problemáticas
             repairedString = repairedString.replace(/\\([^"\\/bfnrtu])/g, '$1');
             
+            // Corrige aspas escapadas duplicadas
+            repairedString = repairedString.replace(/\\"/g, '"');
+            
+            // Corrige vírgulas faltando entre propriedades
+            repairedString = repairedString.replace(/"(\s+)([a-zA-Z0-9_]+)":/g, '",$1"$2":');
+            
+            // Corrige aspas em valores de string
+            repairedString = repairedString.replace(/:\s*"([^"]*?)"/g, (match, content) => {
+                // Verifica se há aspas não escapadas no conteúdo
+                if (content.includes('"') && !content.includes('\\"')) {
+                    const fixedContent = content.replace(/"/g, '\\"');
+                    return `: "${fixedContent}"`;
+                }
+                return match;
+            });
+            
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
             
@@ -895,10 +962,36 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 .replace(/```/g, '')
                 .split('\n')
                 .map(line => line.trim())
-                .filter(line => line.length > 0 && !line.match(/^\d+\./))
+                .filter(line => {
+                    const trimmedLine = line.trim();
+                    return line.length > 0 && 
+                           !line.match(/^\d+\./) && 
+                           !trimmedLine.startsWith('Based on') && 
+                           !trimmedLine.startsWith('Here are') &&
+                           !trimmedLine.includes('```');
+                })
                 .join('\n');
                 
-            return arrayExpected ? (cleanText ? cleanText.split('\n') : []) : (cleanText || text.trim());
+            // Se encontrou conteúdo útil, retorna como array ou string
+            if (cleanText) {
+                if (arrayExpected) {
+                    // Tenta extrair o array JSON do texto
+                    const jsonArrayMatch = cleanText.match(/\[\s*\{[\s\S]*\}\s*\]/);
+                    if (jsonArrayMatch) {
+                        try {
+                            return JSON.parse(jsonArrayMatch[0]);
+                        } catch (e) {
+                            // Se falhar, retorna como array de linhas
+                            return cleanText.split('\n').filter(line => line.trim().length > 0);
+                        }
+                    }
+                    return cleanText.split('\n').filter(line => line.trim().length > 0);
+                } else {
+                    return cleanText;
+                }
+            }
+            
+            return arrayExpected ? [] : text.trim();
         }
     }
 };

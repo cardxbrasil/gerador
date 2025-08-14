@@ -303,7 +303,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 .accordion-arrow.open { transform: rotate(180deg); }
 .accordion-body { padding: 0 1.5rem 1.5rem 1.5rem; display: none; }
 .accordion-body.open { display: block; animation: fadeIn 0.4s ease; }
-.generated-content-wrapper { font-family: 'Roboto', serif; line-height: 1.7; font-size: 1.0rem; }
+.generated-content-wrapper { font-family: 'Roboto', serif; line-height: 1.7; font-size: 0.9rem; }
 
 /* Tooltip & Popover */
 .help-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background-color: var(--border); color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: help; margin-left: 8px; transition: var(--transition); }
