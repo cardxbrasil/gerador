@@ -457,6 +457,12 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return expectJson ? (arrayExpected ? [] : null) : '';
     }
 
+    // Trata texto vazio
+    if (text.trim().length === 0) {
+        console.warn("Texto vazio ou inválido recebido da IA.");
+        return expectJson ? (arrayExpected ? [] : null) : '';
+    }
+
     if (!expectJson) {
         return text.trim();
     }
@@ -471,7 +477,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             /Resposta em formato JSON.*?\[/,
             /JSON gerado.*?\[/,
             /Resultado da geração.*?\[/,
-            /\d+\.\s*Resposta.*?\[/
+            /\d+\.\s*Resposta.*?\[/,
+            /Aqui está.*?:\s*\[/
         ];
         
         for (const pattern of patterns) {
@@ -648,6 +655,21 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 }
             }
             return null;
+        },
+        
+        // Método 8: Fallback bruto - busca por chaves e tenta parsear o que vier
+        () => {
+            const firstBrace = trimmedText.indexOf('{');
+            const lastBrace = trimmedText.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace > firstBrace) {
+                return trimmedText.substring(firstBrace, lastBrace + 1);
+            }
+            const firstBracket = trimmedText.indexOf('[');
+            const lastBracket = trimmedText.lastIndexOf(']');
+            if (firstBracket !== -1 && lastBracket > firstBracket) {
+                return trimmedText.substring(firstBracket, lastBracket + 1);
+            }
+            return null;
         }
     ];
 
@@ -660,8 +682,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 
+    // Se ainda não encontrou JSON, loga o texto e retorna valor padrão
     if (!jsonString) {
-        throw new Error("A IA não retornou um formato JSON reconhecível.");
+        console.warn("JSON não identificado na resposta da IA:", text);
+        return arrayExpected ? [] : {};
     }
 
     try {
@@ -708,7 +732,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 }
                 return match;
             });
-            repairedString = repairedString.replace(/}\s*"/g, '},"');
+            repairedString = repairedString.replace(/}\s*"/g, '}",');
             repairedString = repairedString.replace(/(?<!\\)\n/g, "\\n");
             repairedString = repairedString.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
             
@@ -730,7 +754,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             console.error("FALHA CRÍTICA: A cirurgia no JSON não foi bem-sucedida.", surgeryError.message);
             console.error("JSON Problemático (Original):", text);
             console.error("JSON Pós-Cirurgia (Falhou):", repairedString || jsonString);
-            throw new Error(`A IA retornou um JSON com sintaxe inválida que não pôde ser corrigido.`);
+            
+            // Retorna valor padrão em vez de lançar erro
+            console.warn("Retornando valor padrão devido a erro de parsing.");
+            return arrayExpected ? [] : {};
         }
     }
 };
