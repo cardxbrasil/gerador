@@ -487,18 +487,17 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     // Função para remover texto explicativo
     const removeExplanatoryText = (str) => {
         const patterns = [
-            /Aqui estão os prompts visuais.*?\[/,
-            /Resposta em formato JSON.*?\[/,
-            /JSON gerado.*?\[/,
-            /Resultado da geração.*?\[/,
-            /\d+\.\s*Resposta.*?\[/,
-            /Aqui está.*?:\s*\[/
+            /Aqui estão.*?JSON.*?:\s*\n*/,
+            /Resposta.*?formato.*?JSON.*?:\s*\n*/,
+            /JSON.*?gerado.*?:\s*\n*/,
+            /Resultado.*?:\s*\n*/,
+            /\d+\.\s*(Resposta|Descrição).*?:\s*\n*/
         ];
         
         for (const pattern of patterns) {
             const match = str.match(pattern);
             if (match) {
-                return str.slice(match.index + match[0].length - 1);
+                return str.slice(match.index + match[0].length);
             }
         }
         return str;
@@ -596,6 +595,37 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return `[${jsonItems.join(',')}]`;
     };
 
+    // Função para extrair JSON de blocos markdown com texto explicativo
+    const extractMarkdownWithExplanation = (str) => {
+        // Procura por blocos markdown que podem ter texto explicativo antes
+        const lines = str.split('\n');
+        let jsonStart = -1;
+        let jsonEnd = -1;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (line.startsWith('```json') || line.startsWith('```')) {
+                jsonStart = i + 1;
+                break;
+            }
+        }
+        
+        if (jsonStart !== -1) {
+            for (let i = jsonStart; i < lines.length; i++) {
+                if (lines[i].trim() === '```') {
+                    jsonEnd = i;
+                    break;
+                }
+            }
+            
+            if (jsonEnd !== -1) {
+                return lines.slice(jsonStart, jsonEnd).join('\n').trim();
+            }
+        }
+        
+        return null;
+    };
+
     // Tenta extrair JSON de várias formas
     const extractionMethods = [
         // Método 1: Blocos markdown
@@ -670,7 +700,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Método 7: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:'];
+            const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:', '[\n  {'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -716,6 +746,11 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         // Método 9: Converter array em texto para JSON válido
         () => {
             return convertTextArrayToJson(trimmedText);
+        },
+        
+        // Método 10: Extrair JSON de markdown com explicação
+        () => {
+            return extractMarkdownWithExplanation(trimmedText);
         }
     ];
 
@@ -741,8 +776,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                     .filter(line => line.length > 0)
                     .map(line => {
                         // Remove índices numéricos e pontos
-                        return line.replace(/^\d+\.\s*/, '').replace(/^["']|["']$/g, '');
-                    });
+                        return line.replace(/^\d+\.\s*/, '').replace(/^["']|["']$/g, '').replace(/,$/, '');
+                    })
+                    .filter(line => line.length > 0); // Remove linhas vazias
                 
                 if (arrayExpected) {
                     return textArray;
@@ -755,7 +791,14 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
         
         console.warn("JSON não identificado na resposta da IA:", text);
-        return arrayExpected ? [] : text.trim();
+        // Retorna o texto limpo em vez de falhar
+        const cleanText = text
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0 && !line.match(/^\d+\./) && !line.includes('```'))
+            .join('\n');
+            
+        return arrayExpected ? (cleanText ? cleanText.split('\n') : []) : (cleanText || text.trim());
     }
 
     try {
@@ -810,6 +853,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/},\s*\n\s*{/, '},{');
             repairedString = repairedString.replace(/],\s*\n\s*\[/, '],[');
             
+            // Remove barras invertidas problemáticas
+            repairedString = repairedString.replace(/\\([^"\\/bfnrtu])/g, '$1');
+            
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
             
@@ -832,7 +878,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                     const lines = text
                         .split('\n')
                         .map(line => line.trim())
-                        .filter(line => line.length > 0 && !line.match(/^\d+\./));
+                        .filter(line => line.length > 0 && !line.match(/^\d+\./) && !line.includes('```'));
                     
                     return lines.length > 0 ? lines : [];
                 } catch (e) {
@@ -842,7 +888,17 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             
             // Retorna valor padrão em vez de lançar erro
             console.warn("Retornando valor padrão devido a erro de parsing.");
-            return arrayExpected ? [] : text.trim();
+            
+            // Tenta extrair conteúdo útil mesmo com erro
+            const cleanText = text
+                .replace(/```json/g, '')
+                .replace(/```/g, '')
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0 && !line.match(/^\d+\./))
+                .join('\n');
+                
+            return arrayExpected ? (cleanText ? cleanText.split('\n') : []) : (cleanText || text.trim());
         }
     }
 };
