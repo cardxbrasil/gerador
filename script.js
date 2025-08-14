@@ -495,7 +495,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             /Based on the instructions.*?:\s*\n*/i,
             /Here are the results.*?:\s*\n*/i,
             /Aqui está.*?array.*?JSON.*?:\s*\n*/i,
-            /Aqui está a proposta.*?JSON.*?:\s*\n*/i
+            /Aqui está a proposta.*?JSON.*?:\s*\n*/i,
+            /\*\*Array de.*?\*\*\s*\n*/i,
+            /\*\*Continuação.*?\*\*\s*\n*/i
         ];
         
         for (const pattern of patterns) {
@@ -674,10 +676,15 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return null;
     };
 
-    // Função para corrigir objetos JSON com vírgulas faltando
-    const fixMissingCommas = (str) => {
-        // Corrige vírgulas faltando entre propriedades
-        return str.replace(/"([^"]+)"\s*"([^"]+)"/g, '"$1", "$2"');
+    // Função para limpar conteúdo corrompido no final do JSON
+    const cleanCorruptedEnd = (str) => {
+        // Remove conteúdo corrompido após o JSON válido
+        const validEndPattern = /(\}\s*\]\s*)[^\]]*$/;
+        const match = str.match(validEndPattern);
+        if (match) {
+            return str.substring(0, match.index + match[1].length);
+        }
+        return str;
     };
 
     // Tenta extrair JSON de várias formas
@@ -754,7 +761,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Método 7: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta'];
+            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -977,11 +984,28 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             // Corrige propriedades sem vírgulas
             repairedString = repairedString.replace(/(".*?")\s*(".*?":)/g, '$1, $2');
             
-            // Corrige vírgulas faltando antes de investigativeApproach
-            repairedString = repairedString.replace(/("videoDescription":\s*".*?")(\s*"investigativeApproach")/g, '$1,$2');
+            // Corrige vírgulas faltando antes de horrorMechanism
+            repairedString = repairedString.replace(/("videoDescription":\s*".*?")(\s*"horrorMechanism")/g, '$1,$2');
             
             // Corrige problemas de formatação específicos
             repairedString = repairedString.replace(/("videoDescription":\s*".*?")(\s*"[\w])/g, '$1, $2');
+            
+            // Remove conteúdo corrompido no final
+            repairedString = cleanCorruptedEnd(repairedString);
+            
+            // Remove conteúdo após o fechamento do array
+            const arrayEndMatch = repairedString.match(/(\s*\]\s*)[^\]]*$/);
+            if (arrayEndMatch) {
+                repairedString = repairedString.substring(0, arrayEndMatch.index + arrayEndMatch[1].length);
+            }
+            
+            // Corrige objetos incompletos no final
+            repairedString = repairedString.replace(/\{\s*"title"[^}]*?(?=\}\s*\]|\}\s*,|\s*\]\s*)/g, match => {
+                if (!match.endsWith('}')) {
+                    return match + '}';
+                }
+                return match;
+            });
             
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
@@ -1029,7 +1053,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                            !trimmedLine.startsWith('Based on') && 
                            !trimmedLine.startsWith('Here are') &&
                            !trimmedLine.includes('```') &&
-                           !trimmedLine.startsWith('Aqui está');
+                           !trimmedLine.startsWith('Aqui está') &&
+                           !trimmedLine.startsWith('**Array') &&
+                           !trimmedLine.startsWith('assistant<|end_header_id|>');
                 })
                 .join('\n');
                 
@@ -1048,8 +1074,12 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/‘/g, "'")
                                 .replace(/’/g, "'")
                                 .replace(/\\n/g, "\\\\n")
-                                .replace(/("videoDescription":\s*".*?")(\s*"investigativeApproach")/g, '$1, $2')
-                                .replace(/("videoDescription":\s*".*?")(\s*"[\w])/g, '$1, $2');
+                                .replace(/("videoDescription":\s*".*?")(\s*"horrorMechanism")/g, '$1, $2')
+                                .replace(/("videoDescription":\s*".*?")(\s*"[\w])/g, '$1, $2')
+                                .replace(/assistant<\|end_header_id\|>[\s\S]*$/g, '');
+                            
+                            // Remove conteúdo corrompido no final
+                            fixedArray = cleanCorruptedEnd(fixedArray);
                             
                             return JSON.parse(fixedArray);
                         } catch (e) {
@@ -1544,20 +1574,22 @@ const generateIdeasFromReport = async (button) => {
         const allCardsHtml = ideas.map((idea, index) => {
              const escapedIdea = escapeIdeaForOnclick(idea);
 return `
-    <div class="card p-4 border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
+    <div class="card p-4 flex flex-col justify-between border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
         
-        <!-- Título e Potencial na mesma linha -->
-        <div class="flex justify-between items-start mb-2">
-            <h4 class="font-bold text-base" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-            <span class="font-bold text-sm text-${colorName}-500 flex-shrink-0">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
+        <!-- Conteúdo Principal (Título, Botão e Descrição) -->
+        <div class="flex-grow">
+            <div class="flex justify-between items-start gap-4 mb-2">
+                <h4 class="font-bold text-base flex-grow" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
+                <button class="btn btn-primary btn-small flex-shrink-0" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+            </div>
+            <p class="text-sm">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
         </div>
 
-        <!-- Descrição -->
-        <p class="text-sm mb-3">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
-
-        <!-- Botão Usar no canto direito -->
-        <div class="text-right">
-            <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+        <!-- Rodapé do Card (Apenas o Potencial) -->
+        <div class="mt-4">
+            <span class="font-bold text-sm bg-${colorName}-100 text-${colorName}-700 dark:bg-${colorName}-900/50 dark:text-${colorName}-300 py-1 px-2 rounded-lg">
+                Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
+            </span>
         </div>
 
     </div>
