@@ -1706,17 +1706,23 @@ for (const key in keyToElementIdMap) {
         if (element) {
             let valueToSet = strategy[key];
 
-          if (typeof valueToSet === 'object' && valueToSet !== null) {
-    console.warn(`A IA retornou um objeto para o campo '${key}':`, valueToSet);
-    // Se for a voz do narrador e tiver uma propriedade 'persona' ou 'descricao', use-a.
-    // Senão, junte os valores do objeto em uma string legível.
-    if (key === 'narrative_voice' && (valueToSet.persona || valueToSet.descricao || valueToSet.adjetivos)) {
-        valueToSet = valueToSet.persona || valueToSet.descricao || valueToSet.adjetivos;
-    } else {
-        // Concatena os valores do objeto em uma string mais amigável
-        valueToSet = Object.values(valueToSet).join(', ');
-    }
-}
+            // >>>>> BLINDAGEM UNIVERSAL CONTRA OBJETOS <<<<<
+            if (typeof valueToSet === 'object' && valueToSet !== null) {
+                console.warn(`A IA retornou um objeto para o campo '${key}':`, valueToSet);
+                
+                // Se for um array, junta os valores. Se for um objeto, junta os valores.
+                if (Array.isArray(valueToSet)) {
+                    // Se for um array de objetos, tenta extrair o primeiro valor de cada objeto
+                    if (valueToSet.length > 0 && typeof valueToSet[0] === 'object') {
+                         valueToSet = valueToSet.map(obj => Object.values(obj)[0]).join('; ');
+                    } else { // Se for um array de strings
+                         valueToSet = valueToSet.join('; ');
+                    }
+                } else { // Se for um objeto único
+                    valueToSet = Object.values(valueToSet).join(', ');
+                }
+            }
+            // >>>>> FIM DA BLINDAGEM <<<<<
 
             if (element.tagName === 'SELECT') {
                 if ([...element.options].some(o => o.value === valueToSet)) {
