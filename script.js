@@ -1562,18 +1562,20 @@ const generateIdeasFromReport = async (button) => {
              return `
                 <div class="card p-4 flex flex-col justify-between border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
         
-        <!-- Conteúdo Principal (Título e Descrição) -->
-        <div>
-            <h4 class="font-bold text-base mb-2" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-            <p class="text-sm">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+        <!-- PARTE SUPERIOR: Título e Botão Usar -->
+        <div class="flex justify-between items-start gap-4 mb-2">
+            <h4 class="font-bold text-base flex-grow" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
+            <button class="btn btn-primary btn-small flex-shrink-0" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
         </div>
 
-        <!-- Rodapé do Card (Potencial e Botão Usar) -->
-        <div class="flex justify-between items-center mt-4">
+        <!-- PARTE DO MEIO: Descrição -->
+        <p class="text-sm flex-grow">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+
+        <!-- PARTE INFERIOR: Potencial -->
+        <div class="mt-4">
             <span class="font-bold text-sm bg-${colorName}-100 text-${colorName}-700 dark:bg-${colorName}-900/50 dark:text-${colorName}-300 py-1 px-2 rounded-lg">
                 Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
             </span>
-            <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
         </div>
 
     </div>

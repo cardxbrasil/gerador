@@ -273,43 +273,49 @@
                     </section>
                     
                     <!-- Seção de Recursos -->
-                    <section>
-                        <h3 class="section-header">Recursos e Metadados</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Títulos & Thumbnails -->
-                            <div class="card card-placeholder">
-                                <div class="flex justify-between items-center mb-3">
-                                    <h3 class="font-semibold text-lg">Títulos &amp; Thumbnails</h3>
-                                    <button class="btn btn-secondary btn-small" data-action="generateTitlesAndThumbnails" id="generateTitlesAndThumbnailsBtn">Gerar</button>
-                                </div>
-                                <div id="titlesThumbnailsContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
-                            </div>
-                            <!-- Descrição & Hashtags -->
-                            <div class="card card-placeholder">
-                                <div class="flex justify-between items-center mb-3">
-                                    <h3 class="font-semibold text-lg">Descrição &amp; Hashtags</h3>
-                                    <button class="btn btn-secondary btn-small" data-action="generateDescription" id="generateDescriptionBtn">Gerar</button>
-                                </div>
-                                <div id="videoDescriptionContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
-                            </div>
-                            <!-- Trilha Sonora -->
-                            <div class="card card-placeholder">
-                                <div class="flex justify-between items-center mb-3">
-                                    <h3 class="font-semibold text-lg">Trilha Sonora</h3>
-                                    <button class="btn btn-secondary btn-small" data-action="generateSoundtrack" id="generateSoundtrackBtn">Gerar</button>
-                                </div>
-                                <div id="soundtrackContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
-                            </div>
-                            <!-- Mapa Emocional -->
-                            <div class="card card-placeholder">
-                                <div class="flex justify-between items-center mb-3">
-                                    <h3 class="font-semibold text-lg">Mapa Emocional</h3>
-                                    <button class="btn btn-secondary btn-small" data-action="mapEmotions" id="mapEmotionsBtn">Mapear</button>
-                                </div>
-                                <div id="emotionalMapContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
-                            </div>
-                        </div>
-                    </section>
+<!-- Seção de Recursos (REORGANIZADA) -->
+<section>
+    <h3 class="section-header">Recursos e Metadados</h3>
+    
+    <!-- Mapa Emocional (Ocupando a largura total) -->
+    <div class="card card-placeholder mb-6">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold text-lg">Mapa Emocional</h3>
+            <button class="btn btn-secondary btn-small" data-action="mapEmotions" id="mapEmotionsBtn">Mapear</button>
+        </div>
+        <div id="emotionalMapContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
+    </div>
+
+    <!-- Trilha Sonora (Ocupando a largura total) -->
+    <div class="card card-placeholder mb-6">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold text-lg">Trilha Sonora</h3>
+            <button class="btn btn-secondary btn-small" data-action="generateSoundtrack" id="generateSoundtrackBtn">Gerar</button>
+        </div>
+        <div id="soundtrackContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
+    </div>
+
+    <!-- Grid para os dois itens restantes -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Títulos & Thumbnails -->
+        <div class="card card-placeholder">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-semibold text-lg">Títulos &amp; Thumbnails</h3>
+                <button class="btn btn-secondary btn-small" data-action="generateTitlesAndThumbnails" id="generateTitlesAndThumbnailsBtn">Gerar</button>
+            </div>
+            <div id="titlesThumbnailsContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
+        </div>
+
+        <!-- Descrição & Hashtags -->
+        <div class="card card-placeholder">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-semibold text-lg">Descrição &amp; Hashtags</h3>
+                <button class="btn btn-secondary btn-small" data-action="generateDescription" id="generateDescriptionBtn">Gerar</button>
+            </div>
+            <div id="videoDescriptionContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
+        </div>
+    </div>
+</section>
                     
                      <!-- Seção de Exportação -->
                     <section class="mt-10">
