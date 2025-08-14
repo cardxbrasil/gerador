@@ -339,6 +339,19 @@ textarea.input { min-height: 84px; resize: vertical; }
   to { background-color: transparent; outline: 2px solid transparent; }
 }
 .tag { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+
+
+.tag-emotion { 
+    background-color: color-mix(in srgb, var(--primary) 20%, transparent); 
+    color: var(--primary); 
+}
+
+#emotionalMapContent .card .btn {
+    padding: 6px 10px;
+    line-height: 1;
+}
+
+
 .tag-pace { background-color: color-mix(in srgb, var(--secondary) 20%, transparent); color: var(--secondary-dark); }
 .dark .tag-pace { color: var(--text-muted); }
 

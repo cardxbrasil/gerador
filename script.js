@@ -2772,7 +2772,7 @@ const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa 
 
 const mapEmotionsAndPacing = async (button) => {
     const { script } = AppState.generated;
-    const isScriptReady = script.intro.text && script.development.text && script.climax.text;
+    const isScriptReady = script.intro?.text && script.development?.text && script.climax?.text;
     if (!isScriptReady) {
         window.showToast("Gere pelo menos a Introdução, Desenvolvimento e Clímax primeiro.", 'info');
         return;
@@ -2789,57 +2789,49 @@ const mapEmotionsAndPacing = async (button) => {
         
         const prompt = `Your single function is to return a JSON array. For each of the ${paragraphs.length} paragraphs below, analyze and return the main emotion and pacing.
         
-**CRITICAL AND UNBREAKABLE RULES:**
-1.  Your response MUST BE ONLY the JSON array, starting with \`[\` and ending with \`]\`.
+**CRITICAL RULES:**
+1.  Your response MUST BE ONLY the JSON array.
 2.  The array must contain EXACTLY ${paragraphs.length} objects.
-3.  Each object must have EXACTLY two keys: "emotion" and "pace".
+3.  Each object must have keys "emotion" and "pace".
 4.  Allowed values for "emotion": 'strongly_positive', 'slightly_positive', 'neutral', 'slightly_negative', 'strongly_negative'.
 5.  Allowed values for "pace": 'very_fast', 'fast', 'medium', 'slow', 'very_slow'.
 
 **TEXT FOR ANALYSIS:**
----
 ${JSON.stringify(paragraphs)}
----
-ACTION: Return ONLY the JSON array, using the English terms for the values.`;
+
+ACTION: Return ONLY the JSON array.`;
 
         const rawResult = await callGroqAPI(prompt, 4000);
         const emotionalMapData = cleanGeneratedText(rawResult, true, true);
-        if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
-            throw new Error("A IA não retornou um mapa emocional válido.");
+        if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length < paragraphs.length) {
+            throw new Error("A IA não retornou um mapa emocional válido ou completo.");
         }
-        AppState.generated.emotionalMap = emotionalMapData;
+        AppState.generated.emotionalMap = emotionalMapData.slice(0, paragraphs.length);
         
         outputContainer.innerHTML = '';
         let paragraphCounter = 0;
 
         const sectionOrder = [
-            { id: 'intro', title: 'Introdução' },
-            { id: 'development', title: 'Desenvolvimento' },
-            { id: 'climax', title: 'Clímax' },
-            { id: 'conclusion', title: 'Conclusão' },
+            { id: 'intro', title: 'Introdução' }, { id: 'development', title: 'Desenvolvimento' },
+            { id: 'climax', title: 'Clímax' }, { id: 'conclusion', title: 'Conclusão' },
             { id: 'cta', title: 'Call to Action (CTA)' }
         ];
 
+        // >>>>> LÓGICA DE AGRUPAMENTO DA FERRARI V5.0 <<<<<
         const emotionGroups = {
-            'Positiva': ['Positiva Forte', 'Positiva Leve', 'strongly_positive', 'slightly_positive', 'happy', 'excited'],
-            'Negativa': ['Negativa Forte', 'Negativa Leve', 'strongly_negative', 'slightly_negative', 'sad', 'angry', 'fearful'],
-            'Neutra': ['Neutra', 'neutral', 'surprised']
+            'Positiva': ['strongly_positive', 'slightly_positive'], 'Negativa': ['strongly_negative', 'slightly_negative'],
+            'Neutra': ['neutral']
         };
-
         const paceGroups = {
-            'Rápido': ['Muito Rápido', 'Rápido', 'very_fast', 'fast'],
-            'Médio': ['Médio', 'medium', 'moderate'],
-            'Lento': ['Muito Lento', 'Lento', 'very_slow', 'slow']
+            'Rápido': ['very_fast', 'fast'], 'Médio': ['medium'], 'Lento': ['very_slow', 'slow']
         };
-
         const getGroupName = (value, groups) => {
             for (const groupName in groups) {
-                if (groups[groupName].includes(value)) {
-                    return groupName;
-                }
+                if (groups[groupName].includes(value)) return groupName;
             }
             return value.charAt(0).toUpperCase() + value.slice(1);
         };
+        // >>>>> FIM DA LÓGICA DE AGRUPAMENTO <<<<<
 
         sectionOrder.forEach(section => {
             const sectionScript = script[section.id];
@@ -2851,27 +2843,22 @@ ACTION: Return ONLY the JSON array, using the English terms for the values.`;
             const groupedEmotions = [...new Set(sectionEmotionsData.map(e => getGroupName(e.emotion, emotionGroups)))];
             const groupedPaces = [...new Set(sectionEmotionsData.map(e => getGroupName(e.pace, paceGroups)))];
 
-            const tagsHtml = groupedEmotions.map(emotion => 
-                `<span class="tag tag-emotion"><i class="fas fa-theater-masks mr-2"></i>${DOMPurify.sanitize(emotion)}</span>`
-            ).join('') + groupedPaces.map(pace => 
-                `<span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${DOMPurify.sanitize(pace)}</span>`
-            ).join('');
+            const tagsHtml = groupedEmotions.map(emotion => `<span class="tag"><i class="fas fa-theater-masks mr-2"></i>${emotion}</span>`).join('') + 
+                             groupedPaces.map(pace => `<span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${pace}</span>`).join('');
 
             const sectionCardHtml = `
             <div class="card !p-6 mb-6 animate-fade-in">
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="text-xl font-bold">${section.title}</h2>
-                    <button class="text-gray-400 hover:text-primary transition-colors"
-                            onclick="window.copyTextToClipboard(this.nextElementSibling.textContent); window.showCopyFeedback(this);"
-                            title="Copiar Texto Completo da Seção">
-                        <i class="fas fa-copy fa-lg"></i>
+                    <button class="btn btn-ghost btn-small" onclick="window.copyTextToClipboard(this.nextElementSibling.textContent); window.showCopyFeedback(this);" title="Copiar Texto Completo">
+                        <i class="fas fa-copy"></i>
                     </button>
                     <pre class="hidden">${DOMPurify.sanitize(sectionScript.text)}</pre>
                 </div>
                 <div class="flex flex-wrap gap-2 mb-4">
                     ${tagsHtml || '<span class="text-sm italic text-muted">Nenhuma emoção analisada.</span>'}
                 </div>
-                <div class="generated-content-wrapper text-base leading-relaxed" style="font-family: 'Roboto', serif;">
+                <div class="generated-content-wrapper text-base leading-relaxed">
                     ${sectionScript.html} 
                 </div>
             </div>`;
@@ -2890,7 +2877,6 @@ ACTION: Return ONLY the JSON array, using the English terms for the values.`;
         hideButtonLoading(button);
     }
 };
-
 
 
 // ==========================================================
@@ -4027,213 +4013,140 @@ const syncUiFromState = () => {
 
 
 // ==========================================================
-// ==================== EVENTOS E INICIALIZAÇÃO ===============
+// ===== EVENTOS E INICIALIZAÇÃO (VERSÃO FINAL) =================
 // ==========================================================
+
 document.addEventListener('DOMContentLoaded', () => {
 
-
-
-
-
-const editingMenu = document.getElementById('editing-menu');
-
-
-// ==========================================================
-// ===== MENU DE EDIÇÃO CONTEXTUAL (V5.0) =================
-// ==========================================================
-const handleEditingAction = async (action) => {
-    if (!userSelectionRange) {
-        window.showToast("Erro: A seleção de texto foi perdida.", 'error');
-        return;
-    }
-    const selectedText = userSelectionRange.toString().trim();
-    if (!selectedText) {
-        document.getElementById('editing-menu').classList.remove('visible');
-        return;
-    }
-
     const editingMenu = document.getElementById('editing-menu');
-    editingMenu.classList.remove('visible');
 
-    const instructions = {
-        expand: "Sua tarefa é expandir este parágrafo. Adicione mais detalhes, descrições vívidas e contexto para torná-lo mais rico e envolvente, mantendo o tom e a mensagem central originais.",
-        summarize: "Sua tarefa é resumir este parágrafo. Torne-o mais conciso, direto e impactante, removendo redundâncias mas preservando a informação essencial.",
-        correct: "Sua tarefa é atuar como um revisor meticuloso. Corrija quaisquer erros de ortografia, gramática e pontuação no texto a seguir, preservando o estilo original. Se não houver erros, retorne o texto original."
+    // ==========================================================
+    // ===== MENU DE EDIÇÃO CONTEXTUAL (V5.0) =================
+    // ==========================================================
+    const handleEditingAction = async (action) => {
+        if (!userSelectionRange) return;
+        const selectedText = userSelectionRange.toString().trim();
+        if (!selectedText) {
+            editingMenu.classList.remove('visible');
+            return;
+        }
+        editingMenu.classList.remove('visible');
+        const instructions = {
+            expand: "Sua tarefa é expandir este parágrafo, adicionando mais detalhes, descrições vívidas e contexto, mantendo o tom original.",
+            summarize: "Sua tarefa é resumir este parágrafo, tornando-o mais conciso e direto, preservando a informação essencial.",
+            correct: "Sua tarefa é revisar e corrigir quaisquer erros de ortografia, gramática e pontuação no texto a seguir. Se não houver erros, retorne o texto original."
+        };
+        const prompt = `Você é um editor de roteiros de elite. ${instructions[action]}
+        **REGRAS:**
+        1.  O idioma da resposta DEVE ser o mesmo do texto original.
+        2.  Responda APENAS com o texto reescrito. Sem comentários.
+        **TEXTO ORIGINAL:**
+        ---
+        ${selectedText}
+        ---`;
+        const startNode = userSelectionRange.startContainer.parentElement;
+        const sectionElement = startNode.closest('.accordion-item');
+        try {
+            const rawResult = await callGroqAPI(prompt, 3000);
+            const refinedText = removeMetaComments(rawResult);
+            if (userSelectionRange) {
+                window.getSelection().removeAllRanges();
+                userSelectionRange.deleteContents();
+                const newNode = document.createElement('span');
+                newNode.className = 'highlight-change';
+                newNode.textContent = refinedText;
+                userSelectionRange.insertNode(newNode);
+            }
+            if (sectionElement) {
+                const sectionId = sectionElement.id.replace('Section', '');
+                const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
+                if (contentWrapper && AppState.generated.script[sectionId]) {
+                    AppState.generated.script[sectionId].text = contentWrapper.textContent;
+                    AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
+                }
+                invalidateAndClearPerformance(sectionElement);
+                invalidateAndClearPrompts(sectionElement);
+                invalidateAndClearEmotionalMap();
+                updateAllReadingTimes();
+            }
+            window.showToast(`Texto refinado com sucesso!`, 'success');
+        } catch (err) {
+            console.error(`Erro ao tentar '${action}':`, err);
+            window.showToast(`Falha ao refinar o texto: ${err.message}`, 'error');
+        } finally {
+            userSelectionRange = null;
+        }
     };
 
-    const prompt = `Você é um editor de roteiros de elite. ${instructions[action]}
-    
-**REGRAS CRÍTICAS (INEGOCIÁVEIS):**
-1.  **IDIOMA:** A sua resposta DEVE estar no mesmo idioma do texto original.
-2.  **RESPOSTA LIMPA:** Responda APENAS com o texto reescrito. Sem comentários ou explicações.
-
-**TEXTO ORIGINAL:**
----
-${selectedText}
----
-`;
-    
-    // Encontra a seção-pai para invalidar o cache depois
-    const startNode = userSelectionRange.startContainer.parentElement;
-    const sectionElement = startNode.closest('.accordion-item');
-    
-    try {
-        const rawResult = await callGroqAPI(prompt, 3000);
-        const refinedText = removeMetaComments(rawResult);
-
-        if (userSelectionRange) {
-            window.getSelection().removeAllRanges();
-            userSelectionRange.deleteContents();
-            const newNode = document.createElement('span');
-            newNode.className = 'highlight-change';
-            newNode.textContent = refinedText;
-            userSelectionRange.insertNode(newNode);
-        }
-
-        if (sectionElement) {
-            const sectionId = sectionElement.id.replace('Section', '');
-            const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
-            if (contentWrapper && AppState.generated.script[sectionId]) {
-                // Sincroniza a mudança com o AppState
-                AppState.generated.script[sectionId].text = contentWrapper.textContent;
-                AppState.generated.script[sectionId].html = contentWrapper.innerHTML;
+    document.addEventListener('selectionchange', () => {
+        const selection = window.getSelection();
+        const selectedText = selection.toString().trim();
+        if (selectedText.length > 10 && selection.anchorNode && selection.anchorNode.parentElement.closest('.generated-content-wrapper')) {
+            userSelectionRange = selection.getRangeAt(0).cloneRange();
+            const rect = userSelectionRange.getBoundingClientRect();
+            editingMenu.style.left = `${rect.left + window.scrollX}px`;
+            editingMenu.style.top = `${rect.bottom + window.scrollY + 5}px`;
+            editingMenu.classList.add('visible');
+        } else {
+            if (!editingMenu.contains(document.activeElement)) {
+                 editingMenu.classList.remove('visible');
             }
-            // Invalida os recursos que dependem do texto
-            invalidateAndClearPerformance(sectionElement);
-            invalidateAndClearPrompts(sectionElement);
-            invalidateAndClearEmotionalMap();
-            updateAllReadingTimes();
         }
-        
-        window.showToast(`Texto refinado com sucesso!`, 'success');
+    });
 
-    } catch (err) {
-        console.error(`Erro ao tentar '${action}':`, err);
-        window.showToast(`Falha ao refinar o texto: ${err.message}`, 'error');
-    } finally {
-        userSelectionRange = null;
-    }
-};
-
-document.addEventListener('selectionchange', () => {
-    const editingMenu = document.getElementById('editing-menu');
-    const selection = window.getSelection();
-    const selectedText = selection.toString().trim();
-
-    // Verifica se a seleção é significativa e está dentro de um roteiro
-    if (selectedText.length > 10 && selection.anchorNode && selection.anchorNode.parentElement.closest('.generated-content-wrapper')) {
-        userSelectionRange = selection.getRangeAt(0).cloneRange();
-        const rect = userSelectionRange.getBoundingClientRect();
-        const appRoot = document.getElementById('appRoot');
-        const appRect = appRoot.getBoundingClientRect();
-
-        // Posiciona o menu em relação à janela, mas considera o scroll
-        editingMenu.style.left = `${rect.left + window.scrollX}px`;
-        editingMenu.style.top = `${rect.bottom + window.scrollY + 5}px`;
-        editingMenu.classList.add('visible');
-    } else {
-        // Esconde o menu se o foco não estiver nele
-        if (!editingMenu.contains(document.activeElement)) {
-             editingMenu.classList.remove('visible');
+    editingMenu.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (button) {
+            handleEditingAction(button.dataset.action);
         }
-    }
-});
-
-editingMenu.addEventListener('click', (event) => {
-    const button = event.target.closest('button[data-action]');
-    if (button) {
-        handleEditingAction(button.dataset.action);
-    }
-});
+    });
 
 
-
-
-
-
-
+    // ==========================================================
+    // ===== GERENTE DE CLIQUES (OBJETO 'actions') =================
+    // ==========================================================
     const actions = {
-
-        // ETAPA 1
         'investigate': (btn) => handleInvestigate(btn),
         'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn),
-        'select-idea': (btn) => {
-            const ideaString = btn.dataset.idea;
-            if(ideaString) selectIdea(JSON.parse(ideaString.replace(/&quot;/g, '"')));
-        },
-
-
-        // ETAPA 2
-        'suggestStrategy': (btn) => suggestStrategy(btn),
-        'applyStrategy': (btn) => applyStrategy(btn),
-        
-        // ETAPA 3
+        'select-idea': (btn) => { const ideaString = btn.dataset.idea; if(ideaString) selectIdea(JSON.parse(ideaString.replace(/&quot;/g, '"'))); },
+        'suggestStrategy': (btn) => suggestStrategy(btn), 'applyStrategy': (btn) => applyStrategy(btn),
         'generateOutline': (btn) => generateStrategicOutline(btn),
         'generateIntro': (btn) => handleGenerateSection(btn, 'intro', 'Introdução', 'intro'),
         'generateDevelopment': (btn) => handleGenerateSection(btn, 'development', 'Desenvolvimento', 'development'),
         'generateClimax': (btn) => handleGenerateSection(btn, 'climax', 'Clímax', 'climax'),
-        'generateConclusion': (btn) => generateConclusion(btn),
-        'generateCta': (btn) => generateStrategicCta(btn),
-        'suggestFinalStrategy': (btn) => suggestFinalStrategy(btn),
-        'goToFinalize': (btn) => goToFinalize(btn),
-
-        // ETAPA 4
-        'analyzeScript': (btn) => analyzeFullScript(btn),
-        'analyzeHooks': (btn) => analyzeRetentionHooks(btn),
+        'generateConclusion': (btn) => generateConclusion(btn), 'generateCta': (btn) => generateStrategicCta(btn),
+        'suggestFinalStrategy': (btn) => suggestFinalStrategy(btn), 'goToFinalize': (btn) => goToFinalize(btn),
+        'analyzeScript': (btn) => analyzeFullScript(btn), 'analyzeHooks': (btn) => analyzeRetentionHooks(btn),
         'suggestViralElements': (btn) => suggestViralElements(btn),
-        'generateTitlesAndThumbnails': (btn) => generateTitlesAndThumbnails(btn),
-        'generateDescription': (btn) => generateVideoDescription(btn),
-        'generateSoundtrack': (btn) => generateSoundtrack(btn),
-        'mapEmotions': (btn) => mapEmotionsAndPacing(btn),
-        'exportProject': () => exportProject(),
-        'exportPdf': () => downloadPdf(),
+        'generateTitlesAndThumbnails': (btn) => generateTitlesAndThumbnails(btn), 'generateDescription': (btn) => generateVideoDescription(btn),
+        'generateSoundtrack': (btn) => generateSoundtrack(btn), 'mapEmotions': (btn) => mapEmotionsAndPacing(btn),
+        'exportProject': () => exportProject(), 'exportPdf': () => downloadPdf(),
         'exportTranscript': () => handleCopyAndDownloadTranscript(),
         'resetProject': async () => { 
             const confirmed = await showConfirmationDialog("Começar um Novo Projeto?","Isso limpará todos os campos e o trabalho realizado. Esta ação não pode ser desfeita. Deseja continuar?");
             if (confirmed) resetApplicationState();
         },
-
-        // AÇÕES DO ACORDEÃO (FERRAMENTAS) - CORRIGIDAS
         'regenerate': (btn) => window.regenerateSection(btn.dataset.sectionId),
-        'copy': (btn) => {
-            const content = btn.closest('.accordion-item')?.querySelector('.generated-content-wrapper');
-            if (content) {
-                window.copyTextToClipboard(content.textContent);
-                window.showCopyFeedback(btn);
-            }
-        },
+        'copy': (btn) => { const content = btn.closest('.accordion-item')?.querySelector('.generated-content-wrapper'); if (content) { window.copyTextToClipboard(content.textContent); window.showCopyFeedback(btn); } },
         'analyzeRetention': (btn) => window.analyzeSectionRetention(btn),
-        'refineStyle': (btn) => window.refineSectionStyle(btn),
-        'enrichWithData': (btn) => window.enrichWithData(btn),
-        'suggestPerformance': (btn) => window.suggestPerformance(btn),
-        'addDevelopmentChapter': (btn) => window.addDevelopmentChapter(btn),
+        'refineStyle': (btn) => window.refineSectionStyle(btn), 'enrichWithData': (btn) => window.enrichWithData(btn),
+        'suggestPerformance': (btn) => window.suggestPerformance(btn), 'addDevelopmentChapter': (btn) => window.addDevelopmentChapter(btn),
         'generate-prompts': (btn) => window.generatePromptsForSection(btn),
-        
-        // AÇÕES DE CALLBACK (DOS TOOLTIPS DE ANÁLISE)
         'optimizeGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.optimizeGroup(btn, text); },
         'deleteParagraphGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.deleteParagraphGroup(btn, text); },
-        'applySuggestion': (btn) => window.applySuggestion(btn),
-        'applyAllSuggestions': (btn) => applyAllSuggestions(btn),
-        'applyHookSuggestion': (btn) => applyHookSuggestion(btn),
-        'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
+        'applySuggestion': (btn) => window.applySuggestion(btn), 'applyAllSuggestions': (btn) => applyAllSuggestions(btn),
+        'applyHookSuggestion': (btn) => applyHookSuggestion(btn), 'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
     };
 
 
-
-
+    // ==========================================================
+    // ===== LISTENER DE EVENTOS PRINCIPAL =================
+    // ==========================================================
     document.body.addEventListener('click', (event) => {
         const step = event.target.closest('.step[data-step]');
-        if (step) {
-            showPane(step.dataset.step);
-            return;
-        }
-
+        if (step) { showPane(step.dataset.step); return; }
         const button = event.target.closest('button[data-action]');
-        if (button && actions[button.dataset.action]) {
-            actions[button.dataset.action](button);
-            return;
-        }
-        
+        if (button && actions[button.dataset.action]) { actions[button.dataset.action](button); return; }
         const accordionHeader = event.target.closest('.accordion-header');
         if (accordionHeader && !event.target.closest('.header-buttons button')) {
             const body = accordionHeader.nextElementSibling;
@@ -4244,30 +4157,12 @@ editingMenu.addEventListener('click', (event) => {
                 arrow.classList.toggle('open', !isOpen);
             }
         }
-        
-        const tabButton = event.target.closest('.tab-button');
-        if (tabButton) {
-            const nav = tabButton.parentElement;
-            nav.querySelectorAll('.tab-button').forEach(b => b.classList.remove('tab-active'));
-            tabButton.classList.add('tab-active');
-            if(nav.id === 'inputTabsNav') {
-                const tabId = tabButton.dataset.tab;
-                document.querySelectorAll('#inputTabContent .tab-pane').forEach(p => p.classList.add('hidden'));
-                document.getElementById(tabId)?.classList.remove('hidden');
-            }
-        }
     });
 
 
-
-
-
-
-
-
-
-
-
+    // ==========================================================
+    // ===== INICIALIZAÇÃO E LISTENERS SECUNDÁRIOS =================
+    // ==========================================================
     const setDarkMode = (isDark) => {
         const moonIcon = document.getElementById('moonIcon'); const sunIcon = document.getElementById('sunIcon');
         if (isDark) {
@@ -4285,15 +4180,40 @@ editingMenu.addEventListener('click', (event) => {
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
     });
     
+    // >>>>> EVOLUÇÃO DO SALVAMENTO AUTOMÁTICO <<<<<
     document.querySelectorAll('.input, textarea.input, select.input, input[type="radio"]').forEach(el => {
         el.addEventListener('change', saveStateToLocalStorage);
     });
+
+    const scriptContainer = document.getElementById('scriptSectionsContainer');
+    if (scriptContainer) {
+        scriptContainer.addEventListener('input', (event) => {
+            const wrapper = event.target.closest('.generated-content-wrapper');
+            if (wrapper) {
+                const sectionElement = wrapper.closest('.accordion-item');
+                if (sectionElement) {
+                    const sectionId = sectionElement.id.replace('Section', '');
+                    if (AppState.generated.script[sectionId]) {
+                        AppState.generated.script[sectionId].html = wrapper.innerHTML;
+                        AppState.generated.script[sectionId].text = wrapper.textContent;
+                        saveStateToLocalStorage();
+                        invalidateAndClearPerformance(sectionElement);
+                        invalidateAndClearPrompts(sectionElement);
+                        invalidateAndClearEmotionalMap();
+                        updateAllReadingTimes();
+                    }
+                }
+            }
+        });
+    }
+    // >>>>> FIM DA EVOLUÇÃO <<<<<
+
     document.getElementById('importFileInput')?.addEventListener('change', importProject);
     document.getElementById('narrativeGoal')?.addEventListener('change', updateNarrativeStructureOptions);
     document.getElementById('narrativeStructure')?.addEventListener('change', updateMainTooltip);
     document.getElementById('imageStyleSelect')?.addEventListener('change', toggleCustomImageStyleVisibility);
 
-    // INICIALIZAÇÃO
+    // INICIALIZAÇÃO FINAL
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const storedTheme = localStorage.getItem('theme');
     setDarkMode(storedTheme === 'dark' || (!storedTheme && prefersDark));
