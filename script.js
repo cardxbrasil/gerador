@@ -2761,11 +2761,6 @@ const generateSoundtrack = async (button) => {
 
 
 
-
-// FUNÇÕES NÃO IMPORTADAS
-
-
-const mapEmotionsAndPacing = async (button) => { /* ... Implementação completa da v5.0 ... */ };
 const downloadPdf = async () => { /* ... Implementação completa da v5.0 ... */ };
 const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa da v5.0 ... */ };
 
@@ -2775,7 +2770,126 @@ const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa 
 
 
 
+const mapEmotionsAndPacing = async (button) => {
+    const { script } = AppState.generated;
+    const isScriptReady = script.intro.text && script.development.text && script.climax.text;
+    if (!isScriptReady) {
+        window.showToast("Gere pelo menos a Introdução, Desenvolvimento e Clímax primeiro.", 'info');
+        return;
+    }
 
+    const outputContainer = document.getElementById('emotionalMapContent');
+    showButtonLoading(button);
+    outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando a jornada emocional do roteiro...</p>`;
+
+    try {
+        AppState.generated.emotionalMap = null; 
+        const fullTranscript = getTranscriptOnly();
+        const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
+        
+        const prompt = `Your single function is to return a JSON array. For each of the ${paragraphs.length} paragraphs below, analyze and return the main emotion and pacing.
+        
+**CRITICAL AND UNBREAKABLE RULES:**
+1.  Your response MUST BE ONLY the JSON array, starting with \`[\` and ending with \`]\`.
+2.  The array must contain EXACTLY ${paragraphs.length} objects.
+3.  Each object must have EXACTLY two keys: "emotion" and "pace".
+4.  Allowed values for "emotion": 'strongly_positive', 'slightly_positive', 'neutral', 'slightly_negative', 'strongly_negative'.
+5.  Allowed values for "pace": 'very_fast', 'fast', 'medium', 'slow', 'very_slow'.
+
+**TEXT FOR ANALYSIS:**
+---
+${JSON.stringify(paragraphs)}
+---
+ACTION: Return ONLY the JSON array, using the English terms for the values.`;
+
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const emotionalMapData = cleanGeneratedText(rawResult, true, true);
+        if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
+            throw new Error("A IA não retornou um mapa emocional válido.");
+        }
+        AppState.generated.emotionalMap = emotionalMapData;
+        
+        outputContainer.innerHTML = '';
+        let paragraphCounter = 0;
+
+        const sectionOrder = [
+            { id: 'intro', title: 'Introdução' },
+            { id: 'development', title: 'Desenvolvimento' },
+            { id: 'climax', title: 'Clímax' },
+            { id: 'conclusion', title: 'Conclusão' },
+            { id: 'cta', title: 'Call to Action (CTA)' }
+        ];
+
+        const emotionGroups = {
+            'Positiva': ['Positiva Forte', 'Positiva Leve', 'strongly_positive', 'slightly_positive', 'happy', 'excited'],
+            'Negativa': ['Negativa Forte', 'Negativa Leve', 'strongly_negative', 'slightly_negative', 'sad', 'angry', 'fearful'],
+            'Neutra': ['Neutra', 'neutral', 'surprised']
+        };
+
+        const paceGroups = {
+            'Rápido': ['Muito Rápido', 'Rápido', 'very_fast', 'fast'],
+            'Médio': ['Médio', 'medium', 'moderate'],
+            'Lento': ['Muito Lento', 'Lento', 'very_slow', 'slow']
+        };
+
+        const getGroupName = (value, groups) => {
+            for (const groupName in groups) {
+                if (groups[groupName].includes(value)) {
+                    return groupName;
+                }
+            }
+            return value.charAt(0).toUpperCase() + value.slice(1);
+        };
+
+        sectionOrder.forEach(section => {
+            const sectionScript = script[section.id];
+            if (!sectionScript || !sectionScript.text) return;
+
+            const numParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim() !== '').length;
+            const sectionEmotionsData = AppState.generated.emotionalMap.slice(paragraphCounter, paragraphCounter + numParagraphs);
+            
+            const groupedEmotions = [...new Set(sectionEmotionsData.map(e => getGroupName(e.emotion, emotionGroups)))];
+            const groupedPaces = [...new Set(sectionEmotionsData.map(e => getGroupName(e.pace, paceGroups)))];
+
+            const tagsHtml = groupedEmotions.map(emotion => 
+                `<span class="tag tag-emotion"><i class="fas fa-theater-masks mr-2"></i>${DOMPurify.sanitize(emotion)}</span>`
+            ).join('') + groupedPaces.map(pace => 
+                `<span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${DOMPurify.sanitize(pace)}</span>`
+            ).join('');
+
+            const sectionCardHtml = `
+            <div class="card !p-6 mb-6 animate-fade-in">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-xl font-bold">${section.title}</h2>
+                    <button class="text-gray-400 hover:text-primary transition-colors"
+                            onclick="window.copyTextToClipboard(this.nextElementSibling.textContent); window.showCopyFeedback(this);"
+                            title="Copiar Texto Completo da Seção">
+                        <i class="fas fa-copy fa-lg"></i>
+                    </button>
+                    <pre class="hidden">${DOMPurify.sanitize(sectionScript.text)}</pre>
+                </div>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    ${tagsHtml || '<span class="text-sm italic text-muted">Nenhuma emoção analisada.</span>'}
+                </div>
+                <div class="generated-content-wrapper text-base leading-relaxed" style="font-family: 'Roboto', serif;">
+                    ${sectionScript.html} 
+                </div>
+            </div>`;
+            
+            outputContainer.innerHTML += sectionCardHtml;
+            paragraphCounter += numParagraphs;
+        });
+        
+        window.showToast("Mapa Emocional re-analisado com sucesso!", 'success');
+
+    } catch (error) {
+        console.error("Erro detalhado ao gerar o Mapa Emocional:", error);
+        outputContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar o mapa: ${error.message}</p>`;
+        AppState.generated.emotionalMap = null;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
 
 
 
