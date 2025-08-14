@@ -1473,7 +1473,7 @@ const handleInvestigate = async (button) => {
     document.getElementById('ideaGenerationSection').classList.add('hidden');
     document.getElementById('ideasOutput').innerHTML = '';
     const outputContainer = document.getElementById('factCheckOutput');
-    outputContainer.innerHTML = '<div class="asset-card-placeholder"><div class="loading-spinner"></div><span style="margin-left: 1rem;">Investigando... Nossos agentes estão na busca.</span></div>';
+    outputContainer.innerHTML = '<div class="asset-card-placeholder"><div class="loading-spinner loading-spinner-large"></div><span style="margin-left: 1rem;">Investigando... Nossos agentes estão na busca.</span></div>';
 
     try {
         const workerUrl = "https://aged-dawn-f88c.david-souzan.workers.dev/";
@@ -1561,18 +1561,23 @@ const generateIdeasFromReport = async (button) => {
              const escapedIdea = escapeIdeaForOnclick(idea);
              return `
                 <div class="card p-4 flex flex-col justify-between border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
-                    <div>
-                        <div class="flex justify-between items-start gap-2">
-                            <h4 class="font-bold text-base flex-grow" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                            <span class="font-bold text-sm text-${colorName}-500 flex-shrink-0">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
-                        </div>
-                        <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
-                    </div>
-                    <div class="text-right mt-3">
-                        <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                    </div>
-                </div>
-            `;
+        
+        <!-- Conteúdo Principal (Título e Descrição) -->
+        <div>
+            <h4 class="font-bold text-base mb-2" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
+            <p class="text-sm">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+        </div>
+
+        <!-- Rodapé do Card (Potencial e Botão Usar) -->
+        <div class="flex justify-between items-center mt-4">
+            <span class="font-bold text-sm bg-${colorName}-100 text-${colorName}-700 dark:bg-${colorName}-900/50 dark:text-${colorName}-300 py-1 px-2 rounded-lg">
+                Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
+            </span>
+            <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+        </div>
+
+    </div>
+`;
         }).join('');
         // >>>>> FIM DA CORREÇÃO #2 <<<<<
         
