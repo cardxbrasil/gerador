@@ -672,6 +672,41 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return null;
     };
 
+    // Função para corrigir array de objetos com propriedades sem aspas
+    const fixUnquotedProperties = (str) => {
+        // Corrige propriedades sem aspas: {propriedade: "valor"} -> {"propriedade": "valor"}
+        return str.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
+    };
+
+    // Função para corrigir array de strings mal formatado
+    const fixStringArray = (str) => {
+        // Verifica se é um array de objetos com strings como propriedades
+        if (str.startsWith('[') && str.endsWith(']')) {
+            try {
+                // Tenta parsear como está
+                JSON.parse(str);
+                return str;
+            } catch (e) {
+                // Se falhar, tenta corrigir
+                // Remove quebras de linha e espaços extras
+                let fixed = str.replace(/\s+/g, ' ');
+                // Corrige aspas
+                fixed = fixed.replace(/'/g, '"');
+                // Corrige vírgulas
+                fixed = fixed.replace(/,\s*]/g, ']');
+                fixed = fixed.replace(/,\s*}/g, '}');
+                
+                try {
+                    JSON.parse(fixed);
+                    return fixed;
+                } catch (e2) {
+                    // Continua para outras correções
+                }
+            }
+        }
+        return str;
+    };
+
     // Tenta extrair JSON de várias formas
     const extractionMethods = [
         // Método 1: Blocos markdown
@@ -802,6 +837,11 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         // Método 11: Extrair JSON com texto introdutório
         () => {
             return extractJsonWithIntro(trimmedText);
+        },
+        
+        // Método 12: Corrigir array de strings
+        () => {
+            return fixStringArray(trimmedText);
         }
     ];
 
@@ -879,7 +919,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         console.warn("Parse inicial falhou. Iniciando reparos...", initialError.message);
         
         try {
-            let repairedString = jsonString;
+            let repairedString = jsonString || '';
             
             // Regras de desinfecção melhoradas
             repairedString = repairedString.replace(/`/g, "'");
@@ -923,6 +963,27 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 return match;
             });
             
+            // Corrige objetos com propriedades sem aspas
+            repairedString = repairedString.replace(/\{([^}"]*?):/g, (match, propName) => {
+                // Verifica se a propriedade não está entre aspas
+                if (!propName.includes('"')) {
+                    return `{"${propName.trim()}":`;
+                }
+                return match;
+            });
+            
+            // Corrige arrays de objetos com strings como propriedades
+            repairedString = repairedString.replace(/\{([^{}]+)\}/g, (match, content) => {
+                // Se o conteúdo parece ser uma string simples, converte para formato correto
+                const trimmedContent = content.trim();
+                if (trimmedContent.startsWith('"') && trimmedContent.endsWith('"') && 
+                    !trimmedContent.includes(':')) {
+                    // É uma string, converte para objeto com propriedade "text"
+                    return `{"text": ${trimmedContent}}`;
+                }
+                return match;
+            });
+            
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
             
@@ -936,7 +997,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         } catch (surgeryError) {
             console.error("FALHA CRÍTICA: A cirurgia no JSON não foi bem-sucedida.", surgeryError.message);
             console.error("JSON Problemático (Original):", text);
-            console.error("JSON Pós-Cirurgia (Falhou):", repairedString || jsonString);
+            console.error("JSON Pós-Cirurgia (Falhou):", jsonString);
             
             // Tenta retornar o texto original como array se esperado
             if (arrayExpected) {

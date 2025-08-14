@@ -307,9 +307,9 @@ textarea.input { min-height: 84px; resize: vertical; }
 .generated-content-wrapper { font-family: 'Roboto', serif; line-height: 1.7; font-size: 0.9rem; }
 
 
-#scriptSectionsContainer .card.card-placeholder {
-    padding-top: 0.6rem;
-    padding-bottom: 0.6rem;
+#scriptSectionsContainer > .card.card-placeholder {
+    padding-top: 0.6rem !important;
+    padding-bottom: 0.6rem !important;
 }
 
 
