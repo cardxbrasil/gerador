@@ -1010,45 +1010,91 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
 const removeMetaComments = (text) => {
     if (!text) return "";
+
     let cleanedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     const lines = cleanedText.split('\n');
     if (lines.length > 0 && /^[A-ZÀ-Ú].*:$/.test(lines[0].trim())) {
         lines.shift();
         cleanedText = lines.join('\n');
     }
+    
     const patternsToRemove = [
-        /Here is the (generated )?script for the "[^"]+" section:\s*/gi, /Here is the (refined )?text:\s*/gi,
-        /Here is the (final )?version:\s*/gi, /Response:\s*/gi, /Output:\s*/gi, /^Of course(,)?\s*/i,
-        /^Sure(,)?\s*/i, /^Certainly(,)?\s*/i, /^Absolutely(,)?\s*/i, /^I can help with that\.\s*/i,
-        /^As requested\.\s*/i, /^Understood\.\s*/i, /^\*\*roteiro anotado:\*\*\s*/im, /^\*\*Introdução:\*\*\s*/im,
-        /^\*\*Desenvolvimento:\*\*\s*/im, /^\*\*Clímax:\*\*\s*/im, /^\*\*Conclusão:\*\*\s*/im,
-        /^\*\*Call to Action:\*\*\s*/im, /^\*\*TEXTO REFINADO:\*\*\s*/im, /^\*\*Refined Text:\*\*\s*/im,
-        /^\s*\*\*[^*]+\*\*\s*$/gm, /^\s*\((Pausa|Teaser|Corte para|Transição|Música sobe|Efeito sonoro)\)\s*$/gim,
-        /^\s*Presenter Notes?:\s*.*$/gim, /^\s*Note to Presenter:\s*.*$/gim, /^\s*Narrator:\s*.*$/gim,
-        /^\s*Host:\s*.*$/gim, /^\s*Voiceover:\s*.*$/gim, /^\s*VO:\s*.*$/gim, /^\s*On-screen text:\s*.*$/gim,
-        /^\s*Title Card:\s*.*$/gim, /^\s*\[Begin\]\s*$/gim, /^\s*\[End\]\s*$/gim, /^\s*\[Scene \d+\]\s*$/gim,
-        /^\s*\[Transition\]\s*$/gim, /^\s*\[Music\]\s*$/gim, /^\s*\[Sound Effect\]\s*$/gim,
-        /^\s*\[Pause\]\s*$/gim, /^\s*\[Cue\]\s*$/gim, /^\s*\[Visual:\s*.*\]\s*$/gim,
-        /^\s*\[Action:\s*.*\]\s*$/gim, /^\s*\[Character:\s*.*\]\s*$/gim, /^\s*Word count:\s*\d+\s*$/gim,
-        /^\s*Estimated duration:\s*.*$/gim, /^\s*Style:\s*.*$/gim, /^\s*Tone:\s*.*$/gim,
-        /^\s*Keywords?:\s*.*$/gim, /^\s*In summary(,)?\s*.*$/gim, /^\s*To conclude(,)?\s*.*$/gim,
-        /^\s*In conclusion(,)?\s*.*$/gim, /^\s*That's all(,)?\s*.*$/gim, /^\s*That's it(,)?\s*.*$/gim,
-        /^\s*Thank you for listening\.\s*$/gim, /^\s*Let me know if you need anything else\.\s*$/gim,
-        /^\s*Please let me know if you have any other requests\.\s*$/gim, /^"""\s*/g, /\s*"""$/g,
+        /Here is the (generated )?script for the "[^"]+" section:\s*/gi,
+        /Here is the (refined )?text:\s*/gi,
+        /Here is the (final )?version:\s*/gi,
+        /Response:\s*/gi,
+        /Output:\s*/gi,
+        /^Of course(,)?\s*/i,
+        /^Sure(,)?\s*/i,
+        /^Certainly(,)?\s*/i,
+        /^Absolutely(,)?\s*/i,
+        /^I can help with that\.\s*/i,
+        /^As requested\.\s*/i,
+        /^Understood\.\s*/i,
+        /^\*\*roteiro anotado:\*\*\s*/im,
+        /^\*\*Introdução:\*\*\s*/im,
+        /^\*\*Desenvolvimento:\*\*\s*/im,
+        /^\*\*Clímax:\*\*\s*/im,
+        /^\*\*Conclusão:\*\*\s*/im,
+        /^\*\*Call to Action:\*\*\s*/im,
+        /^\*\*TEXTO REFINADO:\*\*\s*/im,
+        /^\*\*Refined Text:\*\*\s*/im,
+        /^\s*\*\*[^*]+\*\*\s*$/gm,
+        // >>>>> EVOLUÇÃO INTEGRADA <<<<<
+        /^\s*\*\*IDIOMA:\*\*.*$/gim,
+        /^\s*\*\*RESPOSTA LIMPA:\*\*.*$/gim,
+        // >>>>> FIM DA EVOLUÇÃO <<<<<
+        /^\s*\((Pausa|Teaser|Corte para|Transição|Música sobe|Efeito sonoro)\)\s*$/gim,
+        /^\s*Presenter Notes?:\s*.*$/gim,
+        /^\s*Note to Presenter:\s*.*$/gim,
+        /^\s*Narrator:\s*.*$/gim,
+        /^\s*Host:\s*.*$/gim,
+        /^\s*Voiceover:\s*.*$/gim,
+        /^\s*VO:\s*.*$/gim,
+        /^\s*On-screen text:\s*.*$/gim,
+        /^\s*Title Card:\s*.*$/gim,
+        /^\s*\[Begin\]\s*$/gim,
+        /^\s*\[End\]\s*$/gim,
+        /^\s*\[Scene \d+\]\s*$/gim,
+        /^\s*\[Transition\]\s*$/gim,
+        /^\s*\[Music\]\s*$/gim,
+        /^\s*\[Sound Effect\]\s*$/gim,
+        /^\s*\[Pause\]\s*$/gim,
+        /^\s*\[Cue\]\s*$/gim,
+        /^\s*\[Visual:\s*.*\]\s*$/gim,
+        /^\s*\[Action:\s*.*\]\s*$/gim,
+        /^\s*\[Character:\s*.*\]\s*$/gim,
+        /^\s*Word count:\s*\d+\s*$/gim,
+        /^\s*Estimated duration:\s*.*$/gim,
+        /^\s*Style:\s*.*$/gim,
+        /^\s*Tone:\s*.*$/gim,
+        /^\s*Keywords?:\s*.*$/gim,
+        /^\s*In summary(,)?\s*.*$/gim,
+        /^\s*To conclude(,)?\s*.*$/gim,
+        /^\s*In conclusion(,)?\s*.*$/gim,
+        /^\s*That's all(,)?\s*.*$/gim,
+        /^\s*That's it(,)?\s*.*$/gim,
+        /^\s*Thank you for listening\.\s*$/gim,
+        /^\s*Let me know if you need anything else\.\s*$/gim,
+        /^\s*Please let me know if you have any other requests\.\s*$/gim,
+        /^"""\s*/g,
+        /\s*"""$/g,
     ];
+
     patternsToRemove.forEach(pattern => {
         cleanedText = cleanedText.replace(pattern, '');
     });
+
     cleanedText = cleanedText.replace(/^\s*\n+|\n+\s*$/g, '').trim();
     if (cleanedText.startsWith('"') && cleanedText.endsWith('"')) {
         const contentInside = cleanedText.substring(1, cleanedText.length - 1);
         if (!/[^\\]"/.test(contentInside)) {
-             cleanedText = contentInside;
+            cleanedText = contentInside;
         }
     }
+    
     return cleanedText.trim();
 };
-
 const getTranscriptOnly = () => {
     let transcript = '';
     const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
