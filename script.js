@@ -2801,12 +2801,19 @@ ${JSON.stringify(paragraphs)}
 
 ACTION: Return ONLY the JSON array.`;
 
-        const rawResult = await callGroqAPI(prompt, 4000);
+        const rawResult = await callGroqAPI(prompt, 8000);
         const emotionalMapData = cleanGeneratedText(rawResult, true, true);
-        if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length < paragraphs.length) {
-            throw new Error("A IA não retornou um mapa emocional válido ou completo.");
-        }
-        AppState.generated.emotionalMap = emotionalMapData.slice(0, paragraphs.length);
+      if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
+    throw new Error("A IA não retornou um mapa emocional válido.");
+}
+
+// Se a IA retornou menos itens, avisa no console mas continua o processo com o que temos.
+if(emotionalMapData.length < paragraphs.length) {
+    console.warn(`Discrepância no Mapa Emocional: Esperado ${paragraphs.length}, Recebido ${emotionalMapData.length}. Usando dados parciais.`);
+}
+
+// Garante que nunca tentaremos acessar um índice que não existe.
+AppState.generated.emotionalMap = emotionalMapData.slice(0, paragraphs.length);
         
         outputContainer.innerHTML = '';
         let paragraphCounter = 0;
