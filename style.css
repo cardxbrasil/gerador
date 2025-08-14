@@ -112,7 +112,7 @@ body {
     transition: var(--transition);
 }
 .step.completed .badge { background: var(--primary); color: white; }
-.step .step-title { font-weight: 600; color: var(--text-header); }
+.step .step-title { font-weight: 600; color: var(--text-header); font-size: 0.9rem; }
 
 .progress-wrap { margin: 16px 0; }
 .progress-info { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
@@ -290,7 +290,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 
 /* Acordeão (para o roteiro) */
 .accordion-item { border-bottom: 1px solid var(--border); }
-.accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1.5rem; cursor: pointer; transition: var(--transition); }
+.accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1.5rem; cursor: pointer; transition: var(--transition); }
 .accordion-header:hover { background-color: color-mix(in srgb, var(--border) 20%, transparent); }
 .header-title-group { display: flex; align-items: center; gap: 0.75rem; flex-grow: 1; }
 .header-title-group h3 { font-weight: 600; font-size: 0.9rem; color: var(--text-header); }
