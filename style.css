@@ -552,7 +552,7 @@ textarea.input { min-height: 84px; resize: vertical; }
 
 /* Controla o título da ideia de thumbnail (ex: "A Cidade Escondida") */
 .thumbnail-idea h4 {
-    font-size: 0.95rem; /* << Altere aqui */
+    font-size: 0.9rem; /* << Altere aqui */
     font-weight: 600;
     color: var(--text-header);
 }

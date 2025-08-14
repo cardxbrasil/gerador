@@ -1774,14 +1774,13 @@ const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = nul
     let prompt = '';
     let maxTokens = 8000;
 
-    // Lógica para todos os prompts de GERAÇÃO DE ROTEIRO (intro, dev, climax)
     if (['intro', 'development', 'climax'].includes(sectionName)) {
         prompt = `
 Você é uma API que retorna APENAS um array JSON. Sua única tarefa é gerar os parágrafos para uma seção de um roteiro de vídeo.
 
 **REGRAS DE FORMATAÇÃO (ABSOLUTAMENTE INEGOCIÁVEIS):**
 1.  **JSON PURO:** Sua resposta DEVE ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
-2.  **NENHUM TEXTO EXTRA:** É TERMINANTEMENTE PROIBIDO incluir qualquer texto antes ou depois do array JSON (sem "Aqui está o roteiro:", sem contagem de palavras, nada).
+2.  **NENHUM TEXTO EXTRA:** É TERMINANTEMENTE PROIBIDO incluir qualquer texto antes ou depois do array JSON.
 3.  **CONTEÚDO DO ARRAY:** O array deve conter strings, onde cada string é um parágrafo completo do roteiro.
 4.  **QUALIDADE DO PARÁGRAFO:** Cada parágrafo deve ser bem desenvolvido, contendo múltiplas frases (idealmente 4 ou mais).
 5.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
@@ -1797,7 +1796,7 @@ ${contextText ? `**ROTEIRO ESCRITO ATÉ AGORA (CONTINUE A PARTIR DAQUI):**\n---\
 
 **AÇÃO FINAL:** Com base em TODO o contexto fornecido, gere o conteúdo para a seção "${sectionTitle}". Responda APENAS com o array JSON válido e completo.`;
     } else {
-        // Lógica para os outros tipos de prompts (outline, titles, etc.)
+        // Lógica para os outros tipos de prompts
         switch (sectionName) {
             case 'outline':
                 prompt = `${baseContext}\nVocê é uma API de geração de JSON. Sua tarefa é criar um esboço estratégico para um vídeo.\n**REGRAS INEGOCIÁVEIS:**\n1. **JSON PURO:** Responda APENAS com um objeto JSON válido.\n2. **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".\n3. **VALORES:** O valor para CADA chave DEVE ser uma única string de texto (1-2 frases).\n**TAREFA:** Gere o objeto JSON perfeito.`;
@@ -1808,10 +1807,28 @@ ${contextText ? `**ROTEIRO ESCRITO ATÉ AGORA (CONTINUE A PARTIR DAQUI):**\n---\
                 maxTokens = 2000;
                 break;
             case 'description':
+                // >>>>> EVOLUÇÃO INTEGRADA AQUI <<<<<
                 const languageName = new Intl.DisplayNames([document.getElementById('languageSelect').value], { type: 'language' }).of(document.getElementById('languageSelect').value);
-                prompt = `${baseContext}\n**TAREFA:** Gerar uma descrição otimizada e hashtags no idioma ${languageName}.\n**REGRAS:** Comece com um gancho, detalhe o conteúdo, finalize com CTA e liste 10 hashtags.\n**AÇÃO:** Responda APENAS com a descrição e hashtags.`;
-                maxTokens = 1000;
+                prompt = `${baseContext}
+**TAREFA:** Gerar uma descrição otimizada para um vídeo do YouTube e uma lista de hashtags relevantes, no idioma ${languageName}.
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
+1.  **JSON PURO:** Sua resposta deve ser APENAS um objeto JSON válido.
+2.  **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas duas chaves: "description_text" e "hashtags".
+3.  **VALORES:**
+    - "description_text": (String) Um parágrafo único e coeso. Comece com um gancho, detalhe o conteúdo e finalize com um call-to-action sutil.
+    - "hashtags": (Array de Strings) Uma lista com 10 hashtags relevantes, cada uma começando com #.
+
+**EXEMPLO DE FORMATO PERFEITO:**
+{
+  "description_text": "Este é um exemplo de descrição de vídeo. Ela começa com um gancho para prender a atenção e termina com uma chamada para ação.",
+  "hashtags": ["#Exemplo1", "#Exemplo2", "#Exemplo3", "#Exemplo4", "#Exemplo5", "#Exemplo6", "#Exemplo7", "#Exemplo8", "#Exemplo9", "#Exemplo10"]
+}
+
+**AÇÃO FINAL:** Gere o objeto JSON perfeito.`;
+                maxTokens = 2000;
                 break;
+                // >>>>> FIM DA EVOLUÇÃO <<<<<
         }
     }
     return { prompt, maxTokens };
@@ -2667,12 +2684,27 @@ const generateVideoDescription = async (button) => {
     const targetContentElement = document.getElementById('videoDescriptionContent');
     try {
         const { prompt, maxTokens } = constructScriptPrompt('description');
-        let result = await callGroqAPI(prompt, maxTokens);
-        result = removeMetaComments(cleanGeneratedText(result, false));
-        AppState.generated.description = result;
-        targetContentElement.innerHTML = `<div class="generated-output-box whitespace-pre-wrap">${DOMPurify.sanitize(result)}</div>`;
+        const rawResult = await callGroqAPI(prompt, maxTokens);
+        
+        // Agora esperamos um objeto JSON
+        const parsedContent = cleanGeneratedText(rawResult, true);
+        
+        if (!parsedContent || !parsedContent.description_text || !Array.isArray(parsedContent.hashtags)) {
+            throw new Error("A IA não retornou a descrição e hashtags no formato esperado.");
+        }
+
+        // Salva o objeto inteiro no estado
+        AppState.generated.description = parsedContent;
+        
+        // Monta o HTML separado
+        const descriptionHtml = `<p>${DOMPurify.sanitize(parsedContent.description_text)}</p>`;
+        const hashtagsHtml = `<div class="mt-4" style="color: var(--primary); font-weight: 500;">${parsedContent.hashtags.map(h => DOMPurify.sanitize(h)).join(' ')}</div>`;
+
+        targetContentElement.innerHTML = `<div class="generated-output-box">${descriptionHtml}${hashtagsHtml}</div>`;
+
     } catch (error) {
         window.showToast(`Falha ao gerar Descrição: ${error.message}`, 'error');
+        targetContentElement.innerHTML = `<div class="asset-card-placeholder" style="color: var(--danger);">${error.message}</div>`;
     } finally {
         hideButtonLoading(button);
     }
