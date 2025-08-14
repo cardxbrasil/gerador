@@ -290,26 +290,8 @@ textarea.input { min-height: 84px; resize: vertical; }
 
 /* Acordeão (para o roteiro) */
 .accordion-item { border-bottom: 1px solid var(--border); }
-
-
-#scriptSectionsContainer .card-placeholder,
-.accordion-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.7rem 1.5rem !important; /* Força a altura a ser compacta em ambos */
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-/* Garante que o hover só se aplique ao acordeão gerado */
-.accordion-header:hover { 
-    background-color: color-mix(in srgb, var(--border) 20%, transparent); 
-}
-
-
-
-
+.accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.6rem; cursor: pointer; transition: var(--transition); }
+.accordion-header:hover { background-color: color-mix(in srgb, var(--border) 20%, transparent); }
 .header-title-group { display: flex; align-items: center; gap: 0.75rem; flex-grow: 1; }
 .header-title-group h3 { font-weight: 600; font-size: 0.9rem; color: var(--text-header); }
 .card-placeholder h3 { font-size: 0.9rem; }
@@ -533,4 +515,55 @@ textarea.input { min-height: 84px; resize: vertical; }
   animation: fade-out-highlight 2.5s ease-out forwards;
   border-radius: 4px;
   outline-offset: 2px;
+}
+
+/* ================================================================= */
+/* ===== ESTILOS PARA CONTEÚDO GERADO (Títulos, Thumbs, Descrição) ===== */
+/* ================================================================= */
+
+.generated-output-box {
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: color-mix(in srgb, var(--border) 20%, transparent);
+}
+
+.output-content-block {
+    margin-bottom: 1.5rem;
+}
+.output-content-block:last-child {
+    margin-bottom: 0;
+}
+
+/* Controla os subtítulos como "Sugestões de Títulos:" e "Ideias de Thumbnail:" */
+.output-subtitle {
+    font-size: 0.8rem; /* << Altere aqui */
+    font-weight: 700;
+    color: var(--text-header);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed var(--border);
+}
+
+/* Controla a lista de títulos numerados */
+.output-content-block > p {
+    font-size: 0.9rem; /* << Altere aqui */
+    margin-bottom: 0.5rem;
+}
+
+/* Controla o título da ideia de thumbnail (ex: "A Cidade Escondida") */
+.thumbnail-idea h4 {
+    font-size: 0.95rem; /* << Altere aqui */
+    font-weight: 600;
+    color: var(--text-header);
+}
+
+/* Controla a descrição da ideia de thumbnail */
+.thumbnail-idea p {
+    font-size: 0.85rem; /* << Altere aqui */
+    color: var(--text-muted);
+}
+
+/* Espaçamento entre as ideias de thumbnail */
+.thumbnail-idea {
+    margin-top: 1rem;
 }
