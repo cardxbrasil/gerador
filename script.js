@@ -493,7 +493,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             /Resultado.*?:\s*\n*/i,
             /\d+\.\s*(Resposta|Descrição|Prompt).*?:\s*\n*/i,
             /Based on the instructions.*?:\s*\n*/i,
-            /Here are the results.*?:\s*\n*/i
+            /Here are the results.*?:\s*\n*/i,
+            /Aqui está.*?array.*?JSON.*?:\s*\n*/i
         ];
         
         for (const pattern of patterns) {
@@ -781,7 +782,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Método 7: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:', '[\n  {', '[\n\t{'];
+            const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -948,7 +949,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/\\([^"\\/bfnrtu])/g, '$1');
             
             // Corrige aspas escapadas duplicadas
-            repairedString = repairedString.replace(/\\"/g, '"');
+            repairedString = repairedString.replace(/\\"/g, '\\"');
             
             // Corrige vírgulas faltando entre propriedades
             repairedString = repairedString.replace(/"(\s+)([a-zA-Z0-9_]+)":/g, '",$1"$2":');
@@ -983,6 +984,22 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 }
                 return match;
             });
+            
+            // Corrige chaves não fechadas
+            repairedString = repairedString.replace(/\}/g, '}');
+            
+            // Corrige caracteres especiais
+            repairedString = repairedString.replace(/“/g, '"');
+            repairedString = repairedString.replace(/”/g, '"');
+            repairedString = repairedString.replace(/‘/g, "'");
+            repairedString = repairedString.replace(/’/g, "'");
+            
+            // Corrige problemas específicos do erro relatado
+            repairedString = repairedString.replace(/"questionamos":/g, '"questionamos":');
+            repairedString = repairedString.replace(/QUEm/g, 'Quem');
+            
+            // Corrige chaves mal fechadas
+            repairedString = repairedString.replace(/(\w+)\s*}/g, '$1"}');
             
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
@@ -1029,7 +1046,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                            !line.match(/^\d+\./) && 
                            !trimmedLine.startsWith('Based on') && 
                            !trimmedLine.startsWith('Here are') &&
-                           !trimmedLine.includes('```');
+                           !trimmedLine.includes('```') &&
+                           !trimmedLine.startsWith('Aqui está');
                 })
                 .join('\n');
                 
@@ -1040,7 +1058,16 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                     const jsonArrayMatch = cleanText.match(/\[\s*\{[\s\S]*\}\s*\]/);
                     if (jsonArrayMatch) {
                         try {
-                            return JSON.parse(jsonArrayMatch[0]);
+                            const jsonArray = jsonArrayMatch[0];
+                            // Tenta corrigir o array antes de parsear
+                            let fixedArray = jsonArray
+                                .replace(/“/g, '"')
+                                .replace(/”/g, '"')
+                                .replace(/‘/g, "'")
+                                .replace(/’/g, "'")
+                                .replace(/\\n/g, "\\\\n");
+                            
+                            return JSON.parse(fixedArray);
                         } catch (e) {
                             // Se falhar, retorna como array de linhas
                             return cleanText.split('\n').filter(line => line.trim().length > 0);
@@ -1504,15 +1531,14 @@ const generateIdeasFromReport = async (button) => {
     const outputContainer = document.getElementById('ideasOutput');
     showButtonLoading(button);
 
-    // >>>>> CORREÇÃO #2: HTML DO LOADING CENTRALIZADO <<<<<
+    // >>>>> CORREÇÃO #1: HTML DE LOADING SIMPLES E CENTRALIZADO <<<<<
     outputContainer.innerHTML = `
-        <div class="md:col-span-2 flex flex-col items-center justify-center p-8 text-center">
-            <div class="loading-spinner mb-4" style="width: 32px; height: 32px; border-width: 4px;"></div>
+        <div class="md:col-span-2 text-center p-8">
+            <div class="loading-spinner mx-auto mb-4" style="width: 32px; height: 32px; border-width: 4px; margin: auto;"></div>
             <p class="text-lg font-semibold" style="color: var(--text-header);">Consultando especialista em ${genre}...</p>
-            <p class="text-sm" style="color: var(--text-muted);">Isso pode levar alguns segundos.</p>
         </div>
     `;
-    // >>>>> FIM DA CORREÇÃO #2 <<<<<
+    // >>>>> FIM DA CORREÇÃO #1 <<<<<
 
     const promptContext = { originalQuery, rawReport, languageName };
     const prompt = PromptManager.getIdeasPrompt(genre, promptContext);
@@ -1530,25 +1556,25 @@ const generateIdeasFromReport = async (button) => {
         };
         const colorName = genreColorMap[genre] || 'emerald';
 
-        // >>>>> CORREÇÃO #1: HTML DOS CARDS REORGANIZADO <<<<<
+        // >>>>> CORREÇÃO #2: HTML DOS CARDS DA V5.0 <<<<<
         const allCardsHtml = ideas.map((idea, index) => {
              const escapedIdea = escapeIdeaForOnclick(idea);
              return `
                 <div class="card p-4 flex flex-col justify-between border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
-                    <div class="flex justify-between items-start gap-4">
-                        <div class="flex-grow">
-                            <h4 class="font-bold text-base mb-2" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                            <p class="text-sm">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+                    <div>
+                        <div class="flex justify-between items-start gap-2">
+                            <h4 class="font-bold text-base flex-grow" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
+                            <span class="font-bold text-sm text-${colorName}-500 flex-shrink-0">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
                         </div>
-                        <div class="flex flex-col items-end flex-shrink-0 ml-4">
-                             <span class="font-bold text-sm text-${colorName}-500 mb-2">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
-                             <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                        </div>
+                        <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+                    </div>
+                    <div class="text-right mt-3">
+                        <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
                     </div>
                 </div>
             `;
         }).join('');
-        // >>>>> FIM DA CORREÇÃO #1 <<<<<
+        // >>>>> FIM DA CORREÇÃO #2 <<<<<
         
         outputContainer.innerHTML = allCardsHtml;
         markStepCompleted('investigate', false);
