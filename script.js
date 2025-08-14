@@ -494,7 +494,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             /\d+\.\s*(Resposta|Descrição|Prompt).*?:\s*\n*/i,
             /Based on the instructions.*?:\s*\n*/i,
             /Here are the results.*?:\s*\n*/i,
-            /Aqui está.*?array.*?JSON.*?:\s*\n*/i
+            /Aqui está.*?array.*?JSON.*?:\s*\n*/i,
+            /Aqui está a proposta.*?JSON.*?:\s*\n*/i
         ];
         
         for (const pattern of patterns) {
@@ -673,39 +674,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return null;
     };
 
-    // Função para corrigir array de objetos com propriedades sem aspas
-    const fixUnquotedProperties = (str) => {
-        // Corrige propriedades sem aspas: {propriedade: "valor"} -> {"propriedade": "valor"}
-        return str.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
-    };
-
-    // Função para corrigir array de strings mal formatado
-    const fixStringArray = (str) => {
-        // Verifica se é um array de objetos com strings como propriedades
-        if (str.startsWith('[') && str.endsWith(']')) {
-            try {
-                // Tenta parsear como está
-                JSON.parse(str);
-                return str;
-            } catch (e) {
-                // Se falhar, tenta corrigir
-                // Remove quebras de linha e espaços extras
-                let fixed = str.replace(/\s+/g, ' ');
-                // Corrige aspas
-                fixed = fixed.replace(/'/g, '"');
-                // Corrige vírgulas
-                fixed = fixed.replace(/,\s*]/g, ']');
-                fixed = fixed.replace(/,\s*}/g, '}');
-                
-                try {
-                    JSON.parse(fixed);
-                    return fixed;
-                } catch (e2) {
-                    // Continua para outras correções
-                }
-            }
-        }
-        return str;
+    // Função para corrigir objetos JSON com vírgulas faltando
+    const fixMissingCommas = (str) => {
+        // Corrige vírgulas faltando entre propriedades
+        return str.replace(/"([^"]+)"\s*"([^"]+)"/g, '"$1", "$2"');
     };
 
     // Tenta extrair JSON de várias formas
@@ -782,7 +754,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Método 7: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"'];
+            const keywords = ['{"', '{""', '[{', 'data:', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -838,11 +810,6 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         // Método 11: Extrair JSON com texto introdutório
         () => {
             return extractJsonWithIntro(trimmedText);
-        },
-        
-        // Método 12: Corrigir array de strings
-        () => {
-            return fixStringArray(trimmedText);
         }
     ];
 
@@ -1001,6 +968,21 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             // Corrige chaves mal fechadas
             repairedString = repairedString.replace(/(\w+)\s*}/g, '$1"}');
             
+            // Corrige vírgulas faltando antes de fechar chaves
+            repairedString = repairedString.replace(/(".*?")\s*(".*?":)/g, '$1, $2');
+            
+            // Corrige objetos sem vírgulas entre eles
+            repairedString = repairedString.replace(/(\}\s*\{)/g, '}, {');
+            
+            // Corrige propriedades sem vírgulas
+            repairedString = repairedString.replace(/(".*?")\s*(".*?":)/g, '$1, $2');
+            
+            // Corrige vírgulas faltando antes de investigativeApproach
+            repairedString = repairedString.replace(/("videoDescription":\s*".*?")(\s*"investigativeApproach")/g, '$1,$2');
+            
+            // Corrige problemas de formatação específicos
+            repairedString = repairedString.replace(/("videoDescription":\s*".*?")(\s*"[\w])/g, '$1, $2');
+            
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
             
@@ -1065,7 +1047,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/”/g, '"')
                                 .replace(/‘/g, "'")
                                 .replace(/’/g, "'")
-                                .replace(/\\n/g, "\\\\n");
+                                .replace(/\\n/g, "\\\\n")
+                                .replace(/("videoDescription":\s*".*?")(\s*"investigativeApproach")/g, '$1, $2')
+                                .replace(/("videoDescription":\s*".*?")(\s*"[\w])/g, '$1, $2');
                             
                             return JSON.parse(fixedArray);
                         } catch (e) {
@@ -1559,8 +1543,8 @@ const generateIdeasFromReport = async (button) => {
         // >>>>> CORREÇÃO #2: HTML DOS CARDS DA V5.0 <<<<<
         const allCardsHtml = ideas.map((idea, index) => {
              const escapedIdea = escapeIdeaForOnclick(idea);
-             return `
-                <div class="card p-4 flex flex-col justify-between border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
+return `
+    <div class="card p-4 flex flex-col justify-between border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
         
         <!-- PARTE SUPERIOR: Título e Botão Usar -->
         <div class="flex justify-between items-start gap-4 mb-2">
@@ -1569,7 +1553,9 @@ const generateIdeasFromReport = async (button) => {
         </div>
 
         <!-- PARTE DO MEIO: Descrição -->
-        <p class="text-sm flex-grow">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+        <div class="flex-grow">
+            <p class="text-sm">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+        </div>
 
         <!-- PARTE INFERIOR: Potencial -->
         <div class="mt-4">
@@ -2709,6 +2695,7 @@ const generateTitlesAndThumbnails = async (button) => {
     if (!validateInputs()) return;
     showButtonLoading(button);
     const targetContentElement = document.getElementById('titlesThumbnailsContent');
+    targetContentElement.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
     try {
         const { prompt, maxTokens } = constructScriptPrompt('titles_thumbnails');
         const rawResult = await callGroqAPI(prompt, maxTokens);
@@ -2722,14 +2709,131 @@ const generateTitlesAndThumbnails = async (button) => {
 
         const titlesListHtml = titles.map((title, index) => `<p>${index + 1}. ${DOMPurify.sanitize(title)}</p>`).join('');
         const thumbnailsListHtml = thumbnails.map((thumb) => `<div class="thumbnail-idea"><h4 class="font-semibold">"${DOMPurify.sanitize(thumb.title)}"</h4><p>Descrição: ${DOMPurify.sanitize(thumb.description)}</p></div>`).join('');
-        targetContentElement.innerHTML = `<div class="generated-output-box"><div class="output-content-block"><h4 class="output-subtitle">Sugestões de Títulos:</h4>${titlesListHtml}</div><div class="output-content-block"><h4 class="output-subtitle">Ideias de Thumbnail:</h4>${thumbnailsListHtml}</div></div>`;
+
+        // >>>>> LÓGICA DE RENDERIZAÇÃO COMPLETA DA V5.0 <<<<<
+        targetContentElement.innerHTML = `
+            <div class="generated-output-box">
+                <div class="output-content-block">
+                    <h4 class="output-subtitle">Sugestões de Títulos:</h4>
+                    ${titlesListHtml}
+                    <div class="mt-3">
+                        <button class="btn btn-secondary btn-small" onclick="window.analyzeTitles()">Analisar CTR</button>
+                        <div id="ctrAnalysisResult" class="mt-3 text-sm"></div>
+                    </div>
+                </div>
+                <div class="output-content-block">
+                    <h4 class="output-subtitle">Ideias de Thumbnail:</h4>
+                    ${thumbnailsListHtml}
+                    <div class="mt-3">
+                        <button class="btn btn-secondary btn-small" onclick="window.analyzeThumbnails()">Analisar Thumbnails</button>
+                        <div id="thumbnailAnalysisResult" class="mt-3 text-sm"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        // >>>>> FIM DA LÓGICA DE RENDERIZAÇÃO <<<<<
+
     } catch (error) {
         window.showToast(`Falha ao gerar Títulos: ${error.message}`, 'error');
-        targetContentElement.innerHTML = `<div class="asset-card-placeholder text-red-500">Erro.</div>`;
+        targetContentElement.innerHTML = `<div class="asset-card-placeholder" style="color: var(--danger);">${error.message}</div>`;
     } finally {
         hideButtonLoading(button);
     }
 };
+
+
+
+
+window.analyzeTitles = async () => {
+    const titlesData = AppState.generated.titlesAndThumbnails;
+    if (!titlesData || !titlesData.titles || titlesData.titles.length === 0) {
+        window.showToast("Gere os títulos primeiro antes de analisar!", 'info');
+        return;
+    }
+    const resultContainer = document.getElementById('ctrAnalysisResult');
+    resultContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-2"></div>`;
+    const titlesString = titlesData.titles.join('\n');
+    
+    const prompt = `Você é uma API de análise de títulos do YouTube que retorna APENAS um array JSON.
+
+**REGRAS CRÍTICAS:**
+1.  **JSON PURO:** Sua resposta deve ser APENAS o array JSON.
+2.  **ESTRUTURA:** Cada objeto DEVE conter: "titulo_original" (string), "nota_ctr" (número 0-10), e "sugestao_melhora" (string).
+3.  **SINTAXE:** Use aspas duplas ("").
+
+**Títulos para analisar:**
+---
+${titlesString}
+---
+Responda APENAS com o array JSON.`;
+
+    try {
+        const rawResult = await callGroqAPI(prompt, 3000);
+        const analysis = cleanGeneratedText(rawResult, true, true);
+        if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de títulos válida.");
+
+        let analysisHtml = '<div class="space-y-4">';
+        analysis.forEach(item => {
+            analysisHtml += `
+                <div class="p-3 rounded-md" style="background: var(--bg);">
+                    <p class="font-semibold">${DOMPurify.sanitize(item.titulo_original)}</p>
+                    <p class="mt-1"><strong>Nota de CTR:</strong> <span style="color: var(--primary); font-weight: 700;">${DOMPurify.sanitize(String(item.nota_ctr))} / 10</span></p>
+                    <p class="mt-1"><strong>Sugestão:</strong> ${DOMPurify.sanitize(item.sugestao_melhora)}</p>
+                </div>`;
+        });
+        analysisHtml += '</div>';
+        resultContainer.innerHTML = analysisHtml;
+    } catch (error) {
+        resultContainer.innerHTML = `<p style="color: var(--danger);">${error.message}</p>`;
+    }
+};
+
+window.analyzeThumbnails = async () => {
+    const thumbnailsData = AppState.generated.titlesAndThumbnails;
+    if (!thumbnailsData || !thumbnailsData.thumbnails || thumbnailsData.thumbnails.length === 0) {
+        window.showToast("Gere as ideias de thumbnail primeiro!", 'info');
+        return;
+    }
+    const resultContainer = document.getElementById('thumbnailAnalysisResult');
+    resultContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-2"></div>`;
+    const thumbnailsString = thumbnailsData.thumbnails.map(t => `Título: ${t.title}, Descrição: ${t.description}`).join('\n---\n');
+    
+    const prompt = `Você é uma API de análise de thumbnails do YouTube que retorna APENAS um array JSON.
+
+**REGRAS CRÍTICAS:**
+1.  **JSON PURO:** Sua resposta deve ser APENAS o array JSON.
+2.  **ESTRUTURA:** Cada objeto DEVE conter: "titulo" (string), "nota_visual" (número 0-10), e "sugestao_melhora" (string).
+3.  **SINTAXE:** Use aspas duplas ("").
+
+**Ideias para analisar:**
+---
+${thumbnailsString}
+---
+Responda APENAS com o array JSON.`;
+
+    try {
+        const rawResult = await callGroqAPI(prompt, 2500);
+        const analysis = cleanGeneratedText(rawResult, true, true);
+        if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de thumbnails válida.");
+
+        let analysisHtml = '<div class="space-y-4">';
+        analysis.forEach(item => {
+            analysisHtml += `
+                <div class="p-3 rounded-md" style="background: var(--bg);">
+                    <p class="font-semibold">"${DOMPurify.sanitize(item.titulo || 'Ideia Sem Título')}"</p>
+                    <p class="mt-1"><strong>Nota Visual:</strong> <span style="color: var(--primary); font-weight: 700;">${DOMPurify.sanitize(String(item.nota_visual))} / 10</span></p>
+                    <p class="mt-1"><strong>Sugestão:</strong> ${DOMPurify.sanitize(item.sugestao_melhora)}</p>
+                </div>`;
+        });
+        analysisHtml += '</div>';
+        resultContainer.innerHTML = analysisHtml;
+    } catch (error) {
+        resultContainer.innerHTML = `<p style="color: var(--danger);">${error.message}</p>`;
+    }
+};
+
+
+
 
 const generateVideoDescription = async (button) => {
     if (!validateInputs()) return;
