@@ -1486,10 +1486,12 @@ const handleInvestigate = async (button) => {
     }
 };
 
+
+
+
 const generateIdeasFromReport = async (button) => {
     const factCheckOutput = document.getElementById('factCheckOutput');
     const { originalQuery, rawReport } = factCheckOutput.dataset;
-
     if (!rawReport || !originalQuery) {
         window.showToast("Erro: Relatório da investigação não encontrado.", 'error');
         return;
@@ -1509,38 +1511,38 @@ const generateIdeasFromReport = async (button) => {
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
         const ideas = cleanGeneratedText(rawResult, true, true); 
-
-        if (!ideas || !Array.isArray(ideas) || ideas.length === 0 || !ideas[0].title) {
-            throw new Error("A IA não retornou ideias em um formato JSON válido. Tente novamente.");
-        }
+        if (!ideas || !Array.isArray(ideas) || ideas.length === 0 || !ideas[0].title) throw new Error("A IA não retornou ideias em um formato JSON válido.");
+        
         AppState.generated.ideas = ideas;
-
+        
+        // >>>>> LÓGICA DE CORES E RENDERIZAÇÃO DA FERRARI AQUI <<<<<
         const genreColorMap = {
-            'documentario': 'border-gray-500', 'inspiracional': 'border-violet-500',
-            'scifi': 'border-blue-500', 'terror': 'border-red-500',
-            'enigmas': 'border-purple-500', 'geral': 'border-emerald-500'
+            'documentario': 'gray', 'inspiracional': 'violet', 'scifi': 'blue', 
+            'terror': 'red', 'enigmas': 'purple', 'geral': 'emerald'
         };
-        const colorClass = genreColorMap[genre] || 'border-emerald-500';
-        const borderColorName = colorClass.split('-')[1];
+        const colorName = genreColorMap[genre] || 'emerald';
 
         const allCardsHtml = ideas.map((idea, index) => {
              const escapedIdea = escapeIdeaForOnclick(idea);
              return `
-                <div class="card p-4 flex flex-col justify-between border-l-4 ${colorClass} animate-fade-in" style="border-left-width: 4px !important;">
+                <div class="card p-4 flex flex-col justify-between border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
                     <div>
                         <div class="flex justify-between items-start gap-4">
                             <h4 class="font-bold text-base flex-grow" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                            <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+                            <div class="flex flex-col items-end flex-shrink-0">
+                                 <span class="font-bold text-sm text-${colorName}-500 mb-2">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
+                                 <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+                            </div>
                         </div>
-                        <p class="text-sm mt-2">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+                        <p class="text-sm mt-2 pr-4">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
                     </div>
-                    <span class="font-bold text-sm bg-${borderColorName}-100 text-${borderColorName}-700 dark:bg-${borderColorName}-900/50 dark:text-${borderColorName}-300 py-1 px-2 rounded-lg self-start mt-3">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
                 </div>
             `;
         }).join('');
-        
         outputContainer.innerHTML = allCardsHtml;
-        markStepCompleted('investigate', false); // Marca como completo, mas não navega
+        // >>>>> FIM DA LÓGICA DE CORES <<<<<
+
+        markStepCompleted('investigate', false);
 
     } catch(err) {
         window.showToast(`Erro ao gerar ideias: ${err.message}`, 'error');
@@ -1549,6 +1551,9 @@ const generateIdeasFromReport = async (button) => {
         hideButtonLoading(button);
     }
 };
+
+
+
 
 const selectIdea = (idea) => {
     document.getElementById('videoTheme').value = idea.title || '';
@@ -4146,9 +4151,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
-    // ==========================================================
-    // ===== LISTENER DE EVENTOS PRINCIPAL =================
-    // ==========================================================
+// ==========================================================
+// ===== LISTENER DE EVENTOS PRINCIPAL (VERSÃO FINAL) =====
+// ==========================================================
 document.body.addEventListener('click', (event) => {
     // 1. Lógica do Wizard (Sidebar)
     const step = event.target.closest('.step[data-step]');
@@ -4176,15 +4181,30 @@ document.body.addEventListener('click', (event) => {
         }
     }
     
-    // 4. Lógica de Todas as Abas (Gênero e Inputs)
+    // 4. Lógica de Todas as Abas (Gênero e Inputs) com Limpeza de Memória
     const tabButton = event.target.closest('.tab-button');
     if (tabButton) {
         const nav = tabButton.parentElement;
+
+        // Se for uma aba de GÊNERO, aplica a lógica de limpeza
+        if (nav.id === 'genreTabs') {
+            // Não faz nada se o usuário clicar na aba que já está ativa
+            if (tabButton.classList.contains('tab-active')) {
+                return;
+            }
+            // Limpa o container das ideias ao trocar de especialista
+            document.getElementById('ideasOutput').innerHTML = '';
+            window.showToast("Especialista alterado! Clique novamente para gerar novas ideias.", 'info');
+        }
+
+        // Lógica geral para ATIVAR a aba clicada (tanto para gênero quanto para inputs)
         if (nav.id === 'genreTabs' || nav.id === 'inputTabsNav') {
             nav.querySelectorAll('.tab-button').forEach(b => b.classList.remove('tab-active'));
             tabButton.classList.add('tab-active');
         }
-        if(nav.id === 'inputTabsNav') {
+
+        // Lógica específica para trocar o painel de conteúdo das abas de INPUT
+        if (nav.id === 'inputTabsNav') {
             const tabId = tabButton.dataset.tab;
             document.querySelectorAll('#inputTabContent .tab-pane').forEach(p => p.classList.add('hidden'));
             document.getElementById(tabId)?.classList.remove('hidden');

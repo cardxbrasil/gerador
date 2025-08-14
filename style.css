@@ -580,3 +580,26 @@ textarea.input { min-height: 84px; resize: vertical; }
 .thumbnail-idea {
     margin-top: 1rem;
 }
+
+
+
+/* ================================================================= */
+/* ===== CORES TEMÁTICAS PARA CARDS DE IDEIAS (FERRARI) ===== */
+/* ================================================================= */
+.border-gray-500 { border-left-color: #6b7280 !important; }
+.text-gray-500 { color: #6b7280 !important; }
+
+.border-violet-500 { border-left-color: #8b5cf6 !important; }
+.text-violet-500 { color: #8b5cf6 !important; }
+
+.border-blue-500 { border-left-color: #3b82f6 !important; }
+.text-blue-500 { color: #3b82f6 !important; }
+
+.border-red-500 { border-left-color: #ef4444 !important; }
+.text-red-500 { color: #ef4444 !important; }
+
+.border-purple-500 { border-left-color: #a855f7 !important; }
+.text-purple-500 { color: #a855f7 !important; }
+
+.border-emerald-500 { border-left-color: #10b981 !important; }
+.text-emerald-500 { color: #10b981 !important; }
