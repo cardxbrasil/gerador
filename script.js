@@ -4149,22 +4149,48 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================
     // ===== LISTENER DE EVENTOS PRINCIPAL =================
     // ==========================================================
-    document.body.addEventListener('click', (event) => {
-        const step = event.target.closest('.step[data-step]');
-        if (step) { showPane(step.dataset.step); return; }
-        const button = event.target.closest('button[data-action]');
-        if (button && actions[button.dataset.action]) { actions[button.dataset.action](button); return; }
-        const accordionHeader = event.target.closest('.accordion-header');
-        if (accordionHeader && !event.target.closest('.header-buttons button')) {
-            const body = accordionHeader.nextElementSibling;
-            const arrow = accordionHeader.querySelector('.accordion-arrow');
-            if (body && arrow) {
-                const isOpen = body.style.display === 'block';
-                body.style.display = isOpen ? 'none' : 'block';
-                arrow.classList.toggle('open', !isOpen);
-            }
+document.body.addEventListener('click', (event) => {
+    // 1. Lógica do Wizard (Sidebar)
+    const step = event.target.closest('.step[data-step]');
+    if (step) {
+        showPane(step.dataset.step);
+        return;
+    }
+
+    // 2. Lógica dos Botões de Ação
+    const button = event.target.closest('button[data-action]');
+    if (button && actions[button.dataset.action]) {
+        actions[button.dataset.action](button);
+        return;
+    }
+    
+    // 3. Lógica do Acordeão
+    const accordionHeader = event.target.closest('.accordion-header');
+    if (accordionHeader && !event.target.closest('.header-buttons button')) {
+        const body = accordionHeader.nextElementSibling;
+        const arrow = accordionHeader.querySelector('.accordion-arrow');
+        if (body && arrow) {
+            const isOpen = body.style.display === 'block';
+            body.style.display = isOpen ? 'none' : 'block';
+            arrow.classList.toggle('open', !isOpen);
         }
-    });
+    }
+    
+    // 4. Lógica de Todas as Abas (Gênero e Inputs)
+    const tabButton = event.target.closest('.tab-button');
+    if (tabButton) {
+        const nav = tabButton.parentElement;
+        if (nav.id === 'genreTabs' || nav.id === 'inputTabsNav') {
+            nav.querySelectorAll('.tab-button').forEach(b => b.classList.remove('tab-active'));
+            tabButton.classList.add('tab-active');
+        }
+        if(nav.id === 'inputTabsNav') {
+            const tabId = tabButton.dataset.tab;
+            document.querySelectorAll('#inputTabContent .tab-pane').forEach(p => p.classList.add('hidden'));
+            document.getElementById(tabId)?.classList.remove('hidden');
+        }
+    }
+});
 
 
     // ==========================================================
