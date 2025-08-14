@@ -449,6 +449,9 @@ const setupInputTabs = () => {
 
 
 
+
+
+
 // ============================
 // >>>>> FILTRO JSON ROBUSTO <<<<<
 // ============================
@@ -553,6 +556,33 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Tenta extrair JSON
         return extractMalformedJson(str);
+    };
+
+    // Função para converter array em formato de texto para JSON válido
+    const convertTextArrayToJson = (str) => {
+        // Verifica se é um array em formato de texto
+        const arrayMatch = str.match(/^\s*\[\s*([\s\S]*)\s*\]\s*$/);
+        if (!arrayMatch) return null;
+        
+        const content = arrayMatch[1];
+        // Tenta converter strings separadas por vírgulas ou quebras de linha
+        if (content.includes('"') || content.includes("'")) {
+            // Já parece ter aspas, tenta parsear diretamente
+            try {
+                return `[${content}]`;
+            } catch (e) {
+                // Continua para tratamento abaixo
+            }
+        }
+        
+        // Extrai itens entre aspas ou quebras de linha
+        const items = content.split(/,\s*(?=")|\n/).filter(item => item.trim());
+        const jsonItems = items.map(item => {
+            const cleanItem = item.trim().replace(/^["']|["']$/g, '');
+            return `"${cleanItem.replace(/"/g, '\\"')}"`;
+        });
+        
+        return `[${jsonItems.join(',')}]`;
     };
 
     // Tenta extrair JSON de várias formas
@@ -670,6 +700,11 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 return trimmedText.substring(firstBracket, lastBracket + 1);
             }
             return null;
+        },
+        
+        // Método 9: Converter array em texto para JSON válido
+        () => {
+            return convertTextArrayToJson(trimmedText);
         }
     ];
 
@@ -682,10 +717,34 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 
-    // Se ainda não encontrou JSON, loga o texto e retorna valor padrão
+    // Se ainda não encontrou JSON, tenta tratar como array de texto simples
     if (!jsonString) {
+        // Verifica se é um array em formato de texto
+        if (trimmedText.startsWith('[') && trimmedText.endsWith(']')) {
+            try {
+                // Tenta converter para array válido
+                const textArray = trimmedText
+                    .substring(1, trimmedText.length - 1)
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .map(line => {
+                        // Remove índices numéricos e pontos
+                        return line.replace(/^\d+\.\s*/, '').replace(/^["']|["']$/g, '');
+                    });
+                
+                if (arrayExpected) {
+                    return textArray;
+                } else {
+                    return textArray.join('\n');
+                }
+            } catch (e) {
+                console.warn("Falha ao converter array de texto:", e.message);
+            }
+        }
+        
         console.warn("JSON não identificado na resposta da IA:", text);
-        return arrayExpected ? [] : {};
+        return arrayExpected ? [] : text.trim();
     }
 
     try {
@@ -755,9 +814,24 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             console.error("JSON Problemático (Original):", text);
             console.error("JSON Pós-Cirurgia (Falhou):", repairedString || jsonString);
             
+            // Tenta retornar o texto original como array se esperado
+            if (arrayExpected) {
+                try {
+                    // Converte texto para array
+                    const lines = text
+                        .split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0 && !line.match(/^\d+\./));
+                    
+                    return lines.length > 0 ? lines : [];
+                } catch (e) {
+                    console.warn("Falha ao converter para array:", e.message);
+                }
+            }
+            
             // Retorna valor padrão em vez de lançar erro
             console.warn("Retornando valor padrão devido a erro de parsing.");
-            return arrayExpected ? [] : {};
+            return arrayExpected ? [] : text.trim();
         }
     }
 };
