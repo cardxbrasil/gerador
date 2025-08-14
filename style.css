@@ -290,8 +290,26 @@ textarea.input { min-height: 84px; resize: vertical; }
 
 /* Acordeão (para o roteiro) */
 .accordion-item { border-bottom: 1px solid var(--border); }
-.accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.6rem; cursor: pointer; transition: var(--transition); }
-.accordion-header:hover { background-color: color-mix(in srgb, var(--border) 20%, transparent); }
+
+
+#scriptSectionsContainer .card-placeholder,
+.accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.7rem 1.5rem !important; /* Força a altura a ser compacta em ambos */
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+/* Garante que o hover só se aplique ao acordeão gerado */
+.accordion-header:hover { 
+    background-color: color-mix(in srgb, var(--border) 20%, transparent); 
+}
+
+
+
+
 .header-title-group { display: flex; align-items: center; gap: 0.75rem; flex-grow: 1; }
 .header-title-group h3 { font-weight: 600; font-size: 0.9rem; color: var(--text-header); }
 .card-placeholder h3 { font-size: 0.9rem; }
@@ -306,11 +324,6 @@ textarea.input { min-height: 84px; resize: vertical; }
 .accordion-body.open { display: block; animation: fadeIn 0.4s ease; }
 .generated-content-wrapper { font-family: 'Roboto', serif; line-height: 1.7; font-size: 0.9rem; }
 
-
-#scriptSectionsContainer > .card-placeholder {
-    padding-top: 0.6rem;
-    padding-bottom: 0.6rem;
-}
 
 
 /* Tooltip & Popover */
