@@ -35,7 +35,7 @@ const wordCountMap = {
     'long': { intro: 225, development: 750, climax: 300, conclusion: 225 },
 };
 
-const CINEMATIC_STYLE_BLOCK = `
+        const CINEMATIC_STYLE_BLOCK = `
 # DIRETRIZES DE ESTILO CINEMATOGRÁFICO PARA IMAGENS DE ALTA RESOLUÇÃO
 
 Ultra-realistic, high-resolution photographic image captured with masterfully rendered natural or artificial lighting and cinematic composition. The aesthetic should be of a modern cinematic film, with meticulous attention to physical and sensory details.
@@ -57,12 +57,23 @@ Ultra-realistic, high-resolution photographic image captured with masterfully re
 - **Overall Style:** The final result must be indistinguishable from a high-quality photograph taken with professional equipment, intended to illustrate a film scene. Nothing should look artificial, "3D rendered," or overly polished. The goal is physical and emotional authenticity.
 - **Post-Production Elements:** Include subtle film grain appropriate to the style, natural lens characteristics (slight vignetting, chromatic aberration when appropriate), and color grading that enhances the mood without appearing artificial.
 
+## REFERÊNCIAS DE ESTILO (INSPIRAÇÃO CINEMATOGRÁFICA)
+
+Para diferentes gêneros e atmosferas, considere estas referências:
+- **Drama Intenso:** Estilo de Emmanuel Lubezki em "The Revenant" - iluminação natural, texturas orgânicas, movimento contínuo
+- **Suspense/Thriller:** Estilo de Roger Deakins em "Blade Runner 2049" - composição precisa, cores controladas, iluminação dramática
+- **Épico/Histórico:** Estilo of Rodrigo Prieto em "The Irishman" - paleta de cores específica do período, iluminação naturalista, detalhes autênticos
+- **Contemporâneo/Realista:** Estilo de Greig Fraser em "The Mandalorian" - iluminação prática, texturas realistas, composição dinâmica
+
 ## RESTRIÇÕES DE ESTILO (O QUE EVITAR)
+
 - **NO** exaggerated or distorted features (facial features, proportions).
 - **NO** artificial "glow" or excessive smoothing (airbrushing).
 - **NO** visible 3D render or CGI look.
 - **NO** super-saturated colors or unreal hues.
-- **NO** element that breaks the illusion of a photorealistic capture.`;
+- **NO** element that breaks the illusion of a photorealistic capture.
+- **NO** inconsistent lighting that doesn't match the described environment.
+- **NO** modern digital artifacts that break the cinematic immersion.`;
 
 const imageDescriptionLabels = { 'pt-br': 'Descrição da Imagem:', 'pt-pt': 'Descrição da Imagem:', 'en': 'Image Description:' };
 
