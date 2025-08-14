@@ -3831,7 +3831,7 @@ const loadStateFromLocalStorage = () => {
 const syncUiFromState = () => {
     const state = AppState;
 
-    // Restaura inputs
+    // 1. Restaura os valores dos inputs
     for (const id in state.inputs) {
         const element = document.getElementById(id);
         if (element) {
@@ -3841,37 +3841,30 @@ const syncUiFromState = () => {
                 element.value = state.inputs[id];
             }
         } else {
-             // Lógica para radio buttons que são salvos pelo nome
             const radioGroup = document.querySelectorAll(`input[name="${id}"]`);
             if(radioGroup.length > 0){
-                radioGroup.forEach(radio => {
-                    if(radio.value === state.inputs[id]) radio.checked = true;
-                });
+                radioGroup.forEach(radio => { if(radio.value === state.inputs[id]) radio.checked = true; });
             }
         }
     }
 
-    // Dispara eventos para atualizar UI dependente
+    // 2. Dispara eventos para atualizar UI dependente
     updateNarrativeStructureOptions();
     toggleCustomImageStyleVisibility();
 
-    // Restaura outputs
+    // 3. Restaura os outputs dos painéis
     if (state.generated.investigationReport) {
-    const outputContainer = document.getElementById('factCheckOutput'); // <-- Adicionamos esta linha para referência
-    const converter = new showdown.Converter({ simplifiedAutoLink: true, tables: true });
-    const htmlReport = converter.makeHtml(state.generated.investigationReport);
-    
-    // >>>>> AQUI ESTÁ A ADIÇÃO CIRÚRGICA <<<<<
-    // Coloca os dados brutos no dataset para a função "Gerar Ideias" encontrar
-    outputContainer.dataset.rawReport = state.generated.investigationReport;
-    if (state.inputs && state.inputs.factCheckQuery) {
-        outputContainer.dataset.originalQuery = state.inputs.factCheckQuery;
+        const outputContainer = document.getElementById('factCheckOutput');
+        const converter = new showdown.Converter({ simplifiedAutoLink: true, tables: true });
+        const htmlReport = converter.makeHtml(state.generated.investigationReport);
+        outputContainer.dataset.rawReport = state.generated.investigationReport;
+        if (state.inputs && state.inputs.factCheckQuery) {
+            outputContainer.dataset.originalQuery = state.inputs.factCheckQuery;
+        }
+        outputContainer.innerHTML = `<div class="prose dark:prose-invert max-w-none p-4 card rounded-lg mt-4 border-l-4" style="border-color: var(--success);">${htmlReport}</div>`;
+        document.getElementById('ideaGenerationSection').classList.remove('hidden');
     }
-    // >>>>> FIM DA ADIÇÃO <<<<<
 
-    outputContainer.innerHTML = `<div class="prose dark:prose-invert max-w-none p-4 card rounded-lg mt-4 border-l-4" style="border-color: var(--success);">${htmlReport}</div>`;
-    document.getElementById('ideaGenerationSection').classList.remove('hidden');
-}
     if(state.generated.strategicOutline){
         const outlineContentDiv = document.getElementById('outlineContent');
         const titleTranslations = { 'introduction': 'Introdução', 'development': 'Desenvolvimento', 'climax': 'Clímax', 'conclusion': 'Conclusão', 'cta': 'CTA' };
@@ -3882,41 +3875,33 @@ const syncUiFromState = () => {
         outlineHtml += '</ul>';
         outlineContentDiv.innerHTML = outlineHtml;
     }
-
+    
+    // >>>>> INÍCIO DA LÓGICA DE RECONSTRUÇÃO DO ROTEIRO <<<<<
     const scriptContainer = document.getElementById('scriptSectionsContainer');
-    scriptContainer.innerHTML = '';
+    scriptContainer.innerHTML = ''; // Limpa antes de reconstruir
     const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
     const sectionTitles = { intro: 'Introdução', development: 'Desenvolvimento', climax: 'Clímax', conclusion: 'Conclusão', cta: 'Call to Action (CTA)' };
     
     let hasAnyScriptContent = false;
     sectionOrder.forEach(id => {
         const sectionData = state.generated.script[id];
+        // Se a seção foi gerada, reconstrói o acordeão completo
         if (sectionData && sectionData.html) {
             hasAnyScriptContent = true;
             const sectionElement = generateSectionHtmlContent(id, sectionTitles[id], sectionData.html);
-            const placeholder = document.getElementById(`${id}Section`);
-            if (placeholder) {
-                placeholder.replaceWith(sectionElement);
-            } else {
-                scriptContainer.appendChild(sectionElement);
-            }
+            scriptContainer.appendChild(sectionElement);
         }
     });
 
-    if(!hasAnyScriptContent && state.generated.strategicOutline){
+    // Se o roteiro não foi gerado mas o esboço sim, recria os placeholders
+    if (!hasAnyScriptContent && state.generated.strategicOutline) {
         createScriptSectionPlaceholders();
     }
-    
+    // >>>>> FIM DA LÓGICA DE RECONSTRUÇÃO <<<<<
+
+    // 4. Garante que os estados finais da UI sejam aplicados
     updateButtonStates();
     updateAllReadingTimes();
-};
-
-const resetApplicationState = async () => {
-    const confirmed = await showConfirmationDialog("Começar Novo Projeto?", "Isso limpará todos os campos e o trabalho salvo. Deseja continuar?");
-    if (confirmed) {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-        window.location.reload();
-    }
 };
 
 
