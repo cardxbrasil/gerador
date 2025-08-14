@@ -1503,7 +1503,16 @@ const generateIdeasFromReport = async (button) => {
     
     const outputContainer = document.getElementById('ideasOutput');
     showButtonLoading(button);
-    outputContainer.innerHTML = `<div class="md:col-span-2 flex flex-col items-center p-8"><div class="loading-spinner"></div><p class="mt-4" style="color: var(--text-muted);">Consultando especialista em ${genre}...</p></div>`;
+
+    // >>>>> CORREÇÃO #2: HTML DO LOADING CENTRALIZADO <<<<<
+    outputContainer.innerHTML = `
+        <div class="md:col-span-2 flex flex-col items-center justify-center p-8 text-center">
+            <div class="loading-spinner mb-4" style="width: 32px; height: 32px; border-width: 4px;"></div>
+            <p class="text-lg font-semibold" style="color: var(--text-header);">Consultando especialista em ${genre}...</p>
+            <p class="text-sm" style="color: var(--text-muted);">Isso pode levar alguns segundos.</p>
+        </div>
+    `;
+    // >>>>> FIM DA CORREÇÃO #2 <<<<<
 
     const promptContext = { originalQuery, rawReport, languageName };
     const prompt = PromptManager.getIdeasPrompt(genre, promptContext);
@@ -1515,33 +1524,33 @@ const generateIdeasFromReport = async (button) => {
         
         AppState.generated.ideas = ideas;
         
-        // >>>>> LÓGICA DE CORES E RENDERIZAÇÃO DA FERRARI AQUI <<<<<
         const genreColorMap = {
             'documentario': 'gray', 'inspiracional': 'violet', 'scifi': 'blue', 
             'terror': 'red', 'enigmas': 'purple', 'geral': 'emerald'
         };
         const colorName = genreColorMap[genre] || 'emerald';
 
+        // >>>>> CORREÇÃO #1: HTML DOS CARDS REORGANIZADO <<<<<
         const allCardsHtml = ideas.map((idea, index) => {
              const escapedIdea = escapeIdeaForOnclick(idea);
              return `
                 <div class="card p-4 flex flex-col justify-between border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
-                    <div>
-                        <div class="flex justify-between items-start gap-4">
-                            <h4 class="font-bold text-base flex-grow" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                            <div class="flex flex-col items-end flex-shrink-0">
-                                 <span class="font-bold text-sm text-${colorName}-500 mb-2">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
-                                 <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                            </div>
+                    <div class="flex justify-between items-start gap-4">
+                        <div class="flex-grow">
+                            <h4 class="font-bold text-base mb-2" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
+                            <p class="text-sm">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
                         </div>
-                        <p class="text-sm mt-2 pr-4">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+                        <div class="flex flex-col items-end flex-shrink-0 ml-4">
+                             <span class="font-bold text-sm text-${colorName}-500 mb-2">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
+                             <button class="btn btn-primary btn-small" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+                        </div>
                     </div>
                 </div>
             `;
         }).join('');
+        // >>>>> FIM DA CORREÇÃO #1 <<<<<
+        
         outputContainer.innerHTML = allCardsHtml;
-        // >>>>> FIM DA LÓGICA DE CORES <<<<<
-
         markStepCompleted('investigate', false);
 
     } catch(err) {
