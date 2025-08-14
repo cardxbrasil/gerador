@@ -714,7 +714,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             
             // Trata quebras de linha entre objetos
             repairedString = repairedString.replace(/},\s*\n\s*{/, '},{');
-            repairedString = repairedString.replace(/],\s*\n\s*\[/, '],['');
+            repairedString = repairedString.replace(/],\s*\n\s*\[/, '],[');
             
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
