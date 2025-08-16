@@ -3690,7 +3690,7 @@ const syncUiFromState = () => {
 
 
 // ==========================================================
-// ===== EVENTOS E INICIALIZAÇÃO (VERSÃO FINAL E SEGURA) =====
+// ===== ARQUITETURA DE INICIALIZAÇÃO FINAL E SEGURA =====
 // ==========================================================
 
 // Função auxiliar para carregar scripts de forma controlada
@@ -3704,25 +3704,11 @@ const loadScript = (src) => {
     });
 };
 
-// Listener principal, agora ASÍNCRONO para aguardar as dependências
-document.addEventListener('DOMContentLoaded', async () => {
-
-    // ETAPA 1: CARREGAMENTO CONTROLADO DAS DEPENDÊNCIAS
-    try {
-        await Promise.all([
-            loadScript("https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"),
-            loadScript("https://cdn.jsdelivr.net/npm/dompurify@3.0.11/dist/purify.min.js"),
-            loadScript("https://unpkg.com/json-repair@3.5.0/dist/jsonrepair.js")
-        ]);
-        console.log("Todas as dependências críticas foram carregadas com sucesso!");
-    } catch (error) {
-        console.error("FALHA CRÍTICA NO CARREGAMENTO:", error);
-        document.body.innerHTML = `<div style="padding: 2rem; text-align: center; color: red;">Erro fatal: Não foi possível carregar os recursos da aplicação. Por favor, verifique sua conexão com a internet e atualize a página.</div>`;
-        return; // Interrompe a execução se uma dependência falhar
-    }
-
-    // ETAPA 2: TODO O CÓDIGO DE INICIALIZAÇÃO ORIGINAL (AGORA SEGURO)
-
+// A função principal que contém TODA a lógica de inicialização da sua aplicação
+const initApp = () => {
+    
+    // A PARTIR DAQUI, É O SEU CÓDIGO ORIGINAL, INTACTO
+    
     const editingMenu = document.getElementById('editing-menu');
 
     // ===== MENU DE EDIÇÃO CONTEXTUAL (V5.0) =====
@@ -3840,14 +3826,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ===== LISTENER DE EVENTOS PRINCIPAL (VERSÃO FINAL) =====
     document.body.addEventListener('click', (event) => {
-        // 1. Lógica do Wizard (Sidebar)
         const step = event.target.closest('.step[data-step]');
         if (step) {
             showPane(step.dataset.step);
             return;
         }
-
-        // 2. Lógica dos Botões de Ação
         const button = event.target.closest('button[data-action]');
         if (button && actions[button.dataset.action]) {
             const action = actions[button.dataset.action];
@@ -3861,8 +3844,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             return;
         }
-        
-        // 3. Lógica do Acordeão
         const accordionHeader = event.target.closest('.accordion-header');
         if (accordionHeader && !event.target.closest('.header-buttons button')) {
             const body = accordionHeader.nextElementSibling;
@@ -3873,8 +3854,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 arrow.classList.toggle('open', !isOpen);
             }
         }
-        
-        // 4. Lógica de Todas as Abas (Gênero e Inputs) com Limpeza de Memória
         const tabButton = event.target.closest('.tab-button');
         if (tabButton) {
             const nav = tabButton.parentElement;
@@ -3955,4 +3934,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     AppState.ui.completedSteps.forEach(stepId => markStepCompleted(stepId, false));
     updateProgressBar();
     showPane(AppState.ui.currentPane || 'investigate');
+};
+
+// ==========================================================
+// ===== PONTO DE ENTRADA PRINCIPAL DA APLICAÇÃO =====
+// ==========================================================
+// Este bloco garante que o DOM esteja pronto antes de qualquer coisa.
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Primeiro, carrega todos os scripts externos e espera que terminem.
+        await Promise.all([
+            loadScript("https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"),
+            loadScript("https://cdn.jsdelivr.net/npm/dompurify@3.0.11/dist/purify.min.js"),
+            loadScript("https://unpkg.com/json-repair@3.5.0/dist/jsonrepair.js")
+        ]);
+        console.log("Todas as dependências críticas foram carregadas com sucesso!");
+        
+        // SÓ ENTÃO, chama a função principal que configura toda a aplicação.
+        initApp();
+    } catch (error) {
+        console.error("FALHA CRÍTICA NO CARREGAMENTO:", error);
+        document.body.innerHTML = `<div style="padding: 2rem; text-align: center; color: red; background-color: #fff1f2; border: 1px solid red; margin: 2rem;">Erro fatal: Não foi possível carregar os recursos da aplicação. Por favor, verifique sua conexão com a internet e atualize a página.</div>`;
+    }
 });
