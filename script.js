@@ -510,7 +510,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             /objeto JSON perfeito.*?:\s*\n*/i,
             /Aqui está o resultado.*?análise.*?:\s*\n*/i,
             /Aqui está o objeto JSON solicitado.*?:\s*\n*/i,
-            /Aqui está o objeto JSON exigido.*?:\s*\n*/i
+            /Aqui está o objeto JSON exigido.*?:\s*\n*/i,
+            /Aqui está o objeto JSON pronto.*?:\s*\n*/i
         ];
         
         for (const pattern of patterns) {
@@ -725,6 +726,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         str = str.replace(/\\\n/g, '\n');
         // Corrige escapes de aspas simples
         str = str.replace(/\\'/g, "'");
+        // Corrige caracteres de controle
+        str = str.replace(/[\x00-\x1F\x7F]/g, '');
         return str;
     };
 
@@ -776,6 +779,19 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         // Corrige aspas triplas
         str = str.replace(/"""/g, '"');
         return str;
+    };
+
+    // Função para corrigir parênteses em strings
+    const fixParenthesesInStrings = (str) => {
+        // Corrige strings que contêm parênteses sem escape
+        return str.replace(/"([^"]*?)\(([^"]*?)\)([^"]*?)"/g, (match, before, inside, after) => {
+            // Se os parênteses estão dentro de uma string JSON válida, mantém
+            if (match.includes('\\(') || match.includes('\\)')) {
+                return match;
+            }
+            // Caso contrário, mantém os parênteses como estão
+            return match;
+        });
     };
 
     // Tenta extrair JSON de várias formas
@@ -864,7 +880,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Método 9: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"', 'Aqui está o resultado da análise', 'Aqui está o objeto JSON solicitado', 'Aqui está o objeto JSON exigido', '{\n  "score"', '"criterion_name"'];
+            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"', 'Aqui está o resultado da análise', 'Aqui está o objeto JSON solicitado', 'Aqui está o objeto JSON exigido', 'Aqui está o objeto JSON pronto', '{\n  "score"', '"criterion_name"', 'Aqui está.*?:\s*\n*\s*\{'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -991,6 +1007,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         // Corrige caracteres de escape
         cleanedJson = fixEscapeCharacters(cleanedJson);
         
+        // Corrige parênteses em strings
+        cleanedJson = fixParenthesesInStrings(cleanedJson);
+        
         // Corrige aspas triplas
         cleanedJson = fixTripleQuotes(cleanedJson);
         
@@ -1032,6 +1051,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             
             // Corrige problemas específicos de aspas
             repairedString = fixQuoteIssues(repairedString);
+            
+            // Corrige parênteses em strings
+            repairedString = fixParenthesesInStrings(repairedString);
             
             // Corrige vírgulas faltando específicas
             repairedString = fixMissingCommas(repairedString);
@@ -1179,6 +1201,12 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             // Corrige aspas duplas específicas do erro
             repairedString = repairedString.replace(/:\s*""([^"]*?)""/g, ': "$1"');
             
+            // Corrige caracteres de controle
+            repairedString = repairedString.replace(/[\x00-\x1F\x7F]/g, '');
+            
+            // Remove texto explicativo no final
+            repairedString = repairedString.replace(/\s*Espero que isso atenda.*$/g, '');
+            
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
             
@@ -1232,7 +1260,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                            !trimmedLine.includes('Unexpected token') &&
                            !trimmedLine.includes('Bad escaped character') &&
                            !trimmedLine.includes('Expected \',\' or \'}\'') &&
-                           !trimmedLine.includes('Expected \',\' or \'}\'');
+                           !trimmedLine.includes('Expected \',\' or \'}\'') &&
+                           !trimmedLine.includes('Bad control character');
                 })
                 .join('\n');
                 
@@ -1301,7 +1330,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/("positive_points":\s*".*?")(\s*"problematic_quote")/g, '$1, $2')
                                 .replace(/("problematic_quote":\s*".*?")(\s*"critique")/g, '$1, $2')
                                 .replace(/("critique":\s*".*?")(\s*"rewritten_quote")/g, '$1, $2')
-                                .replace(/:\s*""([^"]*?)""/g, ': "$1"');
+                                .replace(/:\s*""([^"]*?)""/g, ': "$1"')
+                                .replace(/[\x00-\x1F\x7F]/g, '')
+                                .replace(/\s*Espero que isso atenda.*$/g, '');
                             
                             return JSON.parse(fixedObject);
                         } catch (e) {
