@@ -467,6 +467,7 @@ const setupInputTabs = () => {
 // >>>>> FILTRO JSON ROBUSTO <<<<<
 // =================================
 
+
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
         return expectJson ? (arrayExpected ? [] : null) : '';
@@ -500,7 +501,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             /\*\*Array de.*?\*\*\s*\n*/i,
             /\*\*Continuação.*?\*\*\s*\n*/i,
             /Aqui está o resultado.*?:\s*\n*/i,
-            /Análise.*?:\s*\n*/i
+            /Análise.*?:\s*\n*/i,
+            /Aqui está o objeto JSON.*?:\s*\n*/i,
+            /Aqui está.*?:\s*\n*/i
         ];
         
         for (const pattern of patterns) {
@@ -704,6 +707,13 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return str.replace(/"([^"]*?)""([^"]*?)"/g, '"$1\\"$2"');
     };
 
+    // Função para extrair objeto JSON simples
+    const extractSimpleJsonObject = (str) => {
+        // Procura por um objeto JSON completo
+        const objectMatch = str.match(/\{[\s\S]*\}/);
+        return objectMatch ? objectMatch[0] : null;
+    };
+
     // Tenta extrair JSON de várias formas
     const extractionMethods = [
         // Método 1: Blocos markdown
@@ -726,17 +736,22 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             return cleaned !== trimmedText ? cleaned : null;
         },
         
-        // Método 4: Extrair JSON mal formatado
+        // Método 4: Extrair objeto JSON simples
+        () => {
+            return extractSimpleJsonObject(trimmedText);
+        },
+        
+        // Método 5: Extrair JSON mal formatado
         () => {
             return extractMalformedJson(trimmedText);
         },
         
-        // Método 5: Tentar consertar e extrair
+        // Método 6: Tentar consertar e extrair
         () => {
             return tryFixAndExtract(trimmedText);
         },
         
-        // Método 6: Análise de pilha completa
+        // Método 7: Análise de pilha completa
         () => {
             const candidates = [];
             let currentCandidate = '';
@@ -771,7 +786,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 ) : null;
         },
         
-        // Método 7: Busca por chaves/colchetes isolados
+        // Método 8: Busca por chaves/colchetes isolados
         () => {
             const firstBrace = trimmedText.search(/[\{\[]/);
             const lastBrace = Math.max(
@@ -783,9 +798,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 trimmedText.substring(firstBrace, lastBrace + 1) : null;
         },
         
-        // Método 8: Busca por palavras-chave comuns
+        // Método 9: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"'];
+            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -813,7 +828,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             return null;
         },
         
-        // Método 9: Fallback bruto - busca por chaves e tenta parsear o que vier
+        // Método 10: Fallback bruto - busca por chaves e tenta parsear o que vier
         () => {
             const firstBrace = trimmedText.indexOf('{');
             const lastBrace = trimmedText.lastIndexOf('}');
@@ -828,17 +843,17 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             return null;
         },
         
-        // Método 10: Converter array em texto para JSON válido
+        // Método 11: Converter array em texto para JSON válido
         () => {
             return convertTextArrayToJson(trimmedText);
         },
         
-        // Método 11: Extrair JSON de markdown com explicação
+        // Método 12: Extrair JSON de markdown com explicação
         () => {
             return extractMarkdownWithExplanation(trimmedText);
         },
         
-        // Método 12: Extrair JSON com texto introdutório
+        // Método 13: Extrair JSON com texto introdutório
         () => {
             return extractJsonWithIntro(trimmedText);
         }
@@ -1031,6 +1046,13 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/""The/g, '"The');
             repairedString = repairedString.replace(/Negro\.""}/g, 'Negro."}');
             
+            // Corrige propriedades do esboço estratégico
+            repairedString = repairedString.replace(/("introduction":\s*".*?")(\s*"[\w_])/g, '$1, $2');
+            repairedString = repairedString.replace(/("development":\s*".*?")(\s*"[\w_])/g, '$1, $2');
+            repairedString = repairedString.replace(/("climax":\s*".*?")(\s*"[\w_])/g, '$1, $2');
+            repairedString = repairedString.replace(/("conclusion":\s*".*?")(\s*"[\w_])/g, '$1, $2');
+            repairedString = repairedString.replace(/("cta":\s*".*?")(\s*[\}\]])/g, '$1$2');
+            
             // Remove conteúdo corrompido no final
             repairedString = cleanCorruptedEnd(repairedString);
             
@@ -1041,6 +1063,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                 }
                 return match;
             });
+            
+            // Remove texto explicativo do início do JSON
+            repairedString = repairedString.replace(/^\s*A\s*/g, '');
             
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
@@ -1091,7 +1116,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                            !trimmedLine.startsWith('Aqui está') &&
                            !trimmedLine.startsWith('**Array') &&
                            !trimmedLine.startsWith('assistant<|end_header_id|>') &&
-                           !trimmedLine.includes('Expected property name');
+                           !trimmedLine.includes('Expected property name') &&
+                           !trimmedLine.includes('Unexpected token');
                 })
                 .join('\n');
                 
@@ -1118,7 +1144,11 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/("critique":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/assistant<\|end_header_id\|>[\s\S]*$/g, '')
                                 .replace(/""The/g, '"The')
-                                .replace(/Negro\.""}/g, 'Negro."}');
+                                .replace(/Negro\.""}/g, 'Negro."}')
+                                .replace(/("introduction":\s*".*?")(\s*"[\w_])/g, '$1, $2')
+                                .replace(/("development":\s*".*?")(\s*"[\w_])/g, '$1, $2')
+                                .replace(/("climax":\s*".*?")(\s*"[\w_])/g, '$1, $2')
+                                .replace(/("conclusion":\s*".*?")(\s*"[\w_])/g, '$1, $2');
                             
                             // Remove conteúdo corrompido no final
                             fixedArray = cleanCorruptedEnd(fixedArray);
@@ -1143,7 +1173,12 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/("problematic_quote":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("critique":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/""The/g, '"The')
-                                .replace(/Negro\.""}/g, 'Negro."}');
+                                .replace(/Negro\.""}/g, 'Negro."}')
+                                .replace(/("introduction":\s*".*?")(\s*"[\w_])/g, '$1, $2')
+                                .replace(/("development":\s*".*?")(\s*"[\w_])/g, '$1, $2')
+                                .replace(/("climax":\s*".*?")(\s*"[\w_])/g, '$1, $2')
+                                .replace(/("conclusion":\s*".*?")(\s*"[\w_])/g, '$1, $2')
+                                .replace(/("cta":\s*".*?")(\s*[\}\]])/g, '$1$2');
                             
                             return JSON.parse(fixedObject);
                         } catch (e) {
@@ -1162,15 +1197,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     }
 };
 
+
 // ======================================
-// >>>>> FIM DO FILTRO JSON ROBUSTO <<<<<
+// >>>>> FIM DE FILTRO JSON ROBUSTO <<<<<
 // ======================================
-
-
-
-
-
-
 
 
 const removeMetaComments = (text) => {
