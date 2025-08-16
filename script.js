@@ -381,6 +381,23 @@ const hideButtonLoading = (button) => {
 
 
 
+// ==========================================================
+// ===== NOVA FUNÇÃO AUXILIAR PARA CARREGAR SCRIPTS =====
+// ==========================================================
+const loadScript = (src) => {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => resolve(script);
+        script.onerror = () => reject(new Error(`Script load error for ${src}`));
+        document.head.appendChild(script);
+    });
+};
+
+
+
+
+
 // =========================================================================
 // >>>>> SUBSTITUA A FUNÇÃO callGroqAPI PELA VERSÃO SIMPLES E DIRETA <<<<<
 // =========================================================================
@@ -3673,16 +3690,42 @@ const syncUiFromState = () => {
 
 
 // ==========================================================
-// ===== EVENTOS E INICIALIZAÇÃO (VERSÃO FINAL) =================
+// ===== EVENTOS E INICIALIZAÇÃO (VERSÃO FINAL E SEGURA) =====
 // ==========================================================
 
-document.addEventListener('DOMContentLoaded', () => {
+// Função auxiliar para carregar scripts de forma controlada
+const loadScript = (src) => {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => resolve(script);
+        script.onerror = () => reject(new Error(`Falha ao carregar o script: ${src}`));
+        document.head.appendChild(script);
+    });
+};
+
+// Listener principal, agora ASÍNCRONO para aguardar as dependências
+document.addEventListener('DOMContentLoaded', async () => {
+
+    // ETAPA 1: CARREGAMENTO CONTROLADO DAS DEPENDÊNCIAS
+    try {
+        await Promise.all([
+            loadScript("https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"),
+            loadScript("https://cdn.jsdelivr.net/npm/dompurify@3.0.11/dist/purify.min.js"),
+            loadScript("https://unpkg.com/json-repair@3.5.0/dist/jsonrepair.js")
+        ]);
+        console.log("Todas as dependências críticas foram carregadas com sucesso!");
+    } catch (error) {
+        console.error("FALHA CRÍTICA NO CARREGAMENTO:", error);
+        document.body.innerHTML = `<div style="padding: 2rem; text-align: center; color: red;">Erro fatal: Não foi possível carregar os recursos da aplicação. Por favor, verifique sua conexão com a internet e atualize a página.</div>`;
+        return; // Interrompe a execução se uma dependência falhar
+    }
+
+    // ETAPA 2: TODO O CÓDIGO DE INICIALIZAÇÃO ORIGINAL (AGORA SEGURO)
 
     const editingMenu = document.getElementById('editing-menu');
 
-    // ==========================================================
-    // ===== MENU DE EDIÇÃO CONTEXTUAL (V5.0) =================
-    // ==========================================================
+    // ===== MENU DE EDIÇÃO CONTEXTUAL (V5.0) =====
     const handleEditingAction = async (action) => {
         if (!userSelectionRange) return;
         const selectedText = userSelectionRange.toString().trim();
@@ -3761,10 +3804,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-
-    // ==========================================================
-    // ===== GERENTE DE CLIQUES (OBJETO 'actions') =================
-    // ==========================================================
+    // ===== GERENTE DE CLIQUES (OBJETO 'actions') =====
     const actions = {
         'investigate': (btn) => handleInvestigate(btn),
         'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn),
@@ -3798,86 +3838,64 @@ document.addEventListener('DOMContentLoaded', () => {
         'applyHookSuggestion': (btn) => applyHookSuggestion(btn), 'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
     };
 
-
-// ==========================================================
-// ===== LISTENER DE EVENTOS PRINCIPAL (VERSÃO FINAL) =====
-// ==========================================================
-document.body.addEventListener('click', (event) => {
-    // 1. Lógica do Wizard (Sidebar)
-    const step = event.target.closest('.step[data-step]');
-    if (step) {
-        showPane(step.dataset.step);
-        return;
-    }
-
-const button = event.target.closest('button[data-action]');
-if (button && actions[button.dataset.action]) {
-    
-    // NOVO CÓDIGO ENTRA AQUI
-    const action = actions[button.dataset.action];
-    const result = action(button); // Executa a ação
-
-    // Se a ação for assíncrona (chama a IA), espera ela terminar para salvar.
-    if (result instanceof Promise) {
-        result.then(saveStateToLocalStorage).catch(error => {
-            console.error("Ação assíncrona falhou, salvamento automático cancelado.", error);
-        });
-    } else {
-        // Se for uma ação normal (síncrona), salva imediatamente.
-        saveStateToLocalStorage();
-    }
-    // FIM DO NOVO CÓDIGO
-
-    return; // Este return é importante, mantenha ele.
-}
-    
-    // 3. Lógica do Acordeão
-    const accordionHeader = event.target.closest('.accordion-header');
-    if (accordionHeader && !event.target.closest('.header-buttons button')) {
-        const body = accordionHeader.nextElementSibling;
-        const arrow = accordionHeader.querySelector('.accordion-arrow');
-        if (body && arrow) {
-            const isOpen = body.style.display === 'block';
-            body.style.display = isOpen ? 'none' : 'block';
-            arrow.classList.toggle('open', !isOpen);
+    // ===== LISTENER DE EVENTOS PRINCIPAL (VERSÃO FINAL) =====
+    document.body.addEventListener('click', (event) => {
+        // 1. Lógica do Wizard (Sidebar)
+        const step = event.target.closest('.step[data-step]');
+        if (step) {
+            showPane(step.dataset.step);
+            return;
         }
-    }
-    
-    // 4. Lógica de Todas as Abas (Gênero e Inputs) com Limpeza de Memória
-    const tabButton = event.target.closest('.tab-button');
-    if (tabButton) {
-        const nav = tabButton.parentElement;
 
-        // Se for uma aba de GÊNERO, aplica a lógica de limpeza
-        if (nav.id === 'genreTabs') {
-            // Não faz nada se o usuário clicar na aba que já está ativa
-            if (tabButton.classList.contains('tab-active')) {
-                return;
+        // 2. Lógica dos Botões de Ação
+        const button = event.target.closest('button[data-action]');
+        if (button && actions[button.dataset.action]) {
+            const action = actions[button.dataset.action];
+            const result = action(button);
+            if (result instanceof Promise) {
+                result.then(saveStateToLocalStorage).catch(error => {
+                    console.error("Ação assíncrona falhou, salvamento automático cancelado.", error);
+                });
+            } else {
+                saveStateToLocalStorage();
             }
-            // Limpa o container das ideias ao trocar de especialista
-            document.getElementById('ideasOutput').innerHTML = '';
-            window.showToast("Especialista alterado! Clique novamente para gerar novas ideias.", 'info');
+            return;
         }
-
-        // Lógica geral para ATIVAR a aba clicada (tanto para gênero quanto para inputs)
-        if (nav.id === 'genreTabs' || nav.id === 'inputTabsNav') {
-            nav.querySelectorAll('.tab-button').forEach(b => b.classList.remove('tab-active'));
-            tabButton.classList.add('tab-active');
+        
+        // 3. Lógica do Acordeão
+        const accordionHeader = event.target.closest('.accordion-header');
+        if (accordionHeader && !event.target.closest('.header-buttons button')) {
+            const body = accordionHeader.nextElementSibling;
+            const arrow = accordionHeader.querySelector('.accordion-arrow');
+            if (body && arrow) {
+                const isOpen = body.style.display === 'block';
+                body.style.display = isOpen ? 'none' : 'block';
+                arrow.classList.toggle('open', !isOpen);
+            }
         }
-
-        // Lógica específica para trocar o painel de conteúdo das abas de INPUT
-        if (nav.id === 'inputTabsNav') {
-            const tabId = tabButton.dataset.tab;
-            document.querySelectorAll('#inputTabContent .tab-pane').forEach(p => p.classList.add('hidden'));
-            document.getElementById(tabId)?.classList.remove('hidden');
+        
+        // 4. Lógica de Todas as Abas (Gênero e Inputs) com Limpeza de Memória
+        const tabButton = event.target.closest('.tab-button');
+        if (tabButton) {
+            const nav = tabButton.parentElement;
+            if (nav.id === 'genreTabs') {
+                if (tabButton.classList.contains('tab-active')) { return; }
+                document.getElementById('ideasOutput').innerHTML = '';
+                window.showToast("Especialista alterado! Clique novamente para gerar novas ideias.", 'info');
+            }
+            if (nav.id === 'genreTabs' || nav.id === 'inputTabsNav') {
+                nav.querySelectorAll('.tab-button').forEach(b => b.classList.remove('tab-active'));
+                tabButton.classList.add('tab-active');
+            }
+            if (nav.id === 'inputTabsNav') {
+                const tabId = tabButton.dataset.tab;
+                document.querySelectorAll('#inputTabContent .tab-pane').forEach(p => p.classList.add('hidden'));
+                document.getElementById(tabId)?.classList.remove('hidden');
+            }
         }
-    }
-});
+    });
 
-
-    // ==========================================================
-    // ===== INICIALIZAÇÃO E LISTENERS SECUNDÁRIOS =================
-    // ==========================================================
+    // ===== INICIALIZAÇÃO E LISTENERS SECUNDÁRIOS =====
     const setDarkMode = (isDark) => {
         const moonIcon = document.getElementById('moonIcon'); const sunIcon = document.getElementById('sunIcon');
         if (isDark) {
@@ -3895,7 +3913,6 @@ if (button && actions[button.dataset.action]) {
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
     });
     
-    // >>>>> EVOLUÇÃO DO SALVAMENTO AUTOMÁTICO <<<<<
     document.querySelectorAll('.input, textarea.input, select.input, input[type="radio"]').forEach(el => {
         el.addEventListener('change', saveStateToLocalStorage);
     });
@@ -3921,29 +3938,21 @@ if (button && actions[button.dataset.action]) {
             }
         });
     }
-    // >>>>> FIM DA EVOLUÇÃO <<<<<
 
     document.getElementById('importFileInput')?.addEventListener('change', importProject);
     document.getElementById('narrativeGoal')?.addEventListener('change', updateNarrativeStructureOptions);
     document.getElementById('narrativeStructure')?.addEventListener('change', updateMainTooltip);
     document.getElementById('imageStyleSelect')?.addEventListener('change', toggleCustomImageStyleVisibility);
 
-    // ==========================================================
-    // ===== INICIALIZAÇÃO FINAL (ORDEM CORRIGIDA) =================
-    // ==========================================================
+    // ===== INICIALIZAÇÃO FINAL (ORDEM CORRIGIDA E SEGURA) =====
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const storedTheme = localStorage.getItem('theme');
     setDarkMode(storedTheme === 'dark' || (!storedTheme && prefersDark));
 
     setupInputTabs();
 
-    // 1. CARREGA TUDO da memória e RECONSTRÓI a UI silenciosamente
     loadStateFromLocalStorage();
-
-    // 2. MARCA os steps concluídos com base no estado já carregado
     AppState.ui.completedSteps.forEach(stepId => markStepCompleted(stepId, false));
     updateProgressBar();
-    
-    // 3. SÓ AGORA, mostra o painel correto, que já foi preenchido
     showPane(AppState.ui.currentPane || 'investigate');
 });
