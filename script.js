@@ -472,7 +472,7 @@ const setupInputTabs = () => {
 
 
 // ==========================================================
-// ===== SUBSTITUA SUA FUNÇÃO cleanGeneratedText POR ESTA VERSÃO FINAL E BLINDADA =====
+// ===== SUBSTITUA SUA FUNÇÃO cleanGeneratedText PELA VERSÃO 4.0 FINAL =====
 // ==========================================================
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -511,14 +511,14 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             let repairedString = jsonString;
 
             // ================================================================
-            // ETAPA DE REPARO 1: Cirurgia Plástica nas Bordas (NOVA CORREÇÃO)
-            // Remove aspas duplas/triplas extras no início e fim dos valores.
-            // Ex: ""valor""" -> "valor"
+            // ETAPA DE REPARO 1: Ataque Direto às Aspas Múltiplas (NOVA CORREÇÃO)
+            // Corrige inícios como `:""...` e finais como `...""}`
             // ================================================================
-            repairedString = repairedString.replace(/:\s*"{2,}([\s\S]*?)"{2,}/g, ': "$1"');
+            repairedString = repairedString.replace(/:\s*"{2,}/g, ': "');
+            repairedString = repairedString.replace(/"{2,}\s*([,}])/g, '"$1');
             
             // ================================================================
-            // ETAPA DE REPARO 2: Cirurgia Interna (Correção anterior, ainda necessária)
+            // ETAPA DE REPARO 2: Cirurgia Interna (Ainda essencial)
             // Escapa aspas duplas que sobraram DENTRO dos valores.
             // ================================================================
             repairedString = repairedString.replace(/:\s*"((?:\\.|[^"\\])*)"/g, (match, content) => {
@@ -528,11 +528,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             
             // ================================================================
             // ETAPA DE REPARO 3: Limpeza Estrutural Geral
-            // Remove quebras de linha e vírgulas finais.
             // ================================================================
-            repairedString = repairedString.replace(/\\n/g, "\\\\n"); // Preserva quebras de linha legítimas
-            repairedString = repairedString.replace(/\n/g, " "); // Remove quebras de linha de formatação
-            repairedString = repairedString.replace(/,\s*([}\]])/g, '$1'); // Remove vírgulas finais
+            repairedString = repairedString.replace(/\\n/g, "\\\\n");
+            repairedString = repairedString.replace(/\n/g, " ");
+            repairedString = repairedString.replace(/,\s*([}\]])/g, '$1');
 
             // 3. Tenta o parse final com a string reparada
             const finalParsedResult = JSON.parse(repairedString);
@@ -553,7 +552,6 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 };
-
 
 
 
