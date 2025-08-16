@@ -471,9 +471,6 @@ const setupInputTabs = () => {
 
 
 
-// ==========================================================
-// ===== SUBSTITUA SUA FUNÇÃO cleanGeneratedText PELA VERSÃO 4.0 FINAL =====
-// ==========================================================
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
         return expectJson ? (arrayExpected ? [] : null) : '';
@@ -482,74 +479,38 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return text.trim();
     }
 
-    let jsonString = '';
-    const trimmedText = text.trim();
+    let dirtyJsonString = text;
 
-    // 1. Extrai o conteúdo JSON principal, removendo markdown e texto explicativo
-    const markdownMatch = trimmedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    // 1. Tenta extrair o conteúdo de dentro de blocos de código markdown, se existirem.
+    const markdownMatch = dirtyJsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (markdownMatch && markdownMatch[1]) {
-        jsonString = markdownMatch[1].trim();
-    } else {
-        const startIndex = trimmedText.search(/[\{\[]/);
-        if (startIndex === -1) {
-            console.error("Nenhum JSON encontrado na resposta da IA.", text);
-            return expectJson ? (arrayExpected ? [] : null) : text;
-        }
-        const lastBraceIndex = trimmedText.lastIndexOf('}');
-        const lastBracketIndex = trimmedText.lastIndexOf(']');
-        const endIndex = Math.max(lastBraceIndex, lastBracketIndex);
-        jsonString = trimmedText.substring(startIndex, endIndex + 1);
+        dirtyJsonString = markdownMatch[1];
     }
-    
+
+    // 2. Remove preâmbulos comuns que a IA adiciona.
+    const jsonStartIndex = dirtyJsonString.search(/[\{\[]/);
+    if (jsonStartIndex > 0) {
+        dirtyJsonString = dirtyJsonString.substring(jsonStartIndex);
+    }
+
     try {
-        // 2. Tenta fazer o parse direto. Se funcionar, ótimo!
-        return JSON.parse(jsonString);
-    } catch (initialError) {
-        console.warn("Parse inicial falhou. Iniciando reparos cirúrgicos...", initialError.message);
+        // 3. Entrega a string "suja" para o especialista (a biblioteca jsonrepair).
+        const repairedJsonString = jsonrepair(dirtyJsonString);
         
-        try {
-            let repairedString = jsonString;
-
-            // ================================================================
-            // ETAPA DE REPARO 1: Ataque Direto às Aspas Múltiplas (NOVA CORREÇÃO)
-            // Corrige inícios como `:""...` e finais como `...""}`
-            // ================================================================
-            repairedString = repairedString.replace(/:\s*"{2,}/g, ': "');
-            repairedString = repairedString.replace(/"{2,}\s*([,}])/g, '"$1');
-            
-            // ================================================================
-            // ETAPA DE REPARO 2: Cirurgia Interna (Ainda essencial)
-            // Escapa aspas duplas que sobraram DENTRO dos valores.
-            // ================================================================
-            repairedString = repairedString.replace(/:\s*"((?:\\.|[^"\\])*)"/g, (match, content) => {
-                const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
-                return `: "${escapedContent}"`;
-            });
-            
-            // ================================================================
-            // ETAPA DE REPARO 3: Limpeza Estrutural Geral
-            // ================================================================
-            repairedString = repairedString.replace(/\\n/g, "\\\\n");
-            repairedString = repairedString.replace(/\n/g, " ");
-            repairedString = repairedString.replace(/,\s*([}\]])/g, '$1');
-
-            // 3. Tenta o parse final com a string reparada
-            const finalParsedResult = JSON.parse(repairedString);
-            
-            if (arrayExpected && !Array.isArray(finalParsedResult)) {
-                return [finalParsedResult];
-            }
-            
-            console.log("Cirurgia no JSON bem-sucedida!");
-            return finalParsedResult;
-
-        } catch (surgeryError) {
-            console.error("FALHA CRÍTICA: A cirurgia no JSON não foi bem-sucedida.", surgeryError.message);
-            console.error("JSON Problemático (Original):", text);
-            console.error("JSON Pós-Cirurgia (Falhou):", jsonString);
-            
-            throw new Error(`A IA retornou um JSON com sintaxe inválida que não pôde ser corrigido: ${surgeryError.message}`);
+        // 4. Faz o parse da string agora 100% corrigida.
+        const parsedResult = JSON.parse(repairedJsonString);
+        
+        console.log("JSON reparado com sucesso pela biblioteca!");
+        
+        if (arrayExpected && !Array.isArray(parsedResult)) {
+            return [parsedResult];
         }
+        return parsedResult;
+
+    } catch (error) {
+        console.error("FALHA CRÍTICA: Mesmo com a biblioteca de reparo, o JSON não pôde ser corrigido.", error);
+        console.error("String problemática enviada para o reparo:", dirtyJsonString);
+        throw new Error(`A resposta da IA estava em um formato irreconhecível que não pôde ser reparado.`);
     }
 };
 
