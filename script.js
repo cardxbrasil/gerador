@@ -511,7 +511,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             /Aqui está o resultado.*?análise.*?:\s*\n*/i,
             /Aqui está o objeto JSON solicitado.*?:\s*\n*/i,
             /Aqui está o objeto JSON exigido.*?:\s*\n*/i,
-            /Aqui está o objeto JSON pronto.*?:\s*\n*/i
+            /Aqui está o objeto JSON pronto.*?:\s*\n*/i,
+            /Aqui vai o objeto JSON.*?:\s*\n*/i,
+            /Aqui está o objeto JSON específico.*?:\s*\n*/i
         ];
         
         for (const pattern of patterns) {
@@ -794,6 +796,16 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         });
     };
 
+    // Função para corrigir problemas de formatação específicos
+    const fixFormattingIssues = (str) => {
+        // Corrige problemas de formatação comuns
+        str = str.replace(/\n\s*\n/g, '\n');
+        str = str.replace(/\s+/g, ' ');
+        str = str.replace(/\s*:\s*/g, ': ');
+        str = str.replace(/\s*,\s*/g, ', ');
+        return str;
+    };
+
     // Tenta extrair JSON de várias formas
     const extractionMethods = [
         // Método 1: Blocos markdown
@@ -880,7 +892,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Método 9: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"', 'Aqui está o resultado da análise', 'Aqui está o objeto JSON solicitado', 'Aqui está o objeto JSON exigido', 'Aqui está o objeto JSON pronto', '{\n  "score"', '"criterion_name"', 'Aqui está.*?:\s*\n*\s*\{'];
+            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"', 'Aqui está o resultado da análise', 'Aqui está o objeto JSON solicitado', 'Aqui está o objeto JSON exigido', 'Aqui está o objeto JSON pronto', 'Aqui vai o objeto JSON', 'Aqui está o objeto JSON específico', '{\n  "score"', '"criterion_name"', 'Aqui está.*?:\s*\n*\s*\{'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -1016,6 +1028,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         // Corrige vírgulas faltando
         cleanedJson = fixMissingCommas(cleanedJson);
         
+        // Corrige formatação
+        cleanedJson = fixFormattingIssues(cleanedJson);
+        
         // Remove texto após o JSON
         cleanedJson = removeTrailingText(cleanedJson);
         
@@ -1057,6 +1072,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             
             // Corrige vírgulas faltando específicas
             repairedString = fixMissingCommas(repairedString);
+            
+            // Corrige formatação
+            repairedString = fixFormattingIssues(repairedString);
             
             // Regras de desinfecção melhoradas
             repairedString = repairedString.replace(/`/g, "'");
@@ -1207,6 +1225,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             // Remove texto explicativo no final
             repairedString = repairedString.replace(/\s*Espero que isso atenda.*$/g, '');
             
+            // Corrige problemas de formatação específicos
+            repairedString = repairedString.replace(/\s*:\s*/g, ': ');
+            repairedString = repairedString.replace(/\s*,\s*/g, ', ');
+            
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
             
@@ -1332,7 +1354,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/("critique":\s*".*?")(\s*"rewritten_quote")/g, '$1, $2')
                                 .replace(/:\s*""([^"]*?)""/g, ': "$1"')
                                 .replace(/[\x00-\x1F\x7F]/g, '')
-                                .replace(/\s*Espero que isso atenda.*$/g, '');
+                                .replace(/\s*Espero que isso atenda.*$/g, '')
+                                .replace(/\s*:\s*/g, ': ')
+                                .replace(/\s*,\s*/g, ', ');
                             
                             return JSON.parse(fixedObject);
                         } catch (e) {
