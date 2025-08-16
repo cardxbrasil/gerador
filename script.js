@@ -469,6 +469,7 @@ const setupInputTabs = () => {
 
 
 
+
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
         return expectJson ? (arrayExpected ? [] : null) : '';
@@ -506,7 +507,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             /Aqui está o objeto JSON.*?:\s*\n*/i,
             /Aqui está.*?:\s*\n*/i,
             /objeto JSON perfeito.*?:\s*\n*/i,
-            /Aqui está o resultado.*?análise.*?:\s*\n*/i
+            /Aqui está o resultado.*?análise.*?:\s*\n*/i,
+            /Aqui está o objeto JSON solicitado.*?:\s*\n*/i
         ];
         
         for (const pattern of patterns) {
@@ -707,7 +709,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     // Função para corrigir aspas duplas em valores
     const fixDoubleQuotesInValues = (str) => {
-        return str.replace(/"([^"]*?)""([^"]*?)"/g, '"$1\\"$2"');
+        return str.replace(/""/g, '"');
     };
 
     // Função para corrigir caracteres de escape problemáticos
@@ -744,6 +746,24 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         str = str.replace(/("problematic_quote":\s*".*?")\s*("critique")/g, '$1, $2');
         str = str.replace(/("critique":\s*".*?")\s*("rewritten_quote")/g, '$1, $2');
         str = str.replace(/("rewritten_quote":\s*".*?")\s*}/g, '$1 }');
+        return str;
+    };
+
+    // Função para remover texto após o JSON
+    const removeTrailingText = (str) => {
+        // Remove texto após fechamento do JSON
+        const validEndPattern = /(\}\s*)[^\]}]*$/;
+        const match = str.match(validEndPattern);
+        if (match && match.index > 0) {
+            // Verifica se há texto significativo após o fechamento
+            const trailingText = str.substring(match.index + match[1].length).trim();
+            if (trailingText.length > 0 && !trailingText.startsWith('}') && !trailingText.startsWith(']')) {
+                // Se o texto após o fechamento é significativo, remove
+                if (trailingText.match(/[a-zA-Z]/)) {
+                    return str.substring(0, match.index + match[1].length);
+                }
+            }
+        }
         return str;
     };
 
@@ -833,7 +853,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Método 9: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"', 'Aqui está o resultado da análise'];
+            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"', 'Aqui está o resultado da análise', 'Aqui está o objeto JSON solicitado', '{\n  "score"'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -963,6 +983,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         // Corrige vírgulas faltando
         cleanedJson = fixMissingCommas(cleanedJson);
         
+        // Remove texto após o JSON
+        cleanedJson = removeTrailingText(cleanedJson);
+        
         // Valida balanceamento de colchetes/chaves
         let openBrackets = (cleanedJson.match(/\[/g) || []).length;
         let closeBrackets = (cleanedJson.match(/\]/g) || []).length;
@@ -1091,9 +1114,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/("critique":\s*".*?")(\s*"[\w_])/g, '$1, $2');
             repairedString = repairedString.replace(/("rewritten_quote":\s*".*?")(\s*[\}\]])/g, '$1$2');
             
-            // Problemas específicos de aspas duplas no rewritten_quote
-            repairedString = repairedString.replace(/""The/g, '"The');
-            repairedString = repairedString.replace(/Negro\.""}/g, 'Negro."}');
+            // Problemas específicos de aspas duplas
+            repairedString = repairedString.replace(/""/g, '"');
             
             // Corrige propriedades do esboço estratégico
             repairedString = repairedString.replace(/("introduction":\s*".*?")(\s*"[\w_])/g, '$1, $2');
@@ -1114,6 +1136,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             // Remove conteúdo corrompido no final
             repairedString = cleanCorruptedEnd(repairedString);
             
+            // Remove texto após o JSON
+            repairedString = removeTrailingText(repairedString);
+            
             // Corrige objetos incompletos no final
             repairedString = repairedString.replace(/\{\s*"[\w_]+"[^}]*?(?=\}\s*\]|\}\s*,|\s*\]\s*)/g, match => {
                 if (!match.endsWith('}')) {
@@ -1132,6 +1157,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/("positive_points":\s*".*?")(\s*"problematic_quote")/g, '$1, $2');
             repairedString = repairedString.replace(/("problematic_quote":\s*".*?")(\s*"critique")/g, '$1, $2');
             repairedString = repairedString.replace(/("critique":\s*".*?")(\s*"rewritten_quote")/g, '$1, $2');
+            
+            // Corrige aspas duplas específicas
+            repairedString = repairedString.replace(/""([^"]*?)""/g, '"$1"');
             
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
@@ -1185,6 +1213,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                            !trimmedLine.includes('Expected property name') &&
                            !trimmedLine.includes('Unexpected token') &&
                            !trimmedLine.includes('Bad escaped character') &&
+                           !trimmedLine.includes('Expected \',\' or \'}\'') &&
                            !trimmedLine.includes('Expected \',\' or \'}\'');
                 })
                 .join('\n');
@@ -1211,8 +1240,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/("problematic_quote":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("critique":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/assistant<\|end_header_id\|>[\s\S]*$/g, '')
-                                .replace(/""The/g, '"The')
-                                .replace(/Negro\.""}/g, 'Negro."}')
+                                .replace(/""/g, '"')
                                 .replace(/("introduction":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("development":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("climax":\s*".*?")(\s*"[\w_])/g, '$1, $2')
@@ -1243,8 +1271,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/("positive_points":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("problematic_quote":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("critique":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/""The/g, '"The')
-                                .replace(/Negro\.""}/g, 'Negro."}')
+                                .replace(/""/g, '"')
                                 .replace(/("introduction":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("development":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("climax":\s*".*?")(\s*"[\w_])/g, '$1, $2')
@@ -1273,6 +1300,14 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 };
+
+
+
+
+
+
+
+
 
 
 
