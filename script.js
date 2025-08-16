@@ -2040,8 +2040,6 @@ const generateStrategicOutline = async (button) => {
 const generateSectionHtmlContent = (sectionId, title, content) => {
     const accordionItem = document.createElement('div');
     accordionItem.className = 'accordion-item card !p-0 mb-4 animate-fade-in';
-    
-    // O ID agora é colocado no elemento raiz do acordeão
     accordionItem.id = `${sectionId}Section`;
 
     const addChapterButtonHtml = sectionId === 'development' ? `
@@ -2050,6 +2048,7 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3v-3z"/></svg> 
                 Adicionar Capítulo
             </button>
+            <span class="tooltip-text"><strong>Função:</strong> Expansão.<br><strong>O que faz:</strong> Adiciona um novo capítulo ao Desenvolvimento, continuando a narrativa a partir do ponto onde parou. Ideal para aprofundar um novo tópico ou estender a história.</span>
         </div>` : '';
 
     accordionItem.innerHTML = `
@@ -2079,10 +2078,21 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
                         <h5 class="font-semibold text-base mb-2">Passo 1: Diagnóstico e Criativo</h5>
                         <p class="text-xs text-muted mb-3">Analise, edite ou enriqueça o texto para máxima qualidade.</p>
                         <div class="flex items-center justify-center gap-2 flex-wrap">
-                            <button class="btn btn-secondary btn-small" data-action="analyzeRetention" data-section-id="${sectionId}Section">Analisar Retenção</button>
-                            <button class="btn btn-secondary btn-small" data-action="refineStyle"><i class="fas fa-gem mr-2"></i>Refinar Estilo</button>
-                            <button class="btn btn-secondary btn-small" data-action="enrichWithData"><i class="fas fa-plus mr-2"></i>Enriquecer com Dados</button>
+                            
+                            <div class="tooltip-container">
+                                <button class="btn btn-secondary btn-small" data-action="analyzeRetention" data-section-id="${sectionId}Section">Analisar Retenção</button>
+                                <span class="tooltip-text"><strong>Função:</strong> Diagnóstico.<br><strong>O que faz:</strong> Analisa cada parágrafo em busca de pontos que podem fazer o espectador perder o interesse, destacando-os em amarelo ou vermelho e sugerindo a causa.</span>
+                            </div>
+                            <div class="tooltip-container">
+                                <button class="btn btn-secondary btn-small" data-action="refineStyle"><i class="fas fa-gem mr-2"></i>Refinar Estilo</button>
+                                <span class="tooltip-text"><strong>Função:</strong> Polimento.<br><strong>O que faz:</strong> Pede para a IA reescrever a seção inteira para melhorar a fluidez, remover repetições e tornar o texto mais impactante, sem alterar a mensagem central.</span>
+                            </div>
+                            <div class="tooltip-container">
+                                <button class="btn btn-secondary btn-small" data-action="enrichWithData"><i class="fas fa-plus mr-2"></i>Enriquecer com Dados</button>
+                                <span class="tooltip-text"><strong>Função:</strong> Adição.<br><strong>O que faz:</strong> Permite que você selecione um trecho e forneça um novo dado ou fonte. A IA reescreverá o trecho para integrar a nova informação de forma natural.</span>
+                            </div>
                             ${addChapterButtonHtml}
+
                         </div>
                         <div id="analysis-output-${sectionId}" class="section-analysis-output mt-3 text-left"></div>
                     </div>
@@ -2100,7 +2110,6 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
                     </div>
                 </div>
             </div>
-
         </div>
     `;
     return accordionItem;
