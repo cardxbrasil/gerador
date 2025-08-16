@@ -2020,7 +2020,19 @@ const generateStrategicOutline = async (button) => {
         outlineHtml += '</ul>';
         outlineContentDiv.innerHTML = outlineHtml;
         
-        createScriptSectionPlaceholders();
+        // ===============================================
+        // A CORREÇÃO ESTÁ AQUI
+        // ===============================================
+        const scriptContainer = document.getElementById('scriptSectionsContainer');
+        if (scriptContainer) {
+            scriptContainer.innerHTML = ''; // Limpa qualquer conteúdo antigo
+            scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('intro', 'Introdução', 'generateIntro'));
+            scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('development', 'Desenvolvimento', 'generateDevelopment'));
+            scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('climax', 'Clímax', 'generateClimax'));
+        }
+        // ===============================================
+        // FIM DA CORREÇÃO
+        // ===============================================
 
     } catch (error) {
         console.error("Erro em generateStrategicOutline:", error);
