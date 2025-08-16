@@ -381,6 +381,23 @@ const hideButtonLoading = (button) => {
 
 
 
+// ==========================================================
+// ===== NOVA FUNÇÃO AUXILIAR PARA CARREGAR SCRIPTS =====
+// ==========================================================
+const loadScript = (src) => {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = () => resolve(script);
+        script.onerror = () => reject(new Error(`Script load error for ${src}`));
+        document.head.appendChild(script);
+    });
+};
+
+
+
+
+
 // =========================================================================
 // >>>>> SUBSTITUA A FUNÇÃO callGroqAPI PELA VERSÃO SIMPLES E DIRETA <<<<<
 // =========================================================================
@@ -3672,9 +3689,6 @@ const syncUiFromState = () => {
 
 
 
-// ==========================================================
-// ===== ARQUITETURA DE INICIALIZAÇÃO FINAL E SEGURA =====
-// ==========================================================
 
 // ==========================================================
 // ===== ARQUITETURA DE INICIALIZAÇÃO FINAL E SEGURA =====
