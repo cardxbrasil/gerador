@@ -4192,6 +4192,10 @@ const loadStateFromLocalStorage = () => {
     }
 };
 
+
+
+
+
 const syncUiFromState = () => {
     const state = AppState;
 
@@ -4229,18 +4233,20 @@ const syncUiFromState = () => {
         document.getElementById('ideaGenerationSection').classList.remove('hidden');
     }
 
+    // >>>>> LÓGICA DE RECONSTRUÇÃO DO ESBOÇO E ROTEIRO <<<<<
     if(state.generated.strategicOutline){
         const outlineContentDiv = document.getElementById('outlineContent');
         const titleTranslations = { 'introduction': 'Introdução', 'development': 'Desenvolvimento', 'climax': 'Clímax', 'conclusion': 'Conclusão', 'cta': 'CTA' };
         let outlineHtml = '<ul class="space-y-4 text-sm" style="list-style-position: inside; padding-left: 1rem;">';
         for (const key in state.generated.strategicOutline) {
-            outlineHtml += `<li><div><strong style="color: var(--primary);">${titleTranslations[key] || key}:</strong> <span style="color: var(--text-body);">${DOMPurify.sanitize(state.generated.strategicOutline[key])}</span></div></li>`;
+            if(state.generated.strategicOutline[key]){
+                outlineHtml += `<li><div><strong style="color: var(--primary);">${titleTranslations[key] || key}:</strong> <span style="color: var(--text-body);">${DOMPurify.sanitize(state.generated.strategicOutline[key])}</span></div></li>`;
+            }
         }
         outlineHtml += '</ul>';
         outlineContentDiv.innerHTML = outlineHtml;
     }
     
-    // >>>>> INÍCIO DA LÓGICA DE RECONSTRUÇÃO DO ROTEIRO <<<<<
     const scriptContainer = document.getElementById('scriptSectionsContainer');
     scriptContainer.innerHTML = ''; // Limpa antes de reconstruir
     const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
@@ -4267,6 +4273,8 @@ const syncUiFromState = () => {
     updateButtonStates();
     updateAllReadingTimes();
 };
+
+
 
 
 
