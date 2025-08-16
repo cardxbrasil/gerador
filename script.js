@@ -468,6 +468,7 @@ const setupInputTabs = () => {
 // =================================
 
 
+
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
         return expectJson ? (arrayExpected ? [] : null) : '';
@@ -504,7 +505,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             /Análise.*?:\s*\n*/i,
             /Aqui está o objeto JSON.*?:\s*\n*/i,
             /Aqui está.*?:\s*\n*/i,
-            /objeto JSON perfeito.*?:\s*\n*/i
+            /objeto JSON perfeito.*?:\s*\n*/i,
+            /Aqui está o resultado.*?análise.*?:\s*\n*/i
         ];
         
         for (const pattern of patterns) {
@@ -734,6 +736,17 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return str.replace(/'''/g, '"').replace(/´´´/g, '"');
     };
 
+    // Função para corrigir vírgulas faltando específicas
+    const fixMissingCommas = (str) => {
+        // Corrige vírgulas faltando entre propriedades
+        str = str.replace(/("score":\s*\d+)\s*("positive_points")/g, '$1, $2');
+        str = str.replace(/("positive_points":\s*".*?")\s*("problematic_quote")/g, '$1, $2');
+        str = str.replace(/("problematic_quote":\s*".*?")\s*("critique")/g, '$1, $2');
+        str = str.replace(/("critique":\s*".*?")\s*("rewritten_quote")/g, '$1, $2');
+        str = str.replace(/("rewritten_quote":\s*".*?")\s*}/g, '$1 }');
+        return str;
+    };
+
     // Tenta extrair JSON de várias formas
     const extractionMethods = [
         // Método 1: Blocos markdown
@@ -820,7 +833,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Método 9: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"'];
+            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"', 'Aqui está o resultado da análise'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -947,6 +960,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         // Corrige aspas triplas
         cleanedJson = fixTripleQuotes(cleanedJson);
         
+        // Corrige vírgulas faltando
+        cleanedJson = fixMissingCommas(cleanedJson);
+        
         // Valida balanceamento de colchetes/chaves
         let openBrackets = (cleanedJson.match(/\[/g) || []).length;
         let closeBrackets = (cleanedJson.match(/\]/g) || []).length;
@@ -976,6 +992,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             
             // Corrige aspas triplas
             repairedString = fixTripleQuotes(repairedString);
+            
+            // Corrige vírgulas faltando específicas
+            repairedString = fixMissingCommas(repairedString);
             
             // Regras de desinfecção melhoradas
             repairedString = repairedString.replace(/`/g, "'");
@@ -1070,6 +1089,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/("positive_points":\s*".*?")(\s*"[\w_])/g, '$1, $2');
             repairedString = repairedString.replace(/("problematic_quote":\s*".*?")(\s*"[\w_])/g, '$1, $2');
             repairedString = repairedString.replace(/("critique":\s*".*?")(\s*"[\w_])/g, '$1, $2');
+            repairedString = repairedString.replace(/("rewritten_quote":\s*".*?")(\s*[\}\]])/g, '$1$2');
             
             // Problemas específicos de aspas duplas no rewritten_quote
             repairedString = repairedString.replace(/""The/g, '"The');
@@ -1107,6 +1127,11 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             
             // Corrige escapes mal formados
             repairedString = repairedString.replace(/\\([^"\\/bfnrtu])/g, '$1');
+            
+            // Corrige vírgulas faltando específicas do erro atual
+            repairedString = repairedString.replace(/("positive_points":\s*".*?")(\s*"problematic_quote")/g, '$1, $2');
+            repairedString = repairedString.replace(/("problematic_quote":\s*".*?")(\s*"critique")/g, '$1, $2');
+            repairedString = repairedString.replace(/("critique":\s*".*?")(\s*"rewritten_quote")/g, '$1, $2');
             
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
@@ -1159,7 +1184,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                            !trimmedLine.startsWith('assistant<|end_header_id|>') &&
                            !trimmedLine.includes('Expected property name') &&
                            !trimmedLine.includes('Unexpected token') &&
-                           !trimmedLine.includes('Bad escaped character');
+                           !trimmedLine.includes('Bad escaped character') &&
+                           !trimmedLine.includes('Expected \',\' or \'}\'');
                 })
                 .join('\n');
                 
@@ -1226,7 +1252,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/("cta":\s*".*?")(\s*[\}\]])/g, '$1$2')
                                 .replace(/\\'/g, '"')
                                 .replace(/\\\n/g, '\n')
-                                .replace(/\\\\/g, '\\');
+                                .replace(/\\\\/g, '\\')
+                                .replace(/("positive_points":\s*".*?")(\s*"problematic_quote")/g, '$1, $2')
+                                .replace(/("problematic_quote":\s*".*?")(\s*"critique")/g, '$1, $2')
+                                .replace(/("critique":\s*".*?")(\s*"rewritten_quote")/g, '$1, $2');
                             
                             return JSON.parse(fixedObject);
                         } catch (e) {
@@ -1244,6 +1273,13 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 };
+
+
+
+// ===============================
+// >>>>> FILTRO JSON ROBUSTO <<<<<
+// ===============================
+
 
 
 const removeMetaComments = (text) => {
