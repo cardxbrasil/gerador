@@ -486,8 +486,6 @@ const setupInputTabs = () => {
 
 
 
-
-
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
         return expectJson ? (arrayExpected ? [] : null) : '';
@@ -497,32 +495,37 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     }
 
     let dirtyJsonString = text;
+
+    // 1. Tenta extrair o conteúdo de dentro de blocos de código markdown.
     const markdownMatch = dirtyJsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (markdownMatch && markdownMatch[1]) {
         dirtyJsonString = markdownMatch[1];
     }
+
+    // 2. Remove preâmbulos comuns que a IA adiciona.
     const jsonStartIndex = dirtyJsonString.search(/[\{\[]/);
     if (jsonStartIndex > 0) {
         dirtyJsonString = dirtyJsonString.substring(jsonStartIndex);
     }
 
     try {
-        // A chamada agora é direta e segura
+        // 3. Entrega a string "suja" para o especialista. A chamada é direta.
         const repairedJsonString = jsonrepair(dirtyJsonString);
+        
+        // 4. Faz o parse da string agora corrigida.
         const parsedResult = JSON.parse(repairedJsonString);
         
         if (arrayExpected && !Array.isArray(parsedResult)) {
             return [parsedResult];
         }
         return parsedResult;
+
     } catch (error) {
         console.error("FALHA CRÍTICA NO REPARO DO JSON:", error);
         console.error("String problemática:", dirtyJsonString);
         throw new Error(`A resposta da IA estava em um formato irreconhecível.`);
     }
 };
-
-
 
 
 
