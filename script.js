@@ -470,6 +470,10 @@ const setupInputTabs = () => {
 
 
 
+```javascript
+// ============================
+// >>>>> FILTRO JSON ROBUSTO <<<<<
+// ============================
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
         return expectJson ? (arrayExpected ? [] : null) : '';
@@ -508,7 +512,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             /Aqui está.*?:\s*\n*/i,
             /objeto JSON perfeito.*?:\s*\n*/i,
             /Aqui está o resultado.*?análise.*?:\s*\n*/i,
-            /Aqui está o objeto JSON solicitado.*?:\s*\n*/i
+            /Aqui está o objeto JSON solicitado.*?:\s*\n*/i,
+            /Aqui está o objeto JSON exigido.*?:\s*\n*/i
         ];
         
         for (const pattern of patterns) {
@@ -759,11 +764,20 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             const trailingText = str.substring(match.index + match[1].length).trim();
             if (trailingText.length > 0 && !trailingText.startsWith('}') && !trailingText.startsWith(']')) {
                 // Se o texto após o fechamento é significativo, remove
-                if (trailingText.match(/[a-zA-Z]/)) {
+                if (trailingText.match(/[a-zA-Z]/) && trailingText.length > 10) {
                     return str.substring(0, match.index + match[1].length);
                 }
             }
         }
+        return str;
+    };
+
+    // Função para corrigir problemas específicos de aspas
+    const fixQuoteIssues = (str) => {
+        // Corrige aspas duplas no início e fim de valores
+        str = str.replace(/:\s*""([^"]*?)""/g, ': "$1"');
+        // Corrige aspas triplas
+        str = str.replace(/"""/g, '"');
         return str;
     };
 
@@ -853,7 +867,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Método 9: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"', 'Aqui está o resultado da análise', 'Aqui está o objeto JSON solicitado', '{\n  "score"'];
+            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"', 'Aqui está o resultado da análise', 'Aqui está o objeto JSON solicitado', 'Aqui está o objeto JSON exigido', '{\n  "score"', '"criterion_name"'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -971,6 +985,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         cleanedJson = cleanedJson.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
         cleanedJson = cleanedJson.replace(/,\s*([}\]])/g, '$1');
         
+        // Corrige problemas específicos de aspas
+        cleanedJson = fixQuoteIssues(cleanedJson);
+        
         // Corrige aspas duplas em valores
         cleanedJson = fixDoubleQuotesInValues(cleanedJson);
         
@@ -1015,6 +1032,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             
             // Corrige aspas triplas
             repairedString = fixTripleQuotes(repairedString);
+            
+            // Corrige problemas específicos de aspas
+            repairedString = fixQuoteIssues(repairedString);
             
             // Corrige vírgulas faltando específicas
             repairedString = fixMissingCommas(repairedString);
@@ -1115,7 +1135,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/("rewritten_quote":\s*".*?")(\s*[\}\]])/g, '$1$2');
             
             // Problemas específicos de aspas duplas
-            repairedString = repairedString.replace(/""/g, '"');
+            repairedString = repairedString.replace(/""([^"]*?)""/g, '"$1"');
+            repairedString = repairedString.replace(/"""/g, '"');
             
             // Corrige propriedades do esboço estratégico
             repairedString = repairedString.replace(/("introduction":\s*".*?")(\s*"[\w_])/g, '$1, $2');
@@ -1158,8 +1179,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/("problematic_quote":\s*".*?")(\s*"critique")/g, '$1, $2');
             repairedString = repairedString.replace(/("critique":\s*".*?")(\s*"rewritten_quote")/g, '$1, $2');
             
-            // Corrige aspas duplas específicas
-            repairedString = repairedString.replace(/""([^"]*?)""/g, '"$1"');
+            // Corrige aspas duplas específicas do erro
+            repairedString = repairedString.replace(/:\s*""([^"]*?)""/g, ': "$1"');
             
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
@@ -1282,7 +1303,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/\\\\/g, '\\')
                                 .replace(/("positive_points":\s*".*?")(\s*"problematic_quote")/g, '$1, $2')
                                 .replace(/("problematic_quote":\s*".*?")(\s*"critique")/g, '$1, $2')
-                                .replace(/("critique":\s*".*?")(\s*"rewritten_quote")/g, '$1, $2');
+                                .replace(/("critique":\s*".*?")(\s*"rewritten_quote")/g, '$1, $2')
+                                .replace(/:\s*""([^"]*?)""/g, ': "$1"');
                             
                             return JSON.parse(fixedObject);
                         } catch (e) {
@@ -1300,6 +1322,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 };
+```
 
 
 
