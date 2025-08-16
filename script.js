@@ -470,10 +470,7 @@ const setupInputTabs = () => {
 
 
 
-```javascript
-// ============================
-// >>>>> FILTRO JSON ROBUSTO <<<<<
-// ============================
+
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string') {
         return expectJson ? (arrayExpected ? [] : null) : '';
@@ -1322,7 +1319,6 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 };
-```
 
 
 
