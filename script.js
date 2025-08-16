@@ -503,7 +503,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             /Aqui está o resultado.*?:\s*\n*/i,
             /Análise.*?:\s*\n*/i,
             /Aqui está o objeto JSON.*?:\s*\n*/i,
-            /Aqui está.*?:\s*\n*/i
+            /Aqui está.*?:\s*\n*/i,
+            /objeto JSON perfeito.*?:\s*\n*/i
         ];
         
         for (const pattern of patterns) {
@@ -707,11 +708,30 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return str.replace(/"([^"]*?)""([^"]*?)"/g, '"$1\\"$2"');
     };
 
+    // Função para corrigir caracteres de escape problemáticos
+    const fixEscapeCharacters = (str) => {
+        // Corrige escapes de aspas
+        str = str.replace(/\\"/g, '"');
+        // Corrige escapes de barras
+        str = str.replace(/\\\\/g, '\\');
+        // Corrige quebras de linha mal escapadas
+        str = str.replace(/\\n/g, '\n');
+        str = str.replace(/\\\n/g, '\n');
+        // Corrige escapes de aspas simples
+        str = str.replace(/\\'/g, "'");
+        return str;
+    };
+
     // Função para extrair objeto JSON simples
     const extractSimpleJsonObject = (str) => {
         // Procura por um objeto JSON completo
         const objectMatch = str.match(/\{[\s\S]*\}/);
         return objectMatch ? objectMatch[0] : null;
+    };
+
+    // Função para corrigir aspas triplas
+    const fixTripleQuotes = (str) => {
+        return str.replace(/'''/g, '"').replace(/´´´/g, '"');
     };
 
     // Tenta extrair JSON de várias formas
@@ -800,7 +820,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         
         // Método 9: Busca por palavras-chave comuns
         () => {
-            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"'];
+            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"'];
             for (const keyword of keywords) {
                 const index = trimmedText.indexOf(keyword);
                 if (index !== -1) {
@@ -921,6 +941,12 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         // Corrige aspas duplas em valores
         cleanedJson = fixDoubleQuotesInValues(cleanedJson);
         
+        // Corrige caracteres de escape
+        cleanedJson = fixEscapeCharacters(cleanedJson);
+        
+        // Corrige aspas triplas
+        cleanedJson = fixTripleQuotes(cleanedJson);
+        
         // Valida balanceamento de colchetes/chaves
         let openBrackets = (cleanedJson.match(/\[/g) || []).length;
         let closeBrackets = (cleanedJson.match(/\]/g) || []).length;
@@ -947,6 +973,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             // Processo de reparo completo
             // Remove blocos de código
             repairedString = extractJsonFromCodeBlock(repairedString);
+            
+            // Corrige aspas triplas
+            repairedString = fixTripleQuotes(repairedString);
             
             // Regras de desinfecção melhoradas
             repairedString = repairedString.replace(/`/g, "'");
@@ -975,7 +1004,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/\\([^"\\/bfnrtu])/g, '$1');
             
             // Corrige aspas escapadas duplicadas
-            repairedString = repairedString.replace(/\\"/g, '\\"');
+            repairedString = repairedString.replace(/\\"/g, '"');
             
             // Corrige vírgulas faltando entre propriedades
             repairedString = repairedString.replace(/"(\s+)([a-zA-Z0-9_]+)":/g, '",$1"$2":');
@@ -1053,6 +1082,15 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             repairedString = repairedString.replace(/("conclusion":\s*".*?")(\s*"[\w_])/g, '$1, $2');
             repairedString = repairedString.replace(/("cta":\s*".*?")(\s*[\}\]])/g, '$1$2');
             
+            // Corrige caracteres de escape específicos do erro
+            repairedString = repairedString.replace(/\\'/g, '"');
+            repairedString = repairedString.replace(/\\n/g, '\n');
+            repairedString = repairedString.replace(/\\\n/g, '\n');
+            repairedString = repairedString.replace(/\\\\/g, '\\');
+            
+            // Corrige problemas de aspas no problematic_quote
+            repairedString = repairedString.replace(/"problematic_quote":\s*"([^"]*?)\\"([^"]*?)"/g, '"problematic_quote": "$1\'$2"');
+            
             // Remove conteúdo corrompido no final
             repairedString = cleanCorruptedEnd(repairedString);
             
@@ -1066,6 +1104,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             
             // Remove texto explicativo do início do JSON
             repairedString = repairedString.replace(/^\s*A\s*/g, '');
+            
+            // Corrige escapes mal formados
+            repairedString = repairedString.replace(/\\([^"\\/bfnrtu])/g, '$1');
             
             // Segundo parse
             let finalParsedResult = JSON.parse(repairedString);
@@ -1117,7 +1158,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                            !trimmedLine.startsWith('**Array') &&
                            !trimmedLine.startsWith('assistant<|end_header_id|>') &&
                            !trimmedLine.includes('Expected property name') &&
-                           !trimmedLine.includes('Unexpected token');
+                           !trimmedLine.includes('Unexpected token') &&
+                           !trimmedLine.includes('Bad escaped character');
                 })
                 .join('\n');
                 
@@ -1148,7 +1190,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/("introduction":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("development":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("climax":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("conclusion":\s*".*?")(\s*"[\w_])/g, '$1, $2');
+                                .replace(/("conclusion":\s*".*?")(\s*"[\w_])/g, '$1, $2')
+                                .replace(/\\'/g, '"')
+                                .replace(/\\\n/g, '\n')
+                                .replace(/\\\\/g, '\\');
                             
                             // Remove conteúdo corrompido no final
                             fixedArray = cleanCorruptedEnd(fixedArray);
@@ -1178,7 +1223,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
                                 .replace(/("development":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("climax":\s*".*?")(\s*"[\w_])/g, '$1, $2')
                                 .replace(/("conclusion":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("cta":\s*".*?")(\s*[\}\]])/g, '$1$2');
+                                .replace(/("cta":\s*".*?")(\s*[\}\]])/g, '$1$2')
+                                .replace(/\\'/g, '"')
+                                .replace(/\\\n/g, '\n')
+                                .replace(/\\\\/g, '\\');
                             
                             return JSON.parse(fixedObject);
                         } catch (e) {
@@ -1196,11 +1244,6 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 };
-
-
-// ======================================
-// >>>>> FIM DE FILTRO JSON ROBUSTO <<<<<
-// ======================================
 
 
 const removeMetaComments = (text) => {
@@ -4194,17 +4237,33 @@ const LOCAL_STORAGE_KEY = 'viralScriptGeneratorProject_v6';
 
 const getProjectStateForExport = () => {
     const stateToExport = JSON.parse(JSON.stringify(AppState));
-    const formElements = document.querySelectorAll('#appRoot input, #appRoot select, #appRoot textarea');
+    
+    // Zera o objeto de inputs para garantir que estamos salvando o estado atual do DOM
     stateToExport.inputs = {};
+
+    // Salva todos os inputs, selects e textareas que possuem um ID
+    const formElements = document.querySelectorAll('#appRoot input[id], #appRoot select[id], #appRoot textarea[id]');
     formElements.forEach(el => {
-        if (el.id && el.type !== 'file') {
-             if (el.type === 'radio') {
-                if (el.checked) stateToExport.inputs[el.name] = el.value;
-            } else {
-                stateToExport.inputs[el.id] = el.value;
-            }
+        if (el.type !== 'file' && el.type !== 'radio') {
+            stateToExport.inputs[el.id] = el.value;
         }
     });
+    
+    // Salva o estado do radio button de 'conclusionType'
+    const checkedConclusionType = document.querySelector('input[name="conclusionType"]:checked');
+    if (checkedConclusionType) {
+        stateToExport.inputs['conclusionType'] = checkedConclusionType.value;
+    }
+
+    // Salva o HTML gerado para os painéis de resultado e análise
+    stateToExport.generated.emotionalMapHTML = document.getElementById('emotionalMapContent')?.innerHTML;
+    stateToExport.generated.soundtrackHTML = document.getElementById('soundtrackContent')?.innerHTML;
+    stateToExport.generated.titlesAndThumbnailsHTML = document.getElementById('titlesThumbnailsContent')?.innerHTML;
+    stateToExport.generated.descriptionHTML = document.getElementById('videoDescriptionContent')?.innerHTML;
+    stateToExport.generated.analysisReportHTML = document.getElementById('analysisReportContainer')?.innerHTML;
+    stateToExport.generated.hooksReportHTML = document.getElementById('hooksReportContainer')?.innerHTML;
+    stateToExport.generated.viralSuggestionsHTML = document.getElementById('viralSuggestionsContainer')?.innerHTML;
+
     return stateToExport;
 };
 
@@ -4262,7 +4321,17 @@ const syncUiFromState = () => {
     updateNarrativeStructureOptions();
     toggleCustomImageStyleVisibility();
 
-    // 3. Restaura os outputs dos painéis
+    // 3. Restaura os outputs dos painéis de resultado (O CÓDIGO QUE FALTAVA)
+    if (state.generated.emotionalMapHTML) document.getElementById('emotionalMapContent').innerHTML = state.generated.emotionalMapHTML;
+    if (state.generated.soundtrackHTML) document.getElementById('soundtrackContent').innerHTML = state.generated.soundtrackHTML;
+    if (state.generated.titlesAndThumbnailsHTML) document.getElementById('titlesThumbnailsContent').innerHTML = state.generated.titlesAndThumbnailsHTML;
+    if (state.generated.descriptionHTML) document.getElementById('videoDescriptionContent').innerHTML = state.generated.descriptionHTML;
+    if (state.generated.analysisReportHTML) document.getElementById('analysisReportContainer').innerHTML = state.generated.analysisReportHTML;
+    if (state.generated.hooksReportHTML) document.getElementById('hooksReportContainer').innerHTML = state.generated.hooksReportHTML;
+    if (state.generated.viralSuggestionsHTML) document.getElementById('viralSuggestionsContainer').innerHTML = state.generated.viralSuggestionsHTML;
+
+
+    // 4. Restaura painel de Investigação (Já estava correto)
     if (state.generated.investigationReport) {
         const outputContainer = document.getElementById('factCheckOutput');
         const converter = new showdown.Converter({ simplifiedAutoLink: true, tables: true });
@@ -4275,7 +4344,7 @@ const syncUiFromState = () => {
         document.getElementById('ideaGenerationSection').classList.remove('hidden');
     }
 
-    // >>>>> LÓGICA DE RECONSTRUÇÃO DO ESBOÇO E ROTEIRO (VERSÃO CORRIGIDA) <<<<<
+    // 5. Lógica de Reconstrução do Esboço e Roteiro (Já corrigida)
     if (state.generated.strategicOutline) {
         const outlineContentDiv = document.getElementById('outlineContent');
         const titleTranslations = { 'introduction': 'Introdução', 'development': 'Desenvolvimento', 'climax': 'Clímax', 'conclusion': 'Conclusão', 'cta': 'CTA' };
@@ -4290,14 +4359,13 @@ const syncUiFromState = () => {
     }
     
     const scriptContainer = document.getElementById('scriptSectionsContainer');
-    scriptContainer.innerHTML = ''; // Limpa antes de reconstruir
-    
+    scriptContainer.innerHTML = '';
     const sectionDetailsMap = {
         intro: { title: 'Introdução', action: 'generateIntro' },
         development: { title: 'Desenvolvimento', action: 'generateDevelopment' },
         climax: { title: 'Clímax', action: 'generateClimax' },
-        conclusion: { title: 'Conclusão' }, // Não tem placeholder, é tratado pelo módulo
-        cta: { title: 'Call to Action (CTA)' } // Não tem placeholder
+        conclusion: { title: 'Conclusão' },
+        cta: { title: 'Call to Action (CTA)' }
     };
     const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
     const outlineExists = !!state.generated.strategicOutline;
@@ -4305,20 +4373,15 @@ const syncUiFromState = () => {
     sectionOrder.forEach(id => {
         const sectionData = state.generated.script[id];
         const details = sectionDetailsMap[id];
-    
-        // Caso 1: A seção JÁ FOI GERADA, então reconstruímos o acordeão completo.
         if (sectionData && sectionData.html) {
             const sectionElement = generateSectionHtmlContent(id, details.title, sectionData.html);
             scriptContainer.appendChild(sectionElement);
-        } 
-        // Caso 2: O ESBOÇO EXISTE, mas esta seção AINDA NÃO foi gerada, então criamos seu placeholder.
-        else if (outlineExists && details && details.action) {
+        } else if (outlineExists && details && details.action) {
             scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder(id, details.title, details.action));
         }
     });
-    // >>>>> FIM DA LÓGICA DE RECONSTRUÇÃO <<<<<
     
-    // 4. Garante que os estados finais da UI sejam aplicados
+    // 6. Garante que os estados finais da UI sejam aplicados
     updateButtonStates();
     updateAllReadingTimes();
 };
