@@ -507,7 +507,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     }
 
     try {
-        const repairedJsonString = jsonrepair(dirtyJsonString); // Chamada direta
+        // A chamada agora é direta e segura
+        const repairedJsonString = jsonrepair(dirtyJsonString);
         const parsedResult = JSON.parse(repairedJsonString);
         
         if (arrayExpected && !Array.isArray(parsedResult)) {
