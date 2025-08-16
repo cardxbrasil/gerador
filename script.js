@@ -497,38 +497,27 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     }
 
     let dirtyJsonString = text;
-
-    // 1. Tenta extrair o conteúdo de dentro de blocos de código markdown, se existirem.
     const markdownMatch = dirtyJsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (markdownMatch && markdownMatch[1]) {
         dirtyJsonString = markdownMatch[1];
     }
-
-    // 2. Remove preâmbulos comuns que a IA adiciona.
     const jsonStartIndex = dirtyJsonString.search(/[\{\[]/);
     if (jsonStartIndex > 0) {
         dirtyJsonString = dirtyJsonString.substring(jsonStartIndex);
     }
 
     try {
-        // 3. Entrega a string "suja" para o especialista (a biblioteca no objeto window).
-        // A CORREÇÃO CRÍTICA ESTÁ AQUI:
-        const repairedJsonString = window.jsonrepair(dirtyJsonString);
-        
-        // 4. Faz o parse da string agora 100% corrigida.
+        const repairedJsonString = jsonrepair(dirtyJsonString); // Chamada direta
         const parsedResult = JSON.parse(repairedJsonString);
-        
-        console.log("JSON reparado com sucesso pela biblioteca!");
         
         if (arrayExpected && !Array.isArray(parsedResult)) {
             return [parsedResult];
         }
         return parsedResult;
-
     } catch (error) {
-        console.error("FALHA CRÍTICA: Mesmo com a biblioteca de reparo, o JSON não pôde ser corrigido.", error);
-        console.error("String problemática enviada para o reparo:", dirtyJsonString);
-        throw new Error(`A resposta da IA estava em um formato irreconhecível que não pôde ser reparado.`);
+        console.error("FALHA CRÍTICA NO REPARO DO JSON:", error);
+        console.error("String problemática:", dirtyJsonString);
+        throw new Error(`A resposta da IA estava em um formato irreconhecível.`);
     }
 };
 
