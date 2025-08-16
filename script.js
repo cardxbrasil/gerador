@@ -471,6 +471,9 @@ const setupInputTabs = () => {
 
 
 
+// ==========================================================
+// ===== SUBSTITUA SUA FUNÇÃO cleanGeneratedText POR ESTA VERSÃO FINAL E BLINDADA =====
+// ==========================================================
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
         return expectJson ? (arrayExpected ? [] : null) : '';
@@ -482,7 +485,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let jsonString = '';
     const trimmedText = text.trim();
 
-    // Tenta extrair o JSON de dentro de blocos de código ou texto explicativo
+    // 1. Extrai o conteúdo JSON principal, removendo markdown e texto explicativo
     const markdownMatch = trimmedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (markdownMatch && markdownMatch[1]) {
         jsonString = markdownMatch[1].trim();
@@ -499,39 +502,39 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     }
     
     try {
-        // Primeira tentativa de parse, pode falhar
+        // 2. Tenta fazer o parse direto. Se funcionar, ótimo!
         return JSON.parse(jsonString);
     } catch (initialError) {
-        console.warn("Parse inicial falhou. Iniciando reparos...", initialError.message);
+        console.warn("Parse inicial falhou. Iniciando reparos cirúrgicos...", initialError.message);
         
         try {
             let repairedString = jsonString;
 
             // ================================================================
-            // >>>>> NOVA LÓGICA CIRÚRGICA PARA CORRIGIR ASPAS INTERNAS <<<<<
-            // Esta é a correção principal para o erro que você encontrou.
-            // Usa uma RegEx para encontrar pares chave-valor e uma função para
-            // escapar as aspas APENAS dentro do valor.
+            // ETAPA DE REPARO 1: Cirurgia Plástica nas Bordas (NOVA CORREÇÃO)
+            // Remove aspas duplas/triplas extras no início e fim dos valores.
+            // Ex: ""valor""" -> "valor"
             // ================================================================
-            repairedString = repairedString.replace(/:\s*"([^"]*)"/g, (match, content) => {
-                // Se o conteúdo do valor já contém aspas...
-                if (content.includes('"')) {
-                    // ...escapa todas as aspas dentro dele que não são já escapadas.
-                    const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
-                    // Retorna o par chave-valor corrigido
-                    return `: "${escapedContent}"`;
-                }
-                // Se não houver problema, retorna o original
-                return match;
-            });
-
-            // Remove quebras de linha que a IA às vezes insere dentro das strings
-            repairedString = repairedString.replace(/\\n/g, "\\\\n");
-
-            // Remove vírgulas traiçoeiras no final de objetos ou arrays
-            repairedString = repairedString.replace(/,\s*([}\]])/g, '$1');
+            repairedString = repairedString.replace(/:\s*"{2,}([\s\S]*?)"{2,}/g, ': "$1"');
             
-            // Tenta o parse novamente com a string reparada
+            // ================================================================
+            // ETAPA DE REPARO 2: Cirurgia Interna (Correção anterior, ainda necessária)
+            // Escapa aspas duplas que sobraram DENTRO dos valores.
+            // ================================================================
+            repairedString = repairedString.replace(/:\s*"((?:\\.|[^"\\])*)"/g, (match, content) => {
+                const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
+                return `: "${escapedContent}"`;
+            });
+            
+            // ================================================================
+            // ETAPA DE REPARO 3: Limpeza Estrutural Geral
+            // Remove quebras de linha e vírgulas finais.
+            // ================================================================
+            repairedString = repairedString.replace(/\\n/g, "\\\\n"); // Preserva quebras de linha legítimas
+            repairedString = repairedString.replace(/\n/g, " "); // Remove quebras de linha de formatação
+            repairedString = repairedString.replace(/,\s*([}\]])/g, '$1'); // Remove vírgulas finais
+
+            // 3. Tenta o parse final com a string reparada
             const finalParsedResult = JSON.parse(repairedString);
             
             if (arrayExpected && !Array.isArray(finalParsedResult)) {
@@ -546,12 +549,10 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
             console.error("JSON Problemático (Original):", text);
             console.error("JSON Pós-Cirurgia (Falhou):", jsonString);
             
-            // Se tudo falhar, lança um erro claro para ser tratado pela função que chamou
             throw new Error(`A IA retornou um JSON com sintaxe inválida que não pôde ser corrigido: ${surgeryError.message}`);
         }
     }
 };
-
 
 
 
