@@ -494,8 +494,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     }
 
     try {
-        // 3. Entrega a string "suja" para o especialista (a biblioteca jsonrepair).
-        const repairedJsonString = jsonrepair(dirtyJsonString);
+        // 3. Entrega a string "suja" para o especialista (a biblioteca no objeto window).
+        // A CORREÇÃO CRÍTICA ESTÁ AQUI:
+        const repairedJsonString = window.jsonrepair(dirtyJsonString);
         
         // 4. Faz o parse da string agora 100% corrigida.
         const parsedResult = JSON.parse(repairedJsonString);
