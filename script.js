@@ -3693,7 +3693,11 @@ const syncUiFromState = () => {
 // ===== ARQUITETURA DE INICIALIZAÇÃO FINAL E SEGURA =====
 // ==========================================================
 
-// Função auxiliar para carregar scripts de forma controlada
+// ==========================================================
+// ===== ARQUITETURA DE INICIALIZAÇÃO FINAL E SEGURA =====
+// ==========================================================
+
+// Função auxiliar para carregar scripts de forma controlada (DECLARADA APENAS UMA VEZ)
 const loadScript = (src) => {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
@@ -3704,7 +3708,7 @@ const loadScript = (src) => {
     });
 };
 
-// A função principal que contém TODA a lógica de inicialização da sua aplicação
+// A função principal que inicializa TODA a aplicação
 const initApp = () => {
     
     // A PARTIR DAQUI, É O SEU CÓDIGO ORIGINAL, INTACTO
@@ -3824,7 +3828,7 @@ const initApp = () => {
         'applyHookSuggestion': (btn) => applyHookSuggestion(btn), 'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
     };
 
-    // ===== LISTENER DE EVENTOS PRINCIPAL (VERSÃO FINAL) =====
+    // ===== LISTENER DE EVENTOS PRINCIPAL =====
     document.body.addEventListener('click', (event) => {
         const step = event.target.closest('.step[data-step]');
         if (step) {
