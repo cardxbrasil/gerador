@@ -4416,12 +4416,26 @@ document.body.addEventListener('click', (event) => {
         return;
     }
 
-    // 2. Lógica dos Botões de Ação
-    const button = event.target.closest('button[data-action]');
-    if (button && actions[button.dataset.action]) {
-        actions[button.dataset.action](button);
-        return;
+const button = event.target.closest('button[data-action]');
+if (button && actions[button.dataset.action]) {
+    
+    // NOVO CÓDIGO ENTRA AQUI
+    const action = actions[button.dataset.action];
+    const result = action(button); // Executa a ação
+
+    // Se a ação for assíncrona (chama a IA), espera ela terminar para salvar.
+    if (result instanceof Promise) {
+        result.then(saveStateToLocalStorage).catch(error => {
+            console.error("Ação assíncrona falhou, salvamento automático cancelado.", error);
+        });
+    } else {
+        // Se for uma ação normal (síncrona), salva imediatamente.
+        saveStateToLocalStorage();
     }
+    // FIM DO NOVO CÓDIGO
+
+    return; // Este return é importante, mantenha ele.
+}
     
     // 3. Lógica do Acordeão
     const accordionHeader = event.target.closest('.accordion-header');
