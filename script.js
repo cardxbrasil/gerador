@@ -1971,29 +1971,23 @@ ${contextText ? `**ROTEIRO ESCRITO ATÉ AGORA (CONTINUE A PARTIR DAQUI):**\n---\
 
 
 
-const createScriptSectionPlaceholders = () => {
-    const scriptContainer = document.getElementById('scriptSectionsContainer');
-    if (!scriptContainer) return;
+const createScriptSectionPlaceholder = (sectionId, title, actionName) => {
+    const buttonId = `${actionName}Btn`;
+    const containerId = `${sectionId}Section`;
 
-    const sections = [
-        { id: 'intro', title: 'Introdução', action: 'generateIntro' },
-        { id: 'development', title: 'Desenvolvimento', action: 'generateDevelopment' },
-        { id: 'climax', title: 'Clímax', action: 'generateClimax' },
-    ];
-
-    let placeholdersHtml = '';
-    sections.forEach(section => {
-        placeholdersHtml += `
-            <div id="${section.id}Section" class="card card-placeholder mb-4 animate-fade-in flex justify-between items-center">
-                <h3 class="font-semibold text-lg" style="color: var(--text-header);">${section.title}</h3>
-                <button id="${section.action}Btn" data-action="${section.action}" class="btn btn-secondary btn-small">
-                    <i class="fas fa-magic" style="margin-right: 8px;"></i>Gerar
-                </button>
-            </div>
-        `;
-    });
-    scriptContainer.innerHTML = placeholdersHtml;
+    // Este HTML é idêntico ao que você já usa, agora em uma função reutilizável.
+    return `
+        <div id="${containerId}" class="card card-placeholder mb-4 animate-fade-in flex justify-between items-center">
+            <h3 class="font-semibold text-lg" style="color: var(--text-header);">${title}</h3>
+            <button id="${buttonId}" data-action="${actionName}" class="btn btn-secondary btn-small">
+                <i class="fas fa-magic" style="margin-right: 8px;"></i>Gerar
+            </button>
+        </div>
+    `;
 };
+
+
+
 
 const generateStrategicOutline = async (button) => {
     if (!validateInputs()) return;
@@ -2194,6 +2188,12 @@ const generateConclusion = async (button) => {
     showButtonLoading(button);
 
     const scriptContainer = document.getElementById('scriptSectionsContainer');
+if (scriptContainer) {
+    scriptContainer.innerHTML = ''; // Limpa qualquer conteúdo antigo
+    scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('intro', 'Introdução', 'generateIntro'));
+    scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('development', 'Desenvolvimento', 'generateDevelopment'));
+    scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('climax', 'Clímax', 'generateClimax'));
+}
     let conclusionContainer = document.getElementById('conclusionSection');
     if (scriptContainer && !conclusionContainer) {
         conclusionContainer = document.createElement('div');
@@ -4233,13 +4233,13 @@ const syncUiFromState = () => {
         document.getElementById('ideaGenerationSection').classList.remove('hidden');
     }
 
-    // >>>>> LÓGICA DE RECONSTRUÇÃO DO ESBOÇO E ROTEIRO <<<<<
-    if(state.generated.strategicOutline){
+    // >>>>> LÓGICA DE RECONSTRUÇÃO DO ESBOÇO E ROTEIRO (VERSÃO CORRIGIDA) <<<<<
+    if (state.generated.strategicOutline) {
         const outlineContentDiv = document.getElementById('outlineContent');
         const titleTranslations = { 'introduction': 'Introdução', 'development': 'Desenvolvimento', 'climax': 'Clímax', 'conclusion': 'Conclusão', 'cta': 'CTA' };
         let outlineHtml = '<ul class="space-y-4 text-sm" style="list-style-position: inside; padding-left: 1rem;">';
         for (const key in state.generated.strategicOutline) {
-            if(state.generated.strategicOutline[key]){
+            if (state.generated.strategicOutline[key]) {
                 outlineHtml += `<li><div><strong style="color: var(--primary);">${titleTranslations[key] || key}:</strong> <span style="color: var(--text-body);">${DOMPurify.sanitize(state.generated.strategicOutline[key])}</span></div></li>`;
             }
         }
@@ -4249,31 +4249,37 @@ const syncUiFromState = () => {
     
     const scriptContainer = document.getElementById('scriptSectionsContainer');
     scriptContainer.innerHTML = ''; // Limpa antes de reconstruir
-    const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
-    const sectionTitles = { intro: 'Introdução', development: 'Desenvolvimento', climax: 'Clímax', conclusion: 'Conclusão', cta: 'Call to Action (CTA)' };
     
-    let hasAnyScriptContent = false;
+    const sectionDetailsMap = {
+        intro: { title: 'Introdução', action: 'generateIntro' },
+        development: { title: 'Desenvolvimento', action: 'generateDevelopment' },
+        climax: { title: 'Clímax', action: 'generateClimax' },
+        conclusion: { title: 'Conclusão' }, // Não tem placeholder, é tratado pelo módulo
+        cta: { title: 'Call to Action (CTA)' } // Não tem placeholder
+    };
+    const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
+    const outlineExists = !!state.generated.strategicOutline;
+    
     sectionOrder.forEach(id => {
         const sectionData = state.generated.script[id];
-        // Se a seção foi gerada, reconstrói o acordeão completo
+        const details = sectionDetailsMap[id];
+    
+        // Caso 1: A seção JÁ FOI GERADA, então reconstruímos o acordeão completo.
         if (sectionData && sectionData.html) {
-            hasAnyScriptContent = true;
-            const sectionElement = generateSectionHtmlContent(id, sectionTitles[id], sectionData.html);
+            const sectionElement = generateSectionHtmlContent(id, details.title, sectionData.html);
             scriptContainer.appendChild(sectionElement);
+        } 
+        // Caso 2: O ESBOÇO EXISTE, mas esta seção AINDA NÃO foi gerada, então criamos seu placeholder.
+        else if (outlineExists && details && details.action) {
+            scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder(id, details.title, details.action));
         }
     });
-
-    // Se o roteiro não foi gerado mas o esboço sim, recria os placeholders
-    if (!hasAnyScriptContent && state.generated.strategicOutline) {
-        createScriptSectionPlaceholders();
-    }
     // >>>>> FIM DA LÓGICA DE RECONSTRUÇÃO <<<<<
-
+    
     // 4. Garante que os estados finais da UI sejam aplicados
     updateButtonStates();
     updateAllReadingTimes();
 };
-
 
 
 
