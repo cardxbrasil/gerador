@@ -4520,15 +4520,22 @@ document.body.addEventListener('click', (event) => {
     document.getElementById('narrativeStructure')?.addEventListener('change', updateMainTooltip);
     document.getElementById('imageStyleSelect')?.addEventListener('change', toggleCustomImageStyleVisibility);
 
-    // INICIALIZAÇÃO FINAL
+    // ==========================================================
+    // ===== INICIALIZAÇÃO FINAL (ORDEM CORRIGIDA) =================
+    // ==========================================================
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const storedTheme = localStorage.getItem('theme');
     setDarkMode(storedTheme === 'dark' || (!storedTheme && prefersDark));
 
     setupInputTabs();
 
+    // 1. CARREGA TUDO da memória e RECONSTRÓI a UI silenciosamente
     loadStateFromLocalStorage();
-    showPane(AppState.ui.currentPane || 'investigate');
+
+    // 2. MARCA os steps concluídos com base no estado já carregado
     AppState.ui.completedSteps.forEach(stepId => markStepCompleted(stepId, false));
     updateProgressBar();
+    
+    // 3. SÓ AGORA, mostra o painel correto, que já foi preenchido
+    showPane(AppState.ui.currentPane || 'investigate');
 });
