@@ -581,14 +581,13 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     let jsonString = text.trim();
 
-    // --- CAMADA 2: EXTRAÇÃO (O Detetive) ---
+    // --- CAMADA 1: EXTRAÇÃO ---
     // Tenta encontrar o JSON dentro de um bloco de código markdown.
     const markdownMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (markdownMatch && markdownMatch[1]) {
         jsonString = markdownMatch[1].trim();
     } else {
         // Se não houver markdown, busca o primeiro '{' ou '[' até o último '}' ou ']'.
-        // Isso remove textos como "Aqui está o JSON:" no início.
         const firstBracket = jsonString.indexOf('[');
         const firstBrace = jsonString.indexOf('{');
         
@@ -609,39 +608,32 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 
-    // --- CAMADA 3: REPARO (O Cirurgião) ---
-    // Apenas as correções mais seguras e comuns.
-    try {
-        // Remove vírgulas extras antes de fechar colchetes ou chaves (causa de erro #1).
-        jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
-        // Remove comentários de linha que a IA às vezes adiciona
-        jsonString = jsonString.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
-    } catch(e) {
-        console.warn("Pequeno erro durante a limpeza. O parse ainda pode funcionar.", e);
-    }
+    // --- CAMADA 2: REPARO ---
+    // Remove vírgulas extras antes de fechar colchetes ou chaves (causa de erro #1).
+    jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
     
-    // --- CAMADA 4: VALIDAÇÃO (A Rede de Segurança) ---
+    // ======================================================================
+    // >>>>> NOVA LINHA DE CÓDIGO ADICIONADA AQUI (A CORREÇÃO) <<<<<
+    // Corrige o erro de aspas duplas duplicadas que a IA às vezes gera.
+    // Ex: ""texto"" se torna "texto"
+    jsonString = jsonString.replace(/:\s*""([\s\S]*?)""/g, ': "$1"');
+    // ======================================================================
+    
+    // --- CAMADA 3: VALIDAÇÃO ---
     try {
         const parsedJson = JSON.parse(jsonString);
         
-        // Garante que se esperávamos um array, recebemos um.
         if (arrayExpected && !Array.isArray(parsedJson)) {
-            console.warn("JSON era esperado como Array, mas veio como Objeto. Encapsulando em array.", parsedJson);
             return [parsedJson];
         }
 
         return parsedJson;
 
     } catch (error) {
-        console.error("====================== FALHA CRÍTICA NO PARSE DO JSON ======================");
-        console.error("Erro:", error.message);
-        console.log("--- TEXTO ORIGINAL DA IA ---");
-        console.log(text);
-        console.log("--- STRING ISOLADA QUE FALHOU ---");
-        console.log(jsonString);
-        console.error("==========================================================================");
-
-        // Retorna um valor padrão e seguro para não quebrar o resto da aplicação.
+        console.error("FALHA CRÍTICA NO PARSE DO JSON. Erro:", error.message);
+        console.log("TEXTO ORIGINAL DA IA:", text);
+        console.log("STRING ISOLADA QUE FALHOU:", jsonString);
+        // Retorna um valor padrão para não quebrar a aplicação.
         return arrayExpected ? [] : null;
     }
 };
