@@ -794,24 +794,24 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     jsonString = jsonString.replace(/:\s*""([\s\S]*?)""/g, ': "$1"');
     jsonString = jsonString.replace(/"''([\s\S]*?)''"/g, '"$1"');
     
-    // ======================================================================
-    // >>>>> NOVA EVOLUÇÃO ADICIONADA AQUI <<<<<
-    // Tenta corrigir strings que não foram fechadas corretamente antes de um '}' ou ','
-    // Ex: "rewritten_quote": ""texto  } -> "rewritten_quote": ""texto" }
+    // Tenta corrigir strings que não foram fechadas corretamente
     jsonString = jsonString.replace(/"\s*([,}])/g, (match, p1) => {
-        // Encontra a última chave antes do } ou ,
         const lastKeyIndex = jsonString.lastIndexOf('"', jsonString.indexOf(match));
         if (lastKeyIndex > -1) {
-            // Conta as aspas entre a chave e o final problemático
             const segment = jsonString.substring(lastKeyIndex);
             const quoteCount = (segment.match(/"/g) || []).length;
-            // Se o número de aspas for ímpar, significa que uma está aberta, então adicionamos uma para fechar.
             if (quoteCount % 2 !== 0) {
                 return `"${p1}`;
             }
         }
-        return match; // Se não for um caso claro, não modifica.
+        return match;
     });
+
+    // ======================================================================
+    // >>>>> NOVA EVOLUÇÃO ADICIONADA AQUI <<<<<
+    // Remove barras de escape inúteis antes de uma aspa de fechamento.
+    // Ex: "texto\"" -> "texto""
+    jsonString = jsonString.replace(/\\"(?=\s*[},\]])/g, '"');
     // ======================================================================
     
     // --- CAMADA 3: VALIDAÇÃO ---
