@@ -148,19 +148,22 @@ function parseJsonWithDirtyJson(text, arrayExpected = false) {
         return { data: defaultValue, error: "O texto de entrada está vazio ou é inválido." };
     }
     
+    // VERIFICA SE A BIBLIOTECA FOI CARREGADA
+    if (typeof window.dirtyJSON === 'undefined') {
+        console.error("A biblioteca dirty-json não foi carregada corretamente. Verifique o link no HTML.");
+        return { data: defaultValue, error: "A biblioteca de análise JSON não foi encontrada." };
+    }
+    
     try {
-        // A mágica da biblioteca acontece aqui. Ela perdoa muitos erros comuns da IA.
-        let parsedData = dirtyJSON.parse(text); 
+        // A CORREÇÃO ESTÁ AQUI: Usamos window.dirtyJSON para sermos explícitos.
+        let parsedData = window.dirtyJSON.parse(text); 
         
-        // Uma camada extra de proteção: se esperávamos um array mas a IA retornou só um objeto,
-        // nós o colocamos dentro de um array para evitar que o resto do código quebre.
         if (arrayExpected && !Array.isArray(parsedData)) {
             parsedData = [parsedData];
         }
 
-        return { data: parsedData, error: null }; // Sucesso!
+        return { data: parsedData, error: null };
     } catch (e) {
-        // Se nem a biblioteca conseguiu, registramos o erro e retornamos um valor seguro.
         console.error("Falha crítica do dirty-json ao analisar o texto:", {
             error: e.message,
             textInput: text
