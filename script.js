@@ -790,19 +790,25 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 
-    // --- CAMADA 2: REPARO ---
+    // --- CAMADA 2: REPARO (AGORA COM "DESINFECÇÃO") ---
+    
+    // ======================================================================
+    // >>>>> NOVA ETAPA DE LIMPEZA ADICIONADA AQUI (A CORREÇÃO) <<<<<
+    // 1. Converte caracteres exóticos de aspas em aspas simples padrão.
+    jsonString = jsonString.replace(/[´‘’]/g, "'");
+
+    // 2. Remove aspas simples duplicadas e outros artefatos comuns.
+    jsonString = jsonString.replace(/''/g, "'"); // '' -> '
+    // ======================================================================
+    
     // Remove vírgulas extras antes de fechar colchetes ou chaves.
     jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
     
-    // Corrige o erro de aspas duplas duplicadas. Ex: ""texto"" -> "texto"
+    // Corrige o erro de aspas duplas duplicadas.
     jsonString = jsonString.replace(/:\s*""([\s\S]*?)""/g, ': "$1"');
 
-    // ======================================================================
-    // >>>>> NOVA LINHA DE CÓDIGO ADICIONADA AQUI (A CORREÇÃO) <<<<<
     // Corrige o erro de aspas simples duplicadas dentro de uma string JSON.
-    // Ex: "''texto''" -> ""texto""
     jsonString = jsonString.replace(/"''([\s\S]*?)''"/g, '"$1"');
-    // ======================================================================
     
     // --- CAMADA 3: VALIDAÇÃO ---
     try {
