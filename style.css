@@ -642,3 +642,38 @@ textarea.input { min-height: 84px; resize: vertical; }
 .idea-card-footer {
     margin-top: 1rem; /* Espaço entre a descrição e o rodapé */
 }
+
+
+/* ================================================================= */
+/* ========= LAYOUT DO POP-UP 'ADICIONAR NOVO CAPÍTULO' =========== */
+/* ================================================================= */
+
+/* Controla o contêiner que agrupa os botões de sugestão */
+#inputDialogSuggestions {
+    display: flex;
+    flex-direction: column; /* Empilha os botões verticalmente */
+    gap: 0.5rem; /* Adiciona um espaço de 8px entre cada botão */
+}
+
+/* Estiliza cada botão de sugestão individualmente */
+#inputDialogSuggestions .btn {
+    font-size: 0.9rem; /* Reduz o tamanho da fonte (14.4px) */
+    font-weight: 500;  /* Deixa a fonte um pouco mais leve */
+    padding-top: 0.6rem;    /* Ajusta o espaçamento vertical */
+    padding-bottom: 0.6rem; /* Ajusta o espaçamento vertical */
+    background-color: var(--secondary-dark); /* Um cinza mais escuro e sutil */
+    color: var(--text-header);
+    border: none; /* Remove a borda padrão */
+}
+
+/* Efeito visual ao passar o mouse sobre um botão de sugestão */
+#inputDialogSuggestions .btn:hover {
+    background-color: var(--primary); /* Destaca com a cor primária */
+    color: #fff;
+}
+
+/* Garante que o rótulo "Ou crie um tema personalizado" tenha um bom espaçamento */
+#inputDialogLabel {
+    display: inline-block; /* Permite aplicar margem */
+    margin-top: 0.5rem;   /* Adiciona um espaço acima do rótulo */
+}
