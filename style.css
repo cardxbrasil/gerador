@@ -410,13 +410,6 @@ textarea.input { min-height: 84px; resize: vertical; }
 .toast { position: fixed; right: 18px; bottom: 18px; padding: 12px 18px; border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); border-left: 5px solid var(--primary); display: flex; gap: 12px; align-items: center; transform: translateY(24px); opacity: 0; transition: all .25s ease; z-index: 9000; }
 .toast.show { transform: translateY(0); opacity: 1; }
 
-/* Análise de Retenção */
-
-.highlight-change {
-  animation: fade-out-highlight 9s ease-out forwards; /* Duração aumentada para 9 segundos */
-  border-radius: 4px;
-  outline-offset: 2px;
-}
 
 
 @keyframes fade-out-highlight {
@@ -521,28 +514,6 @@ textarea.input { min-height: 84px; resize: vertical; }
 }
 
 
-/* ================================================================= */
-/* =================== FEEDBACK VISUAL DE ALTERAÇÃO ================ */
-/* ================================================================= */
-
-/* --- Define a animação "fade-out-highlight" --- */
-@keyframes fade-out-highlight {
-  from {
-    background-color: color-mix(in srgb, #f59e0b 40%, transparent); /* Amarelo/Laranja inicial */
-    outline: 2px solid #f59e0b;
-  }
-  to {
-    background-color: transparent;
-    outline: 2px solid transparent;
-  }
-}
-
-/* --- Aplica a animação a qualquer elemento com esta classe --- */
-.highlight-change {
-  animation: fade-out-highlight 2.5s ease-out forwards; /* Duração de 2.5 segundos */
-  border-radius: 4px;
-  outline-offset: 2px;
-}
 
 
 /* ================================================================= */
@@ -604,16 +575,7 @@ textarea.input { min-height: 84px; resize: vertical; }
     box-shadow: 0 0 15px color-mix(in srgb, var(--primary) 30%, transparent); 
 }
 
-/* --- Animação de "pisca" para mudanças --- */
-@keyframes fade-out-highlight {
-  from { background-color: color-mix(in srgb, #f59e0b 40%, transparent); outline: 2px solid #f59e0b; }
-  to { background-color: transparent; outline: 2px solid transparent; }
-}
-.highlight-change {
-  animation: fade-out-highlight 2.5s ease-out forwards;
-  border-radius: 4px;
-  outline-offset: 2px;
-}
+
 
 /* ================================================================= */
 /* ===== ESTILOS PARA CONTEÚDO GERADO (Títulos, Thumbs, Descrição) ===== */
@@ -780,4 +742,30 @@ textarea.input { min-height: 84px; resize: vertical; }
     color: var(--primary); /* Usa a cor primária para um toque de estilo */
     font-weight: bold;
     display: inline-block;
+}
+
+
+/* ================================================================= */
+/* =========== FEEDBACK VISUAL DE ALTERAÇÃO (VERSÃO ÚNICA) ========== */
+/* ================================================================= */
+
+/* Define a animação de destaque */
+@keyframes fade-out-highlight {
+  from {
+    background-color: color-mix(in srgb, #f59e0b 40%, transparent); /* Amarelo/Laranja inicial */
+    outline: 2px solid #f59e0b;
+  }
+  to {
+    background-color: transparent;
+    outline: 2px solid transparent;
+  }
+}
+
+/* Aplica a animação ao elemento com esta classe */
+.highlight-change {
+  /* <<< MUDE O TEMPO AQUI (ex: 5s, 3.5s, etc.) */
+  animation: fade-out-highlight 9s ease-out forwards; 
+  
+  border-radius: 4px;
+  outline-offset: 2px;
 }
