@@ -553,6 +553,68 @@ const setupInputTabs = () => {
 
 
 
+const resetApplicationState = () => {
+    // 1. Define o estado inicial limpo
+    const initialState = {
+        inputs: {},
+        generated: {
+            investigationReport: null, ideas: [], strategicOutline: null,
+            script: { intro: {}, development: {}, climax: {}, conclusion: {}, cta: {} },
+            titlesAndThumbnails: null, description: null, soundtrack: null,
+            emotionalMap: null, imagePrompts: {}
+        },
+        ui: {
+            isSettingStrategy: false, promptPaginationState: {},
+            currentPane: 'investigate', completedSteps: new Set()
+        }
+    };
+
+    // 2. Reseta o objeto de estado principal
+    Object.assign(AppState, initialState);
+    AppState.ui.completedSteps = new Set(); // Recria o Set
+
+    // 3. Limpa todos os campos de input e textareas
+    document.querySelectorAll('#appRoot input[type="text"], #appRoot input[type="file"], #appRoot textarea').forEach(el => el.value = '');
+    document.querySelectorAll('#appRoot select').forEach(el => el.selectedIndex = 0);
+    // Reseta valores padrão específicos
+    document.getElementById('channelName').value = 'The Biblical Unveiling';
+    document.getElementById('languageSelect').value = 'en';
+
+    // 4. Limpa todos os painéis de conteúdo gerado
+    const containersToReset = [
+        'factCheckOutput', 'ideasOutput', 'outlineContent', 'scriptSectionsContainer',
+        'analysisReportContainer', 'hooksReportContainer', 'viralSuggestionsContainer',
+        'emotionalMapContent', 'soundtrackContent', 'titlesThumbnailsContent', 'videoDescriptionContent'
+    ];
+    containersToReset.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = ''; // Limpa completamente
+    });
+
+    // Repõe os placeholders nos locais necessários
+    document.getElementById('outlineContent').innerHTML = `<div class="asset-card-placeholder">Clique para gerar o esboço.</div>`;
+    document.getElementById('emotionalMapContent').innerHTML = `<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>`;
+    document.getElementById('soundtrackContent').innerHTML = `<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>`;
+    document.getElementById('titlesThumbnailsContent').innerHTML = `<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>`;
+    document.getElementById('videoDescriptionContent').innerHTML = `<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>`;
+    document.getElementById('ideaGenerationSection').classList.add('hidden');
+
+
+    // 5. Reseta a interface do Wizard (sidebar e progresso)
+    document.querySelectorAll('#sidebar .step').forEach(step => {
+        step.classList.remove('completed', 'active');
+    });
+    updateProgressBar(); // Isso irá zerar a barra de progresso
+    showPane('investigate'); // Volta para a primeira etapa
+
+    // 6. Remove o projeto do armazenamento local
+    const LOCAL_STORAGE_KEY = 'viralScriptGeneratorProject_v6';
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+
+    window.showToast("Novo projeto iniciado!", "success");
+    console.log("Estado da aplicação foi resetado com sucesso.");
+};
+
 
 
 
