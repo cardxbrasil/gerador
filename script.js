@@ -764,7 +764,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let jsonString = text.trim();
 
     // --- CAMADA 1: EXTRAÇÃO ---
-    // (Lógica de extração existente, sem alterações)
+    // (Lógica de extração existente)
     const markdownMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (markdownMatch && markdownMatch[1]) {
         jsonString = markdownMatch[1].trim();
@@ -790,11 +790,19 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     // (Atributos anteriores mantidos)
     jsonString = jsonString.replace(/[´‘’]/g, "'");
     jsonString = jsonString.replace(/''/g, "'");
+    
+    // ======================================================================
+    // >>>>> NOVA EVOLUÇÃO ADICIONADA AQUI <<<<<
+    // Lida com a IA sendo "conversacional" dentro de um valor de string.
+    // Ex: "valor1" pode ser reescrito como "valor2" -> apenas "valor2"
+    jsonString = jsonString.replace(/"([^"]*)"\s*(pode ser reescrito como|ou|alternativamente)\s*"([^"]*)"/g, '"$3"');
+    // ======================================================================
+
+    // (Outros atributos anteriores mantidos)
     jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
     jsonString = jsonString.replace(/:\s*""([\s\S]*?)""/g, ': "$1"');
     jsonString = jsonString.replace(/"''([\s\S]*?)''"/g, '"$1"');
-    
-    // Tenta corrigir strings que não foram fechadas corretamente
+    jsonString = jsonString.replace(/\\"(?=\s*[},\]])/g, '"');
     jsonString = jsonString.replace(/"\s*([,}])/g, (match, p1) => {
         const lastKeyIndex = jsonString.lastIndexOf('"', jsonString.indexOf(match));
         if (lastKeyIndex > -1) {
@@ -806,17 +814,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
         return match;
     });
-
-    // ======================================================================
-    // >>>>> NOVA EVOLUÇÃO ADICIONADA AQUI <<<<<
-    // Remove barras de escape inúteis antes de uma aspa de fechamento.
-    // Ex: "texto\"" -> "texto""
-    jsonString = jsonString.replace(/\\"(?=\s*[},\]])/g, '"');
-    // ======================================================================
     
     // --- CAMADA 3: VALIDAÇÃO ---
     try {
-        // Adiciona uma última tentativa de fechar o JSON se ele terminar abruptamente.
         if (!jsonString.endsWith('}') && !jsonString.endsWith(']')) {
              if (jsonString.lastIndexOf('{') > jsonString.lastIndexOf('[')) {
                 jsonString += '}';
