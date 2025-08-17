@@ -142,23 +142,38 @@ const updateProgressBar = () => {
  * Carrega a biblioteca dirty-json de forma assíncrona e a armazena na variável global 'dirtyJSON'.
  * Esta função é chamada uma vez quando o app inicia.
  */
-async function loadDirtyJsonLibrary() {
-    if (dirtyJSON) return; // Já foi carregada
-    try {
-        // A CORREÇÃO ESTÁ AQUI: O caminho correto é /dist/, não /lib/
-        const response = await fetch('https://cdn.jsdelivr.net/npm/dirty-json@0.9.2/dist/dirty-json.min.js');
-        
-        if (!response.ok) throw new Error(`A rede não respondeu corretamente: ${response.statusText}`);
-        const scriptText = await response.text();
-        
-        const fn = new Function(`${scriptText}; return dirtyJSON;`);
-        dirtyJSON = fn();
+function loadDirtyJsonLibrary() {
+    return new Promise((resolve, reject) => {
+        // Se a biblioteca já existir, não faz nada.
+        if (typeof window.dirtyJSON !== 'undefined') {
+            AppState.ui.isLibraryLoaded = true;
+            return resolve();
+        }
 
-        console.log("Biblioteca dirty-json carregada com sucesso!");
-    } catch (error) {
-        console.error("FALHA CRÍTICA AO CARREGAR A BIBLIOTECA dirty-json:", error);
-        window.showToast("Erro fatal: A biblioteca de análise não pôde ser carregada. Verifique sua conexão.", "error");
-    }
+        // Este é o método "clássico" de carregar scripts, que é mais robusto contra bloqueios.
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/dirty-json@0.9.2/dist/dirty-json.min.js';
+        
+        // Se carregar com sucesso...
+        script.onload = () => {
+            if (typeof window.dirtyJSON !== 'undefined') {
+                console.log("Biblioteca dirty-json carregada com SUCESSO via injeção de script!");
+                AppState.ui.isLibraryLoaded = true;
+                resolve();
+            } else {
+                reject(new Error("Script carregado, mas o objeto 'dirtyJSON' não foi encontrado na window."));
+            }
+        };
+
+        // Se falhar (bloqueio, 404, etc.)...
+        script.onerror = (e) => {
+            console.error("FALHA ao carregar o script da biblioteca. A CDN pode estar offline ou bloqueada por uma extensão.", e);
+            reject(new Error("Falha ao carregar o script da biblioteca dirty-json."));
+        };
+
+        // Adiciona o script ao <head> para iniciar o download.
+        document.head.appendChild(script);
+    });
 }
 
 /**
@@ -190,29 +205,6 @@ function parseJsonWithDirtyJson(text, arrayExpected = false) {
     }
 }
 
-
-// ... (O RESTO DO SEU ARQUIVO script.js VEM AQUI, SEM NENHUMA OUTRA ALTERAÇÃO)
-// ... (COLE TODAS AS OUTRAS FUNÇÕES: PromptManager, utilitários, funções de ação, etc.)
-
-
-// ==========================================================
-// ===== EVENTOS E INICIALIZAÇÃO (VERSÃO FINAL) =================
-// ==========================================================
-
-document.addEventListener('DOMContentLoaded', async () => { // Adicionado 'async' aqui
-
-    // ==========================================================
-    // ===== ETAPA CRÍTICA: CARREGAR A BIBLIOTECA PRIMEIRO =====
-    // ==========================================================
-    await loadDirtyJsonLibrary();
-
-    // O restante do seu código de inicialização...
-    const editingMenu = document.getElementById('editing-menu');
-
-    // ... (COLE TODO o resto do seu código de DOMContentLoaded aqui,
-    //      desde 'handleEditingAction' até o final do arquivo)
-
-});
 
 
 
@@ -4925,9 +4917,16 @@ const syncUiFromState = () => {
 // ===== EVENTOS E INICIALIZAÇÃO (VERSÃO FINAL) =================
 // ==========================================================
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => { // Adicione 'async' aqui se não tiver
 
     const editingMenu = document.getElementById('editing-menu');
+
+
+    await loadDirtyJsonLibrary().catch(err => {
+        console.error(err);
+        window.showToast(err.message, 'error');
+    });
+
 
     // ==========================================================
     // ===== MENU DE EDIÇÃO CONTEXTUAL (V5.0) =================
