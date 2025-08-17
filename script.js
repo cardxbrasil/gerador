@@ -2202,8 +2202,8 @@ const createReportSection = (analysisData) => {
     let improvementHtml = '';
     if (analysisData.improvement_points && analysisData.improvement_points.length > 0) {
         improvementHtml = analysisData.improvement_points.map(point => {
-            const problematicQuoteEscaped = (point.problematic_quote || '').replace(/"/g, '\"');
-            const rewrittenQuoteEscaped = (point.rewritten_quote || '').replace(/"/g, '\"');
+const problematicQuoteEscaped = (point.problematic_quote || '').replace(/"/g, '&quot;');
+const rewrittenQuoteEscaped = (point.rewritten_quote || '').replace(/"/g, '&quot;');
             return `
             <div class="mt-4 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
                 <p class="text-sm italic text-gray-500 dark:text-gray-400 mb-1">Citação: "${DOMPurify.sanitize(point.problematic_quote || 'N/A')}"</p>
