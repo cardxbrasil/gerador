@@ -1175,29 +1175,39 @@ const generateIdeasFromReport = async (button) => {
 
         // >>>>> CORREÇÃO #2: HTML DOS CARDS DA V5.0 <<<<<
         const allCardsHtml = ideas.map((idea, index) => {
-             const escapedIdea = escapeIdeaForOnclick(idea);
-return `
-    <div class="card p-4 flex flex-col justify-between border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
+    const escapedIdea = escapeIdeaForOnclick(idea);
+    const colorName = genreColorMap[genre] || 'emerald';
+
+    // Este é o novo HTML que recria o layout da Imagem 01
+    return `
+    <div class="card idea-card border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
         
-        <!-- Conteúdo Principal (Título, Botão e Descrição) -->
-        <div class="flex-grow">
-            <div class="flex justify-between items-start gap-4 mb-2">
-                <h4 class="font-bold text-base flex-grow" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                <button class="btn btn-primary btn-small flex-shrink-0" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-            </div>
-            <p class="text-sm">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+        <!-- Botão posicionado de forma absoluta no canto superior direito -->
+        <button class="btn btn-primary btn-small idea-card-button" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+        
+        <!-- Cabeçalho do Card (com espaço para o botão) -->
+        <div class="idea-card-header">
+            <h4 class="font-bold text-base" style="color: var(--text-header);">
+                ${index + 1}. ${DOMPurify.sanitize(idea.title)}
+            </h4>
+        </div>
+        
+        <!-- Corpo do Card (descrição) -->
+        <div class="idea-card-body">
+            <p class="text-sm leading-relaxed" style="color: var(--text-body);">
+                "${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"
+            </p>
         </div>
 
-        <!-- Rodapé do Card (Apenas o Potencial) -->
-        <div class="mt-4">
-            <span class="font-bold text-sm bg-${colorName}-100 text-${colorName}-700 dark:bg-${colorName}-900/50 dark:text-${colorName}-300 py-1 px-2 rounded-lg">
+        <!-- Rodapé do Card (potencial) -->
+        <div class="idea-card-footer">
+            <span class="font-semibold text-sm text-${colorName}-500">
                 Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
             </span>
         </div>
-
     </div>
-`;
-        }).join('');
+    `;
+}).join('');
         // >>>>> FIM DA CORREÇÃO #2 <<<<<
         
         outputContainer.innerHTML = allCardsHtml;

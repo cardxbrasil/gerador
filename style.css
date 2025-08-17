@@ -611,3 +611,34 @@ textarea.input { min-height: 84px; resize: vertical; }
 
 .border-emerald-500 { border-left-color: #10b981 !important; }
 .text-emerald-500 { color: #10b981 !important; }
+
+
+/* ================================================================= */
+/* ============= LAYOUT DOS CARDS DE IDEIAS (CORREÇÃO) ============== */
+/* ================================================================= */
+.idea-card {
+    position: relative; /* Permite posicionar elementos filhos de forma absoluta */
+    display: flex;
+    flex-direction: column; /* Organiza o conteúdo em coluna (título em cima, rodapé em baixo) */
+    padding: 1.25rem; /* Espaçamento interno */
+}
+
+.idea-card-header {
+    /* Adiciona espaço à direita para o título não passar por baixo do botão */
+    padding-right: 70px; 
+}
+
+.idea-card-button {
+    position: absolute; /* Tira o botão do fluxo normal do layout */
+    top: 1.25rem;       /* Distância do topo, igual ao padding */
+    right: 1.25rem;      /* Distância da direita, igual ao padding */
+}
+
+.idea-card-body {
+    flex-grow: 1; /* Faz a descrição ocupar o espaço disponível, empurrando o rodapé para baixo */
+    margin-top: 0.75rem; /* Espaço entre o título e a descrição */
+}
+
+.idea-card-footer {
+    margin-top: 1rem; /* Espaço entre a descrição e o rodapé */
+}
