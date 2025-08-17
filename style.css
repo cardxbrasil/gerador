@@ -411,7 +411,14 @@ textarea.input { min-height: 84px; resize: vertical; }
 .toast.show { transform: translateY(0); opacity: 1; }
 
 /* Análise de Retenção */
-.highlight-change { animation: fade-out-highlight 2s ease-out forwards; border-radius: 4px; outline-offset: 2px; }
+
+.highlight-change {
+  animation: fade-out-highlight 9s ease-out forwards; /* Duração aumentada para 9 segundos */
+  border-radius: 4px;
+  outline-offset: 2px;
+}
+
+
 @keyframes fade-out-highlight {
   from { background-color: color-mix(in srgb, #f59e0b 25%, transparent); outline: 2px solid #f59e0b; }
   to { background-color: transparent; outline: 2px solid transparent; }
