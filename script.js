@@ -791,17 +791,15 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     jsonString = jsonString.replace(/[´‘’]/g, "'");
     jsonString = jsonString.replace(/''/g, "'");
     jsonString = jsonString.replace(/"\s*(pode ser reescrito como|ou|alternativamente)\s*"/g, ',"rewritten_quote": "');
+    jsonString = jsonString.replace(/"\s*,\s*"/g, '","');
+    jsonString = jsonString.replace(/("\s*[^"]+\s*)"\s*([a-zA-Z\s,]+)\s*,\s*"/g, '$1, "');
+    jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
     
     // ======================================================================
     // >>>>> NOVA EVOLUÇÃO ADICIONADA AQUI <<<<<
-    // 1. Remove texto de comentário que a IA insere entre um valor e a próxima chave.
-    // Ex: "valor1" could be improved, "chave2": ... -> "valor1", "chave2": ...
-    jsonString = jsonString.replace(/"\s*,\s*"/g, '","'); // Corrige vírgulas mal colocadas
-    jsonString = jsonString.replace(/("\s*[^"]+\s*)"\s*([a-zA-Z\s,]+)\s*,\s*"/g, '$1, "');
-
-    // 2. Garante que todas as chaves (palavras seguidas por :) estejam entre aspas duplas.
-    // Ex: { criterion_name: ... } -> { "criterion_name": ... }
-    jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
+    // Corrige o erro de "valor ausente" entre uma chave e a próxima.
+    // Ex: "problematic_quote": ,"critique": ... -> "problematic_quote": "", "critique": ...
+    jsonString = jsonString.replace(/:\s*,\s*"/g, ': "", "');
     // ======================================================================
 
     // (Outros atributos anteriores mantidos)
