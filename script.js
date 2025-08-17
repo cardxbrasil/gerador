@@ -2221,6 +2221,60 @@ const createReportSection = (analysisData) => {
     return sectionDiv;
 };
 
+
+
+const applySuggestion = (button) => {
+    const criterionName = button.dataset.criterionName;
+    const problematicQuote = button.dataset.problematicQuote;
+    const rewrittenQuote = button.dataset.rewrittenQuote;
+
+    if (!criterionName || !problematicQuote || !rewrittenQuote) {
+        window.showToast("Erro: Informações da sugestão não encontradas.", 'error');
+        return;
+    }
+
+    const sectionId = window.criterionMap[criterionName];
+    if (!sectionId) {
+        console.error("Não foi possível encontrar o ID da seção para o critério:", criterionName);
+        return;
+    }
+
+    const sectionElement = document.getElementById(sectionId);
+    const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
+    if (!contentWrapper) {
+        console.error("Wrapper de conteúdo não encontrado para a seção:", sectionId);
+        return;
+    }
+    
+    // Substitui o texto problemático pelo reescrito, envolvendo em um span para o destaque visual
+    const newHtmlContent = contentWrapper.innerHTML.replace(problematicQuote, `<span class="highlight-change">${rewrittenQuote}</span>`);
+    
+    // Usa DOMPurify para garantir a segurança ao inserir HTML
+    contentWrapper.innerHTML = DOMPurify.sanitize(newHtmlContent, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
+
+    // Atualiza o estado interno da aplicação
+    const scriptKey = sectionId.replace('Section', '');
+    if (AppState.generated.script[scriptKey]) {
+        AppState.generated.script[scriptKey].html = contentWrapper.innerHTML;
+        AppState.generated.script[scriptKey].text = contentWrapper.textContent;
+    }
+
+    window.showToast("Sugestão aplicada com sucesso!", 'success');
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-check mr-2"></i>Aplicada!';
+    button.classList.remove('btn-primary');
+    button.classList.add('btn-success');
+    
+    // Invalida outros conteúdos que dependem do roteiro
+    invalidateAndClearPerformance(sectionElement);
+    invalidateAndClearPrompts(sectionElement);
+    invalidateAndClearEmotionalMap();
+    updateAllReadingTimes();
+};
+
+
+
+
 const analyzeFullScript = async (button) => {
     showButtonLoading(button);
     const reportContainer = document.getElementById('analysisReportContainer');
@@ -2744,6 +2798,10 @@ const generateSoundtrack = async (button) => {
         hideButtonLoading(button);
     }
 };
+
+
+
+
 
 
 
