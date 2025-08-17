@@ -764,21 +764,17 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let jsonString = text.trim();
 
     // --- CAMADA 1: EXTRAÇÃO ---
-    // Tenta encontrar o JSON dentro de um bloco de código markdown.
+    // (Lógica de extração existente, sem alterações)
     const markdownMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (markdownMatch && markdownMatch[1]) {
         jsonString = markdownMatch[1].trim();
     } else {
-        // Se não houver markdown, busca o primeiro '{' ou '[' até o último '}' ou ']'.
         const firstBracket = jsonString.indexOf('[');
         const firstBrace = jsonString.indexOf('{');
-        
         let startIndex = -1;
-        
         if (firstBracket === -1) startIndex = firstBrace;
         else if (firstBrace === -1) startIndex = firstBracket;
         else startIndex = Math.min(firstBracket, firstBrace);
-
         if (startIndex > -1) {
             jsonString = jsonString.substring(startIndex);
             const lastBracket = jsonString.lastIndexOf(']');
@@ -790,28 +786,45 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 
-    // --- CAMADA 2: REPARO (AGORA COM "DESINFECÇÃO") ---
-    
-    // ======================================================================
-    // >>>>> NOVA ETAPA DE LIMPEZA ADICIONADA AQUI (A CORREÇÃO) <<<<<
-    // 1. Converte caracteres exóticos de aspas em aspas simples padrão.
+    // --- CAMADA 2: REPARO E DESINFECÇÃO ---
+    // (Atributos anteriores mantidos)
     jsonString = jsonString.replace(/[´‘’]/g, "'");
-
-    // 2. Remove aspas simples duplicadas e outros artefatos comuns.
-    jsonString = jsonString.replace(/''/g, "'"); // '' -> '
-    // ======================================================================
-    
-    // Remove vírgulas extras antes de fechar colchetes ou chaves.
+    jsonString = jsonString.replace(/''/g, "'");
     jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
-    
-    // Corrige o erro de aspas duplas duplicadas.
     jsonString = jsonString.replace(/:\s*""([\s\S]*?)""/g, ': "$1"');
-
-    // Corrige o erro de aspas simples duplicadas dentro de uma string JSON.
     jsonString = jsonString.replace(/"''([\s\S]*?)''"/g, '"$1"');
+    
+    // ======================================================================
+    // >>>>> NOVA EVOLUÇÃO ADICIONADA AQUI <<<<<
+    // Tenta corrigir strings que não foram fechadas corretamente antes de um '}' ou ','
+    // Ex: "rewritten_quote": ""texto  } -> "rewritten_quote": ""texto" }
+    jsonString = jsonString.replace(/"\s*([,}])/g, (match, p1) => {
+        // Encontra a última chave antes do } ou ,
+        const lastKeyIndex = jsonString.lastIndexOf('"', jsonString.indexOf(match));
+        if (lastKeyIndex > -1) {
+            // Conta as aspas entre a chave e o final problemático
+            const segment = jsonString.substring(lastKeyIndex);
+            const quoteCount = (segment.match(/"/g) || []).length;
+            // Se o número de aspas for ímpar, significa que uma está aberta, então adicionamos uma para fechar.
+            if (quoteCount % 2 !== 0) {
+                return `"${p1}`;
+            }
+        }
+        return match; // Se não for um caso claro, não modifica.
+    });
+    // ======================================================================
     
     // --- CAMADA 3: VALIDAÇÃO ---
     try {
+        // Adiciona uma última tentativa de fechar o JSON se ele terminar abruptamente.
+        if (!jsonString.endsWith('}') && !jsonString.endsWith(']')) {
+             if (jsonString.lastIndexOf('{') > jsonString.lastIndexOf('[')) {
+                jsonString += '}';
+             } else {
+                jsonString += ']';
+             }
+        }
+        
         const parsedJson = JSON.parse(jsonString);
         
         if (arrayExpected && !Array.isArray(parsedJson)) {
@@ -824,11 +837,9 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         console.error("FALHA CRÍTICA NO PARSE DO JSON. Erro:", error.message);
         console.log("TEXTO ORIGINAL DA IA:", text);
         console.log("STRING ISOLADA QUE FALHOU:", jsonString);
-        // Retorna um valor padrão para não quebrar a aplicação.
         return arrayExpected ? [] : null;
     }
 };
-
 
 
 
