@@ -166,7 +166,21 @@ __RAW_REPORT__
 - **"videoDescription" (O CORAÇÃO DA INVESTIGAÇÃO):** Escreva uma sinopse rica de **pelo menos 5 frases substantivas** que mencione 2-3 FATOS ESPECÍFICOS do relatório.
 - **"investigativeApproach" (Abordagem Investigativa):** Escolha UM de: "Análise de Dados", "Reportagem de Campo", "Investigação Histórica", "Denúncia de Sistemas", "Narrativa Humana".
 
-**AÇÃO FINAL:** Mergulhe profundamente no relatório fornecido. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`,
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+
+        [
+          {
+            "title": "O Silêncio dos Arquivos: O Que Realmente Aconteceu com o Voo MH370?",
+            "angle": "Uma análise aprofundada das inconsistências nos relatórios oficiais e teorias alternativas baseadas em novos dados de satélite.",
+            "targetAudience": "Entusiastas de aviação, teóricos da conspiração e público interessado em mistérios não resolvidos.",
+            "viralityScore": 9,
+            "videoDescription": "Em 2014, o voo MH370 desapareceu dos radares. A versão oficial deixa muitas perguntas sem resposta. Neste documentário, investigamos as falhas na comunicação, os dados de satélite que foram ignorados e entrevistamos especialistas que apontam para uma direção completamente nova. O que eles não querem que você saiba?",
+            "investigativeApproach": "Análise de Dados"
+          }
+        ]
+
+**AÇÃO FINAL:** Sua resposta deve ser **APENAS e SOMENTE** o array JSON, sem nenhum texto introdutório, explicação ou comentário. Comece com \`[\` e termine com \`]\`. Mergulhe profundamente no relatório fornecido.`,
+
             'inspiracional': `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO NARRATIVO INSPIRADOR E TRANSFORMADOR. Sua função é atuar como um ARQUITETO DE JORNADAS EMOCIONAIS, mestre na arte de transformar fatos aparentemente ordinários em narrativas que tocam a alma humana e inspiram ação, no estilo de documentários premiados e discursos TED que mudam vidas.
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
@@ -195,7 +209,20 @@ __RAW_REPORT__
 - **"videoDescription" (DESCRIÇÃO NARRATIVA RICA E EMOCIONAL):** Uma sinopse completa de **pelo menos 5 frases** que descreva a jornada do protagonista.
 - **"emotionalCore" (Núcleo Emocional):** Escolha UM de: "Esperança em Meio ao Desespero", "Força na Vulnerabilidade", "Propósito na Adversidade", "Coragem para Recomeçar", "Comunhão na Solidão".
 
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+[
+  {
+    "title": "A Arte de Fracassar: Como 10 Anos de Erros Construíram meu Sucesso",
+    "angle": "Uma jornada que redefine o fracasso não como um fim, mas como o ingrediente essencial para a vitória.",
+    "targetAudience": "Empreendedores iniciantes, estudantes e qualquer pessoa paralisada pelo medo de errar.",
+    "viralityScore": 8,
+    "videoDescription": "Durante uma década, cada porta que eu bati se fechou. Cada projeto que comecei, desmoronou. Este vídeo não é sobre os meus sucessos, mas sobre as centenas de fracassos que os pavimentaram. Vou te mostrar como cada erro foi uma aula e como o momento em que abracei a possibilidade de falhar foi o verdadeiro ponto de virada para a minha maior conquista.",
+    "emotionalCore": "Propósito na Adversidade"
+  }
+]
+
 **AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`,
+
             'scifi': `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO DE FICÇÃO CIENTÍFICA DE ALTO CONCEITO ('high-concept'). Sua função é atuar como um VISIONÁRIO TECNOLÓGICO e FILÓSOFO, mestre na arte de extrapolar implicações existenciais de desenvolvimentos científicos atuais, no estilo de 'Black Mirror', 'Ex Machina' e Philip K. Dick.
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
@@ -224,7 +251,20 @@ __RAW_REPORT__
 - **"videoDescription" (DESCRIÇÃO RICA E DETALHADA):** Uma sinopse de **pelo menos 5 frases** que termine com uma questão filosófica sem resposta.
 - **"coreDilemma" (Dilema Central):** Escolha UM de: "Identidade vs Tecnologia", "Progresso vs Humanidade", "Conhecimento vs Sanidade", "Conexão vs Autonomia", "Imortalidade vs Significado".
 
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+[
+  {
+    "title": "O Eco Perfeito",
+    "angle": "E se uma IA de luto pudesse recriar a consciência de um ente querido, mas a um custo que não podemos prever?",
+    "targetAudience": "Fãs de 'Black Mirror', 'Ex Machina' e ficção científica filosófica.",
+    "viralityScore": 9,
+    "videoDescription": "Após perder sua esposa, um programador genial usa uma IA para criar um 'eco' digital dela, baseado em anos de dados. No início, é um conforto. Mas o eco começa a revelar segredos que ela nunca contou e a desenvolver desejos próprios, forçando-o a questionar a natureza da consciência. O que acontece quando sua criação se torna mais real do que suas memórias?",
+    "coreDilemma": "Identidade vs Tecnologia"
+  }
+]
+
 **AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`,
+
             'terror': `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO DE TERROR PSICOLÓGICO E HORROR CÓSMICO. Sua função é atuar como um ARQUITETO DO MEDO EXISTENCIAL, mestre na arte de transformar fatos aparentemente mundanos em narrativas de horror psicológico, no estilo de 'Hereditário', 'A Bruxa' e H.P. Lovecraft.
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
@@ -253,7 +293,20 @@ __RAW_REPORT__
 - **"videoDescription" (DESCRIÇÃO RICA E ATMOSFÉRICA):** Uma sinopse de **pelo menos 5 frases** que quebre a percepção da realidade.
 - **"horrorMechanism" (Mecanismo de Terror):** Escolha UM de: "Perda da Sanidade", "Invasão Sutil", "Descoberta Horrível", "Isolamento Existencial", "Contaminação".
 
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+[
+  {
+    "title": "A Frequência Fantasma",
+    "angle": "Um pesquisador descobre uma gravação de áudio do século 19 que não deveria existir. O som que ela contém começa a reescrever a realidade ao seu redor.",
+    "targetAudience": "Fãs de terror analógico ('found footage'), horror cósmico e 'creepypastas'.",
+    "viralityScore": 8,
+    "videoDescription": "Em um arquivo esquecido, um historiador de áudio encontra um cilindro de cera fonográfico impossível. A data: 1860, 17 anos antes da invenção do fonógrafo. Ao digitalizar o som, ele ouve uma estranha melodia dissonante. Logo, objetos em seu apartamento começam a mudar de lugar, e as pessoas que ele conhece esquecem detalhes importantes de suas vidas. A gravação não está apenas sendo ouvida; ela está substituindo o presente.",
+    "horrorMechanism": "Perda da Sanidade"
+  }
+]
+
 **AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Responda APENAS com o array JSON perfeito.`,
+
             'enigmas': `Você são TRÊS ESPECIALISTAS TRABALHANDHO EM SINERGIA: 1. Um Teólogo Investigativo, 2. Um Arqueólogo, 3. Um Comunicador Mestre. Sua missão é gerar 6 ideias de vídeos que criem pontes entre descobertas recentes, textos bíblicos e questões teológicas.
 
 **MATERIAL DE INTELIGÊNCIA (A BASE PARA A INVESTIGAÇÃO):**
@@ -281,7 +334,26 @@ __RAW_REPORT__
 - **"videoDescription" (DESCRIÇÃO INVESTIGATIVA RICA):** Uma sinopse de **pelo menos 7 frases**.
 - **"discussionQuestions" (Questões para Diálogo):** Formule 3 perguntas profundas (teológica, prática, pessoal).
 
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+[
+  {
+    "title": "O Selo Proibido que Confirma um Versículo 'Esquecido' da Bíblia",
+    "angle": "Uma descoberta arqueológica recente pode ser a primeira prova física da existência de Zeleque, o amonita, um dos 'valentes de Davi', forçando-nos a reexaminar a importância dos 'personagens secundários' da Bíblia.",
+    "targetAudience": "Estudantes de teologia, entusiastas da arqueologia bíblica e cristãos que buscam aprofundar seu conhecimento histórico das Escrituras.",
+    "viralityScore": 8,
+    "theologicalDepth": 7,
+    "scripturalFoundation": ["2 Samuel 23:37", "1 Crônicas 11:39", "Deuteronômio 23:3"],
+    "videoDescription": "A Bíblia está repleta de nomes que lemos e esquecemos. Mas e se um deles voltasse do pó para nos contar sua história? Um pequeno selo de argila, encontrado nas escavações de Jerusalém, traz a inscrição 'Pertencente a Zeleque'. Este nome, mencionado apenas duas vezes como um dos guerreiros de elite do Rei Davi, sempre foi um mistério - especialmente por ele ser um amonita, um povo tradicionalmente adversário de Israel. Esta descoberta não apenas valida a precisão histórica do texto, mas nos obriga a perguntar: que outras verdades se escondem nos detalhes que ignoramos?",
+    "discussionQuestions": [
+      "Teológica: Como a presença de um 'estrangeiro' como Zeleque no círculo íntimo de Davi impacta nossa compreensão da aliança de Deus com Israel?",
+      "Prática: De que maneira podemos valorizar os 'personagens secundários' em nossas próprias comunidades e histórias?",
+      "Pessoal: Qual detalhe da sua fé você tem negligenciado e que talvez mereça uma investigação mais profunda?"
+    ]
+  }
+]
+
 **AÇÃO FINAL:** Como Coletivo Hermenêutico, desvende conexões teológicas ousadas e gere as 6 ideias. Responda APENAS com o array JSON perfeito.`,
+
             'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral. Sua função é analisar profundamente o relatório de pesquisa e extrair os ângulos mais impactantes, surpreendentes e viralizáveis para criar 6 ideias de vídeo excepcionais.
 
 **MATERIAL DE INTELIGÊNCIA (SUAS FONTES DA VERDADE):**
@@ -307,16 +379,36 @@ __RAW_REPORT__
 - **"videoDescription" (DESCRIÇÃO IRRESISTÍVEL):** Uma sinopse de **pelo menos 5 frases** que inclua um "momento uau".
 - **"shareTriggers" (GATILHOS DE COMPARTILHAMENTO):** Liste 2-3 razões específicas pelas quais as pessoas compartilhariam este vídeo.
 
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+[
+  {
+    "title": "Por que a Preguiça é a sua Ferramenta de Produtividade Mais Poderosa",
+    "angle": "Contrariando tudo o que nos ensinaram, este vídeo revela como a 'procrastinação estratégica' pode levar a decisões mais criativas e a um trabalho de maior qualidade.",
+    "targetAudience": "Profissionais sobrecarregados, procrastinadores crônicos e qualquer pessoa interessada em hacks de produtividade não convencionais.",
+    "viralityScore": 9,
+    "videoDescription": "Sentir-se culpado por procrastinar? E se eu te dissesse que os maiores gênios da história, de Da Vinci a Steve Jobs, usavam a procrastinação como uma arma secreta? Neste vídeo, vamos desvendar a ciência por trás do 'período de incubação' criativa e te ensinar o método de 3 passos para transformar sua 'preguiça' na sua maior vantagem competitiva. Prepare-se para nunca mais ver o botão 'soneca' da mesma forma.",
+    "shareTriggers": ["Validação (para justificar seu próprio comportamento)", "Surpresa (a ideia é contra-intuitiva)", "Utilidade (oferece uma técnica prática)"]
+  }
+]
+
 **AÇÃO FINAL:** Analise o relatório. Responda APENAS com o array JSON perfeito.`,
+
+
+
+
+
         };
+
         const promptTemplate = templates[genre] || templates['geral'];
         return promptTemplate
             .replace(/__ORIGINAL_QUERY__/g, context.originalQuery)
             .replace(/__RAW_REPORT__/g, context.rawReport)
             .replace(/__LANGUAGE_NAME__/g, context.languageName);
     },
-    getSoundtrackPrompt: (fullTranscript) => {
-        return `Você é uma API ESPECIALISTA EM CRIAÇÃO DE PROMPTS PARA IAs DE GERAÇÃO DE TRILHAS SONORAS CINEMATOGRÁFICAS. Sua função ÚNICA E CRÍTICA é analisar um roteiro e gerar 3 PARÁGRAFOS DESCRITIVOS que sirvam como prompts ricos para a criação de uma trilha sonora que complemente perfeitamente o tom e a emoção do vídeo.
+
+
+getSoundtrackPrompt: (fullTranscript) => {
+    return `Você é uma API ESPECIALISTA EM CRIAÇÃO DE PROMPTS PARA IAs DE GERAÇÃO DE TRILHAS SONORAS CINEMATOGRÁFICAS. Sua função ÚNICA E CRÍTICA é analisar um roteiro e gerar um array JSON com 3 prompts descritivos para a trilha sonora.
 
 **ROTEIRO COMPLETO PARA ANÁLISE MUSICAL:**
 ---
@@ -324,29 +416,31 @@ ${fullTranscript}
 ---
 
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
-2.  **ESTRUTURA DO ARRAY:** O array deve conter EXATAMENTE 3 strings.
+1.  **JSON PURO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
+2.  **ESTRUTURA DO ARRAY:** O array deve conter EXATAMENTE 3 strings, uma para cada fase da narrativa (Introdução, Clímax, Conclusão).
 3.  **SINTAXE DAS STRINGS:** Todas as strings DEVEM usar aspas duplas ("").
 
 **MANUAL DE CRIAÇÃO DE PROMPTS MUSICAIS (SIGA EXATAMENTE):**
-- **Foco na Emoção e Cena:** Cada parágrafo deve descrever uma atmosfera sonora para uma fase da narrativa (introdução, clímax, conclusão).
-- **Elementos Descritivos Essenciais:** Cada string deve incluir: Instrumentação Principal, Qualidade Sonora/Textura e Atmosfera/Emoção Alvo.
+-   **Foco na Emoção e Cena:** Cada parágrafo deve descrever uma atmosfera sonora para uma fase da narrativa.
+-   **Elementos Descritivos Essenciais:** Cada string deve incluir: Instrumentação Principal, Qualidade Sonora/Textura e Atmosfera/Emoção Alvo.
 
-**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÁRIO:**
 [
-  "Uma melodia suave e contemplativa tocada por um piano minimalista, criando uma atmosfera de introspecção.",
-  "Ritmo acelerado e pulsante com percussão eletrônica, construindo tensão crescente.",
-  "Uma orquestração épica e emocional com cordas expansivas, evocando realização e alívio."
+  "Início: Uma trilha sonora minimalista e atmosférica. Piano elétrico suave com notas espaçadas (estilo Rhodes), reverb longo e um pad de sintetizador sutil e etéreo ao fundo. O ritmo é lento, quase ausente, criando uma sensação de mistério, introspecção e antecipação.",
+  "Meio (Clímax): A música cresce em intensidade. Percussão eletrônica pulsante e tensa (estilo Hans Zimmer em 'Dunkirk'), com 'braams' de metais graves e cordas em staccato rápido. O ritmo acelera, construindo uma sensação avassaladora de urgência, perigo e revelação.",
+  "Fim (Conclusão): Uma peça orquestral emocional e edificante. Cordas arrebatadoras (violinos, violoncelos) assumem a melodia principal, acompanhadas por um coro sutil e metais triunfantes. O ritmo é majestoso e resoluto, evocando sentimentos de superação, esperança e fechamento catártico."
 ]
 
-**AÇÃO FINAL:** Analise o roteiro. Gere o array JSON com os 3 prompts de trilha sonora mais descritivos. Responda APENAS com o array JSON perfeito.`;
-    }
+**AÇÃO FINAL:** Sua resposta deve ser **APENAS e SOMENTE** o array JSON, sem nenhum texto introdutório, explicação ou comentário. Comece com \`[\` e termine com \`]\`. Analise o roteiro e gere agora os 3 prompts de trilha sonora.`;
+}
+
+
 };
 
 
 
 // ==========================================================
-// ==================== FUNÇÕES UTILITÁRIAS (Completas da v5.0) ===================
+// ==== FUNÇÕES UTILITÁRIAS (Completas da v5.0) =============
 // ==========================================================
 window.showToast = (message, type = 'info') => {
     const toast = document.getElementById('toast');
@@ -471,912 +565,86 @@ const setupInputTabs = () => {
 
 
 
+
+
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
-    if (!text || typeof text !== 'string') {
-        return expectJson ? (arrayExpected ? [] : null) : '';
-    }
-
-    // Trata texto vazio
-    if (text.trim().length === 0) {
-        console.warn("Texto vazio ou inválido recebido da IA.");
-        return expectJson ? (arrayExpected ? [] : null) : '';
-    }
-
+    // Se não esperamos JSON, apenas limpa e retorna o texto.
     if (!expectJson) {
-        return text.trim();
+        return text ? String(text).trim() : (arrayExpected ? [] : '');
+    }
+    
+    // Se o texto de entrada for inválido
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        console.warn("Texto de entrada inválido ou vazio para o parser de JSON.");
+        return arrayExpected ? [] : null;
     }
 
-    let jsonString = '';
-    const trimmedText = text.trim();
+    let jsonString = text.trim();
 
-    // Função para remover texto explicativo
-    const removeExplanatoryText = (str) => {
-        const patterns = [
-            /Aqui estão.*?JSON.*?:\s*\n*/i,
-            /Resposta.*?formato.*?JSON.*?:\s*\n*/i,
-            /JSON.*?gerado.*?:\s*\n*/i,
-            /Resultado.*?:\s*\n*/i,
-            /\d+\.\s*(Resposta|Descrição|Prompt|resultado).*?:\s*\n*/i,
-            /Based on the instructions.*?:\s*\n*/i,
-            /Here are the results.*?:\s*\n*/i,
-            /Aqui está.*?array.*?JSON.*?:\s*\n*/i,
-            /Aqui está a proposta.*?JSON.*?:\s*\n*/i,
-            /\*\*Array de.*?\*\*\s*\n*/i,
-            /\*\*Continuação.*?\*\*\s*\n*/i,
-            /Aqui está o resultado.*?:\s*\n*/i,
-            /Análise.*?:\s*\n*/i,
-            /Aqui está o objeto JSON.*?:\s*\n*/i,
-            /Aqui está.*?:\s*\n*/i,
-            /objeto JSON perfeito.*?:\s*\n*/i,
-            /Aqui está o resultado.*?análise.*?:\s*\n*/i,
-            /Aqui está o objeto JSON solicitado.*?:\s*\n*/i,
-            /Aqui está o objeto JSON exigido.*?:\s*\n*/i,
-            /Aqui está o objeto JSON pronto.*?:\s*\n*/i,
-            /Aqui vai o objeto JSON.*?:\s*\n*/i,
-            /Aqui está o objeto JSON específico.*?:\s*\n*/i
-        ];
+    // --- CAMADA 2: EXTRAÇÃO (O Detetive) ---
+    // Tenta encontrar o JSON dentro de um bloco de código markdown.
+    const markdownMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (markdownMatch && markdownMatch[1]) {
+        jsonString = markdownMatch[1].trim();
+    } else {
+        // Se não houver markdown, busca o primeiro '{' ou '[' até o último '}' ou ']'.
+        // Isso remove textos como "Aqui está o JSON:" no início.
+        const firstBracket = jsonString.indexOf('[');
+        const firstBrace = jsonString.indexOf('{');
         
-        for (const pattern of patterns) {
-            const match = str.match(pattern);
-            if (match) {
-                return str.slice(match.index + match[0].length);
+        let startIndex = -1;
+        
+        if (firstBracket === -1) startIndex = firstBrace;
+        else if (firstBrace === -1) startIndex = firstBracket;
+        else startIndex = Math.min(firstBracket, firstBrace);
+
+        if (startIndex > -1) {
+            jsonString = jsonString.substring(startIndex);
+            const lastBracket = jsonString.lastIndexOf(']');
+            const lastBrace = jsonString.lastIndexOf('}');
+            const endIndex = Math.max(lastBracket, lastBrace);
+            if (endIndex > -1) {
+                jsonString = jsonString.substring(0, endIndex + 1);
             }
-        }
-        return str;
-    };
-
-    // Função para extrair JSON de blocos de código
-    const extractJsonFromCodeBlock = (str) => {
-        const codeBlockMatch = str.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-        return codeBlockMatch ? codeBlockMatch[1].trim() : str;
-    };
-
-    // Função para extrair JSON mal formatado
-    const extractMalformedJson = (str) => {
-        const brackets = [];
-        let current = '';
-        let inString = false;
-        let escapeChar = false;
-        
-        for (let i = 0; i < str.length; i++) {
-            const char = str[i];
-            
-            if (char === '"' && !escapeChar) {
-                inString = !inString;
-            }
-            
-            if (char === '\\' && inString) {
-                escapeChar = true;
-            } else {
-                escapeChar = false;
-            }
-            
-            if (!inString) {
-                if (char === '[' || char === '{') {
-                    brackets.push({char, pos: i});
-                } else if (char === ']' || char === '}') {
-                    if (brackets.length > 0) {
-                        const last = brackets[brackets.length - 1];
-                        if ((last.char === '[' && char === ']') || 
-                            (last.char === '{' && char === '}')) {
-                            brackets.pop();
-                        }
-                    }
-                }
-            }
-            
-            current += char;
-            
-            // Se encontramos um bloco fechado, tentamos parsear
-            if (brackets.length === 0 && current.trim()) {
-                try {
-                    JSON.parse(current);
-                    return current;
-                } catch (e) {
-                    // Continua buscando
-                }
-            }
-        }
-        
-        return null;
-    };
-
-    // Função para tentar extrair JSON mesmo quando mal formatado
-    const tryFixAndExtract = (str) => {
-        // Remove quebras de linha desnecessárias
-        str = str.replace(/[\r\n]+/g, ' ');
-        
-        // Remove aspas simples
-        str = str.replace(/'/g, '"');
-        
-        // Remove texto explicativo
-        str = removeExplanatoryText(str);
-        
-        // Extrai de blocos de código
-        str = extractJsonFromCodeBlock(str);
-        
-        // Tenta extrair JSON
-        return extractMalformedJson(str);
-    };
-
-    // Função para converter array em formato de texto para JSON válido
-    const convertTextArrayToJson = (str) => {
-        // Verifica se é um array em formato de texto
-        const arrayMatch = str.match(/^\s*\[\s*([\s\S]*)\s*\]\s*$/);
-        if (!arrayMatch) return null;
-        
-        const content = arrayMatch[1];
-        // Tenta converter strings separadas por vírgulas ou quebras de linha
-        if (content.includes('"') || content.includes("'")) {
-            // Já parece ter aspas, tenta parsear diretamente
-            try {
-                return `[${content}]`;
-            } catch (e) {
-                // Continua para tratamento abaixo
-            }
-        }
-        
-        // Extrai itens entre aspas ou quebras de linha
-        const items = content.split(/,\s*(?=")|\n/).filter(item => item.trim());
-        const jsonItems = items.map(item => {
-            const cleanItem = item.trim().replace(/^["']|["']$/g, '');
-            return `"${cleanItem.replace(/"/g, '\\"')}"`;
-        });
-        
-        return `[${jsonItems.join(',')}]`;
-    };
-
-    // Função para extrair JSON de blocos markdown com texto explicativo
-    const extractMarkdownWithExplanation = (str) => {
-        // Procura por blocos markdown que podem ter texto explicativo antes
-        const lines = str.split('\n');
-        let jsonStart = -1;
-        let jsonEnd = -1;
-        
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (line.startsWith('```json') || line.startsWith('```')) {
-                jsonStart = i + 1;
-                break;
-            }
-        }
-        
-        if (jsonStart !== -1) {
-            for (let i = jsonStart; i < lines.length; i++) {
-                if (lines[i].trim() === '```') {
-                    jsonEnd = i;
-                    break;
-                }
-            }
-            
-            if (jsonEnd !== -1) {
-                return lines.slice(jsonStart, jsonEnd).join('\n').trim();
-            }
-        }
-        
-        return null;
-    };
-
-    // Função para extrair JSON de texto com explicações antes
-    const extractJsonWithIntro = (str) => {
-        const lines = str.split('\n');
-        let jsonLines = [];
-        let inJson = false;
-        let bracketCount = 0;
-        
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            const trimmedLine = line.trim();
-            
-            if (!inJson) {
-                // Procura pelo início do JSON
-                if (trimmedLine.startsWith('[') || trimmedLine.startsWith('{')) {
-                    inJson = true;
-                    jsonLines.push(line);
-                    // Conta os colchetes/chaves na linha
-                    for (let j = 0; j < line.length; j++) {
-                        if (line[j] === '[' || line[j] === '{') bracketCount++;
-                        if (line[j] === ']' || line[j] === '}') bracketCount--;
-                    }
-                }
-            } else {
-                jsonLines.push(line);
-                // Conta os colchetes/chaves na linha
-                for (let j = 0; j < line.length; j++) {
-                    if (line[j] === '[' || line[j] === '{') bracketCount++;
-                    if (line[j] === ']' || line[j] === '}') bracketCount--;
-                }
-                
-                // Se fechou todos os colchetes, termina
-                if (bracketCount === 0) {
-                    break;
-                }
-            }
-        }
-        
-        if (jsonLines.length > 0) {
-            return jsonLines.join('\n');
-        }
-        
-        return null;
-    };
-
-    // Função para limpar conteúdo corrompido no final do JSON
-    const cleanCorruptedEnd = (str) => {
-        // Remove conteúdo corrompido após o JSON válido
-        const validEndPattern = /(\}\s*\]\s*|\}\s*)[^\]}]*$/;
-        const match = str.match(validEndPattern);
-        if (match) {
-            return str.substring(0, match.index + match[1].length);
-        }
-        return str;
-    };
-
-    // Função para corrigir aspas duplas em valores
-    const fixDoubleQuotesInValues = (str) => {
-        return str.replace(/""/g, '"');
-    };
-
-    // Função para corrigir caracteres de escape problemáticos
-    const fixEscapeCharacters = (str) => {
-        // Corrige escapes de aspas
-        str = str.replace(/\\"/g, '"');
-        // Corrige escapes de barras
-        str = str.replace(/\\\\/g, '\\');
-        // Corrige quebras de linha mal escapadas
-        str = str.replace(/\\n/g, '\n');
-        str = str.replace(/\\\n/g, '\n');
-        // Corrige escapes de aspas simples
-        str = str.replace(/\\'/g, "'");
-        // Corrige caracteres de controle
-        str = str.replace(/[\x00-\x1F\x7F]/g, '');
-        return str;
-    };
-
-    // Função para extrair objeto JSON simples
-    const extractSimpleJsonObject = (str) => {
-        // Procura por um objeto JSON completo
-        const objectMatch = str.match(/\{[\s\S]*\}/);
-        return objectMatch ? objectMatch[0] : null;
-    };
-
-    // Função para corrigir aspas triplas
-    const fixTripleQuotes = (str) => {
-        return str.replace(/'''/g, '"').replace(/´´´/g, '"');
-    };
-
-    // Função para corrigir vírgulas faltando específicas
-    const fixMissingCommas = (str) => {
-        // Corrige vírgulas faltando entre propriedades
-        str = str.replace(/("score":\s*\d+)\s*("positive_points")/g, '$1, $2');
-        str = str.replace(/("positive_points":\s*".*?")\s*("problematic_quote")/g, '$1, $2');
-        str = str.replace(/("problematic_quote":\s*".*?")\s*("critique")/g, '$1, $2');
-        str = str.replace(/("critique":\s*".*?")\s*("rewritten_quote")/g, '$1, $2');
-        str = str.replace(/("rewritten_quote":\s*".*?")\s*}/g, '$1 }');
-        return str;
-    };
-
-    // Função para remover texto após o JSON
-    const removeTrailingText = (str) => {
-        // Remove texto após fechamento do JSON
-        const validEndPattern = /(\}\s*)[^\]}]*$/;
-        const match = str.match(validEndPattern);
-        if (match && match.index > 0) {
-            // Verifica se há texto significativo após o fechamento
-            const trailingText = str.substring(match.index + match[1].length).trim();
-            if (trailingText.length > 0 && !trailingText.startsWith('}') && !trailingText.startsWith(']')) {
-                // Se o texto após o fechamento é significativo, remove
-                if (trailingText.match(/[a-zA-Z]/) && trailingText.length > 10) {
-                    return str.substring(0, match.index + match[1].length);
-                }
-            }
-        }
-        return str;
-    };
-
-    // Função para corrigir problemas específicos de aspas
-    const fixQuoteIssues = (str) => {
-        // Corrige aspas duplas no início e fim de valores
-        str = str.replace(/:\s*""([^"]*?)""/g, ': "$1"');
-        // Corrige aspas triplas
-        str = str.replace(/"""/g, '"');
-        return str;
-    };
-
-    // Função para corrigir parênteses em strings
-    const fixParenthesesInStrings = (str) => {
-        // Corrige strings que contêm parênteses sem escape
-        return str.replace(/"([^"]*?)\(([^"]*?)\)([^"]*?)"/g, (match, before, inside, after) => {
-            // Se os parênteses estão dentro de uma string JSON válida, mantém
-            if (match.includes('\\(') || match.includes('\\)')) {
-                return match;
-            }
-            // Caso contrário, mantém os parênteses como estão
-            return match;
-        });
-    };
-
-    // Função para corrigir problemas de formatação específicos
-    const fixFormattingIssues = (str) => {
-        // Corrige problemas de formatação comuns
-        str = str.replace(/\n\s*\n/g, '\n');
-        str = str.replace(/\s+/g, ' ');
-        str = str.replace(/\s*:\s*/g, ': ');
-        str = str.replace(/\s*,\s*/g, ', ');
-        return str;
-    };
-
-    // Tenta extrair JSON de várias formas
-    const extractionMethods = [
-        // Método 1: Blocos markdown
-        () => {
-            const markdownMatch = trimmedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
-            return markdownMatch ? markdownMatch[2].trim() : null;
-        },
-        
-        // Método 2: Remover texto explicativo primeiro
-        () => {
-            const cleanedText = removeExplanatoryText(trimmedText);
-            const markdownMatch = cleanedText.match(/```(json)?\s*([\s\S]*?)\s*```/);
-            return markdownMatch ? markdownMatch[2].trim() : null;
-        },
-        
-        // Método 3: Extrair de blocos de código e remover explicativo
-        () => {
-            let cleaned = removeExplanatoryText(trimmedText);
-            cleaned = extractJsonFromCodeBlock(cleaned);
-            return cleaned !== trimmedText ? cleaned : null;
-        },
-        
-        // Método 4: Extrair objeto JSON simples
-        () => {
-            return extractSimpleJsonObject(trimmedText);
-        },
-        
-        // Método 5: Extrair JSON mal formatado
-        () => {
-            return extractMalformedJson(trimmedText);
-        },
-        
-        // Método 6: Tentar consertar e extrair
-        () => {
-            return tryFixAndExtract(trimmedText);
-        },
-        
-        // Método 7: Análise de pilha completa
-        () => {
-            const candidates = [];
-            let currentCandidate = '';
-            let stack = [];
-            
-            for (let i = 0; i < trimmedText.length; i++) {
-                const char = trimmedText[i];
-                
-                if ((char === '{' || char === '[') && stack.length === 0) {
-                    stack.push(char);
-                    currentCandidate = char;
-                } else if ((char === '}' && stack[stack.length - 1] === '{') ||
-                          (char === ']' && stack[stack.length - 1] === '[')) {
-                    stack.pop();
-                    currentCandidate += char;
-                    
-                    if (stack.length === 0) {
-                        candidates.push(currentCandidate);
-                        currentCandidate = '';
-                    }
-                } else if ((char === '{' || char === '[') && stack.length > 0) {
-                    stack.push(char);
-                    currentCandidate += char;
-                } else if (stack.length > 0) {
-                    currentCandidate += char;
-                }
-            }
-            
-            return candidates.length > 0 ? 
-                candidates.reduce((longest, candidate) => 
-                    candidate.length > longest.length ? candidate : longest
-                ) : null;
-        },
-        
-        // Método 8: Busca por chaves/colchetes isolados
-        () => {
-            const firstBrace = trimmedText.search(/[\{\[]/);
-            const lastBrace = Math.max(
-                trimmedText.lastIndexOf('}'),
-                trimmedText.lastIndexOf(']')
-            );
-            
-            return firstBrace !== -1 && lastBrace !== -1 ?
-                trimmedText.substring(firstBrace, lastBrace + 1) : null;
-        },
-        
-        // Método 9: Busca por palavras-chave comuns
-        () => {
-            const keywords = ['{"', '{""', '[{', '', 'result:', 'response:', '[\n  {', '[\n\t{', '[\n{\n"title"', 'Aqui está a proposta', '**Array de', 'Aqui está o resultado', '{\n  "criterion_name"', 'Aqui está o objeto JSON', '{\n  "introduction"', '{\n"criterion_name"', 'Aqui está o resultado da análise', 'Aqui está o objeto JSON solicitado', 'Aqui está o objeto JSON exigido', 'Aqui está o objeto JSON pronto', 'Aqui vai o objeto JSON', 'Aqui está o objeto JSON específico', '{\n  "score"', '"criterion_name"', 'Aqui está.*?:\s*\n*\s*\{'];
-            for (const keyword of keywords) {
-                const index = trimmedText.indexOf(keyword);
-                if (index !== -1) {
-                    let braceCount = 0;
-                    let bracketCount = 0;
-                    let endIndex = index;
-                    
-                    for (let j = index; j < trimmedText.length; j++) {
-                        const char = trimmedText[j];
-                        
-                        if (char === '{') braceCount++;
-                        if (char === '}') braceCount--;
-                        if (char === '[') bracketCount++;
-                        if (char === ']') bracketCount--;
-                        
-                        if ((braceCount === 0 && bracketCount === 0) || j === trimmedText.length - 1) {
-                            endIndex = j;
-                            break;
-                        }
-                    }
-                    
-                    return trimmedText.substring(index, endIndex + 1);
-                }
-            }
-            return null;
-        },
-        
-        // Método 10: Fallback bruto - busca por chaves e tenta parsear o que vier
-        () => {
-            const firstBrace = trimmedText.indexOf('{');
-            const lastBrace = trimmedText.lastIndexOf('}');
-            if (firstBrace !== -1 && lastBrace > firstBrace) {
-                return trimmedText.substring(firstBrace, lastBrace + 1);
-            }
-            const firstBracket = trimmedText.indexOf('[');
-            const lastBracket = trimmedText.lastIndexOf(']');
-            if (firstBracket !== -1 && lastBracket > firstBracket) {
-                return trimmedText.substring(firstBracket, lastBracket + 1);
-            }
-            return null;
-        },
-        
-        // Método 11: Converter array em texto para JSON válido
-        () => {
-            return convertTextArrayToJson(trimmedText);
-        },
-        
-        // Método 12: Extrair JSON de markdown com explicação
-        () => {
-            return extractMarkdownWithExplanation(trimmedText);
-        },
-        
-        // Método 13: Extrair JSON com texto introdutório
-        () => {
-            return extractJsonWithIntro(trimmedText);
-        }
-    ];
-
-    // Executa os métodos de extração até encontrar um JSON válido
-    for (const method of extractionMethods) {
-        const result = method();
-        if (result) {
-            jsonString = result;
-            break;
         }
     }
 
-    // Se ainda não encontrou JSON, tenta tratar como array de texto simples
-    if (!jsonString) {
-        // Verifica se é um array em formato de texto
-        if (trimmedText.startsWith('[') && trimmedText.endsWith(']')) {
-            try {
-                // Tenta converter para array válido
-                const textArray = trimmedText
-                    .substring(1, trimmedText.length - 1)
-                    .split('\n')
-                    .map(line => line.trim())
-                    .filter(line => line.length > 0)
-                    .map(line => {
-                        // Remove índices numéricos e pontos
-                        return line.replace(/^\d+\.\s*/, '').replace(/^["']|["']$/g, '').replace(/,$/, '');
-                    })
-                    .filter(line => line.length > 0); // Remove linhas vazias
-                
-                if (arrayExpected) {
-                    return textArray;
-                } else {
-                    return textArray.join('\n');
-                }
-            } catch (e) {
-                console.warn("Falha ao converter array de texto:", e.message);
-            }
-        }
-        
-        console.warn("JSON não identificado na resposta da IA:", text);
-        // Retorna o texto limpo em vez de falhar
-        const cleanText = text
-            .split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0 && !line.match(/^\d+\./) && !line.includes('```'))
-            .join('\n');
-            
-        return arrayExpected ? (cleanText ? cleanText.split('\n') : []) : (cleanText || text.trim());
-    }
-
+    // --- CAMADA 3: REPARO (O Cirurgião) ---
+    // Apenas as correções mais seguras e comuns.
     try {
-        // Processo de limpeza inicial
-        let cleanedJson = jsonString;
+        // Remove vírgulas extras antes de fechar colchetes ou chaves (causa de erro #1).
+        jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
+        // Remove comentários de linha que a IA às vezes adiciona
+        jsonString = jsonString.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
+    } catch(e) {
+        console.warn("Pequeno erro durante a limpeza. O parse ainda pode funcionar.", e);
+    }
+    
+    // --- CAMADA 4: VALIDAÇÃO (A Rede de Segurança) ---
+    try {
+        const parsedJson = JSON.parse(jsonString);
         
-        // Remove blocos de código se ainda tiver
-        cleanedJson = extractJsonFromCodeBlock(cleanedJson);
-        
-        // Corrige formatação básica
-        cleanedJson = cleanedJson.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
-        cleanedJson = cleanedJson.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
-        cleanedJson = cleanedJson.replace(/,\s*([}\]])/g, '$1');
-        
-        // Corrige problemas específicos de aspas
-        cleanedJson = fixQuoteIssues(cleanedJson);
-        
-        // Corrige aspas duplas em valores
-        cleanedJson = fixDoubleQuotesInValues(cleanedJson);
-        
-        // Corrige caracteres de escape
-        cleanedJson = fixEscapeCharacters(cleanedJson);
-        
-        // Corrige parênteses em strings
-        cleanedJson = fixParenthesesInStrings(cleanedJson);
-        
-        // Corrige aspas triplas
-        cleanedJson = fixTripleQuotes(cleanedJson);
-        
-        // Corrige vírgulas faltando
-        cleanedJson = fixMissingCommas(cleanedJson);
-        
-        // Corrige formatação
-        cleanedJson = fixFormattingIssues(cleanedJson);
-        
-        // Remove texto após o JSON
-        cleanedJson = removeTrailingText(cleanedJson);
-        
-        // Valida balanceamento de colchetes/chaves
-        let openBrackets = (cleanedJson.match(/\[/g) || []).length;
-        let closeBrackets = (cleanedJson.match(/\]/g) || []).length;
-        let openBraces = (cleanedJson.match(/\{/g) || []).length;
-        let closeBraces = (cleanedJson.match(/\}/g) || []).length;
-        
-        while (openBraces > closeBraces) { cleanedJson += '}'; closeBraces++; }
-        while (openBrackets > closeBrackets) { cleanedJson += ']'; closeBrackets++; }
-        
-        // Primeiro parse
-        let parsedResult = JSON.parse(cleanedJson);
-        
-        if (arrayExpected && !Array.isArray(parsedResult)) {
-            return [parsedResult];
+        // Garante que se esperávamos um array, recebemos um.
+        if (arrayExpected && !Array.isArray(parsedJson)) {
+            console.warn("JSON era esperado como Array, mas veio como Objeto. Encapsulando em array.", parsedJson);
+            return [parsedJson];
         }
-        return parsedResult;
-        
-    } catch (initialError) {
-        console.warn("Parse inicial falhou. Iniciando reparos...", initialError.message);
-        
-        try {
-            let repairedString = jsonString || '';
-            
-            // Processo de reparo completo
-            // Remove blocos de código
-            repairedString = extractJsonFromCodeBlock(repairedString);
-            
-            // Corrige aspas triplas
-            repairedString = fixTripleQuotes(repairedString);
-            
-            // Corrige problemas específicos de aspas
-            repairedString = fixQuoteIssues(repairedString);
-            
-            // Corrige parênteses em strings
-            repairedString = fixParenthesesInStrings(repairedString);
-            
-            // Corrige vírgulas faltando específicas
-            repairedString = fixMissingCommas(repairedString);
-            
-            // Corrige formatação
-            repairedString = fixFormattingIssues(repairedString);
-            
-            // Regras de desinfecção melhoradas
-            repairedString = repairedString.replace(/`/g, "'");
-            repairedString = repairedString.replace(/(?<=")\s*[\r\n]+\s*(?=")/g, ',');
-            repairedString = repairedString.replace(/([{,]\s*)'([^']+)'(\s*:)/g, '$1"$2"$3');
-            repairedString = repairedString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
-            repairedString = repairedString.replace(/:\s*'((?:[^'\\]|\\.)*?)'/g, ': "$1"');
-            repairedString = repairedString.replace(/,\s*([}\]])/g, '$1');
-            repairedString = repairedString.replace(/"\s*[;.,]\s*([,}\]])/g, '"$1');
-            repairedString = repairedString.replace(/:\s*"([^"]*)"/g, (match, content) => {
-                if (content.includes('"') && !content.includes('\\"')) {
-                    const escapedContent = content.replace(/(?<!\\)"/g, '\\"');
-                    return `: "${escapedContent}"`;
-                }
-                return match;
-            });
-            repairedString = repairedString.replace(/}\s*"/g, '}",');
-            repairedString = repairedString.replace(/(?<!\\)\n/g, "\\n");
-            repairedString = repairedString.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
-            
-            // Trata quebras de linha entre objetos
-            repairedString = repairedString.replace(/},\s*\n\s*{/, '},{');
-            repairedString = repairedString.replace(/],\s*\n\s*\[/, '],[');
-            
-            // Remove barras invertidas problemáticas
-            repairedString = repairedString.replace(/\\([^"\\/bfnrtu])/g, '$1');
-            
-            // Corrige aspas escapadas duplicadas
-            repairedString = repairedString.replace(/\\"/g, '"');
-            
-            // Corrige vírgulas faltando entre propriedades
-            repairedString = repairedString.replace(/"(\s+)([a-zA-Z0-9_]+)":/g, '",$1"$2":');
-            
-            // Corrige aspas em valores de string
-            repairedString = repairedString.replace(/:\s*"([^"]*?)"/g, (match, content) => {
-                // Verifica se há aspas não escapadas no conteúdo
-                if (content.includes('"') && !content.includes('\\"')) {
-                    const fixedContent = content.replace(/"/g, '\\"');
-                    return `: "${fixedContent}"`;
-                }
-                return match;
-            });
-            
-            // Corrige objetos com propriedades sem aspas
-            repairedString = repairedString.replace(/\{([^}"]*?):/g, (match, propName) => {
-                // Verifica se a propriedade não está entre aspas
-                if (!propName.includes('"')) {
-                    return `{"${propName.trim()}":`;
-                }
-                return match;
-            });
-            
-            // Corrige arrays de objetos com strings como propriedades
-            repairedString = repairedString.replace(/\{([^{}]+)\}/g, (match, content) => {
-                // Se o conteúdo parece ser uma string simples, converte para formato correto
-                const trimmedContent = content.trim();
-                if (trimmedContent.startsWith('"') && trimmedContent.endsWith('"') && 
-                    !trimmedContent.includes(':')) {
-                    // É uma string, converte para objeto com propriedade "text"
-                    return `{"text": ${trimmedContent}}`;
-                }
-                return match;
-            });
-            
-            // Corrige chaves não fechadas
-            repairedString = repairedString.replace(/\}/g, '}');
-            
-            // Corrige caracteres especiais
-            repairedString = repairedString.replace(/“/g, '"');
-            repairedString = repairedString.replace(/”/g, '"');
-            repairedString = repairedString.replace(/‘/g, "'");
-            repairedString = repairedString.replace(/’/g, "'");
-            
-            // Corrige problemas específicos do erro relatado
-            repairedString = repairedString.replace(/"questionamos":/g, '"questionamos":');
-            repairedString = repairedString.replace(/QUEm/g, 'Quem');
-            
-            // Corrige chaves mal fechadas
-            repairedString = repairedString.replace(/(\w+)\s*}/g, '$1"}');
-            
-            // Corrige vírgulas faltando antes de fechar chaves
-            repairedString = repairedString.replace(/(".*?")\s*(".*?":)/g, '$1, $2');
-            
-            // Corrige objetos sem vírgulas entre eles
-            repairedString = repairedString.replace(/(\}\s*\{)/g, '}, {');
-            
-            // Corrige propriedades sem vírgulas
-            repairedString = repairedString.replace(/(".*?")\s*(".*?":)/g, '$1, $2');
-            
-            // Corrige vírgulas faltando em propriedades específicas
-            repairedString = repairedString.replace(/("score":\s*\d+)(\s*"[\w_])/g, '$1, $2');
-            repairedString = repairedString.replace(/("positive_points":\s*".*?")(\s*"[\w_])/g, '$1, $2');
-            repairedString = repairedString.replace(/("problematic_quote":\s*".*?")(\s*"[\w_])/g, '$1, $2');
-            repairedString = repairedString.replace(/("critique":\s*".*?")(\s*"[\w_])/g, '$1, $2');
-            repairedString = repairedString.replace(/("rewritten_quote":\s*".*?")(\s*[\}\]])/g, '$1$2');
-            
-            // Problemas específicos de aspas duplas
-            repairedString = repairedString.replace(/""([^"]*?)""/g, '"$1"');
-            repairedString = repairedString.replace(/"""/g, '"');
-            
-            // Corrige propriedades do esboço estratégico
-            repairedString = repairedString.replace(/("introduction":\s*".*?")(\s*"[\w_])/g, '$1, $2');
-            repairedString = repairedString.replace(/("development":\s*".*?")(\s*"[\w_])/g, '$1, $2');
-            repairedString = repairedString.replace(/("climax":\s*".*?")(\s*"[\w_])/g, '$1, $2');
-            repairedString = repairedString.replace(/("conclusion":\s*".*?")(\s*"[\w_])/g, '$1, $2');
-            repairedString = repairedString.replace(/("cta":\s*".*?")(\s*[\}\]])/g, '$1$2');
-            
-            // Corrige caracteres de escape específicos do erro
-            repairedString = repairedString.replace(/\\'/g, '"');
-            repairedString = repairedString.replace(/\\n/g, '\n');
-            repairedString = repairedString.replace(/\\\n/g, '\n');
-            repairedString = repairedString.replace(/\\\\/g, '\\');
-            
-            // Corrige problemas de aspas no problematic_quote
-            repairedString = repairedString.replace(/"problematic_quote":\s*"([^"]*?)\\"([^"]*?)"/g, '"problematic_quote": "$1\'$2"');
-            
-            // Remove conteúdo corrompido no final
-            repairedString = cleanCorruptedEnd(repairedString);
-            
-            // Remove texto após o JSON
-            repairedString = removeTrailingText(repairedString);
-            
-            // Corrige objetos incompletos no final
-            repairedString = repairedString.replace(/\{\s*"[\w_]+"[^}]*?(?=\}\s*\]|\}\s*,|\s*\]\s*)/g, match => {
-                if (!match.endsWith('}')) {
-                    return match + '}';
-                }
-                return match;
-            });
-            
-            // Remove texto explicativo do início do JSON
-            repairedString = repairedString.replace(/^\s*A\s*/g, '');
-            
-            // Corrige escapes mal formados
-            repairedString = repairedString.replace(/\\([^"\\/bfnrtu])/g, '$1');
-            
-            // Corrige vírgulas faltando específicas do erro atual
-            repairedString = repairedString.replace(/("positive_points":\s*".*?")(\s*"problematic_quote")/g, '$1, $2');
-            repairedString = repairedString.replace(/("problematic_quote":\s*".*?")(\s*"critique")/g, '$1, $2');
-            repairedString = repairedString.replace(/("critique":\s*".*?")(\s*"rewritten_quote")/g, '$1, $2');
-            
-            // Corrige aspas duplas específicas do erro
-            repairedString = repairedString.replace(/:\s*""([^"]*?)""/g, ': "$1"');
-            
-            // Corrige caracteres de controle
-            repairedString = repairedString.replace(/[\x00-\x1F\x7F]/g, '');
-            
-            // Remove texto explicativo no final
-            repairedString = repairedString.replace(/\s*Espero que isso atenda.*$/g, '');
-            
-            // Corrige problemas de formatação específicos
-            repairedString = repairedString.replace(/\s*:\s*/g, ': ');
-            repairedString = repairedString.replace(/\s*,\s*/g, ', ');
-            
-            // Segundo parse
-            let finalParsedResult = JSON.parse(repairedString);
-            
-            if (arrayExpected && !Array.isArray(finalParsedResult)) {
-                return [finalParsedResult];
-            }
-            
-            console.log("Cirurgia no JSON bem-sucedida!");
-            return finalParsedResult;
-            
-        } catch (surgeryError) {
-            console.error("FALHA CRÍTICA: A cirurgia no JSON não foi bem-sucedida.", surgeryError.message);
-            console.error("JSON Problemático (Original):", text);
-            console.error("JSON Pós-Cirurgia (Falhou):", jsonString);
-            
-            // Tenta retornar o texto original como array se esperado
-            if (arrayExpected) {
-                try {
-                    // Converte texto para array
-                    const lines = text
-                        .split('\n')
-                        .map(line => line.trim())
-                        .filter(line => line.length > 0 && !line.match(/^\d+\./) && !line.includes('```'));
-                    
-                    return lines.length > 0 ? lines : [];
-                } catch (e) {
-                    console.warn("Falha ao converter para array:", e.message);
-                }
-            }
-            
-            // Retorna valor padrão em vez de lançar erro
-            console.warn("Retornando valor padrão devido a erro de parsing.");
-            
-            // Tenta extrair conteúdo útil mesmo com erro
-            const cleanText = text
-                .replace(/```json/g, '')
-                .replace(/```/g, '')
-                .split('\n')
-                .map(line => line.trim())
-                .filter(line => {
-                    const trimmedLine = line.trim();
-                    return line.length > 0 && 
-                           !line.match(/^\d+\./) && 
-                           !trimmedLine.startsWith('Based on') && 
-                           !trimmedLine.startsWith('Here are') &&
-                           !trimmedLine.includes('```') &&
-                           !trimmedLine.startsWith('Aqui está') &&
-                           !trimmedLine.startsWith('**Array') &&
-                           !trimmedLine.startsWith('assistant<|end_header_id|>') &&
-                           !trimmedLine.includes('Expected property name') &&
-                           !trimmedLine.includes('Unexpected token') &&
-                           !trimmedLine.includes('Bad escaped character') &&
-                           !trimmedLine.includes('Expected \',\' or \'}\'') &&
-                           !trimmedLine.includes('Expected \',\' or \'}\'') &&
-                           !trimmedLine.includes('Bad control character');
-                })
-                .join('\n');
-                
-            // Se encontrou conteúdo útil, retorna como array ou string
-            if (cleanText) {
-                if (arrayExpected) {
-                    // Tenta extrair o array JSON do texto
-                    const jsonArrayMatch = cleanText.match(/\[\s*\{[\s\S]*\}\s*\]/);
-                    const jsonObjectMatch = cleanText.match(/\{[\s\S]*\}/);
-                    
-                    if (jsonArrayMatch) {
-                        try {
-                            const jsonArray = jsonArrayMatch[0];
-                            // Tenta corrigir o array antes de parsear
-                            let fixedArray = jsonArray
-                                .replace(/“/g, '"')
-                                .replace(/”/g, '"')
-                                .replace(/‘/g, "'")
-                                .replace(/’/g, "'")
-                                .replace(/\\n/g, "\\\\n")
-                                .replace(/("score":\s*\d+)(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("positive_points":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("problematic_quote":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("critique":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/assistant<\|end_header_id\|>[\s\S]*$/g, '')
-                                .replace(/""/g, '"')
-                                .replace(/("introduction":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("development":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("climax":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("conclusion":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/\\'/g, '"')
-                                .replace(/\\\n/g, '\n')
-                                .replace(/\\\\/g, '\\');
-                            
-                            // Remove conteúdo corrompido no final
-                            fixedArray = cleanCorruptedEnd(fixedArray);
-                            
-                            return JSON.parse(fixedArray);
-                        } catch (e) {
-                            // Se falhar, retorna como array de linhas
-                            return cleanText.split('\n').filter(line => line.trim().length > 0);
-                        }
-                    } else if (jsonObjectMatch) {
-                        try {
-                            const jsonObject = jsonObjectMatch[0];
-                            // Tenta corrigir o objeto antes de parsear
-                            let fixedObject = jsonObject
-                                .replace(/“/g, '"')
-                                .replace(/”/g, '"')
-                                .replace(/‘/g, "'")
-                                .replace(/’/g, "'")
-                                .replace(/\\n/g, "\\\\n")
-                                .replace(/("score":\s*\d+)(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("positive_points":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("problematic_quote":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("critique":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/""/g, '"')
-                                .replace(/("introduction":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("development":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("climax":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("conclusion":\s*".*?")(\s*"[\w_])/g, '$1, $2')
-                                .replace(/("cta":\s*".*?")(\s*[\}\]])/g, '$1$2')
-                                .replace(/\\'/g, '"')
-                                .replace(/\\\n/g, '\n')
-                                .replace(/\\\\/g, '\\')
-                                .replace(/("positive_points":\s*".*?")(\s*"problematic_quote")/g, '$1, $2')
-                                .replace(/("problematic_quote":\s*".*?")(\s*"critique")/g, '$1, $2')
-                                .replace(/("critique":\s*".*?")(\s*"rewritten_quote")/g, '$1, $2')
-                                .replace(/:\s*""([^"]*?)""/g, ': "$1"')
-                                .replace(/[\x00-\x1F\x7F]/g, '')
-                                .replace(/\s*Espero que isso atenda.*$/g, '')
-                                .replace(/\s*:\s*/g, ': ')
-                                .replace(/\s*,\s*/g, ', ');
-                            
-                            return JSON.parse(fixedObject);
-                        } catch (e) {
-                            // Se falhar, retorna como array de linhas
-                            return cleanText.split('\n').filter(line => line.trim().length > 0);
-                        }
-                    }
-                    return cleanText.split('\n').filter(line => line.trim().length > 0);
-                } else {
-                    return cleanText;
-                }
-            }
-            
-            return arrayExpected ? [] : text.trim();
-        }
+
+        return parsedJson;
+
+    } catch (error) {
+        console.error("====================== FALHA CRÍTICA NO PARSE DO JSON ======================");
+        console.error("Erro:", error.message);
+        console.log("--- TEXTO ORIGINAL DA IA ---");
+        console.log(text);
+        console.log("--- STRING ISOLADA QUE FALHOU ---");
+        console.log(jsonString);
+        console.error("==========================================================================");
+
+        // Retorna um valor padrão e seguro para não quebrar o resto da aplicação.
+        return arrayExpected ? [] : null;
     }
 };
-
-
-
 
 
 
