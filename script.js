@@ -1,6 +1,8 @@
 // ==========================================================
 // ==================== ESTADO CENTRALIZADO E CONFIG =================
 // ==========================================================
+let dirtyJSON = null;
+
 const AppState = {
     inputs: {},
     generated: {
@@ -79,7 +81,7 @@ const imageDescriptionLabels = { 'pt-br': 'Descrição da Imagem:', 'pt-pt': 'De
 
 
 // ==========================================================
-// ==================== LÓGICA DO WIZARD UI (Importado da v6.0) ===================
+// ==================== LÓGICA DO WIZARD UI ===================
 // ==========================================================
 const showPane = (paneId) => {
     document.querySelectorAll('#contentArea > div[id^="pane-"]').forEach(pane => {
@@ -96,7 +98,7 @@ const showPane = (paneId) => {
     const activeStep = document.getElementById(`step-${paneId}`);
     if (activeStep) {
         activeStep.classList.add('active');
-        if (AppState.ui.currentPane) { // Evita o scroll na carga inicial
+        if (AppState.ui.currentPane) {
            activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }
@@ -132,31 +134,50 @@ const updateProgressBar = () => {
 };
 
 
-
-// NO ARQUIVO: script.js (v6.0)
+// ==========================================================
+// =================== PARSER DE JSON ROBUSTO (VERSÃO FINAL) =================
+// ==========================================================
 
 /**
- * O novo "Robô de Análise" que usa a biblioteca dirty-json para converter texto da IA em JSON válido.
- * É mais robusto e resiliente a erros de formatação comuns.
- * @param {string} text - O texto bruto retornado pela IA.
- * @param {boolean} [arrayExpected=false] - Se true, garante que o retorno seja sempre um array.
- * @returns {{data: any, error: string|null}} - Retorna um objeto com os dados parseados ou uma mensagem de erro.
+ * Carrega a biblioteca dirty-json de forma assíncrona e a armazena na variável global 'dirtyJSON'.
+ * Esta função é chamada uma vez quando o app inicia.
+ */
+async function loadDirtyJsonLibrary() {
+    if (dirtyJSON) return; // Já foi carregada
+    try {
+        const response = await fetch('https://cdn.jsdelivr.net/npm/dirty-json@0.9.2/lib/dirty-json.min.js');
+        if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+        const scriptText = await response.text();
+        
+        // Executa o script em um escopo controlado para obter a variável 'dirtyJSON'
+        const fn = new Function(`${scriptText}; return dirtyJSON;`);
+        dirtyJSON = fn();
+
+        console.log("Biblioteca dirty-json carregada com sucesso!");
+    } catch (error) {
+        console.error("FALHA CRÍTICA AO CARREGAR A BIBLIOTECA dirty-json:", error);
+        // Exibe um erro visual para o usuário
+        window.showToast("Erro fatal: A biblioteca de análise não pôde ser carregada. Verifique sua conexão.", "error");
+    }
+}
+
+/**
+ * Usa a biblioteca carregada para analisar o texto.
  */
 function parseJsonWithDirtyJson(text, arrayExpected = false) {
     const defaultValue = arrayExpected ? [] : null;
+
+    if (!dirtyJSON) {
+        console.error("Tentativa de usar parseJsonWithDirtyJson antes do carregamento da biblioteca.");
+        return { data: defaultValue, error: "A biblioteca de análise JSON ainda não foi carregada." };
+    }
+    
     if (!text || typeof text !== 'string' || text.trim() === '') {
         return { data: defaultValue, error: "O texto de entrada está vazio ou é inválido." };
     }
     
-    // VERIFICA SE A BIBLIOTECA FOI CARREGADA
-    if (typeof window.dirtyJSON === 'undefined') {
-        console.error("A biblioteca dirty-json não foi carregada corretamente. Verifique o link no HTML.");
-        return { data: defaultValue, error: "A biblioteca de análise JSON não foi encontrada." };
-    }
-    
     try {
-        // A CORREÇÃO ESTÁ AQUI: Usamos window.dirtyJSON para sermos explícitos.
-        let parsedData = window.dirtyJSON.parse(text); 
+        let parsedData = dirtyJSON.parse(text); 
         
         if (arrayExpected && !Array.isArray(parsedData)) {
             parsedData = [parsedData];
@@ -164,13 +185,34 @@ function parseJsonWithDirtyJson(text, arrayExpected = false) {
 
         return { data: parsedData, error: null };
     } catch (e) {
-        console.error("Falha crítica do dirty-json ao analisar o texto:", {
-            error: e.message,
-            textInput: text
-        });
+        console.error("Falha crítica do dirty-json ao analisar o texto:", { error: e.message, textInput: text });
         return { data: defaultValue, error: e.message };
     }
 }
+
+
+// ... (O RESTO DO SEU ARQUIVO script.js VEM AQUI, SEM NENHUMA OUTRA ALTERAÇÃO)
+// ... (COLE TODAS AS OUTRAS FUNÇÕES: PromptManager, utilitários, funções de ação, etc.)
+
+
+// ==========================================================
+// ===== EVENTOS E INICIALIZAÇÃO (VERSÃO FINAL) =================
+// ==========================================================
+
+document.addEventListener('DOMContentLoaded', async () => { // Adicionado 'async' aqui
+
+    // ==========================================================
+    // ===== ETAPA CRÍTICA: CARREGAR A BIBLIOTECA PRIMEIRO =====
+    // ==========================================================
+    await loadDirtyJsonLibrary();
+
+    // O restante do seu código de inicialização...
+    const editingMenu = document.getElementById('editing-menu');
+
+    // ... (COLE TODO o resto do seu código de DOMContentLoaded aqui,
+    //      desde 'handleEditingAction' até o final do arquivo)
+
+});
 
 
 
