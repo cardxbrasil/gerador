@@ -298,7 +298,17 @@ textarea.input { min-height: 84px; resize: vertical; }
 
 /* Acordeão (para o roteiro) */
 .accordion-item { border-bottom: 1px solid var(--border); }
-.accordion-header { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.6rem; cursor: pointer; transition: var(--transition); }
+
+
+.accordion-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 0.5rem 0.75rem; /* Padding AJUSTADO: menos altura, mais largura */
+    cursor: pointer; 
+    transition: var(--transition); 
+}
+
 .accordion-header:hover { background-color: color-mix(in srgb, var(--border) 20%, transparent); }
 .header-title-group { display: flex; align-items: center; gap: 0.75rem; flex-grow: 1; }
 .header-title-group h3 { font-weight: 600; font-size: 0.9rem; color: var(--text-header); }
@@ -676,4 +686,31 @@ textarea.input { min-height: 84px; resize: vertical; }
 #inputDialogLabel {
     display: inline-block; /* Permite aplicar margem */
     margin-top: 0.5rem;   /* Adiciona um espaço acima do rótulo */
+}
+
+
+/* ================================================================= */
+/* ========= AJUSTE DE ALINHAMENTO DO ESBOÇO ESTRATÉGICO ======== */
+/* ================================================================= */
+
+/* Remove o padding padrão da lista que empurra o conteúdo para a direita */
+#outlineContent ul {
+    padding-left: 0;
+    list-style-position: outside; /* Garante que a bolinha fique fora do texto */
+}
+
+/* Transforma cada item da lista em um container flexível */
+#outlineContent ul li {
+    display: flex;
+    align-items: flex-start; /* Alinha o topo da bolinha com o topo do texto */
+    gap: 0.5rem; /* Adiciona um espaço entre a bolinha e o texto */
+    margin-left: 1.25rem; /* Recria o recuo da lista, mas de forma controlada */
+}
+
+/* Garante que a bolinha (marcador) seja exibida */
+#outlineContent ul li::before {
+    content: "•"; /* O caractere da bolinha */
+    color: var(--primary); /* Usa a cor primária para um toque de estilo */
+    font-weight: bold;
+    display: inline-block;
 }
