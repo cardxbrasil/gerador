@@ -2234,7 +2234,8 @@ const applySuggestion = (button) => {
     const problematicQuote = button.dataset.problematicQuote;
     const rewrittenQuote = button.dataset.rewrittenQuote;
 
-    if (!criterionName || !problematicQuote || !rewrittenQuote) {
+    // A verificação inicial continua a mesma
+    if (!criterionName || !rewrittenQuote) { // Note que problematicQuote não é mais obrigatório
         window.showToast("Erro: Informações da sugestão não encontradas.", 'error');
         return;
     }
@@ -2251,14 +2252,34 @@ const applySuggestion = (button) => {
         console.error("Wrapper de conteúdo não encontrado para a seção:", sectionId);
         return;
     }
-    
-    // Substitui o texto problemático pelo reescrito, envolvendo em um span para o destaque visual
-    const newHtmlContent = contentWrapper.innerHTML.replace(problematicQuote, `<span class="highlight-change">${rewrittenQuote}</span>`);
-    
-    // Usa DOMPurify para garantir a segurança ao inserir HTML
-    contentWrapper.innerHTML = DOMPurify.sanitize(newHtmlContent, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
 
-    // Atualiza o estado interno da aplicação
+    // ==========================================================
+    // >>>>> NOVA LÓGICA INTELIGENTE ADICIONADA AQUI <<<<<
+    // ==========================================================
+    
+    // Verifica se a IA forneceu um trecho específico e válido para substituir.
+    const hasSpecificQuote = problematicQuote && problematicQuote.toLowerCase() !== 'nenhum' && problematicQuote.trim() !== '';
+
+    if (hasSpecificQuote && contentWrapper.innerHTML.includes(problematicQuote)) {
+        // --- CASO 1: A IA encontrou um trecho. Substitui como antes. ---
+        const newHtmlContent = contentWrapper.innerHTML.replace(problematicQuote, `<span class="highlight-change">${rewrittenQuote}</span>`);
+        contentWrapper.innerHTML = DOMPurify.sanitize(newHtmlContent, { ADD_TAGS: ["span"], ADD_ATTR: ["class"] });
+
+    } else {
+        // --- CASO 2: A IA não encontrou um trecho ou o trecho não existe mais. Anexa a sugestão. ---
+        const newParagraph = document.createElement('div');
+        newParagraph.innerHTML = `<span class="highlight-change">${rewrittenQuote}</span>`;
+        contentWrapper.appendChild(newParagraph);
+        
+        // Rola a visão para o novo parágrafo adicionado
+        newParagraph.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    // ==========================================================
+    // >>>>> FIM DA NOVA LÓGICA <<<<<
+    // ==========================================================
+
+    // O resto da função continua igual...
     const scriptKey = sectionId.replace('Section', '');
     if (AppState.generated.script[scriptKey]) {
         AppState.generated.script[scriptKey].html = contentWrapper.innerHTML;
@@ -2271,7 +2292,6 @@ const applySuggestion = (button) => {
     button.classList.remove('btn-primary');
     button.classList.add('btn-success');
     
-    // Invalida outros conteúdos que dependem do roteiro
     invalidateAndClearPerformance(sectionElement);
     invalidateAndClearPrompts(sectionElement);
     invalidateAndClearEmotionalMap();
