@@ -96,11 +96,20 @@ const showPane = (paneId) => {
     const activeStep = document.getElementById(`step-${paneId}`);
     if (activeStep) {
         activeStep.classList.add('active');
-        if (AppState.ui.currentPane) { // Evita o scroll na carga inicial
+        if (AppState.ui.currentPane) {
            activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }
     AppState.ui.currentPane = paneId;
+
+    // ==========================================================
+    // >>>>> CORREÇÃO ADICIONADA AQUI <<<<<
+    // Garante que a visibilidade dos módulos do roteiro seja
+    // sempre atualizada quando este painel é exibido.
+    if (paneId === 'script') {
+        updateButtonStates();
+    }
+    // ==========================================================
 };
 
 const markStepCompleted = (stepId, navigate = true) => {
