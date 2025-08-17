@@ -1884,11 +1884,29 @@ const generateIdeasFromReport = async (button) => {
         const rawResult = await callGroqAPI(prompt, 4000);
         
         // --- INTEGRAÇÃO DO ROBÔ 'dirty-json' (VERSÃO FINAL) ---
-        const result = parseJsonWithDirtyJson(rawResult, true); // true = esperamos um array
+  function parseJsonWithDirtyJson(text, arrayExpected = false) {
+    const defaultValue = arrayExpected ? [] : null;
+    if (!text || typeof text !== 'string' || text.trim() === '') {
+        return { data: defaultValue, error: "O texto de entrada está vazio ou é inválido." };
+    }
+    
+    try {
+        // AGORA USAMOS DIRETAMENTE a variável importada. Sem 'window.'
+        let parsedData = dirtyJSON.parse(text); 
         
-        if (result.error) {
-            throw new Error(`A IA retornou um formato inválido que não pôde ser corrigido: ${result.error}`);
+        if (arrayExpected && !Array.isArray(parsedData)) {
+            parsedData = [parsedData];
         }
+
+        return { data: parsedData, error: null }; // Sucesso!
+    } catch (e) {
+        console.error("Falha crítica do dirty-json ao analisar o texto:", {
+            error: e.message,
+            textInput: text
+        });
+        return { data: defaultValue, error: e.message };
+    }
+}
         
         const ideas = result.data;
         // --- FIM DA INTEGRAÇÃO ---
