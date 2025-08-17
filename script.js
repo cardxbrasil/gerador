@@ -1963,7 +1963,31 @@ const generateStrategicCta = async (button) => {
         ctaDirective = `Crie um CTA específico e persuasivo. Instrução: "${ctaSpecifics}".`;
     }
 
-    const prompt = `${basePromptContext}\n\n# TAREFA\nEscrever o texto do CTA para o final do vídeo.\n\n# CONTEXTO\n## Roteiro completo:\n---\n${fullContext}\n---\n\n# DIRETRIZ ESTRATÉGICA\n${ctaDirective}\n\n# REGRAS ESSENCIAIS\n1. **FORMATO**: Responda APENAS com o texto narrativo.\n2. **QUALIDADE**: O CTA deve ser um parágrafo coeso de 3 a 5 frases.`;
+    const prompt = `${basePromptContext}
+
+**IDENTIDADE E ESPECIALIZAÇÃO:**
+Você é um ESPECIALISTA EM ENGAJAMENTO e um COPYWRITER DE RESPOSTA DIRETA. Sua única função é escrever um CTA (Call to Action) que seja uma continuação natural e persuasiva do roteiro.
+
+**ROTEIRO COMPLETO (PARA CONTEXTO):**
+---
+${fullContext}
+---
+
+**DIRETRIZ ESTRATÉGICA PARA O CTA:**
+${ctaDirective}
+
+**MANUAL DE CRIAÇÃO DE UM CTA PERFEITO:**
+1.  **TRANSIÇÃO SUAVE:** O CTA não deve parecer um comercial. Ele precisa ser uma ponte natural a partir da conclusão do vídeo.
+2.  **CLAREZA E ESPECIFICIDADE:** A ação que você quer que o espectador tome deve ser cristalina. Evite pedidos vagos.
+3.  **CONEXÃO EMOCIONAL:** O CTA deve ecoar o tom e o sentimento do vídeo. Se o vídeo foi inspirador, o CTA deve ser encorajador.
+4.  **BENEFÍCIO CLARO (WIIFM - "What's In It For Me?"):** Dê ao espectador uma razão para agir. O que ele ganha ao curtir, comentar ou se inscrever?
+
+**REGRAS DE FORMATAÇÃO E CONTEÚDO (INEGOCIÁVEIS):**
+1.  **RESPOSTA 100% PURA:** Sua resposta deve ser **APENAS e SOMENTE** o texto que será dito em voz alta.
+2.  **PROIBIÇÃO TOTAL DE EXTRAS:** É **TERMINANTEMENTE PROIBIDO** incluir qualquer anotação, título (como "**CTA:**") ou comentário.
+3.  **TAMANHO IDEAL:** O CTA deve ser um parágrafo coeso de 3 a 5 frases.
+
+**AÇÃO FINAL:** Escreva AGORA o texto do CTA, aplicando todos os princípios de um copywriter de elite. Responda APENAS com o texto a ser narrado.`;
 
     try {
         let result = await callGroqAPI(prompt, 400);
@@ -2024,7 +2048,31 @@ const suggestFinalStrategy = async (button) => {
         return;
     }
 
-    const prompt = `Você é uma API de estratégia. Analise o roteiro e retorne um JSON com sugestões para a conclusão e CTA.\n\n**CONTEXTO:**\n${basePromptContext}\n\n**ROTEIRO:**\n${fullContext}\n\n**REGRAS JSON:**\n1. Objeto JSON puro.\n2. Duas chaves: "conclusion_suggestion" e "cta_suggestion".\n3. Textos no mesmo idioma do roteiro.`;
+    const prompt = `Você é uma API de ESTRATÉGIA NARRATIVA DE ALTO NÍVEL. Sua função é analisar um roteiro completo e, com base nele, propor uma conclusão e um CTA (Call to Action) estratégicos e impactantes.
+
+**CONTEXTO GERAL DO VÍDEO (DNA NARRATIVO):**
+---
+${basePromptContext}
+---
+
+**ROTEIRO COMPLETO (PARA ANÁLISE):**
+---
+${fullContext}
+---
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
+1.  **JSON PURO:** Sua resposta deve ser **APENAS e SOMENTE** um objeto JSON válido.
+2.  **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas duas chaves: "conclusion_suggestion" e "cta_suggestion".
+3.  **VALORES:** Os valores devem ser strings de texto, concisas e acionáveis, no mesmo idioma do roteiro.
+4.  **SINTAXE DAS STRINGS:** Todas as chaves e valores string DEVEM usar aspas duplas ("").
+
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+{
+  "conclusion_suggestion": "Reforce a ideia de que a superação não é um destino, mas um processo contínuo de aprendizado, conectando a jornada do protagonista com a do espectador.",
+  "cta_suggestion": "Convide o espectador a compartilhar nos comentários qual foi o maior obstáculo que já superou em sua própria jornada, criando uma comunidade de apoio."
+}
+
+**AÇÃO FINAL:** Sua resposta deve ser **APENAS e SOMENTE** o objeto JSON, sem nenhum texto introdutório, explicação ou comentário. Comece com \`{\` e termine com \`}\`. Gere agora o objeto JSON com as sugestões.`;
 
     try {
         const rawResult = await callGroqAPI(prompt, 1000);
@@ -2208,7 +2256,7 @@ const applyAllSuggestions = async (button) => {
     let appliedCount = 0;
     for (const applyBtn of allApplyButtons) {
         try {
-            window.applySuggestion(applyBtn);
+            applySuggestion(applyBtn);
             appliedCount++;
             await new Promise(resolve => setTimeout(resolve, 100)); 
         } catch (error) {
@@ -4109,7 +4157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'generate-prompts': (btn) => window.generatePromptsForSection(btn),
         'optimizeGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.optimizeGroup(btn, text); },
         'deleteParagraphGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.deleteParagraphGroup(btn, text); },
-        'applySuggestion': (btn) => window.applySuggestion(btn), 'applyAllSuggestions': (btn) => applyAllSuggestions(btn),
+        'applySuggestion': (btn) => applySuggestion(btn), 'applyAllSuggestions': (btn) => applyAllSuggestions(btn),
         'applyHookSuggestion': (btn) => applyHookSuggestion(btn), 'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
     };
 
