@@ -1,8 +1,6 @@
 // ==========================================================
 // ==================== ESTADO CENTRALIZADO E CONFIG =================
 // ==========================================================
-let dirtyJSON = null;
-
 const AppState = {
     inputs: {},
     generated: {
@@ -81,7 +79,7 @@ const imageDescriptionLabels = { 'pt-br': 'Descrição da Imagem:', 'pt-pt': 'De
 
 
 // ==========================================================
-// ==================== LÓGICA DO WIZARD UI ===================
+// ==================== LÓGICA DO WIZARD UI (Importado da v6.0) ===================
 // ==========================================================
 const showPane = (paneId) => {
     document.querySelectorAll('#contentArea > div[id^="pane-"]').forEach(pane => {
@@ -98,7 +96,7 @@ const showPane = (paneId) => {
     const activeStep = document.getElementById(`step-${paneId}`);
     if (activeStep) {
         activeStep.classList.add('active');
-        if (AppState.ui.currentPane) {
+        if (AppState.ui.currentPane) { // Evita o scroll na carga inicial
            activeStep.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }
@@ -132,81 +130,6 @@ const updateProgressBar = () => {
     progressFill.style.width = `${percentage}%`;
     progressText.textContent = `${percentage}%`;
 };
-
-
-// ==========================================================
-// =================== PARSER DE JSON ROBUSTO (VERSÃO FINAL) =================
-// ==========================================================
-
-/**
- * Carrega a biblioteca dirty-json de forma assíncrona e a armazena na variável global 'dirtyJSON'.
- * Esta função é chamada uma vez quando o app inicia.
- */
-function loadDirtyJsonLibrary() {
-    return new Promise((resolve, reject) => {
-        // Se a biblioteca já existir, não faz nada.
-        if (typeof window.dirtyJSON !== 'undefined') {
-            AppState.ui.isLibraryLoaded = true;
-            return resolve();
-        }
-
-        // Este é o método "clássico" de carregar scripts, que é mais robusto contra bloqueios.
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/dirty-json@0.9.2/dist/dirty-json.min.js';
-        
-        // Se carregar com sucesso...
-        script.onload = () => {
-            if (typeof window.dirtyJSON !== 'undefined') {
-                console.log("Biblioteca dirty-json carregada com SUCESSO via injeção de script!");
-                AppState.ui.isLibraryLoaded = true;
-                resolve();
-            } else {
-                reject(new Error("Script carregado, mas o objeto 'dirtyJSON' não foi encontrado na window."));
-            }
-        };
-
-        // Se falhar (bloqueio, 404, etc.)...
-        script.onerror = (e) => {
-            console.error("FALHA ao carregar o script da biblioteca. A CDN pode estar offline ou bloqueada por uma extensão.", e);
-            reject(new Error("Falha ao carregar o script da biblioteca dirty-json."));
-        };
-
-        // Adiciona o script ao <head> para iniciar o download.
-        document.head.appendChild(script);
-    });
-}
-
-/**
- * Usa a biblioteca carregada para analisar o texto.
- */
-function parseJsonWithDirtyJson(text, arrayExpected = false) {
-    const defaultValue = arrayExpected ? [] : null;
-
-    if (!dirtyJSON) {
-        console.error("Tentativa de usar parseJsonWithDirtyJson antes do carregamento da biblioteca.");
-        return { data: defaultValue, error: "A biblioteca de análise JSON ainda não foi carregada." };
-    }
-    
-    if (!text || typeof text !== 'string' || text.trim() === '') {
-        return { data: defaultValue, error: "O texto de entrada está vazio ou é inválido." };
-    }
-    
-    try {
-        let parsedData = dirtyJSON.parse(text); 
-        
-        if (arrayExpected && !Array.isArray(parsedData)) {
-            parsedData = [parsedData];
-        }
-
-        return { data: parsedData, error: null };
-    } catch (e) {
-        console.error("Falha crítica do dirty-json ao analisar o texto:", { error: e.message, textInput: text });
-        return { data: defaultValue, error: e.message };
-    }
-}
-
-
-
 
 
 // ==========================================================
@@ -1903,52 +1826,22 @@ const generateIdeasFromReport = async (button) => {
     const outputContainer = document.getElementById('ideasOutput');
     showButtonLoading(button);
 
-    // HTML de loading da v6.0 (preservado)
+    // >>>>> CORREÇÃO #1: HTML DE LOADING SIMPLES E CENTRALIZADO <<<<<
     outputContainer.innerHTML = `
         <div class="md:col-span-2 text-center p-8">
             <div class="loading-spinner mx-auto mb-4" style="width: 32px; height: 32px; border-width: 4px; margin: auto;"></div>
             <p class="text-lg font-semibold" style="color: var(--text-header);">Consultando especialista em ${genre}...</p>
         </div>
     `;
+    // >>>>> FIM DA CORREÇÃO #1 <<<<<
 
     const promptContext = { originalQuery, rawReport, languageName };
     const prompt = PromptManager.getIdeasPrompt(genre, promptContext);
 
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
-        
-        // --- INTEGRAÇÃO DO ROBÔ 'dirty-json' (VERSÃO FINAL) ---
-  function parseJsonWithDirtyJson(text, arrayExpected = false) {
-    const defaultValue = arrayExpected ? [] : null;
-    if (!text || typeof text !== 'string' || text.trim() === '') {
-        return { data: defaultValue, error: "O texto de entrada está vazio ou é inválido." };
-    }
-    
-    try {
-        // AGORA USAMOS DIRETAMENTE a variável importada. Sem 'window.'
-        let parsedData = dirtyJSON.parse(text); 
-        
-        if (arrayExpected && !Array.isArray(parsedData)) {
-            parsedData = [parsedData];
-        }
-
-        return { data: parsedData, error: null }; // Sucesso!
-    } catch (e) {
-        console.error("Falha crítica do dirty-json ao analisar o texto:", {
-            error: e.message,
-            textInput: text
-        });
-        return { data: defaultValue, error: e.message };
-    }
-}
-        
-        const ideas = result.data;
-        // --- FIM DA INTEGRAÇÃO ---
-
-        // Validação de segurança para garantir que o conteúdo faz sentido.
-        if (!ideas || !Array.isArray(ideas) || ideas.length === 0 || !ideas[0].title) {
-            throw new Error("O especialista não retornou ideias com um formato reconhecível após a análise.");
-        }
+        const ideas = cleanGeneratedText(rawResult, true, true); 
+        if (!ideas || !Array.isArray(ideas) || ideas.length === 0 || !ideas[0].title) throw new Error("A IA não retornou ideias em um formato JSON válido.");
         
         AppState.generated.ideas = ideas;
         
@@ -1958,31 +1851,32 @@ const generateIdeasFromReport = async (button) => {
         };
         const colorName = genreColorMap[genre] || 'emerald';
 
-        // HTML DOS CARDS DA v6.0 (evolução preservada)
+        // >>>>> CORREÇÃO #2: HTML DOS CARDS DA V5.0 <<<<<
         const allCardsHtml = ideas.map((idea, index) => {
-            const escapedIdea = escapeIdeaForOnclick(idea);
-            return `
-                <div class="card p-4 flex flex-col justify-between border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
-                    
-                    <!-- Conteúdo Principal (Título, Botão e Descrição) -->
-                    <div class="flex-grow">
-                        <div class="flex justify-between items-start gap-4 mb-2">
-                            <h4 class="font-bold text-base flex-grow" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                            <button class="btn btn-primary btn-small flex-shrink-0" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                        </div>
-                        <p class="text-sm">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
-                    </div>
+             const escapedIdea = escapeIdeaForOnclick(idea);
+return `
+    <div class="card p-4 flex flex-col justify-between border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
+        
+        <!-- Conteúdo Principal (Título, Botão e Descrição) -->
+        <div class="flex-grow">
+            <div class="flex justify-between items-start gap-4 mb-2">
+                <h4 class="font-bold text-base flex-grow" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
+                <button class="btn btn-primary btn-small flex-shrink-0" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+            </div>
+            <p class="text-sm">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+        </div>
 
-                    <!-- Rodapé do Card (Apenas o Potencial) -->
-                    <div class="mt-4">
-                        <span class="font-bold text-sm bg-${colorName}-100 text-${colorName}-700 dark:bg-${colorName}-900/50 dark:text-${colorName}-300 py-1 px-2 rounded-lg">
-                            Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
-                        </span>
-                    </div>
+        <!-- Rodapé do Card (Apenas o Potencial) -->
+        <div class="mt-4">
+            <span class="font-bold text-sm bg-${colorName}-100 text-${colorName}-700 dark:bg-${colorName}-900/50 dark:text-${colorName}-300 py-1 px-2 rounded-lg">
+                Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
+            </span>
+        </div>
 
-                </div>
-            `;
+    </div>
+`;
         }).join('');
+        // >>>>> FIM DA CORREÇÃO #2 <<<<<
         
         outputContainer.innerHTML = allCardsHtml;
         markStepCompleted('investigate', false);
@@ -2084,13 +1978,6 @@ const getBasePromptContext = () => {
     return context;
 };
 
-
-
-
-
-// NO ARQUIVO: script.js (v6.0)
-// SUBSTITUA A SUA FUNÇÃO 'suggestStrategy' INTEIRA POR ESTA:
-
 const suggestStrategy = async (button) => {
     const theme = document.getElementById('videoTheme')?.value.trim();
     const description = document.getElementById('videoDescription')?.value.trim();
@@ -2101,7 +1988,7 @@ const suggestStrategy = async (button) => {
     const userConfirmed = await showConfirmationDialog( "Refinar Estratégia com IA?", "Isso usará a IA para redefinir a estratégia e LIMPARÁ qualquer esboço ou roteiro já gerado. Deseja continuar?");
     if (!userConfirmed) return;
     
-    // LIMPEZA PROFUNDA (preservada da sua versão original, está ótima)
+    // LIMPEZA PROFUNDA
     AppState.generated.strategicOutline = null;
     AppState.generated.script = { intro: {}, development: {}, climax: {}, conclusion: {}, cta: {} };
     document.getElementById('scriptSectionsContainer').innerHTML = '';
@@ -2110,7 +1997,7 @@ const suggestStrategy = async (button) => {
     showButtonLoading(button);
     AppState.ui.isSettingStrategy = true;
     
-    const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português do Brasil' : 'English';
+    const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
 
     const prompt = `Você é uma API de Estratégia de Conteúdo Viral. Sua única função é gerar um objeto JSON com uma estratégia de vídeo completa.
 
@@ -2139,33 +2026,15 @@ const suggestStrategy = async (button) => {
 
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
-
-        // --- MUDANÇA AQUI: USANDO O NOVO ROBÔ DE ANÁLISE ---
-        // 1. Chamamos a função esperando um objeto.
-        const result = parseJsonWithDirtyJson(rawResult); 
-
-        // 2. Verificamos se houve erro na análise.
-        if (result.error) {
-            throw new Error(`A IA retornou um formato de estratégia inválido: ${result.error}`);
-        }
-        
-        // 3. Pegamos os dados limpos.
-        const strategy = result.data;
-        // --- FIM DA MUDANÇA ---
-
-        // Validação de segurança para garantir que o objeto principal existe.
-        if (!strategy || typeof strategy !== 'object') {
-            throw new Error("A IA não retornou uma estratégia em formato de objeto válido.");
-        }
+        const strategy = cleanGeneratedText(rawResult, true);
+        if (!strategy || typeof strategy !== 'object') throw new Error("A IA não retornou uma estratégia em formato JSON válido.");
         
         const narrativeGoalSelect = document.getElementById('narrativeGoal');
         if (narrativeGoalSelect && strategy.narrative_goal) {
             narrativeGoalSelect.value = strategy.narrative_goal;
-            updateNarrativeStructureOptions(); // Atualiza as opções do próximo select
+            updateNarrativeStructureOptions();
         }
-        
-        // Pequeno delay para garantir que o DOM atualizou as opções de 'narrativeStructure'
-        setTimeout(() => {
+        setTimeout(() => { // Pequeno delay para garantir que as opções foram atualizadas
             const keyToElementIdMap = {
                 'target_audience': 'targetAudience', 'narrative_theme': 'narrativeTheme',
                 'narrative_tone': 'narrativeTone', 'narrative_voice': 'narrativeVoice',
@@ -2173,35 +2042,45 @@ const suggestStrategy = async (button) => {
                 'shocking_ending_hook': 'shockingEndingHook', 'research_data': 'researchData',
                 'narrative_structure': 'narrativeStructure'
             };
-            
-            for (const key in keyToElementIdMap) {
-                if (strategy[key]) {
-                    const element = document.getElementById(keyToElementIdMap[key]);
-                    if (element) {
-                        let valueToSet = strategy[key];
+for (const key in keyToElementIdMap) {
+    if (strategy[key]) {
+        const element = document.getElementById(keyToElementIdMap[key]);
+        if (element) {
+            let valueToSet = strategy[key];
 
-                        // Blindagem contra a IA retornar objetos/arrays em vez de strings
-                        if (typeof valueToSet === 'object' && valueToSet !== null) {
-                            valueToSet = Array.isArray(valueToSet) ? valueToSet.join('; ') : Object.values(valueToSet).join(', ');
-                        }
-
-                        // Lógica para preencher selects e inputs
-                        if (element.tagName === 'SELECT') {
-                            if ([...element.options].some(o => o.value === valueToSet)) {
-                                element.value = valueToSet;
-                            }
-                        } else {
-                            element.value = valueToSet;
-                        }
+            // >>>>> BLINDAGEM UNIVERSAL CONTRA OBJETOS <<<<<
+            if (typeof valueToSet === 'object' && valueToSet !== null) {
+                console.warn(`A IA retornou um objeto para o campo '${key}':`, valueToSet);
+                
+                // Se for um array, junta os valores. Se for um objeto, junta os valores.
+                if (Array.isArray(valueToSet)) {
+                    // Se for um array de objetos, tenta extrair o primeiro valor de cada objeto
+                    if (valueToSet.length > 0 && typeof valueToSet[0] === 'object') {
+                         valueToSet = valueToSet.map(obj => Object.values(obj)[0]).join('; ');
+                    } else { // Se for um array de strings
+                         valueToSet = valueToSet.join('; ');
                     }
+                } else { // Se for um objeto único
+                    valueToSet = Object.values(valueToSet).join(', ');
                 }
             }
-            updateMainTooltip(); // Atualiza o tooltip da estrutura após o preenchimento
+            // >>>>> FIM DA BLINDAGEM <<<<<
+
+            if (element.tagName === 'SELECT') {
+                if ([...element.options].some(o => o.value === valueToSet)) {
+                    element.value = valueToSet;
+                }
+            } else {
+                element.value = valueToSet;
+            }
+        }
+    }
+}
+            updateMainTooltip();
         }, 100);
 
         window.showToast("Estratégia refinada pela IA!");
         document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
-
     } catch (error) {
         console.error("Erro em suggestStrategy:", error);
         window.showToast(`Falha ao sugerir estratégia: ${error.message}`, 'error');
@@ -2210,7 +2089,6 @@ const suggestStrategy = async (button) => {
         hideButtonLoading(button);
     }
 };
-
 
 
 
@@ -2330,19 +2208,11 @@ const createScriptSectionPlaceholder = (sectionId, title, actionName) => {
 
 
 const generateStrategicOutline = async (button) => {
-    if (!validateInputs()) {
-        return;
-    }
+    if (!validateInputs()) return;
 
-    // LIMPEZA PROFUNDA INTEGRADA (preservada da sua versão v6.0)
+    // LIMPEZA PROFUNDA INTEGRADA
     AppState.generated.strategicOutline = null;
-    AppState.generated.script = { 
-        intro: {html:null, text:null}, 
-        development: {html:null, text:null}, 
-        climax: {html:null, text:null}, 
-        conclusion: {html:null, text:null}, 
-        cta: {html:null, text:null} 
-    };
+    AppState.generated.script = { intro: {html:null,text:null}, development: {html:null,text:null}, climax: {html:null,text:null}, conclusion: {html:null,text:null}, cta: {html:null,text:null} };
     document.getElementById('scriptSectionsContainer').innerHTML = '';
     document.getElementById('conclusionStrategyModule').classList.add('hidden');
 
@@ -2353,44 +2223,24 @@ const generateStrategicOutline = async (button) => {
     try {
         const { prompt } = constructScriptPrompt('outline');
         const rawResult = await callGroqAPI(prompt, 4000);
+        AppState.generated.strategicOutline = cleanGeneratedText(rawResult, true);
         
-        // --- MUDANÇA AQUI: USANDO O NOVO ROBÔ DE ANÁLISE ---
-        // 1. Chamamos a função sem o segundo argumento, pois esperamos um objeto.
-        const result = parseJsonWithDirtyJson(rawResult); 
-
-        // 2. Verificamos se a análise retornou um erro.
-        if (result.error) {
-            throw new Error(`A IA retornou um formato de esboço inválido: ${result.error}`);
-        }
-        
-        // 3. Pegamos os dados limpos do objeto retornado.
-        const strategicOutline = result.data;
-        // --- FIM DA MUDANÇA ---
-
-        // Validação de segurança para garantir que o objeto tem a estrutura que esperamos.
+        const { strategicOutline } = AppState.generated;
         if (!strategicOutline || typeof strategicOutline !== 'object' || !strategicOutline.introduction) {
-            throw new Error("A IA falhou em gerar um esboço com a estrutura esperada.");
+            throw new Error("A IA falhou em gerar um esboço em formato JSON válido.");
         }
-        
-        AppState.generated.strategicOutline = strategicOutline;
 
-        // O resto da sua função para renderizar o HTML continua perfeito.
-        const titleTranslations = { 
-            'introduction': 'Introdução', 'development': 'Desenvolvimento', 
-            'climax': 'Clímax', 'conclusion': 'Conclusão', 'cta': 'CTA' 
-        };
-        
+        const titleTranslations = { 'introduction': 'Introdução', 'development': 'Desenvolvimento', 'climax': 'Clímax', 'conclusion': 'Conclusão', 'cta': 'CTA' };
         let outlineHtml = '<ul class="space-y-4 text-sm" style="list-style-position: inside; padding-left: 1rem;">';
         for (const key in strategicOutline) {
-            if (Object.prototype.hasOwnProperty.call(strategicOutline, key)) {
-                const translatedTitle = titleTranslations[key] || key;
-                outlineHtml += `<li><div><strong style="color: var(--primary);">${translatedTitle}:</strong> <span style="color: var(--text-body);">${DOMPurify.sanitize(strategicOutline[key])}</span></div></li>`;
-            }
+            outlineHtml += `<li><div><strong style="color: var(--primary);">${titleTranslations[key] || key}:</strong> <span style="color: var(--text-body);">${DOMPurify.sanitize(strategicOutline[key])}</span></div></li>`;
         }
         outlineHtml += '</ul>';
-        
         outlineContentDiv.innerHTML = outlineHtml;
         
+        // ===============================================
+        // A CORREÇÃO ESTÁ AQUI
+        // ===============================================
         const scriptContainer = document.getElementById('scriptSectionsContainer');
         if (scriptContainer) {
             scriptContainer.innerHTML = ''; // Limpa qualquer conteúdo antigo
@@ -2398,6 +2248,9 @@ const generateStrategicOutline = async (button) => {
             scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('development', 'Desenvolvimento', 'generateDevelopment'));
             scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('climax', 'Clímax', 'generateClimax'));
         }
+        // ===============================================
+        // FIM DA CORREÇÃO
+        // ===============================================
 
     } catch (error) {
         console.error("Erro em generateStrategicOutline:", error);
@@ -2407,9 +2260,6 @@ const generateStrategicOutline = async (button) => {
         hideButtonLoading(button);
     }
 };
-
-
-
 
 const generateSectionHtmlContent = (sectionId, title, content) => {
     const accordionItem = document.createElement('div');
@@ -2489,16 +2339,14 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
     return accordionItem;
 };
 
-
-
-
-
 const handleGenerateSection = async (button, sectionName, sectionTitle, elementId) => {
     if (!validateInputs()) return;
     if (!AppState.generated.strategicOutline && sectionName !== 'intro') {
         window.showToast("Crie o Esboço Estratégico primeiro!", 'info');
         return;
     }
+
+
 
     showButtonLoading(button);
     const targetSectionElement = document.getElementById(`${elementId}Section`);
@@ -2507,79 +2355,58 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
         let contextText = null;
         const sectionOrder = ['intro', 'development', 'climax'];
         const currentSectionIndex = sectionOrder.indexOf(elementId);
-        
         if (currentSectionIndex > 0) {
-            // Monta o contexto com base no AppState, que é mais confiável.
-            const prevSectionsContent = sectionOrder.slice(0, currentSectionIndex).map(id => {
-                const section = AppState.generated.script[id];
-                if (!section || !section.text) {
-                    // Lança um erro se uma seção anterior não foi gerada, garantindo a ordem.
-                    throw new Error(`A seção anterior '${id}' precisa ser gerada primeiro.`);
-                }
-                return section.text;
-            });
-            contextText = prevSectionsContent.join('\n\n---\n\n');
+            contextText = sectionOrder.slice(0, currentSectionIndex).map(id => AppState.generated.script[id].text).join('\n\n---\n\n');
         }
 
         const keyMap = { intro: 'introduction', development: 'development', climax: 'climax' };
         const directive = AppState.generated.strategicOutline ? AppState.generated.strategicOutline[keyMap[sectionName]] : null;
-        
         const { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
-        const rawResult = await callGroqAPI(prompt, maxTokens);
-        
-        // --- MUDANÇA AQUI: USANDO O NOVO ROBÔ DE ANÁLISE ---
-        // 1. Chamamos a função esperando um array (de parágrafos).
-        const result = parseJsonWithDirtyJson(rawResult, true); 
 
-        // 2. Verificamos se houve erro na análise.
-        if (result.error) {
-            throw new Error(`A IA retornou um formato de roteiro inválido: ${result.error}`);
-        }
-        
-        // 3. Pegamos os dados limpos.
-        const paragraphs = result.data;
-        // --- FIM DA MUDANÇA ---
-        
-        // Validação de segurança para garantir que recebemos um array com conteúdo.
-        if (!Array.isArray(paragraphs) || paragraphs.length === 0 || paragraphs.some(p => typeof p !== 'string')) {
+        const rawResult = await callGroqAPI(prompt, maxTokens);
+        const paragraphs = cleanGeneratedText(rawResult, true, true); 
+
+        if (!Array.isArray(paragraphs) || paragraphs.length === 0) {
             throw new Error("A IA não retornou o roteiro no formato de parágrafos esperado.");
         }
 
-        const contentWithDivs = paragraphs
-            .filter(p => p.trim() !== '') // Garante que parágrafos vazios não sejam renderizados
-            .map((p, index) => `<div id="${elementId}-p-${index}">${DOMPurify.sanitize(p)}</div>`)
-            .join('');
-            
-        const fullText = paragraphs
-            .filter(p => p.trim() !== '')
-            .join('\n\n');
+        const contentWithDivs = paragraphs.map((p, index) => `<div id="${elementId}-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
+        const fullText = paragraphs.join('\n\n');
 
-        // Atualiza o "cérebro" da aplicação
         AppState.generated.script[sectionName] = { html: contentWithDivs, text: fullText };
 
-        // Renderiza o novo componente de acordeão na tela
         if (targetSectionElement) {
             const sectionElement = generateSectionHtmlContent(elementId, sectionTitle, contentWithDivs);
             targetSectionElement.replaceWith(sectionElement);
         }
-        
         updateButtonStates();
 
     } catch (error) {
         window.showToast(`Falha ao gerar ${sectionTitle}: ${error.message}`, 'error');
-        console.error(`Erro ao gerar ${sectionTitle}.`, error);
-        // Em caso de erro, recria o placeholder para que o usuário possa tentar novamente.
-        if (targetSectionElement) {
-             const placeholderHtml = createScriptSectionPlaceholder(elementId, sectionTitle, button.dataset.action);
-             const placeholderElement = document.createElement('div');
-             placeholderElement.innerHTML = placeholderHtml;
-             targetSectionElement.replaceWith(placeholderElement.firstChild);
-        }
+        console.error(`Error generating ${sectionTitle}.`, error);
     } finally {
         hideButtonLoading(button);
+        updateButtonStates();
     }
 };
 
+window.regenerateSection = (fullSectionId) => {
+    const sectionName = fullSectionId.replace('Section', '');
+    const sectionMap = {
+        'intro': { title: 'Introdução', elementId: 'intro' },
+        'development': { title: 'Desenvolvimento', elementId: 'development' },
+        'climax': { title: 'Clímax', elementId: 'climax' },
+        'conclusion': { title: 'Conclusão', elementId: 'conclusion' },
+        'cta': { title: 'Call to Action (CTA)', elementId: 'cta' }
+    };
+    const sectionInfo = sectionMap[sectionName];
+    if (sectionInfo) {
+        const button = document.querySelector(`[data-action='regenerate'][data-section-id='${fullSectionId}']`);
+        if (button) {
+             handleGenerateSection(button, sectionName, sectionInfo.title, sectionInfo.elementId);
+        }
+    }
+};
 
 
 
@@ -2778,15 +2605,6 @@ const goToFinalize = () => {
 
 // --- ETAPA 4: FINALIZAR E EXPORTAR ---
 
-
-
-
-
-
-
-// NO ARQUIVO: script.js (v6.0)
-// SUBSTITUA A SUA FUNÇÃO 'analyzeScriptPart' INTEIRA POR ESTA:
-
 const analyzeScriptPart = async (criterion, text, context = {}) => {
     const sectionKeyMap = {
         'Introdução (Hook)': 'introduction',
@@ -2819,21 +2637,9 @@ ${text.slice(0, 7000)}
 
     try {
         const rawResult = await callGroqAPI(prompt, 1500);
+        const analysisData = cleanGeneratedText(rawResult, true); 
+        if (!analysisData || !('score' in analysisData)) throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
         
-        // --- MUDANÇA AQUI: USANDO O NOVO ROBÔ DE ANÁLISE ---
-        const result = parseJsonWithDirtyJson(rawResult);
-        if (result.error) {
-            throw new Error(`A IA retornou um formato de análise inválido: ${result.error}`);
-        }
-        const analysisData = result.data;
-        // --- FIM DA MUDANÇA ---
-        
-        // Validação de segurança para as chaves essenciais.
-        if (!analysisData || typeof analysisData.score === 'undefined' || !analysisData.positive_points) {
-            throw new Error("A resposta da IA não contém as chaves de análise obrigatórias (score, positive_points).");
-        }
-        
-        // A lógica para formatar os dados para a UI continua a mesma.
         const formattedData = {
             criterion_name: criterion,
             score: analysisData.score,
@@ -2841,7 +2647,7 @@ ${text.slice(0, 7000)}
             improvement_points: []
         };
 
-        if (analysisData.critique && analysisData.critique.toLowerCase() !== "nenhuma crítica significativa.") {
+        if (analysisData.critique.toLowerCase() !== "nenhuma crítica significativa.") {
             formattedData.improvement_points.push({
                 suggestion_text: "Substituir por:",
                 problematic_quote: analysisData.problematic_quote,
@@ -2852,28 +2658,13 @@ ${text.slice(0, 7000)}
         return formattedData;
 
     } catch (error) {
-        console.error(`Erro crítico ao analisar a seção '${criterion}':`, error);
-        // O bloco de erro para retornar um resultado de falha está perfeito.
+        console.error(`Erro ao analisar a seção '${criterion}':`, error);
         return { 
-            criterion_name: criterion, 
-            score: 'Erro', 
-            positive_points: 'A análise desta seção falhou.', 
-            improvement_points: [{
-                critique: 'Falha na Análise',
-                suggestion_text: `Detalhe: ${error.message}`,
-                problematic_quote: 'N/A',
-                rewritten_quote: 'N/A'
-            }]
+            criterion_name: criterion, score: 'Erro', positive_points: 'A análise desta seção falhou.', 
+            improvement_points: [{ critique: 'Falha na Análise', suggestion_text: `Detalhe: ${error.message}`, problematic_quote: 'N/A', rewritten_quote: 'N/A' }]
         };
     }
 };
-
-
-
-
-
-
-
 
 const createReportSection = (analysisData) => {
     const sectionDiv = document.createElement('div');
@@ -3024,26 +2815,15 @@ const applyHookSuggestion = (button) => {
     button.classList.add('btn-success');
 };
 
-
-
-
-
-
-// NO ARQUIVO: script.js (v6.0)
-// SUBSTITUA A SUA FUNÇÃO 'analyzeRetentionHooks' INTEIRA POR ESTA:
-
 const analyzeRetentionHooks = async (button) => {
     const fullTranscript = getTranscriptOnly();
     if (!fullTranscript) {
         window.showToast("Gere o roteiro completo primeiro para caçar os ganchos.", 'info');
         return;
     }
-    
     showButtonLoading(button);
     const reportContainer = document.getElementById('hooksReportContainer');
     reportContainer.innerHTML = `<div class="my-4"><div class="loading-spinner-small mx-auto"></div><p class="text-sm mt-2">Caçando e refinando ganchos...</p></div>`;
-    
-    // O prompt continua o mesmo, pois é muito bem estruturado.
     const prompt = `Você é uma API ESPECIALISTA EM ANÁLISE DE RETENÇÃO. Sua tarefa é analisar o roteiro, identificar "ganchos de retenção" e sugerir melhorias.
 
 **ROTEIRO COMPLETO:**
@@ -3057,35 +2837,15 @@ ${fullTranscript.slice(0, 7500)}
 - **CHAVES E TIPOS EXATOS:** Cada objeto no array DEVE conter EXATAMENTE estas cinco chaves: "hook_phrase" (String), "rewritten_hook" (String), "hook_type" (String de ['Pergunta Direta', 'Loop Aberto (Mistério)', 'Dado Surpreendente', 'Conflito/Tensão', 'Anedota Pessoal', 'Afirmação Polêmica']), "justification" (String), e "effectiveness_score" (Número).
 
 **AÇÃO FINAL:** Analise o roteiro. Responda APENAS com o array JSON perfeito.`;
-    
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
-
-        // --- MUDANÇA AQUI: USANDO O NOVO ROBÔ DE ANÁLISE ---
-        // 1. Chamamos a função esperando um array de objetos.
-        const result = parseJsonWithDirtyJson(rawResult, true); 
-
-        // 2. Verificamos se houve erro na análise.
-        if (result.error) {
-            throw new Error(`A IA retornou um formato de análise de ganchos inválido: ${result.error}`);
-        }
-        
-        // 3. Pegamos os dados limpos.
-        const hooks = result.data;
-        // --- FIM DA MUDANÇA ---
-        
-        // Validação de segurança para o conteúdo dos dados.
-        if (!hooks || !Array.isArray(hooks) || hooks.length === 0 || !hooks[0].hook_phrase) {
-            throw new Error("A IA não encontrou ganchos ou retornou um formato de dados inválido.");
-        }
-        
-        // A sua lógica de renderização HTML a partir daqui está perfeita e foi preservada.
+        const hooks = cleanGeneratedText(rawResult, true);
+        if (!hooks || !Array.isArray(hooks) || hooks.length === 0) throw new Error("A IA não encontrou ganchos ou retornou um formato inválido.");
         let reportHtml = `<div class="space-y-4">`;
         hooks.forEach((hook) => {
             const problematicQuoteEscaped = (hook.hook_phrase || '').replace(/"/g, '\"');
             const rewrittenQuoteEscaped = (hook.rewritten_hook || '').replace(/"/g, '\"');
             const scoreColor = hook.effectiveness_score >= 8 ? 'text-green-500' : hook.effectiveness_score >= 5 ? 'text-yellow-500' : 'text-red-500';
-            
             reportHtml += `
                 <div class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 animate-fade-in">
                     <p class="text-base italic text-gray-500 dark:text-gray-400 mb-2">Original: "${DOMPurify.sanitize(hook.hook_phrase)}"</p>
@@ -3101,10 +2861,8 @@ ${fullTranscript.slice(0, 7500)}
                 </div>`;
         });
         reportHtml += `</div>`;
-        
         reportContainer.innerHTML = reportHtml;
         window.showToast(`${hooks.length} ganchos analisados!`, 'success');
-
     } catch (error) {
         console.error("Erro em analyzeRetentionHooks:", error);
         reportContainer.innerHTML = `<p class="text-red-500 text-sm">${error.message}</p>`;
@@ -3112,14 +2870,6 @@ ${fullTranscript.slice(0, 7500)}
         hideButtonLoading(button);
     }
 };
-
-
-
-
-
-
-
-
 
 const insertViralSuggestion = (button) => {
     const { anchorParagraph, suggestedText } = button.dataset;
@@ -3166,14 +2916,6 @@ const insertViralSuggestion = (button) => {
     button.classList.add('btn-success');
 };
 
-
-
-
-
-
-// NO ARQUIVO: script.js (v6.0)
-// SUBSTITUA A SUA FUNÇÃO 'suggestViralElements' INTEIRA POR ESTA:
-
 const suggestViralElements = async (button) => {
     const fullTranscript = getTranscriptOnly();
     const videoTheme = document.getElementById('videoTheme')?.value.trim();
@@ -3181,14 +2923,10 @@ const suggestViralElements = async (button) => {
         window.showToast("Gere o roteiro e defina um tema para receber sugestões virais.", 'info');
         return;
     }
-
     showButtonLoading(button);
     const reportContainer = document.getElementById('viralSuggestionsContainer');
     reportContainer.innerHTML = `<div class="my-4"><div class="loading-spinner-small mx-auto"></div><p class="text-sm mt-2">O Arquiteto da Viralidade está analisando...</p></div>`;
-    
     const basePromptContext = getBasePromptContext();
-    
-    // O prompt continua o mesmo, pois é muito bem estruturado.
     const prompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA DE CONTEÚDO VIRAL. Sua tarefa é analisar um roteiro e seu contexto para propor 3 elementos que aumentem a viralidade de forma INTELIGENTE e ALINHADA.
 
 **CONTEXTO ESTRATÉGICO ("DNA" DO VÍDEO):**
@@ -3214,36 +2952,16 @@ ${fullTranscript.slice(0, 7500)}
 - **"implementation_idea":** Explique o VALOR ESTRATÉGICO da inserção.
 
 **AÇÃO FINAL:** Analise o roteiro e o contexto. Responda APENAS com o array JSON perfeito.`;
-
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
-        
-        // --- MUDANÇA AQUI: USANDO O NOVO ROBÔ DE ANÁLISE ---
-        // 1. Chamamos a função esperando um array de objetos.
-        const result = parseJsonWithDirtyJson(rawResult, true);
-
-        // 2. Verificamos se houve erro na análise.
-        if (result.error) {
-            throw new Error(`A IA retornou um formato de sugestões inválido: ${result.error}`);
-        }
-        
-        // 3. Pegamos os dados limpos.
-        const suggestions = result.data;
-        // --- FIM DA MUDANÇA ---
-        
-        // Validação de segurança para o conteúdo dos dados.
-        if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0 || !suggestions[0].suggested_text) {
-            throw new Error("A IA não encontrou oportunidades ou retornou um formato de dados inválido.");
-        }
-        
-        // A sua lógica de renderização HTML a partir daqui está perfeita e foi preservada.
+        const suggestions = cleanGeneratedText(rawResult, true);
+        if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
         let reportHtml = `<div class="space-y-4">`;
         suggestions.forEach(suggestion => {
             const anchorParagraphEscaped = (suggestion.anchor_paragraph || '').replace(/"/g, '\"');
             const suggestedTextEscaped = (suggestion.suggested_text || '').replace(/"/g, '\"');
             const score = suggestion.potential_impact_score || 0;
             const scoreColor = score >= 8 ? 'text-green-500' : score >= 5 ? 'text-yellow-500' : 'text-red-500';
-            
             reportHtml += `
                 <div class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 animate-fade-in">
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm mb-2">
@@ -3259,10 +2977,8 @@ ${fullTranscript.slice(0, 7500)}
                 </div>`;
         });
         reportHtml += `</div>`;
-        
         reportContainer.innerHTML = reportHtml;
         window.showToast(`${suggestions.length} sugestões virais encontradas!`, 'success');
-
     } catch (error) {
         console.error("Erro em suggestViralElements:", error);
         reportContainer.innerHTML = `<p class="text-red-500 text-sm">${error.message}</p>`;
@@ -3270,13 +2986,6 @@ ${fullTranscript.slice(0, 7500)}
         hideButtonLoading(button);
     }
 };
-
-
-
-
-
-
-
 
 
 // ... Continuação do Bloco ETAPA 4 ...
@@ -3312,58 +3021,26 @@ const updateButtonStates = () => {
     }
 };
 
-
-
-
-
-
-
-// NO ARQUIVO: script.js (v6.0)
-// SUBSTITUA A SUA FUNÇÃO 'generateTitlesAndThumbnails' INTEIRA POR ESTA:
-
 const generateTitlesAndThumbnails = async (button) => {
     if (!validateInputs()) return;
     showButtonLoading(button);
-    
     const targetContentElement = document.getElementById('titlesThumbnailsContent');
     targetContentElement.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
-    
     try {
         const { prompt, maxTokens } = constructScriptPrompt('titles_thumbnails');
         const rawResult = await callGroqAPI(prompt, maxTokens);
-
-        // --- MUDANÇA AQUI: USANDO O NOVO ROBÔ DE ANÁLISE ---
-        const result = parseJsonWithDirtyJson(rawResult, true); // true = esperamos um array
-
-        if (result.error) {
-            throw new Error(`A IA retornou um formato de títulos inválido: ${result.error}`);
-        }
-        
-        const parsedContent = result.data;
-        // --- FIM DA MUDANÇA ---
-
-        // Validação de segurança para garantir que o conteúdo está correto
+        const parsedContent = cleanGeneratedText(rawResult, true);
         if (!Array.isArray(parsedContent) || parsedContent.length === 0 || !parsedContent[0].suggested_title) {
             throw new Error("A IA retornou os dados de títulos em um formato inesperado.");
         }
-
         const titles = parsedContent.map(item => item.suggested_title);
-        const thumbnails = parsedContent.map(item => ({
-            title: item.thumbnail_title,
-            description: item.thumbnail_description
-        }));
-        
+        const thumbnails = parsedContent.map(item => ({ title: item.thumbnail_title, description: item.thumbnail_description }));
         AppState.generated.titlesAndThumbnails = { titles, thumbnails };
 
-        // A sua lógica de renderização da v5.0, que é excelente e completa, foi preservada.
         const titlesListHtml = titles.map((title, index) => `<p>${index + 1}. ${DOMPurify.sanitize(title)}</p>`).join('');
-        const thumbnailsListHtml = thumbnails.map((thumb) => `
-            <div class="thumbnail-idea">
-                <h4 class="font-semibold">"${DOMPurify.sanitize(thumb.title)}"</h4>
-                <p>Descrição: ${DOMPurify.sanitize(thumb.description)}</p>
-            </div>
-        `).join('');
+        const thumbnailsListHtml = thumbnails.map((thumb) => `<div class="thumbnail-idea"><h4 class="font-semibold">"${DOMPurify.sanitize(thumb.title)}"</h4><p>Descrição: ${DOMPurify.sanitize(thumb.description)}</p></div>`).join('');
 
+        // >>>>> LÓGICA DE RENDERIZAÇÃO COMPLETA DA V5.0 <<<<<
         targetContentElement.innerHTML = `
             <div class="generated-output-box">
                 <div class="output-content-block">
@@ -3384,18 +3061,15 @@ const generateTitlesAndThumbnails = async (button) => {
                 </div>
             </div>
         `;
+        // >>>>> FIM DA LÓGICA DE RENDERIZAÇÃO <<<<<
 
     } catch (error) {
         window.showToast(`Falha ao gerar Títulos: ${error.message}`, 'error');
-        console.error("Erro em generateTitlesAndThumbnails:", error);
         targetContentElement.innerHTML = `<div class="asset-card-placeholder" style="color: var(--danger);">${error.message}</div>`;
     } finally {
         hideButtonLoading(button);
     }
 };
-
-
-
 
 
 
@@ -3491,41 +3165,25 @@ Responda APENAS com o array JSON.`;
 
 
 
-// NO ARQUIVO: script.js (v6.0)
-// SUBSTITUA A SUA FUNÇÃO 'generateVideoDescription' INTEIRA POR ESTA:
-
 const generateVideoDescription = async (button) => {
     if (!validateInputs()) return;
     showButtonLoading(button);
-    
     const targetContentElement = document.getElementById('videoDescriptionContent');
-    targetContentElement.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
-
     try {
         const { prompt, maxTokens } = constructScriptPrompt('description');
         const rawResult = await callGroqAPI(prompt, maxTokens);
         
-        // --- MUDANÇA AQUI: USANDO O NOVO ROBÔ DE ANÁLISE ---
-        // 1. Chamamos a função esperando um objeto.
-        const result = parseJsonWithDirtyJson(rawResult); 
-
-        // 2. Verificamos se houve erro na análise.
-        if (result.error) {
-            throw new Error(`A IA retornou um formato de descrição inválido: ${result.error}`);
-        }
+        // Agora esperamos um objeto JSON
+        const parsedContent = cleanGeneratedText(rawResult, true);
         
-        const parsedContent = result.data;
-        // --- FIM DA MUDANÇA ---
-        
-        // Validação de segurança para garantir que o objeto tem a estrutura correta.
         if (!parsedContent || !parsedContent.description_text || !Array.isArray(parsedContent.hashtags)) {
             throw new Error("A IA não retornou a descrição e hashtags no formato esperado.");
         }
 
-        // Salva o objeto inteiro no estado da aplicação.
+        // Salva o objeto inteiro no estado
         AppState.generated.description = parsedContent;
         
-        // Monta o HTML com os dados separados e limpos.
+        // Monta o HTML separado
         const descriptionHtml = `<p>${DOMPurify.sanitize(parsedContent.description_text)}</p>`;
         const hashtagsHtml = `<div class="mt-4" style="color: var(--primary); font-weight: 500;">${parsedContent.hashtags.map(h => DOMPurify.sanitize(h)).join(' ')}</div>`;
 
@@ -3533,64 +3191,32 @@ const generateVideoDescription = async (button) => {
 
     } catch (error) {
         window.showToast(`Falha ao gerar Descrição: ${error.message}`, 'error');
-        console.error("Erro em generateVideoDescription:", error);
         targetContentElement.innerHTML = `<div class="asset-card-placeholder" style="color: var(--danger);">${error.message}</div>`;
     } finally {
         hideButtonLoading(button);
     }
 };
 
-
-
-
 const generateSoundtrack = async (button) => {
     const fullTranscript = getTranscriptOnly();
     if (!fullTranscript) {
-        window.showToast("Gere o roteiro completo primeiro para sugerir uma trilha sonora coerente.", 'info');
+        window.showToast("Gere o roteiro completo primeiro.", 'info');
         return;
     }
-
     const outputContainer = document.getElementById('soundtrackContent');
     showButtonLoading(button);
     outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
-    
-    // O PromptManager já está fazendo um ótimo trabalho aqui. Nenhuma mudança necessária.
     const prompt = PromptManager.getSoundtrackPrompt(fullTranscript);
-    
     try {
         const rawResult = await callGroqAPI(prompt, 1500);
-        
-        // --- MUDANÇA AQUI: USANDO O NOVO ROBÔ DE ANÁLISE ---
-        // 1. Chamamos a função esperando um array de strings.
-        const result = parseJsonWithDirtyJson(rawResult, true); 
-
-        // 2. Verificamos se houve erro na análise.
-        if (result.error) {
-            throw new Error(`A IA retornou um formato de trilha sonora inválido: ${result.error}`);
-        }
-        
-        const suggestions = result.data;
-        // --- FIM DA MUDANÇA ---
-
-        // Validação de segurança para o conteúdo do array.
-        if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0 || typeof suggestions[0] !== 'string') {
-            throw new Error("A IA não retornou sugestões no formato de texto esperado.");
-        }
-        
-        // A lógica de renderização HTML está perfeita.
+        const analysis = cleanGeneratedText(rawResult, true);
+        if (!analysis || !Array.isArray(analysis) || analysis.length === 0) throw new Error("A IA não retornou sugestões no formato esperado.");
         let suggestionsHtml = '<ul class="soundtrack-list space-y-2">';
-        suggestions.forEach(suggestion => {
-            if (typeof suggestion === 'string') {
-                suggestionsHtml += `<li>${DOMPurify.sanitize(suggestion)}</li>`;
-            }
+        analysis.forEach(suggestion => {
+            if (typeof suggestion === 'string') suggestionsHtml += `<li>${DOMPurify.sanitize(suggestion)}</li>`;
         });
         suggestionsHtml += '</ul>';
-        
         outputContainer.innerHTML = `<div class="generated-output-box">${suggestionsHtml}</div>`;
-        
-        // Salva o resultado no AppState
-        AppState.generated.soundtrack = suggestions;
-
     } catch (error) {
         console.error("Erro em generateSoundtrack:", error);
         outputContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao gerar sugestões: ${error.message}</p>`;
@@ -3598,6 +3224,12 @@ const generateSoundtrack = async (button) => {
         hideButtonLoading(button);
     }
 };
+
+
+
+
+
+
 
 
 
@@ -3619,9 +3251,6 @@ const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa 
 
 
 
-// NO ARQUIVO: script.js (v6.0)
-// SUBSTITUA A SUA FUNÇÃO 'mapEmotionsAndPacing' INTEIRA POR ESTA:
-
 const mapEmotionsAndPacing = async (button) => {
     const { script } = AppState.generated;
     const isScriptReady = script.intro?.text && script.development?.text && script.climax?.text;
@@ -3635,9 +3264,7 @@ const mapEmotionsAndPacing = async (button) => {
     outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando a jornada emocional do roteiro...</p>`;
 
     try {
-        // Força a re-geração para garantir que usamos o texto mais recente
         AppState.generated.emotionalMap = null; 
-        
         const fullTranscript = getTranscriptOnly();
         const paragraphs = fullTranscript.split('\n\n').filter(p => p.trim() !== '');
         
@@ -3656,26 +3283,18 @@ ${JSON.stringify(paragraphs)}
 ACTION: Return ONLY the JSON array.`;
 
         const rawResult = await callGroqAPI(prompt, 8000);
+        const emotionalMapData = cleanGeneratedText(rawResult, true, true);
+      if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
+    throw new Error("A IA não retornou um mapa emocional válido.");
+}
 
-        // --- MUDANÇA AQUI: USANDO O NOVO ROBÔ DE ANÁLISE ---
-        const result = parseJsonWithDirtyJson(rawResult, true); // true = esperamos um array
+// Se a IA retornou menos itens, avisa no console mas continua o processo com o que temos.
+if(emotionalMapData.length < paragraphs.length) {
+    console.warn(`Discrepância no Mapa Emocional: Esperado ${paragraphs.length}, Recebido ${emotionalMapData.length}. Usando dados parciais.`);
+}
 
-        if (result.error) {
-            throw new Error(`A IA retornou um formato de mapa emocional inválido: ${result.error}`);
-        }
-        const emotionalMapData = result.data;
-        // --- FIM DA MUDANÇA ---
-
-        if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
-            throw new Error("A IA não retornou um mapa emocional válido.");
-        }
-        
-        // Camada de segurança: se a IA retornar um número diferente de itens, avisa no console
-        // mas continua o processo, cortando o excesso para não quebrar a renderização.
-        if (emotionalMapData.length !== paragraphs.length) {
-            console.warn(`Discrepância no Mapa Emocional: Esperado ${paragraphs.length}, Recebido ${emotionalMapData.length}. Usando dados parciais.`);
-        }
-        AppState.generated.emotionalMap = emotionalMapData.slice(0, paragraphs.length);
+// Garante que nunca tentaremos acessar um índice que não existe.
+AppState.generated.emotionalMap = emotionalMapData.slice(0, paragraphs.length);
         
         outputContainer.innerHTML = '';
         let paragraphCounter = 0;
@@ -3686,6 +3305,7 @@ ACTION: Return ONLY the JSON array.`;
             { id: 'cta', title: 'Call to Action (CTA)' }
         ];
 
+        // >>>>> LÓGICA DE AGRUPAMENTO DA FERRARI V5.0 <<<<<
         const emotionGroups = {
             'Positiva': ['strongly_positive', 'slightly_positive'], 'Negativa': ['strongly_negative', 'slightly_negative'],
             'Neutra': ['neutral']
@@ -3697,8 +3317,9 @@ ACTION: Return ONLY the JSON array.`;
             for (const groupName in groups) {
                 if (groups[groupName].includes(value)) return groupName;
             }
-            return value ? value.charAt(0).toUpperCase() + value.slice(1) : 'Indefinido';
+            return value.charAt(0).toUpperCase() + value.slice(1);
         };
+        // >>>>> FIM DA LÓGICA DE AGRUPAMENTO <<<<<
 
         sectionOrder.forEach(section => {
             const sectionScript = script[section.id];
@@ -3707,8 +3328,8 @@ ACTION: Return ONLY the JSON array.`;
             const numParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim() !== '').length;
             const sectionEmotionsData = AppState.generated.emotionalMap.slice(paragraphCounter, paragraphCounter + numParagraphs);
             
-            const groupedEmotions = [...new Set(sectionEmotionsData.map(e => getGroupName(e?.emotion, emotionGroups)))];
-            const groupedPaces = [...new Set(sectionEmotionsData.map(e => getGroupName(e?.pace, paceGroups)))];
+            const groupedEmotions = [...new Set(sectionEmotionsData.map(e => getGroupName(e.emotion, emotionGroups)))];
+            const groupedPaces = [...new Set(sectionEmotionsData.map(e => getGroupName(e.pace, paceGroups)))];
 
             const tagsHtml = groupedEmotions.map(emotion => `<span class="tag"><i class="fas fa-theater-masks mr-2"></i>${emotion}</span>`).join('') + 
                              groupedPaces.map(pace => `<span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${pace}</span>`).join('');
@@ -4917,16 +4538,9 @@ const syncUiFromState = () => {
 // ===== EVENTOS E INICIALIZAÇÃO (VERSÃO FINAL) =================
 // ==========================================================
 
-document.addEventListener('DOMContentLoaded', async () => { // Adicione 'async' aqui se não tiver
+document.addEventListener('DOMContentLoaded', () => {
 
     const editingMenu = document.getElementById('editing-menu');
-
-
-    await loadDirtyJsonLibrary().catch(err => {
-        console.error(err);
-        window.showToast(err.message, 'error');
-    });
-
 
     // ==========================================================
     // ===== MENU DE EDIÇÃO CONTEXTUAL (V5.0) =================
