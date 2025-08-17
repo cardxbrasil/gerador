@@ -145,18 +145,18 @@ const updateProgressBar = () => {
 async function loadDirtyJsonLibrary() {
     if (dirtyJSON) return; // Já foi carregada
     try {
-        const response = await fetch('https://cdn.jsdelivr.net/npm/dirty-json@0.9.2/lib/dirty-json.min.js');
-        if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+        // A CORREÇÃO ESTÁ AQUI: O caminho correto é /dist/, não /lib/
+        const response = await fetch('https://cdn.jsdelivr.net/npm/dirty-json@0.9.2/dist/dirty-json.min.js');
+        
+        if (!response.ok) throw new Error(`A rede não respondeu corretamente: ${response.statusText}`);
         const scriptText = await response.text();
         
-        // Executa o script em um escopo controlado para obter a variável 'dirtyJSON'
         const fn = new Function(`${scriptText}; return dirtyJSON;`);
         dirtyJSON = fn();
 
         console.log("Biblioteca dirty-json carregada com sucesso!");
     } catch (error) {
         console.error("FALHA CRÍTICA AO CARREGAR A BIBLIOTECA dirty-json:", error);
-        // Exibe um erro visual para o usuário
         window.showToast("Erro fatal: A biblioteca de análise não pôde ser carregada. Verifique sua conexão.", "error");
     }
 }
