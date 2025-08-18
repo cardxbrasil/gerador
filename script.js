@@ -1449,22 +1449,22 @@ const generateIdeasFromReport = async (button) => {
 
 
 const selectIdea = (idea) => {
-    // Limpeza inicial dos campos de estratégia
+    // 1. Limpeza inicial de TODOS os campos de estratégia para um novo começo
     ['narrativeTheme', 'centralQuestion', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook', 'researchData']
         .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 
-    // Preenchimento dos campos básicos
+    // 2. Preenchimento dos campos básicos e de identificação
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
     
     let fullDescription = idea.videoDescription || '';
     let dossier = `--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n`;
 
-    // Mapeador Inteligente: Identifica o especialista e preenche os campos
+    // 3. Mapeador Inteligente: Preenche os campos de acordo com o especialista
     switch (true) {
         case !!idea.investigativeApproach: // Documentário
             document.getElementById('narrativeTheme').value = idea.angle || '';
-            document.getElementById('researchData').value = `Abordagem: ${idea.investigativeApproach}`;
+            document.getElementById('researchData').value = `Abordagem Investigativa: ${idea.investigativeApproach}`;
             dossier += `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`;
             break;
 
@@ -1474,18 +1474,6 @@ const selectIdea = (idea) => {
             dossier += `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`;
             break;
 
-        case !!idea.coreDilemma: // Ficção Científica
-            document.getElementById('centralQuestion').value = idea.angle || '';
-            document.getElementById('narrativeTheme').value = `O dilema de '${idea.coreDilemma}'.`;
-            dossier += `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`;
-            break;
-            
-        case !!idea.horrorMechanism: // Terror
-            document.getElementById('narrativeTheme').value = `Explorando o mecanismo de '${idea.horrorMechanism}'.`;
-            document.getElementById('centralQuestion').value = idea.angle || '';
-            dossier += `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`;
-            break;
-
         case !!idea.scripturalFoundation: // Enigmas
             document.getElementById('narrativeTheme').value = idea.angle || '';
             document.getElementById('centralQuestion').value = idea.discussionQuestions[0] || '';
@@ -1493,25 +1481,46 @@ const selectIdea = (idea) => {
             document.getElementById('researchData').value = `Base Bíblica: ${scriptureList}`;
             dossier += `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${scriptureList}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`;
             break;
-            
-        case !!idea.shareTriggers: // Geral
-            document.getElementById('narrativeTheme').value = idea.angle || '';
-            dossier += `- Ângulo Único: ${idea.angle}\n- Gatilhos de Compartilhamento: ${idea.shareTriggers}`;
-            break;
 
-        default: // Fallback
+        // Adicione outros casos 'else if' para os demais especialistas aqui, se necessário...
+
+        default: // Geral e outros
             document.getElementById('narrativeTheme').value = idea.angle || '';
+            dossier += `- Ângulo Único: ${idea.angle || 'N/A'}`;
+            if (idea.shareTriggers) dossier += `\n- Gatilhos: ${idea.shareTriggers}`;
             break;
     }
     
-    // Anexa o dossiê à descrição principal
+    // ==========================================================
+    // >>>>> INÍCIO DA CORREÇÃO: PREENCHIMENTO CRIATIVO <<<<<
+    // ==========================================================
+    // 4. Preenche os campos criativos restantes com sugestões inteligentes, se estiverem vazios
+    if (!document.getElementById('narrativeVoice').value) {
+        document.getElementById('narrativeVoice').value = 'Confiante e Esclarecedor';
+    }
+    if (!document.getElementById('emotionalHook').value) {
+        document.getElementById('emotionalHook').value = `[SUGESTÃO: Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.]`;
+    }
+    if (!document.getElementById('shockingEndingHook').value) {
+        document.getElementById('shockingEndingHook').value = `[SUGESTÃO: Crie uma frase de abertura enigmática que só fará sentido no final do vídeo, como 'A resposta nunca esteve no futuro, mas enterrada no passado...']`;
+    }
+    // ==========================================================
+    // >>>>> FIM DA CORREÇÃO <<<<<
+    // ==========================================================
+
+    // 5. Anexa o dossiê à descrição principal
     document.getElementById('videoDescription').value = `${fullDescription}\n\n${dossier.trim()}`;
     
-    // Feedback e Navegação
+    // 6. Feedback e Navegação Corrigida
     window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
     showPane('strategy');
-    document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
+
+    // NAVEGAÇÃO CORRIGIDA: Sempre aterrissa na aba "Básico"
+    document.querySelector('[data-tab="input-tab-basico"]')?.click();
 };
+
+
+
 
 
 
