@@ -1610,29 +1610,40 @@ const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = nul
     let prompt = '';
     let maxTokens = 8000;
 
+    // Lógica evoluída para as seções principais do roteiro (Introdução, Desenvolvimento, Clímax)
     if (['intro', 'development', 'climax'].includes(sectionName)) {
+        
+        // Constrói o contexto do que já foi escrito, ou uma instrução especial para a introdução
+        const priorKnowledgeContext = contextText 
+            ? `**INFORMAÇÃO CRÍTICA:** O texto abaixo representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É **TERMINANTEMENTE PROIBIDO** repetir, resumir ou parafrasear qualquer conceito já mencionado. Sua missão é **AVANÇAR A HISTÓRIA**.
+            \n\n**ROTEIRO ESCRITO ATÉ AGORA (CONHECIMENTO JÁ ADQUIRIDO):**\n---\n${contextText.slice(-4000)}\n---`
+            : '**INFORMAÇÃO CRÍTICA:** Esta é a primeira seção do vídeo. Crie um gancho poderoso para prender a atenção desde o primeiro segundo.';
+
         prompt = `
-Você é uma API que retorna APENAS um array JSON. Sua única tarefa é gerar os parágrafos para uma seção de um roteiro de vídeo.
+Você é uma API ROTEIRISTA DE ELITE que retorna APENAS um array JSON. Sua única tarefa é escrever os parágrafos para a seção "${sectionTitle}" de um roteiro de vídeo.
 
-**REGRAS DE FORMATAÇÃO (ABSOLUTAMENTE INEGOCIÁVEIS):**
-1.  **JSON PURO:** Sua resposta DEVE ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
-2.  **NENHUM TEXTO EXTRA:** É TERMINANTEMENTE PROIBIDO incluir qualquer texto antes ou depois do array JSON.
-3.  **CONTEÚDO DO ARRAY:** O array deve conter strings, onde cada string é um parágrafo completo do roteiro.
-4.  **QUALIDADE DO PARÁGRAFO:** Cada parágrafo deve ser bem desenvolvido, contendo múltiplas frases (idealmente 4 ou mais).
-5.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
-
-**CONTEXTO E DIRETRIZES PARA O ROTEIRO:**
+**CONTEXTO E DIRETRIZES GERAIS:**
 ---
 ${baseContext}
 ---
-**SEÇÃO A SER ESCRITA:** "${sectionTitle}"
-**DIRETRIZ ESTRATÉGICA PARA ESTA SEÇÃO:** "${outlineDirective || 'Continue a narrativa de forma coesa.'}"
-**DURAÇÃO ESTIMADA:** ${durationInstruction}
-${contextText ? `**ROTEIRO ESCRITO ATÉ AGORA (CONTINUE A PARTIR DAQUI):**\n---\n${contextText.slice(-4000)}\n---` : ''}
 
-**AÇÃO FINAL:** Com base em TODO o contexto fornecido, gere o conteúdo para a seção "${sectionTitle}". Responda APENAS com o array JSON válido e completo.`;
+${priorKnowledgeContext}
+
+**TAREFA IMEDIATA E FOCALIZADA:**
+-   **Seção a ser Escrita:** "${sectionTitle}"
+-   **Diretriz Estratégica para esta Seção:** "${outlineDirective || 'Continue a narrativa de forma coesa e impactante.'}"
+-   **Duração Estimada:** ${durationInstruction}
+
+**REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
+1.  **JSON PURO:** Sua resposta DEVE ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
+2.  **CONTEÚDO DO ARRAY:** O array deve conter strings, onde cada string é um parágrafo completo e bem desenvolvido (idealmente 4+ frases).
+3.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
+
+**AÇÃO FINAL:** Escreva AGORA os parágrafos para a seção "${sectionTitle}", garantindo que cada frase introduza conteúdo 100% novo para o espectador. Responda APENAS com o array JSON válido e completo.`;
+    
     } else {
-        // Lógica para os outros tipos de prompts
+        // Lógica para os outros tipos de prompts (outline, titles, etc.)
+        // Esta parte permanece exatamente como no seu código original
         switch (sectionName) {
             case 'outline':
                 prompt = `${baseContext}\nVocê é uma API de geração de JSON. Sua tarefa é criar um esboço estratégico para um vídeo.\n**REGRAS INEGOCIÁVEIS:**\n1. **JSON PURO:** Responda APENAS com um objeto JSON válido.\n2. **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".\n3. **VALORES:** O valor para CADA chave DEVE ser uma única string de texto (1-2 frases).\n**TAREFA:** Gere o objeto JSON perfeito.`;
@@ -1643,7 +1654,6 @@ ${contextText ? `**ROTEIRO ESCRITO ATÉ AGORA (CONTINUE A PARTIR DAQUI):**\n---\
                 maxTokens = 2000;
                 break;
             case 'description':
-                // >>>>> EVOLUÇÃO INTEGRADA AQUI <<<<<
                 const languageName = new Intl.DisplayNames([document.getElementById('languageSelect').value], { type: 'language' }).of(document.getElementById('languageSelect').value);
                 prompt = `${baseContext}
 **TAREFA:** Gerar uma descrição otimizada para um vídeo do YouTube e uma lista de hashtags relevantes, no idioma ${languageName}.
@@ -1664,7 +1674,6 @@ ${contextText ? `**ROTEIRO ESCRITO ATÉ AGORA (CONTINUE A PARTIR DAQUI):**\n---\
 **AÇÃO FINAL:** Gere o objeto JSON perfeito.`;
                 maxTokens = 2000;
                 break;
-                // >>>>> FIM DA EVOLUÇÃO <<<<<
         }
     }
     return { prompt, maxTokens };
