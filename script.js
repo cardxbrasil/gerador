@@ -550,6 +550,29 @@ ${fullTranscript}
 
 
 
+// A NOVA FUNÇÃO: O "ENGENHEIRO DE SINTAXE"
+const fixJsonWithAI = async (brokenJsonText) => {
+    const prompt = `Você é um especialista em correção de sintaxe JSON. Sua única tarefa é pegar o texto abaixo, que é uma tentativa de um array JSON, e consertá-lo para que seja 100% válido.
+
+    REGRAS CRÍTICAS:
+    1.  Corrija quaisquer erros: vírgulas faltando ou sobrando, aspas incorretas, objetos incompletos ou quebrados, etc.
+    2.  Se houver objetos duplicados, mantenha apenas a versão mais completa de cada um.
+    3.  Sua resposta deve ser APENAS o array JSON perfeitamente corrigido. NÃO inclua nenhum texto, explicação ou comentário.
+
+    TEXTO QUEBRADO PARA CORRIGIR:
+    ---
+    ${brokenJsonText}
+    ---
+
+    Retorne APENAS o JSON corrigido.`;
+
+    // Usamos um maxTokens menor, pois a tarefa é apenas de formatação.
+    const fixedJsonText = await callGroqAPI(prompt, 4000); 
+    return fixedJsonText;
+};
+
+
+
 // ==========================================================
 // ==== FUNÇÕES UTILITÁRIAS (Completas da v5.0) =============
 // ==========================================================
@@ -739,94 +762,6 @@ const resetApplicationState = () => {
 
 
 
-const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
-    if (!expectJson) return text ? String(text).trim() : (arrayExpected ? [] : '');
-    if (!text || typeof text !== 'string' || text.trim().length === 0) {
-        console.warn("Texto de entrada inválido ou vazio para o parser de JSON.");
-        return arrayExpected ? [] : null;
-    }
-
-    let jsonString = text;
-
-    // ======================================================================
-    // >>>>> PASSO 1: ISOLAMENTO "CAIXA-FORTE" <<<<<
-    // ======================================================================
-    const firstBracket = jsonString.indexOf('[');
-    const firstBrace = jsonString.indexOf('{');
-    const lastBracket = jsonString.lastIndexOf(']');
-    const lastBrace = jsonString.lastIndexOf('}');
-    let start = -1;
-    if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) start = firstBracket;
-    else if (firstBrace !== -1) start = firstBrace;
-    let end = -1;
-    if (lastBracket !== -1 && (lastBrace === -1 || lastBracket > lastBrace)) end = lastBracket;
-    else if (lastBrace !== -1) end = lastBrace;
-
-    if (start !== -1 && end !== -1 && end > start) {
-        jsonString = jsonString.substring(start, end + 1);
-    } else {
-        console.warn("Não foi possível isolar um bloco JSON principal no texto da IA.");
-        return arrayExpected ? [] : null;
-    }
-
-    // ======================================================================
-    // >>>>> EVOLUÇÃO FINAL: PRÉ-SANITIZAÇÃO DE CARACTERES <<<<<
-    // ======================================================================
-    // Troca todas as aspas tipográficas (chiques) por aspas simples padrão.
-    jsonString = jsonString.replace(/[‘’´]/g, "'");
-    // CORRIGE O ERRO DAS "ASPAS MISTAS": Procura por uma aspa simples no final de um valor e a troca por uma aspa dupla.
-    jsonString = jsonString.replace(/'\s*([,}])/g, '"$1');
-    
-    // ======================================================================
-    // >>>>> PASSO 2: CATALOGAÇÃO INTELIGENTE (ANTI-DUPLICATAS) <<<<<
-    // ======================================================================
-    const allFoundObjects = jsonString.match(/\{[\s\S]*?\}/g);
-    if (!allFoundObjects || allFoundObjects.length === 0) {
-        console.warn("Nenhum objeto JSON foi encontrado após o isolamento.");
-        return arrayExpected ? [] : null;
-    }
-
-    const uniqueObjectsCatalog = new Map();
-    allFoundObjects.forEach(objStr => {
-        let cleanObjStr = objStr.replace(/,\s*}/g, '}');
-        const titleMatch = cleanObjStr.match(/"title"\s*:\s*"(.*?)"/);
-        if (titleMatch && titleMatch[1]) uniqueObjectsCatalog.set(titleMatch[1], cleanObjStr);
-        else uniqueObjectsCatalog.set(Math.random(), cleanObjStr);
-    });
-    const finalObjects = Array.from(uniqueObjectsCatalog.values());
-
-    // ======================================================================
-    // >>>>> PASSO 3: MONTAGEM FINAL E VALIDAÇÃO <<<<<
-    // ======================================================================
-    let finalJsonString = `[${finalObjects.join(',')}]`;
-    
-    try {
-        // Se o resultado esperado não for um array, tenta extrair apenas o primeiro objeto.
-        if (!arrayExpected && finalObjects.length > 0) {
-            const singleObject = finalObjects[0];
-            const parsedJson = JSON.parse(singleObject);
-            return parsedJson;
-        }
-        
-        // Se for um array, processa como antes.
-        const parsedJson = JSON.parse(finalJsonString);
-        return parsedJson;
-
-    } catch (error) {
-        // Tenta um último reparo para o erro de "aspas duplas duplas"
-        finalJsonString = finalJsonString.replace(/""/g, '"');
-        try {
-            const parsedJson = JSON.parse(finalJsonString);
-            if (!arrayExpected && Array.isArray(parsedJson)) return parsedJson[0];
-            return parsedJson;
-        } catch (finalError) {
-            console.error("FALHA CRÍTICA NO PARSE DO JSON. Erro:", finalError.message);
-            console.log("TEXTO ORIGINAL DA IA:", text);
-            console.log("STRING ISOLADA QUE FALHOU:", finalJsonString);
-            return arrayExpected ? [] : null;
-        }
-    }
-};
 
 
 
@@ -1368,46 +1303,60 @@ const renderUniversalIdeaCard = (idea, index, genre) => {
 };
 
 
-// FUNÇÃO PRINCIPAL: Agora muito mais limpa e usando o sistema universal.
+
+
+
+
+
 const generateIdeasFromReport = async (button) => {
     const factCheckOutput = document.getElementById('factCheckOutput');
     const { originalQuery, rawReport } = factCheckOutput.dataset;
-    if (!rawReport || !originalQuery) {
+    if (!rawReport) {
         window.showToast("Erro: Relatório da investigação não encontrado.", 'error');
         return;
     }
     
     const genre = document.querySelector('#genreTabs .tab-button.tab-active')?.dataset.genre || 'geral';
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português do Brasil' : 'English';
-
-    console.log("ESPECIALISTA SENDO USADO PARA O PROMPT:", genre);
-    
     const outputContainer = document.getElementById('ideasOutput');
+    
     showButtonLoading(button);
-
-    outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4" style="width: 32px; height: 32px; border-width: 4px; margin: auto;"></div><p class="text-lg font-semibold" style="color: var(--text-header);">Consultando especialista em ${genre}...</p></div>`;
-
-    const promptContext = { originalQuery, rawReport, languageName };
-    const prompt = PromptManager.getIdeasPrompt(genre, promptContext);
+    outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Consultando especialista criativo...</p></div>`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 4000);
-        const ideas = cleanGeneratedText(rawResult, true, true); 
+        // ==========================================================
+        // ETAPA 1: GERAÇÃO CRIATIVA (ACEITAMOS O CAOS)
+        // ==========================================================
+        const promptContext = { originalQuery, rawReport, languageName };
+        const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
+        // A IA gera o texto criativo, mas potencialmente quebrado.
+        const brokenJsonResponse = await callGroqAPI(creativePrompt, 8000); 
 
-        console.log("✅ [DEBUG] Ideias (JSON processado):", ideas);
-        if (ideas && ideas.length > 0) console.table(ideas);
+        outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Corrigindo e validando a sintaxe...</p></div>`;
 
-        if (!ideas || !Array.isArray(ideas) || ideas.length === 0 || !ideas[0].title) throw new Error("A IA não retornou ideias em um formato JSON válido.");
+        // ==========================================================
+        // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
+        // ==========================================================
+        // O "Engenheiro de Sintaxe" entra em ação para consertar o trabalho do "Gênio Criativo".
+        const perfectJsonText = await fixJsonWithAI(brokenJsonResponse);
+        
+        // ==========================================================
+        // ETAPA 3: PARSE FINAL (AGORA SIMPLES E SEGURO)
+        // ==========================================================
+        const ideas = JSON.parse(perfectJsonText);
+
+        if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
+            throw new Error("A IA falhou em gerar ou corrigir as ideias.");
+        }
         
         AppState.generated.ideas = ideas;
-        
-        // A MÁGICA ACONTECE AQUI: Um único map que chama o renderizador universal.
         const allCardsHtml = ideas.map((idea, index) => renderUniversalIdeaCard(idea, index, genre)).join('');
-        
         outputContainer.innerHTML = allCardsHtml;
         markStepCompleted('investigate', false);
 
     } catch(err) {
+        // Agora, o erro de parse é muito mais significativo e raro.
+        console.error("FALHA CRÍTICA FINAL:", err);
         window.showToast(`Erro ao gerar ideias: ${err.message}`, 'error');
         outputContainer.innerHTML = `<p class="md:col-span-2" style="color: var(--danger);">${err.message}</p>`;
     } finally {
