@@ -1422,38 +1422,48 @@ const generateIdeasFromReport = async (button) => {
 
 
 const selectIdea = (idea) => {
-    // 1. Preenchimento Padrão (para TODOS os especialistas)
+    // 1. Preenchimento dos campos básicos e de identificação (para todos os especialistas)
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
-    
+
     // 2. Lógica Condicional: É uma ideia do especialista "Enigmas"?
     if (idea.scripturalFoundation && idea.discussionQuestions) {
         
-        // SIM, É 'ENIGMAS'. Mapeamento Estratégico CORRIGIDO:
-        
-        // O "Angle" da ideia agora preenche a "Pergunta Central". É o lugar mais lógico.
-        document.getElementById('centralQuestion').value = idea.angle || '';
-        
-        // A "Fundamentação Bíblica" vai para os dados de pesquisa.
-        const researchText = `Base Bíblica: ${idea.scripturalFoundation.join('; ')}.`;
-        document.getElementById('researchData').value = researchText;
+        // ==========================================================
+        // >>>>> INÍCIO DA NOVA LÓGICA DE MAPEAMENTO ESTRATÉGICO <<<<<
+        // ==========================================================
 
-        // A descrição original é usada, e TODAS as perguntas são anexadas a ela.
+        // Preenche os campos da aba "Estratégia Narrativa"
+        document.getElementById('narrativeTheme').value = idea.angle || '';
+        document.getElementById('centralQuestion').value = idea.discussionQuestions[0] || '';
+        
+        // Gera sugestões criativas inteligentes para os campos vazios
+        document.getElementById('narrativeVoice').value = 'Investigativo, Reverente e Misterioso';
+        document.getElementById('emotionalHook').value = `[SUGESTÃO: Comece com uma anedota sobre a sensação de descoberta, conectando um mapa antigo ou uma expedição com a revelação espiritual encontrada no tema '${idea.title}'.]`;
+        document.getElementById('shockingEndingHook').value = `[SUGESTÃO: Use uma frase de abertura como: 'E se a resposta para a profecia final não estivesse em um pergaminho, mas viva, crescendo no coração do mundo?']`;
+
+        // Preenche os campos da aba "Detalhes Técnicos"
+        const scriptureList = idea.scripturalFoundation.join('; ');
+        document.getElementById('researchData').value = `Base Bíblica: ${scriptureList}`;
+
+        // Cria o "Dossiê Completo" na Descrição do Vídeo (seu objetivo principal)
         const allQuestions = idea.discussionQuestions.map(q => `- ${q}`).join('\n');
-        let fullDescription = idea.videoDescription || '';
-        if (allQuestions) {
-            fullDescription += `\n\nQuestões-chave para explorar:\n${allQuestions}`;
-        }
+        const fullDescription = `
+${idea.videoDescription || ''}
+
+--------------------
+**DOSSIÊ DA IDEIA**
+--------------------
+- **Tese Principal (Angle):** ${idea.angle || 'N/A'}
+- **Fundamentação Bíblica:** ${scriptureList}
+- **Questões para Diálogo:**
+${allQuestions}
+        `.trim().replace(/^\s+/gm, ''); // Limpa espaços extras e linhas em branco no início
+
         document.getElementById('videoDescription').value = fullDescription;
 
-        // Limpa apenas os campos que NÃO foram preenchidos pela IA
-        ['narrativeTheme', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-
     } else {
-        // NÃO, É um especialista genérico. Usa o comportamento antigo.
+        // Comportamento para especialistas genéricos (inalterado)
         document.getElementById('narrativeTheme').value = idea.angle || '';
         document.getElementById('videoDescription').value = idea.videoDescription || '';
         
