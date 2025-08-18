@@ -751,7 +751,6 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     // ======================================================================
     // >>>>> CAMADA 1: LIMPEZA BRUTA <<<<<
-    // Remove todo o texto que não é JSON.
     // ======================================================================
     const fillerPatterns = [
         /assistant<\|end_header_id\|>/g,
@@ -765,10 +764,8 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     // ======================================================================
     // >>>>> CAMADA 2: EXTRAÇÃO E CATALOGAÇÃO INTELIGENTE <<<<<
-    // A solução definitiva para duplicatas e fragmentos.
     // ======================================================================
     
-    // Passo A: Encontra tudo que se parece com um objeto JSON.
     const allFoundObjects = jsonString.match(/\{[\s\S]*?\}/g);
     
     if (!allFoundObjects || allFoundObjects.length === 0) {
@@ -776,23 +773,17 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return arrayExpected ? [] : null;
     }
 
-    // Passo B: Usa um Map para catalogar e manter apenas a versão mais completa e única de cada ideia.
     const uniqueObjectsCatalog = new Map();
     allFoundObjects.forEach(objStr => {
-        // Tenta extrair o título como um identificador único.
         const titleMatch = objStr.match(/"title"\s*:\s*"([^"]+)"/);
         if (titleMatch && titleMatch[1]) {
             const title = titleMatch[1];
-            // Se um objeto com este título já existe, ele será substituído.
-            // Isso garante que a versão mais recente (e mais completa) seja mantida.
             uniqueObjectsCatalog.set(title, objStr);
         } else {
-            // Se um objeto não tem título (raro), adiciona com uma chave aleatória para não ser perdido.
             uniqueObjectsCatalog.set(Math.random(), objStr);
         }
     });
 
-    // Passo C: Pega apenas os objetos únicos e completos do catálogo.
     const finalObjects = Array.from(uniqueObjectsCatalog.values());
 
     if (finalObjects.length === 0) {
@@ -804,12 +795,15 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     // >>>>> CAMADA 3: MONTAGEM E REPARO FINAL <<<<<
     // ======================================================================
     
-    // Monta o array JSON final a partir das peças únicas.
     let finalJsonString = `[${finalObjects.join(',')}]`;
 
     // Aplica as regras de reparo fino no JSON já montado.
     finalJsonString = finalJsonString.replace(/([}\]])\s*"/g, '$1, "');
-    finalJsonString = finalJsonSring.replace(/,\s*([}\]])/g, '$1');
+    
+    // ==========================================================
+    // >>>>> A CORREÇÃO ESTÁ NESTA LINHA <<<<<
+    // ==========================================================
+    finalJsonString = finalJsonString.replace(/,\s*([}\]])/g, '$1'); // Corrigido de finalJsonSring para finalJsonString
 
     // --- CAMADA 4: VALIDAÇÃO ---
     try {
