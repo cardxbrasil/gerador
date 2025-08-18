@@ -752,21 +752,33 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let jsonString = text.trim();
 
     // ======================================================================
-    // >>>>> EVOLUÇÃO 1: CAMADA DE CONSOLIDAÇÃO DE FRAGMENTOS <<<<<
-    // Antes de qualquer outra coisa, montamos o "quebra-cabeça" que a IA nos envia.
+    // >>>>> EVOLUÇÃO 1: CAMADA DE NORMALIZAÇÃO BRUTA <<<<<
+    // Limpamos o terreno antes de construir.
     // ======================================================================
 
-    // Passo A: Limpeza Agressiva de "Lixo" Conversacional e Tokens da API
+    // Passo A: Limpeza Agressiva de "Lixo" Conversacional e Tokens
     const fillerPatterns = [
         /assistant<\|end_header_id\|>/g,
         /Aqui está.*?:\s*/gim,
-        /Espero que.*?$/gim
+        /Espero que.*?$/gim,
+        /\*\*JSON:\*\*/gim,
+        /Please let me know if this meets your requirements or if I need to make any changes\./gim,
+        /It seems that you have provided a detailed task to create.*?Here is the JSON response with the 6 stories:/gims
     ];
     fillerPatterns.forEach(pattern => {
         jsonString = jsonString.replace(pattern, '');
     });
 
-    // Passo B: Extração e Montagem de todos os objetos JSON encontrados
+    // Passo B: Correção do erro das "Aspas Duplas Duplas"
+    // Procura por : ""valor"" e transforma em : "valor"
+    jsonString = jsonString.replace(/: ""([^"]+)""/g, ': "$1"');
+
+    // ======================================================================
+    // >>>>> EVOLUÇÃO 2: CAMADA DE CONSOLIDAÇÃO UNIVERSAL <<<<<
+    // Montamos o "quebra-cabeça".
+    // ======================================================================
+    
+    // Extrai TODOS os objetos JSON válidos, ignorando os colchetes soltos.
     const jsonObjects = jsonString.match(/\{[\s\S]*?\}/g);
     if (jsonObjects && jsonObjects.length > 0) {
         // Une todos os objetos em um único array JSON válido
@@ -774,39 +786,32 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     }
 
     // ======================================================================
-    // >>>>> EVOLUÇÃO 2: CAMADA DE REPARO ESTRUTURAL E SINTÁTICO <<<<<
-    // Agora que temos um bloco único, aplicamos as correções cirúrgicas.
+    // >>>>> EVOLUÇÃO 3: CAMADA DE REPARO SINTÁTICO FINO <<<<<
+    // Polimos a peça montada.
     // ======================================================================
     
-    // (Sua lógica de reparo de JSON truncado, mantida e aprimorada)
+    // (Lógica de reparo de JSON truncado, mantida)
     if (!jsonString.trim().endsWith(']') && !jsonString.trim().endsWith('}')) {
         const lastQuoteIndex = jsonString.lastIndexOf('"');
         const lastColonIndex = jsonString.lastIndexOf(':');
         if (lastQuoteIndex > -1 && lastQuoteIndex > lastColonIndex) {
             const quotesAfterColon = (jsonString.substring(lastColonIndex).match(/"/g) || []).length;
             if (quotesAfterColon % 2 !== 0) {
-                jsonString += '"'; // Fecha uma string aberta
+                jsonString += '"';
             }
         }
-        // Tenta fechar o objeto e o array de forma inteligente
-        if (jsonString.lastIndexOf('{') > jsonString.lastIndexOf(',')) {
-             jsonString += '}';
-        }
-        if (jsonString.lastIndexOf('[') > jsonString.lastIndexOf('{')) {
-             jsonString += ']';
-        }
+        if (jsonString.lastIndexOf('{') > jsonString.lastIndexOf(',')) jsonString += '}';
+        if (jsonString.lastIndexOf('[') > jsonString.lastIndexOf('{')) jsonString += ']';
     }
 
-    // (Sua lógica de correção de vírgulas, mantida e evoluída)
-    jsonString = jsonString.replace(/([}\]])\s*"/g, '$1, "'); // Corrige: } "chave" ou ] "chave"
-    jsonString = jsonString.replace(/"\s*"/g, '", "'); // Corrige: "valor" "chave"
-
-    // (Suas regras anteriores de refinamento, todas preservadas)
-    jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3'); // Aspas nas chaves
-    jsonString = jsonString.replace(/\}\s*\{/g, '},{'); // Vírgula entre objetos
-    jsonString = jsonString.replace(/,\s*([}\]])/g, '$1'); // Remove vírgulas sobrando
+    // (Regras de vírgulas e refinamento, todas preservadas)
+    jsonString = jsonString.replace(/([}\]])\s*"/g, '$1, "');
+    jsonString = jsonString.replace(/"\s*"/g, '", "');
+    jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
+    jsonString = jsonString.replace(/\}\s*\{/g, '},{');
+    jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
     
-    // (Sua regra específica para 'discussionQuestions', mantida)
+    // (Regra específica para 'discussionQuestions', mantida)
     jsonString = jsonString.replace(/("discussionQuestions":\s*\[)([^\]]+)\]/g, (match, start, content) => {
         const items = content.split(',').map(item => {
             let cleanedItem = item.trim().replace(/^"/, '').replace(/"$/, '');
@@ -815,19 +820,15 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return `${start}${items.join(',')}]`;
     });
 
-    // --- CAMADA 3: VALIDAÇÃO FINAL (Mantida) ---
+    // --- CAMADA 4: VALIDAÇÃO FINAL (Mantida) ---
     try {
-        // (Sua lógica de limpeza final, mantida)
         if (jsonString.endsWith(',}')) jsonString = jsonString.slice(0, -2) + '}';
         if (jsonString.endsWith(',]')) jsonString = jsonString.slice(0, -2) + ']';
-
         const parsedJson = JSON.parse(jsonString);
-        
         if (arrayExpected && !Array.isArray(parsedJson)) {
             return [parsedJson];
         }
         return parsedJson;
-
     } catch (error) {
         console.error("FALHA CRÍTICA NO PARSE DO JSON. Erro:", error.message);
         console.log("TEXTO ORIGINAL DA IA:", text);
@@ -1433,37 +1434,44 @@ const generateIdeasFromReport = async (button) => {
 
 
 // =========================================================================
-// >>>>> MAPEADOR DE ESTRATÉGIA UNIVERSAL FINAL <<<<<
+// >>>>> MAPEADOR DE ESTRATÉGIA FINAL E CONFIÁVEL <<<<<
+// Define a configuração de partida ideal para cada especialista.
 // =========================================================================
 const strategyMapper = {
     'documentario': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar' },
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => `O que os fatos sobre "${idea.title}" realmente revelam?`,
         researchData: idea => `Abordagem Investigativa: ${idea.investigativeApproach}`,
         dossier: idea => `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`
     },
     'inspiracional': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'heroes_journey', narrativeTone: 'inspirador', videoObjective: 'emocionar' },
         narrativeTheme: idea => idea.angle,
         emotionalHook: idea => `A história deve girar em torno do núcleo emocional de '${idea.emotionalCore}', mostrando a transformação de um desafio em uma lição universal.`,
         dossier: idea => `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`
     },
     'scifi': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar' },
         centralQuestion: idea => idea.angle,
         narrativeTheme: idea => `Explorar as consequências do dilema de '${idea.coreDilemma}'.`,
         dossier: idea => `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`
     },
     'terror': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'twist', narrativeTone: 'serio', videoObjective: 'emocionar' },
         narrativeTheme: idea => `Construir a tensão usando o mecanismo de '${idea.horrorMechanism}'.`,
         centralQuestion: idea => idea.angle,
         dossier: idea => `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`
     },
     'enigmas': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar' },
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => idea.discussionQuestions[0] || '',
         researchData: idea => `Base Bíblica: ${(idea.scripturalFoundation || []).join('; ')}`,
         dossier: idea => `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${(idea.scripturalFoundation || []).join('; ')}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`
     },
     'geral': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'pixar_spine', narrativeTone: 'inspirador', videoObjective: 'informar' },
         narrativeTheme: idea => idea.angle,
         dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
     }
@@ -1478,82 +1486,25 @@ const getGenreFromIdea = (idea) => {
     return 'geral';
 };
 
-// A CONSULTORA DE ESTRATÉGIA COMPLETA E CORRETA
-const getBestNarrativeStrategy = async (idea) => {
-    const storytellingStructures = Object.entries(narrativeStructures.storytelling).map(([key, value]) => `- "${key}": ${value}`).join('\n');
-    const storysellingStructures = Object.entries(narrativeStructures.storyselling).map(([key, value]) => `- "${key}": ${value}`).join('\n');
-    const tones = ['inspirador', 'serio', 'emocional'];
 
-    const prompt = `Você é uma API de análise estratégica que retorna APENAS um objeto JSON.
-    
-    Analise a seguinte ideia de vídeo:
-    - Título: "${idea.title}"
-    - Descrição: "${idea.videoDescription}"
-
-    Com base na ideia, escolha a MELHOR estrutura narrativa e o TOM mais adequado.
-
-    Opções de Estrutura Storytelling:
-    ${storytellingStructures}
-
-    Opções de Estrutura Storyselling:
-    ${storysellingStructures}
-
-    Opções de Tom: ${tones.join(', ')}
-
-    REGRAS CRÍTICAS:
-    1. Sua resposta DEVE SER APENAS o objeto JSON.
-    2. O objeto deve conter DUAS chaves: "best_structure" e "best_tone".
-    3. Os valores devem ser as CHAVES das opções (ex: "heroes_journey", "inspirador").
-
-    Exemplo de Resposta Perfeita:
-    {
-      "best_structure": "mystery_loop",
-      "best_tone": "serio"
-    }
-
-    Analise a ideia e retorne o JSON agora.`;
-
-    try {
-        const rawResult = await callGroqAPI(prompt, 1000);
-        const result = cleanGeneratedText(rawResult, true);
-        return {
-            structure: result?.best_structure || 'documentary', // Padrão seguro
-            tone: result?.best_tone || 'inspirador' // Padrão seguro
-        };
-    } catch (error) {
-        console.error("Falha ao obter a estratégia dinâmica:", error);
-        return { structure: 'documentary', tone: 'inspirador' }; // Retorna padrões em caso de erro
-    }
-};
-
-
-// FUNÇÃO selectIdea FINAL E 100% DINÂMICA
-const selectIdea = async (idea) => {
+// FUNÇÃO selectIdea FINAL E 100% CONFIÁVEL (NÃO USA a consultora de IA)
+const selectIdea = (idea) => {
     const genre = getGenreFromIdea(idea);
     const mapper = strategyMapper[genre];
 
-    // 1. ANÁLISE DINÂMICA COMPLETA: Pede à IA para escolher a melhor estrutura E tom.
-    const dynamicStrategy = await getBestNarrativeStrategy(idea);
-    
-    // 2. PREENCHIMENTO DE TODOS OS DROPDOWNS DE FORMA INTELIGENTE
-    // Objetivo da Narrativa e Estrutura Específica
-    let goal = 'storytelling';
-    if (Object.keys(narrativeStructures.storyselling).includes(dynamicStrategy.structure)) {
-        goal = 'storyselling';
+    // 1. PREENCHIMENTO DOS DROPDOWNS DE FORMA DETERMINÍSTICA E RÁPIDA
+    if (mapper && mapper.dropdowns) {
+        for (const id in mapper.dropdowns) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.value = mapper.dropdowns[id];
+            }
+        }
     }
-    document.getElementById('narrativeGoal').value = goal;
     updateNarrativeStructureOptions();
-    document.getElementById('narrativeStructure').value = dynamicStrategy.structure;
     updateMainTooltip();
 
-    // Tom da Narração
-    document.getElementById('narrativeTone').value = dynamicStrategy.tone;
-
-    // Objetivo do Vídeo (derivado do Tom)
-    const videoObjective = (dynamicStrategy.tone === 'serio') ? 'informar' : 'emocionar';
-    document.getElementById('videoObjective').value = videoObjective;
-
-    // 3. ESTRATÉGIA BASE (para garantir que nada fique em branco)
+    // 2. ESTRATÉGIA BASE (para garantir que nada fique em branco)
     let strategy = {
         narrativeTheme: idea.angle || `Explorar o tema central de "${idea.title}".`,
         centralQuestion: `Qual é o mistério ou a principal questão por trás de "${idea.title}"?`,
@@ -1563,7 +1514,7 @@ const selectIdea = async (idea) => {
         researchData: `Buscar 1-2 estatísticas ou citações que reforcem a mensagem principal de "${idea.title}".`
     };
 
-    // 4. ESPECIALIZAÇÃO (sobrescreve a base com dados de texto específicos)
+    // 3. ESPECIALIZAÇÃO (sobrescreve a base com dados de texto específicos)
     if (mapper) {
         for (const key in mapper) {
             if (key !== 'dossier' && key !== 'dropdowns') {
@@ -1572,21 +1523,21 @@ const selectIdea = async (idea) => {
         }
     }
 
-    // 5. APLICA A ESTRATÉGIA DE TEXTO
+    // 4. APLICA A ESTRATÉGIA DE TEXTO
     for (const id in strategy) {
         const element = document.getElementById(id);
         if (element) element.value = strategy[id];
     }
     
-    // 6. PREENCHE O RESTO E MONTA O DOSSIÊ
+    // 5. PREENCHE O RESTO E MONTA O DOSSIÊ
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
     const dossierContent = mapper ? mapper.dossier(idea) : `- Ângulo Único: ${idea.angle || 'N/A'}`;
     const fullDescription = `${idea.videoDescription || ''}\n\n--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n${dossierContent.trim()}`;
     document.getElementById('videoDescription').value = fullDescription;
     
-    // 7. FEEDBACK E NAVEGAÇÃO
-    window.showToast("Ideia selecionada! Estratégia dinâmica pré-preenchida.", 'success');
+    // 6. FEEDBACK E NAVEGAÇÃO
+    window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
     showPane('strategy');
     document.querySelector('[data-tab="input-tab-basico"]')?.click();
 };
