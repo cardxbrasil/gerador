@@ -747,77 +747,87 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return arrayExpected ? [] : null;
     }
 
-    let jsonString = text.trim();
+    let jsonString = text; // Começa com o texto original
 
     // ======================================================================
-    // >>>>> CAMADA 1: LIMPEZA BRUTA <<<<<
+    // >>>>> PASSO 1: ISOLAMENTO "CAIXA-FORTE" <<<<<
+    // Encontra o bloco JSON principal e descarta todo o resto.
     // ======================================================================
-    const fillerPatterns = [
-        /assistant<\|end_header_id\|>/g,
-        /^.*?(\[|\{)/s,
-        /(\]|\})\s*.*$/s,
-        /Aqui estão.*?$/gim,
-        /Espero que.*?$/gim
-    ];
-    fillerPatterns.forEach(pattern => jsonString = jsonString.replace(pattern, '$1'));
-    jsonString = jsonString.replace(/: ""([^"]+)""/g, ': "$1"');
+    const firstBracket = jsonString.indexOf('[');
+    const firstBrace = jsonString.indexOf('{');
+    const lastBracket = jsonString.lastIndexOf(']');
+    const lastBrace = jsonString.lastIndexOf('}');
 
-    // ======================================================================
-    // >>>>> CAMADA 2: EXTRAÇÃO E CATALOGAÇÃO INTELIGENTE <<<<<
-    // ======================================================================
+    let start = -1;
+    if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+        start = firstBracket;
+    } else if (firstBrace !== -1) {
+        start = firstBrace;
+    }
+
+    let end = -1;
+    if (lastBracket !== -1 && (lastBrace === -1 || lastBracket > lastBrace)) {
+        end = lastBracket;
+    } else if (lastBrace !== -1) {
+        end = lastBrace;
+    }
+
+    if (start !== -1 && end !== -1 && end > start) {
+        jsonString = jsonString.substring(start, end + 1);
+    } else {
+        console.warn("Não foi possível isolar um bloco JSON principal no texto da IA.");
+        return arrayExpected ? [] : null; // Se não encontrar, falha com segurança
+    }
     
+    // ======================================================================
+    // >>>>> PASSO 2: CATALOGAÇÃO INTELIGENTE (ANTI-DUPLICATAS) <<<<<
+    // ======================================================================
     const allFoundObjects = jsonString.match(/\{[\s\S]*?\}/g);
     
     if (!allFoundObjects || allFoundObjects.length === 0) {
-        console.warn("Nenhum objeto JSON foi encontrado após a limpeza inicial.");
+        console.warn("Nenhum objeto JSON foi encontrado após o isolamento.");
         return arrayExpected ? [] : null;
     }
 
     const uniqueObjectsCatalog = new Map();
     allFoundObjects.forEach(objStr => {
-        const titleMatch = objStr.match(/"title"\s*:\s*"([^"]+)"/);
+        // Tenta consertar o objeto individualmente antes de catalogar
+        let cleanObjStr = objStr.replace(/,\s*}/g, '}'); // Remove vírgulas sobrando no final do objeto
+        
+        const titleMatch = cleanObjStr.match(/"title"\s*:\s*"(.*?)"/);
         if (titleMatch && titleMatch[1]) {
-            const title = titleMatch[1];
-            uniqueObjectsCatalog.set(title, objStr);
+            uniqueObjectsCatalog.set(titleMatch[1], cleanObjStr);
         } else {
-            uniqueObjectsCatalog.set(Math.random(), objStr);
+            uniqueObjectsCatalog.set(Math.random(), cleanObjStr);
         }
     });
 
     const finalObjects = Array.from(uniqueObjectsCatalog.values());
 
-    if (finalObjects.length === 0) {
-         console.warn("Nenhum objeto com título pôde ser catalogado.");
-         return arrayExpected ? [] : null;
-    }
-
     // ======================================================================
-    // >>>>> CAMADA 3: MONTAGEM E REPARO FINAL <<<<<
+    // >>>>> PASSO 3: MONTAGEM FINAL E VALIDAÇÃO <<<<<
     // ======================================================================
-    
     let finalJsonString = `[${finalObjects.join(',')}]`;
-
-    // Aplica as regras de reparo fino no JSON já montado.
-    finalJsonString = finalJsonString.replace(/([}\]])\s*"/g, '$1, "');
     
-    // ==========================================================
-    // >>>>> A CORREÇÃO ESTÁ NESTA LINHA <<<<<
-    // ==========================================================
-    finalJsonString = finalJsonString.replace(/,\s*([}\]])/g, '$1'); // Corrigido de finalJsonSring para finalJsonString
-
-    // --- CAMADA 4: VALIDAÇÃO ---
     try {
         const parsedJson = JSON.parse(finalJsonString);
         if (arrayExpected && !Array.isArray(parsedJson)) return [parsedJson];
         return parsedJson;
     } catch (error) {
-        console.error("FALHA CRÍTICA NO PARSE DO JSON. Erro:", error.message);
-        console.log("TEXTO ORIGINAL DA IA:", text);
-        console.log("STRING ISOLADA QUE FALHOU:", finalJsonString);
-        return arrayExpected ? [] : null;
+        // Tenta um último reparo para o erro de "aspas duplas duplas"
+        finalJsonString = finalJsonString.replace(/""/g, '"');
+        try {
+            const parsedJson = JSON.parse(finalJsonString);
+            if (arrayExpected && !Array.isArray(parsedJson)) return [parsedJson];
+            return parsedJson;
+        } catch (finalError) {
+            console.error("FALHA CRÍTICA NO PARSE DO JSON. Erro:", finalError.message);
+            console.log("TEXTO ORIGINAL DA IA:", text);
+            console.log("STRING ISOLADA QUE FALHOU:", finalJsonString);
+            return arrayExpected ? [] : null;
+        }
     }
 };
-
 
 
 
