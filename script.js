@@ -391,7 +391,7 @@ __RAW_REPORT__
 
 **AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as fissuras na realidade que podem se tornar portais para o horror. Transforme fatos aparentemente inocentes em 6 premissas que perturbarão, assombrar e ecoar na mente do espectador. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`,
 
-            'enigmas': `Você são TRÊS ESPECIALISTAS TRABALHANDO EM SINERGIA:
+            'enigmas': `Vocês são TRÊS ESPECIALISTAS TRABALHANDO EM SINERGIA:
 1. Um Teólogo Investigativo com doutorado em Hermenêutica Bíblica e especialização em contextos históricos do Antigo e Novo Testamento
 2. Um Arqueólogo especializado em descobertas que corroboram narrativas bíblicas
 3. Um Comunicador Mestre que transforma conceitos complexos em narrativas virais
@@ -413,25 +413,26 @@ __RAW_REPORT__
 
 ---
 
-**REGRAS CRÍTICAS (INEGOCIÁVEIS):**
+🚨 **REGRAS CRÍTICAS (INEGOCIÁVEIS):**
 1. Responder SOMENTE com um array JSON válido.
 2. Cada objeto no array deve conter EXATAMENTE estas 8 chaves: 
    "title", "angle", "targetAudience", "viralityScore", "theologicalDepth", "scripturalFoundation", "videoDescription", "discussionQuestions".
-3. "scripturalFoundation" deve trazer obrigatoriamente de 3 a 5 referências bíblicas (mínimo uma do AT e uma do NT).
+3. "scripturalFoundation" deve trazer pelo menos 1 referência bíblica (Antigo ou Novo Testamento).
 4. "videoDescription" deve conter no mínimo 7 frases.
 5. Se qualquer chave estiver faltando, a resposta é inválida.
 6. Todas as strings devem estar em aspas duplas.
+7. Responda apenas com JSON puro, sem explicações adicionais, sem comentários, sem texto fora do array.
 
 ---
 
-**MANUAL DE CRIAÇÃO:**
+📖 **MANUAL DE CRIAÇÃO:**
 
 - "title": Um título teológico cativante, que prometa revelação transformadora.
 - "angle": Uma frase que conecte um fato do relatório, uma passagem bíblica e uma implicação teológica.
 - "targetAudience": Especifique claramente o público (ex: pastores, estudantes de teologia, cristãos leigos).
 - "viralityScore": Nota de 1 a 10 para potencial de viralidade e debate.
 - "theologicalDepth": Nota de 1 a 10 para profundidade teológica.
-- "scripturalFoundation": 3-5 referências bíblicas (ex: Gênesis 1:26, Isaías 43:2, João 1:14, Apocalipse 21:1).
+- "scripturalFoundation": Pelo menos 1 referência bíblica (ex: Gênesis 1:26 ou João 1:14).
 - "videoDescription": Uma narrativa investigativa com pelo menos 7 frases:
     1. Introduzir o mistério com a passagem bíblica central.
     2. Contextualizar a descoberta arqueológica ou científica.
@@ -444,7 +445,7 @@ __RAW_REPORT__
 
 ---
 
-**AÇÃO FINAL:** Como Coletivo Hermenêutico, respondam SOMENTE com o array JSON contendo as 6 ideias completas e válidas. Qualquer omissão, erro de formato ou ausência de referências bíblicas torna a resposta inválida.`,
+**AÇÃO FINAL:** Como Coletivo Hermenêutico, respondam SOMENTE com o array JSON contendo as 6 ideias completas e válidas. Qualquer omissão, erro de formato ou ausência de referência bíblica torna a resposta inválida.`,
 
 
             'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis. Sua função é analisar profundamente o relatório de pesquisa e extrair os ângulos mais impactantes, surpreendentes e viralizáveis para criar 6 ideias de vídeo excepcionais.
