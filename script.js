@@ -757,69 +757,65 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     let jsonString = text.trim();
 
-    // Remove tokens de controle da API e texto explicativo inicial
+    // 1. LIMPEZA INICIAL: Remove tokens de controle e texto explicativo.
     jsonString = jsonString.replace(/assistant<\|end_header_id\|>[\s\S]*/g, '');
     jsonString = jsonString.replace(/^Aqui está.*?:/im, '');
 
-    // --- CAMADA 1: EXTRAÇÃO INTELIGENTE ---
-    // Procura por todos os objetos JSON no texto
-    const jsonObjects = jsonString.match(/\{[\s\S]*?\}/g);
-    
-    if (jsonObjects && jsonObjects.length > 0) {
-        // Se encontrou um ou mais objetos, os une em um array JSON válido.
-        // Isso descarta qualquer texto entre os objetos (ex: "**Ideia 2:**")
-        jsonString = `[${jsonObjects.join(',')}]`;
+    // 2. EXTRAÇÃO: Isola o JSON principal.
+    const markdownMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (markdownMatch && markdownMatch[1]) {
+        jsonString = markdownMatch[1].trim();
     } else {
-        // Fallback: Se não encontrou nenhum objeto, tenta extrair de um bloco de código.
-        const markdownMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-        if (markdownMatch && markdownMatch[1]) {
-            jsonString = markdownMatch[1].trim();
-        }
-    }
-
-    // --- CAMADA 2: REPARO E DESINFECÇÃO ---
-    // (Todas as suas regras anteriores estão aqui, mantidas e organizadas)
-    jsonString = jsonString.replace(/[´‘’]/g, "'");
-    jsonString = jsonString.replace(/''/g, "'");
-    jsonString = jsonString.replace(/"\s*(pode ser reescrito como|ou|alternativamente)\s*"/g, ',"rewritten_quote": "');
-    jsonString = jsonString.replace(/"\s*,\s*"/g, '","');
-    jsonString = jsonString.replace(/("\s*[^"]+\s*)"\s*([a-zA-Z\s,]+)\s*,\s*"/g, '$1, "');
-    jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
-    jsonString = jsonString.replace(/:\s*,\s*"/g, ': "", "');
-    jsonString = jsonString.replace(/"{2,}/g, '"');
-    jsonString = jsonString.replace(/\\"(?=\s*[},\]])/g, '"');
-    jsonString = jsonString.replace(/"\s*([,}])/g, (match, p1) => {
-        const lastKeyIndex = jsonString.lastIndexOf('"', jsonString.indexOf(match));
-        if (lastKeyIndex > -1) {
-            const segment = jsonString.substring(lastKeyIndex);
-            const quoteCount = (segment.match(/"/g) || []).length;
-            if (quoteCount % 2 !== 0) {
-                return `"${p1}`;
+        const firstBracket = jsonString.indexOf('[');
+        const firstBrace = jsonString.indexOf('{');
+        if (firstBracket !== -1 || firstBrace !== -1) {
+            let startIndex = (firstBracket === -1) ? firstBrace : (firstBrace === -1) ? firstBracket : Math.min(firstBracket, firstBrace);
+            jsonString = jsonString.substring(startIndex);
+            let lastBracket = jsonString.lastIndexOf(']');
+            let lastBrace = jsonString.lastIndexOf('}');
+            let endIndex = Math.max(lastBracket, lastBrace);
+            if (endIndex > -1) {
+                jsonString = jsonString.substring(0, endIndex + 1);
             }
         }
-        return match;
+    }
+    
+    // --- CAMADA DE REPARO E DESINFECÇÃO ---
+
+    // ======================================================================
+    // >>>>> EVOLUÇÃO FINAL (O "PLASTIFICADOR DE STRINGS") <<<<<
+    // Adiciona aspas em valores que a IA esqueceu. Foca em chaves específicas.
+    const keysThatNeedQuotedValues = ["scripturalFoundation", "discussionQuestions"];
+    keysThatNeedQuotedValues.forEach(key => {
+        // Expressão regular para encontrar a chave, seguida por ':', e depois qualquer texto até a próxima vírgula ou ']'
+        const regex = new RegExp(`("${key}":\\s*)([^,"\\]\\[]+)`, "g");
+        jsonString = jsonString.replace(regex, (match, p1, p2) => {
+            // Se o valor não for um array, envolve em aspas
+            if(!p2.trim().startsWith('[')) {
+                return `${p1}"${p2.trim()}"`;
+            }
+            return match; // Se já for array, não mexe
+        });
     });
+
+    // Garante que os itens dentro do array de discussionQuestions estejam entre aspas
+    jsonString = jsonString.replace(/("discussionQuestions":\s*\[)([^\]]+)\]/g, (match, start, content) => {
+        const items = content.split(',').map(item => `"${item.trim().replace(/"/g, '')}"`);
+        return `${start}${items.join(',')}]`;
+    });
+    // ======================================================================
+
+    // (Todas as outras regras de reparo que já tínhamos)
     jsonString = jsonString.replace(/\}\s*\{/g, '},{');
     jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
     
-    // --- CAMADA 3: VALIDAÇÃO ---
+    // --- CAMADA DE VALIDAÇÃO ---
     try {
-        if (!jsonString.endsWith('}') && !jsonString.endsWith(']')) {
-             if (jsonString.lastIndexOf('{') > jsonString.lastIndexOf('[')) {
-                jsonString += '}';
-             } else {
-                jsonString += ']';
-             }
-        }
-        
         const parsedJson = JSON.parse(jsonString);
-        
         if (arrayExpected && !Array.isArray(parsedJson)) {
             return [parsedJson];
         }
-
         return parsedJson;
-
     } catch (error) {
         console.error("FALHA CRÍTICA NO PARSE DO JSON. Erro:", error.message);
         console.log("TEXTO ORIGINAL DA IA:", text);
@@ -827,7 +823,6 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return arrayExpected ? [] : null;
     }
 };
-
 
 
 
