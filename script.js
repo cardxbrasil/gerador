@@ -1939,27 +1939,11 @@ window.regenerateSection = (fullSectionId) => {
 
 
 
-// ... (continuação do bloco de FUNÇÕES DE AÇÃO PRINCIPAIS)
-
 const generateConclusion = async (button) => {
     if (!validateInputs()) return;
     showButtonLoading(button);
 
-    const scriptContainer = document.getElementById('scriptSectionsContainer');
-if (scriptContainer) {
-    scriptContainer.innerHTML = ''; // Limpa qualquer conteúdo antigo
-    scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('intro', 'Introdução', 'generateIntro'));
-    scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('development', 'Desenvolvimento', 'generateDevelopment'));
-    scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('climax', 'Clímax', 'generateClimax'));
-}
-    let conclusionContainer = document.getElementById('conclusionSection');
-    if (scriptContainer && !conclusionContainer) {
-        conclusionContainer = document.createElement('div');
-        conclusionContainer.id = 'conclusionSection';
-        conclusionContainer.className = 'script-section';
-        scriptContainer.appendChild(conclusionContainer);
-    }
-
+    // Lógica para obter contexto e criar o prompt (inalterada)
     const conclusionType = document.querySelector('input[name="conclusionType"]:checked').value;
     const conclusionSpecifics = document.getElementById('conclusionSpecifics').value.trim();
     const centralQuestion = document.getElementById('centralQuestion')?.value.trim() || 'a pergunta central do vídeo';
@@ -1993,13 +1977,21 @@ if (scriptContainer) {
 
         AppState.generated.script.conclusion = { html: contentWithSpans, text: fullText };
         
-        const conclusionElement = generateSectionHtmlContent('conclusion', 'Conclusão', contentWithSpans);
+        // --- LÓGICA CORRIGIDA ---
+        const scriptContainer = document.getElementById('scriptSectionsContainer');
+        let conclusionContainer = document.getElementById('conclusionSection'); // O ID aqui se refere ao próprio acordeão
         
-        if(conclusionContainer) {
-            conclusionContainer.innerHTML = '';
-            conclusionContainer.appendChild(conclusionElement);
+        const conclusionElement = generateSectionHtmlContent('conclusion', 'Conclusão', contentWithSpans);
+
+        if (conclusionContainer) {
+            // Se um acordeão de conclusão já existe (ex: de um projeto carregado), substitui
+            conclusionContainer.replaceWith(conclusionElement);
+        } else {
+            // Se não existe, simplesmente adiciona ao final
+            scriptContainer.appendChild(conclusionElement);
         }
         
+        // Lógica para desabilitar inputs e mostrar o próximo botão (inalterada)
         document.querySelectorAll('input[name="conclusionType"]').forEach(radio => radio.disabled = true);
         document.getElementById('conclusionSpecifics').disabled = true;
         document.querySelector('#conclusionInputContainer').classList.add('opacity-50');
@@ -2017,18 +2009,14 @@ if (scriptContainer) {
     }
 };
 
+
+
+
+
 const generateStrategicCta = async (button) => {
     showButtonLoading(button);
-
-    const scriptContainer = document.getElementById('scriptSectionsContainer');
-    let ctaContainer = document.getElementById('ctaSection');
-    if (scriptContainer && !ctaContainer) {
-        ctaContainer = document.createElement('div');
-        ctaContainer.id = 'ctaSection';
-        ctaContainer.className = 'script-section';
-        scriptContainer.appendChild(ctaContainer);
-    }
-
+    
+    // Lógica para obter contexto e criar o prompt (inalterada)
     const ctaSpecifics = document.getElementById('ctaSpecifics').value.trim();
     const fullContext = getTranscriptOnly();
     const basePromptContext = getBasePromptContext();
@@ -2073,12 +2061,21 @@ ${ctaDirective}
 
         AppState.generated.script.cta = { html: contentWithSpans, text: fullText };
 
+        // --- LÓGICA CORRIGIDA ---
+        const scriptContainer = document.getElementById('scriptSectionsContainer');
+        let ctaContainer = document.getElementById('ctaSection'); // O ID aqui se refere ao próprio acordeão
+
         const ctaElement = generateSectionHtmlContent('cta', 'Call to Action (CTA)', contentWithSpans);
-        if(ctaContainer){
-            ctaContainer.innerHTML = '';
-            ctaContainer.appendChild(ctaElement);
+        
+        if (ctaContainer){
+            // Se um acordeão de CTA já existe, substitui
+            ctaContainer.replaceWith(ctaElement);
+        } else {
+            // Se não existe, simplesmente adiciona ao final
+            scriptContainer.appendChild(ctaElement);
         }
         
+        // Lógica para desabilitar inputs e ir para a finalização (inalterada)
         const ctaSpecificsElement = document.getElementById('ctaSpecifics');
         ctaSpecificsElement.disabled = true;
         ctaSpecificsElement.parentElement.classList.add('opacity-50');
@@ -2094,6 +2091,11 @@ ${ctaDirective}
         updateButtonStates();
     }
 };
+
+
+
+
+
 
 const suggestFinalStrategy = async (button) => {
     showButtonLoading(button);
