@@ -1449,38 +1449,43 @@ const generateIdeasFromReport = async (button) => {
 
 
 // =========================================================================
-// >>>>> NOVO MAPEADOR DE ESTRATÉGIA UNIVERSAL E SEU CONFIG <<<<<
-// Este objeto é o "cérebro" que traduz cada tipo de ideia em uma estratégia.
+// >>>>> MAPEADOR DE ESTRATÉGIA UNIVERSAL FINAL (COM DROPDOWNS) <<<<<
 // =========================================================================
 const strategyMapper = {
     'documentario': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar' },
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => `O que os fatos sobre "${idea.title}" realmente revelam?`,
         researchData: idea => `Abordagem Investigativa: ${idea.investigativeApproach}`,
         dossier: idea => `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`
     },
     'inspiracional': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'heroes_journey', narrativeTone: 'inspirador', videoObjective: 'emocionar' },
         narrativeTheme: idea => idea.angle,
         emotionalHook: idea => `A história deve girar em torno do núcleo emocional de '${idea.emotionalCore}', mostrando a transformação de um desafio em uma lição universal.`,
         dossier: idea => `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`
     },
     'scifi': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar' },
         centralQuestion: idea => idea.angle,
         narrativeTheme: idea => `Explorar as consequências do dilema de '${idea.coreDilemma}'.`,
         dossier: idea => `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`
     },
     'terror': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'twist', narrativeTone: 'serio', videoObjective: 'emocionar' },
         narrativeTheme: idea => `Construir a tensão usando o mecanismo de '${idea.horrorMechanism}'.`,
         centralQuestion: idea => idea.angle,
         dossier: idea => `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`
     },
     'enigmas': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar' },
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => idea.discussionQuestions[0] || '',
         researchData: idea => `Base Bíblica: ${(idea.scripturalFoundation || []).join('; ')}`,
         dossier: idea => `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${(idea.scripturalFoundation || []).join('; ')}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`
     },
     'geral': {
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'inspirador', videoObjective: 'informar' },
         narrativeTheme: idea => idea.angle,
         dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
     }
@@ -1495,30 +1500,44 @@ const getGenreFromIdea = (idea) => {
     return 'geral';
 };
 
-// FUNÇÃO selectIdea REENGENHARADA
+// FUNÇÃO selectIdea FINAL
 const selectIdea = (idea) => {
-    // 1. Cria uma Estratégia Base com sugestões criativas para TODOS os campos.
+    const genre = getGenreFromIdea(idea);
+    const mapper = strategyMapper[genre];
+
+    // 1. Aplica as configurações dos Dropdowns PRIMEIRO.
+    if (mapper && mapper.dropdowns) {
+        for (const id in mapper.dropdowns) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.value = mapper.dropdowns[id];
+            }
+        }
+    }
+    // Dispara as atualizações de UI que dependem dos dropdowns
+    updateNarrativeStructureOptions();
+    updateMainTooltip();
+
+    // 2. Cria uma Estratégia Base com sugestões criativas.
     let strategy = {
         narrativeTheme: idea.angle || `Explorar o tema central de "${idea.title}".`,
         centralQuestion: `Qual é o mistério ou a principal questão por trás de "${idea.title}"?`,
         emotionalHook: `Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.`,
         narrativeVoice: 'Confiante e Esclarecedor',
         shockingEndingHook: `Crie uma frase de abertura enigmática que só fará sentido no final, como: "A resposta nunca esteve no futuro, mas enterrada no passado."`,
-        researchData: ''
+        researchData: `Buscar 1-2 estatísticas ou citações que reforcem a mensagem principal de "${idea.title}".`
     };
 
-    // 2. Especialização: Usa o Mapeador para sobrescrever a estratégia base com dados específicos.
-    const genre = getGenreFromIdea(idea);
-    const mapper = strategyMapper[genre];
+    // 3. Especialização: Usa o Mapeador para sobrescrever a estratégia base com dados de texto específicos.
     if (mapper) {
         for (const key in mapper) {
-            if (key !== 'dossier') {
+            if (key !== 'dossier' && key !== 'dropdowns') {
                 strategy[key] = mapper[key](idea);
             }
         }
     }
 
-    // 3. Aplica a Estratégia Final aos campos do formulário.
+    // 4. Aplica a Estratégia de Texto Final aos campos do formulário.
     for (const id in strategy) {
         const element = document.getElementById(id);
         if (element) {
@@ -1526,7 +1545,7 @@ const selectIdea = (idea) => {
         }
     }
     
-    // 4. Preenche os campos básicos e monta o Dossiê na Descrição.
+    // 5. Preenche os campos básicos e monta o Dossiê na Descrição.
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
     
@@ -1534,7 +1553,7 @@ const selectIdea = (idea) => {
     const fullDescription = `${idea.videoDescription || ''}\n\n--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n${dossierContent.trim()}`;
     document.getElementById('videoDescription').value = fullDescription;
     
-    // 5. Feedback e Navegação Intuitiva.
+    // 6. Feedback e Navegação Intuitiva.
     window.showToast("Ideia selecionada! Estratégia completa pré-preenchida.", 'success');
     showPane('strategy');
     document.querySelector('[data-tab="input-tab-basico"]')?.click();
