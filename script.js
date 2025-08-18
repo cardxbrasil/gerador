@@ -575,6 +575,7 @@ const fixJsonWithAI = async (brokenJsonText) => {
 
 
 // O SUCESSOR: Leve, rápido e confiável para JSONs simples.
+// A FERRAMENTA UNIVERSAL E FINAL: Leve, rápida e com o reparo final.
 const parseSimpleJson = (text, expectArray = false) => {
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
         console.warn("Texto de entrada inválido ou vazio para o parser de JSON.");
@@ -603,6 +604,13 @@ const parseSimpleJson = (text, expectArray = false) => {
         console.warn("Não foi possível isolar um bloco JSON da resposta da IA.");
         return expectArray ? [] : null;
     }
+
+    // ==========================================================
+    // >>>>> A EVOLUÇÃO FINAL ESTÁ AQUI <<<<<
+    // Passo 1.5: Reparo Específico para o erro de "Aspas Duplas Internas".
+    // Procura por : ""valor"" e transforma em : "valor"
+    // ==========================================================
+    jsonString = jsonString.replace(/: ""([^"]*)""/g, ': "$1"');
 
     // Passo 2: Tenta o parse.
     try {
