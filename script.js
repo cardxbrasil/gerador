@@ -283,42 +283,24 @@ __RAW_REPORT__
 
 **AÇÃO FINAL:** Encontre as fissuras na realidade. Transforme fatos em 6 premissas que perturbem e assombrem. Responda APENAS no formato markdown especificado.`,
 
-    'enigmas': `Você atua como um 'Coletivo Hermenêutico' (Teólogo, Arqueólogo, Comunicador). Sua missão é gerar 6 ideias de vídeos que conectem o relatório abaixo com temas bíblicos de forma profunda e acessível.
+    'enigmas': `Você é um roteirista criativo. Sua missão é gerar 6 ideias de vídeos que conectem o relatório abaixo com temas bíblicos. Foque em criar títulos, ângulos e descrições cativantes.
 
 **RELATÓRIO PARA ANÁLISE:**
 ---
 __RAW_REPORT__
 ---
 
-**TAREFA:** Gere 6 ideias de vídeo. Para cada ideia, siga as instruções e o formato de saída abaixo.
+**TAREFA:** Gere 6 ideias de vídeo. Para cada ideia, use o seguinte formato de markdown.
 
-**INSTRUÇÕES PARA CADA CAMPO:**
--   **Título:** Cativante e teológico.
--   **Ângulo:** A conexão central entre um FATO do relatório e uma PASSAGEM BÍBLICA.
--   **Público-Alvo:** O nicho de espectador específico.
--   **Potencial Viral:** Nota de 1 a 10 para o potencial de gerar debate.
--   **Profundidade Teológica:** Nota de 1 a 10 para a originalidade da conexão.
--   **Fundamentação Bíblica:** Liste 3-5 referências bíblicas (ex: Gênesis 1:1, João 3:16).
--   **Descrição:** Uma sinopse rica de 5+ frases.
--   **Perguntas para Diálogo:** 3 perguntas (teológica, prática, pessoal).
-
-**FORMATO DE SAÍDA OBRIGATÓRIO (use para cada uma das 6 ideias):**
 ---
 **Ideia:** [Número]
-**Título:** [Seu título aqui]
-**Ângulo:** [Seu ângulo aqui]
-**Público-Alvo:** [Seu público-alvo aqui]
-**Potencial Viral:** [Sua nota aqui]
-**Profundidade Teológica:** [Sua nota aqui]
-**Fundamentação Bíblica:** [Suas referências aqui]
-**Descrição:** [Sua descrição aqui]
-**Perguntas para Diálogo:** 
-1. (Teológica) [Sua pergunta aqui]
-2. (Prática) [Sua pergunta aqui]
-3. (Pessoal) [Sua pergunta aqui]
+**Título:** [Crie um título cativante e teológico]
+**Ângulo:** [Descreva a conexão central entre um fato do relatório e um tema bíblico]
+**Público-Alvo:** [O nicho de espectador específico]
+**Potencial Viral:** [Nota de 1 a 10]
+**Descrição:** [Uma sinopse rica de 5+ frases]
 ---
-
-**AÇÃO FINAL:** Gere todas as 6 ideias seguindo rigorosamente as instruções e o formato. Responda APENAS no formato markdown especificado.`,
+`,
 
     'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis.
 
@@ -361,6 +343,47 @@ Você é um ARQUITETO DE VIRALIDADE. Sua especialidade é identificar padrões o
             .replace(/__RAW_REPORT__/g, context.rawReport)
             .replace(/__LANGUAGE_NAME__/g, context.languageName);
     },
+
+
+
+// DENTRO DO PromptManager
+getTheologicalEnrichmentPrompt: (baseIdeas) => {
+    return `Você é um TEÓLOGO INVESTIGATIVO. Sua única tarefa é analisar as 6 ideias de vídeo abaixo e enriquecê-las com profundidade teológica e fundamentação bíblica, retornando um array JSON.
+
+**IDEIAS BASE PARA ANÁLISE:**
+---
+${baseIdeas}
+---
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
+1.  **JSON PURO:** Sua resposta deve ser **APENAS e SOMENTE** um array JSON válido.
+2.  **ESTRUTURA COMPLETA:** O array de saída deve conter EXATAMENTE 6 objetos. Cada objeto deve ter **EXATAMENTE** estas 3 chaves: "theologicalDepth", "scripturalFoundation", e "discussionQuestions".
+3.  **FALHA AUTOMÁTICA:** Qualquer resposta que não contenha estas 3 chaves para cada um dos 6 objetos será considerada uma falha.
+4.  **SINTAXE:** "scripturalFoundation" e "discussionQuestions" devem ser arrays de strings.
+
+**MANUAL DE ENRIQUECIMENTO (Para cada ideia):**
+-   **"theologicalDepth":** Analise a ideia base e atribua uma nota de 1 a 10 para a profundidade da conexão teológica que você consegue criar.
+-   **"scripturalFoundation":** Com base no título e ângulo da ideia, liste de 3 a 5 referências bíblicas (Antigo e Novo Testamento) que sejam diretamente relevantes e que sustentem uma discussão profunda.
+-   **"discussionQuestions":** Formule 3 perguntas (teológica, prática, pessoal) que explorem as referências bíblicas que você adicionou e o tema da ideia.
+
+**EXEMPLO DE FORMATO PERFEITO:**
+[
+  {
+    "theologicalDepth": 8,
+    "scripturalFoundation": ["Gênesis 11:1-9", "Atos 2:1-4", "1 Coríntios 1:10"],
+    "discussionQuestions": [
+      "Teológica: A unidade em Babel era humana e orgulhosa, enquanto a de Pentecostes era divina e humilde. Como isso redefine nossa busca por unidade hoje?",
+      "Prática: Que 'torres' construímos em nossas vidas ou comunidades que criam divisão em vez de verdadeira comunhão?",
+      "Pessoal: Em que momento você sentiu a barreira da 'linguagem' (literal ou figurativa) ser quebrada por uma conexão espiritual?"
+    ]
+  },
+  { ... mais 5 objetos ... }
+]
+
+**AÇÃO FINAL:** Enriqueça todas as 6 ideias e retorne o array JSON perfeito.`;
+},
+
+
 
 
 getSoundtrackPrompt: (fullTranscript) => {
@@ -1178,25 +1201,42 @@ const generateIdeasFromReport = async (button) => {
         </div>`;
 
     try {
-        // --- ETAPA 1: CHAMADA CRIATIVA (GERA MARKDOWN) ---
-        console.log(`[${genre.toUpperCase()}] Etapa 1: Gerando texto criativo...`);
-        const promptContext = { originalQuery, rawReport, languageName };
-        const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
-        const creativeText = await callGroqAPI(creativePrompt, 8000); // Mais tokens para a criatividade
+    // --- ETAPA 1: CHAMADA CRIATIVA (MARKDOWN) ---
+    console.log(`[${genre.toUpperCase()}] Etapa 1: Gerando texto criativo...`);
+    const promptContext = { originalQuery, rawReport, languageName };
+    const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
+    const creativeText = await callGroqAPI(creativePrompt, 8000);
 
-        // --- ETAPA 2: CHAMADA ESTRUTURADORA (GERA JSON) ---
-        console.log(`[${genre.toUpperCase()}] Etapa 2: Estruturando dados em JSON...`);
-        const parserPrompt = PromptManager.getUniversalParserPrompt(creativeText);
-        const rawJson = await callGroqAPI(parserPrompt, 4000);
-        const ideas = cleanGeneratedText(rawJson, true, true);
-        
-        if (!ideas || !Array.isArray(ideas) || ideas.length === 0 || !ideas[0].title) {
-            console.error("Texto criativo gerado (Etapa 1):", creativeText);
-            console.error("JSON bruto retornado pelo parser (Etapa 2):", rawJson);
-            throw new Error("A IA falhou em estruturar as ideias em um formato JSON válido.");
+    // --- ETAPA 2: CHAMADA ESTRUTURADORA (JSON) ---
+    console.log(`[${genre.toUpperCase()}] Etapa 2: Estruturando dados em JSON...`);
+    const parserPrompt = PromptManager.getUniversalParserPrompt(creativeText);
+    const rawJson = await callGroqAPI(parserPrompt, 4000);
+    let ideas = cleanGeneratedText(rawJson, true, true);
+    
+    // --- ETAPA 3 (OPCIONAL): ENRIQUECIMENTO TEOLÓGICO ---
+    if (genre === 'enigmas') {
+        console.log(`[${genre.toUpperCase()}] Etapa 3: Enriquecendo com dados teológicos...`);
+        const baseIdeasText = ideas.map((idea, i) => `Ideia ${i+1}:\nTítulo: ${idea.title}\nÂngulo: ${idea.angle}\n`).join('---\n');
+        const enrichmentPrompt = PromptManager.getTheologicalEnrichmentPrompt(baseIdeasText);
+        const enrichmentJson = await callGroqAPI(enrichmentPrompt, 4000);
+        const enrichmentData = cleanGeneratedText(enrichmentJson, true, true);
+
+        if (enrichmentData && enrichmentData.length === ideas.length) {
+            // Combina os dados da Etapa 2 e 3
+            ideas = ideas.map((idea, index) => ({
+                ...idea,
+                ...enrichmentData[index]
+            }));
+        } else {
+            console.warn("Falha na etapa de enriquecimento teológico. Usando dados básicos.");
         }
-        
-        AppState.generated.ideas = ideas;
+    }
+    
+    if (!ideas || !Array.isArray(ideas) || ideas.length === 0 || !ideas[0].title) {
+        throw new Error("A IA falhou em estruturar as ideias em um formato JSON válido.");
+    }
+    
+    AppState.generated.ideas = ideas;
         
         const genreColorMap = {
             'documentario': 'gray', 'inspiracional': 'violet', 'scifi': 'blue', 
