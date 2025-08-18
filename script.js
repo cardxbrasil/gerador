@@ -394,10 +394,10 @@ ${fullTranscript}
 ]
 
 **AÇÃO FINAL:** Sua resposta deve ser **APENAS e SOMENTE** o array JSON, sem nenhum texto introdutório, explicação ou comentário. Comece com \`[\` e termine com \`]\`. Analise o roteiro e gere agora os 3 prompts de trilha sonora.`;
-}
 
 
-},
+
+};
 
 
 
