@@ -1449,28 +1449,30 @@ const generateIdeasFromReport = async (button) => {
 
 
 const selectIdea = (idea) => {
-    // 1. Limpeza inicial de TODOS os campos de estratégia para um novo começo
+    // 1. Limpeza inicial de TODOS os campos de estratégia
     ['narrativeTheme', 'centralQuestion', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook', 'researchData']
         .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 
-    // 2. Preenchimento dos campos básicos e de identificação
+    // 2. Preenchimento dos campos básicos
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
     
     let fullDescription = idea.videoDescription || '';
     let dossier = `--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n`;
 
-    // 3. Mapeador Inteligente: Preenche os campos de acordo com o especialista
+    // 3. Mapeador Inteligente
     switch (true) {
         case !!idea.investigativeApproach: // Documentário
             document.getElementById('narrativeTheme').value = idea.angle || '';
+            // >>>>> CORREÇÃO 1: Adiciona uma Pergunta Central inteligente para o Documentário <<<<<
+            document.getElementById('centralQuestion').value = `O que os fatos sobre "${idea.title}" realmente revelam?`;
             document.getElementById('researchData').value = `Abordagem Investigativa: ${idea.investigativeApproach}`;
             dossier += `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`;
             break;
 
         case !!idea.emotionalCore: // Inspiracional
             document.getElementById('narrativeTheme').value = idea.angle || '';
-            document.getElementById('emotionalHook').value = `[SUGESTÃO: Desenvolver a história em torno do núcleo emocional de '${idea.emotionalCore}'.]`;
+            document.getElementById('emotionalHook').value = `Desenvolver a história em torno do núcleo emocional de '${idea.emotionalCore}'.`;
             dossier += `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`;
             break;
 
@@ -1482,8 +1484,6 @@ const selectIdea = (idea) => {
             dossier += `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${scriptureList}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`;
             break;
 
-        // Adicione outros casos 'else if' para os demais especialistas aqui, se necessário...
-
         default: // Geral e outros
             document.getElementById('narrativeTheme').value = idea.angle || '';
             dossier += `- Ângulo Único: ${idea.angle || 'N/A'}`;
@@ -1491,31 +1491,24 @@ const selectIdea = (idea) => {
             break;
     }
     
-    // ==========================================================
-    // >>>>> INÍCIO DA CORREÇÃO: PREENCHIMENTO CRIATIVO <<<<<
-    // ==========================================================
-    // 4. Preenche os campos criativos restantes com sugestões inteligentes, se estiverem vazios
+    // 4. Preenche os campos criativos restantes com sugestões LIMPAS, se estiverem vazios
     if (!document.getElementById('narrativeVoice').value) {
         document.getElementById('narrativeVoice').value = 'Confiante e Esclarecedor';
     }
+    // >>>>> CORREÇÃO 2: Remove o meta-texto "[SUGESTÃO:]" <<<<<
     if (!document.getElementById('emotionalHook').value) {
-        document.getElementById('emotionalHook').value = `[SUGESTÃO: Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.]`;
+        document.getElementById('emotionalHook').value = `Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.`;
     }
     if (!document.getElementById('shockingEndingHook').value) {
-        document.getElementById('shockingEndingHook').value = `[SUGESTÃO: Crie uma frase de abertura enigmática que só fará sentido no final do vídeo, como 'A resposta nunca esteve no futuro, mas enterrada no passado...']`;
+        document.getElementById('shockingEndingHook').value = `Crie uma frase de abertura enigmática que só fará sentido no final do vídeo, como: "A resposta nunca esteve no futuro, mas enterrada no passado."`;
     }
-    // ==========================================================
-    // >>>>> FIM DA CORREÇÃO <<<<<
-    // ==========================================================
 
     // 5. Anexa o dossiê à descrição principal
     document.getElementById('videoDescription').value = `${fullDescription}\n\n${dossier.trim()}`;
     
-    // 6. Feedback e Navegação Corrigida
+    // 6. Feedback e Navegação
     window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
     showPane('strategy');
-
-    // NAVEGAÇÃO CORRIGIDA: Sempre aterrissa na aba "Básico"
     document.querySelector('[data-tab="input-tab-basico"]')?.click();
 };
 
