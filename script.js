@@ -740,50 +740,47 @@ const resetApplicationState = () => {
 
 
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
-    // Verificações iniciais (mantidas)
     if (!expectJson) return text ? String(text).trim() : (arrayExpected ? [] : '');
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
         console.warn("Texto de entrada inválido ou vazio para o parser de JSON.");
         return arrayExpected ? [] : null;
     }
 
-    let jsonString = text; // Começa com o texto original
+    let jsonString = text;
 
     // ======================================================================
     // >>>>> PASSO 1: ISOLAMENTO "CAIXA-FORTE" <<<<<
-    // Encontra o bloco JSON principal e descarta todo o resto.
     // ======================================================================
     const firstBracket = jsonString.indexOf('[');
     const firstBrace = jsonString.indexOf('{');
     const lastBracket = jsonString.lastIndexOf(']');
     const lastBrace = jsonString.lastIndexOf('}');
-
     let start = -1;
-    if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
-        start = firstBracket;
-    } else if (firstBrace !== -1) {
-        start = firstBrace;
-    }
-
+    if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) start = firstBracket;
+    else if (firstBrace !== -1) start = firstBrace;
     let end = -1;
-    if (lastBracket !== -1 && (lastBrace === -1 || lastBracket > lastBrace)) {
-        end = lastBracket;
-    } else if (lastBrace !== -1) {
-        end = lastBrace;
-    }
+    if (lastBracket !== -1 && (lastBrace === -1 || lastBracket > lastBrace)) end = lastBracket;
+    else if (lastBrace !== -1) end = lastBrace;
 
     if (start !== -1 && end !== -1 && end > start) {
         jsonString = jsonString.substring(start, end + 1);
     } else {
         console.warn("Não foi possível isolar um bloco JSON principal no texto da IA.");
-        return arrayExpected ? [] : null; // Se não encontrar, falha com segurança
+        return arrayExpected ? [] : null;
     }
+
+    // ======================================================================
+    // >>>>> EVOLUÇÃO FINAL: PRÉ-SANITIZAÇÃO DE CARACTERES <<<<<
+    // ======================================================================
+    // Troca todas as aspas tipográficas (chiques) por aspas simples padrão.
+    jsonString = jsonString.replace(/[‘’´]/g, "'");
+    // CORRIGE O ERRO DAS "ASPAS MISTAS": Procura por uma aspa simples no final de um valor e a troca por uma aspa dupla.
+    jsonString = jsonString.replace(/'\s*([,}])/g, '"$1');
     
     // ======================================================================
     // >>>>> PASSO 2: CATALOGAÇÃO INTELIGENTE (ANTI-DUPLICATAS) <<<<<
     // ======================================================================
     const allFoundObjects = jsonString.match(/\{[\s\S]*?\}/g);
-    
     if (!allFoundObjects || allFoundObjects.length === 0) {
         console.warn("Nenhum objeto JSON foi encontrado após o isolamento.");
         return arrayExpected ? [] : null;
@@ -791,17 +788,11 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     const uniqueObjectsCatalog = new Map();
     allFoundObjects.forEach(objStr => {
-        // Tenta consertar o objeto individualmente antes de catalogar
-        let cleanObjStr = objStr.replace(/,\s*}/g, '}'); // Remove vírgulas sobrando no final do objeto
-        
+        let cleanObjStr = objStr.replace(/,\s*}/g, '}');
         const titleMatch = cleanObjStr.match(/"title"\s*:\s*"(.*?)"/);
-        if (titleMatch && titleMatch[1]) {
-            uniqueObjectsCatalog.set(titleMatch[1], cleanObjStr);
-        } else {
-            uniqueObjectsCatalog.set(Math.random(), cleanObjStr);
-        }
+        if (titleMatch && titleMatch[1]) uniqueObjectsCatalog.set(titleMatch[1], cleanObjStr);
+        else uniqueObjectsCatalog.set(Math.random(), cleanObjStr);
     });
-
     const finalObjects = Array.from(uniqueObjectsCatalog.values());
 
     // ======================================================================
@@ -810,15 +801,23 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let finalJsonString = `[${finalObjects.join(',')}]`;
     
     try {
+        // Se o resultado esperado não for um array, tenta extrair apenas o primeiro objeto.
+        if (!arrayExpected && finalObjects.length > 0) {
+            const singleObject = finalObjects[0];
+            const parsedJson = JSON.parse(singleObject);
+            return parsedJson;
+        }
+        
+        // Se for um array, processa como antes.
         const parsedJson = JSON.parse(finalJsonString);
-        if (arrayExpected && !Array.isArray(parsedJson)) return [parsedJson];
         return parsedJson;
+
     } catch (error) {
         // Tenta um último reparo para o erro de "aspas duplas duplas"
         finalJsonString = finalJsonString.replace(/""/g, '"');
         try {
             const parsedJson = JSON.parse(finalJsonString);
-            if (arrayExpected && !Array.isArray(parsedJson)) return [parsedJson];
+            if (!arrayExpected && Array.isArray(parsedJson)) return parsedJson[0];
             return parsedJson;
         } catch (finalError) {
             console.error("FALHA CRÍTICA NO PARSE DO JSON. Erro:", finalError.message);
@@ -828,7 +827,6 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
     }
 };
-
 
 
 
