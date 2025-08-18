@@ -740,6 +740,7 @@ const resetApplicationState = () => {
 
 
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
+    // Verificações iniciais (mantidas)
     if (!expectJson) return text ? String(text).trim() : (arrayExpected ? [] : '');
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
         console.warn("Texto de entrada inválido ou vazio para o parser de JSON.");
@@ -749,66 +750,60 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let jsonString = text.trim();
 
     // ======================================================================
-    // >>>>> CAMADA 1: NORMALIZAÇÃO E LIMPEZA PROFUNDA <<<<<
+    // >>>>> CAMADA 1: PRÉ-PROCESSAMENTO (Corrige erros grosseiros) <<<<<
+    // ======================================================================
+    // Corrige o erro fatal das "Aspas Duplas Duplas": ""valor"" -> "valor"
+    jsonString = jsonString.replace(/: ""([^"]*)""/g, ': "$1"');
+    
+    // ======================================================================
+    // >>>>> CAMADA 2: LIMPEZA AGRESSIVA (Remove todo o "lixo") <<<<<
     // ======================================================================
     const fillerPatterns = [
         /assistant<\|end_header_id\|>/g,
-        /^.*?(\[|\{)/s, // Remove tudo antes do primeiro [ ou {
-        /(\]|\})\s*.*$/s, // Remove tudo depois do último ] ou }
-        /Aqui está.*?:\s*/gim,
-        /Essas são as \d+ premissas.*?$/gims
+        /Aqui estão.*?$/gim,
+        /Espero que.*?$/gim,
+        /\*\*JSON:\*\*/gim,
+        /I'm a journalist.*?Here are the proposals:/gims,
+        /I'm glad you asked!/gim
     ];
-    fillerPatterns.forEach(pattern => jsonString = jsonString.replace(pattern, '$1'));
-    jsonString = jsonString.replace(/: ""([^"]+)""/g, ': "$1"');
+    fillerPatterns.forEach(pattern => {
+        jsonString = jsonString.replace(pattern, '');
+    });
 
     // ======================================================================
-    // >>>>> CAMADA 2: RECONSTRUÇÃO E CONSOLIDAÇÃO <<<<<
-    // A evolução mais crítica: lida com chaves órfãs e objetos quebrados.
+    // >>>>> CAMADA 3: CONSOLIDAÇÃO UNIVERSAL (Monta o quebra-cabeça) <<<<<
     // ======================================================================
-
-    // Passo A: Identifica e remove o erro específico: `"],`
-    // Isso libera as chaves órfãs para serem resgatadas.
-    jsonString = jsonString.replace(/"\],/g, '",');
-
-    // Passo B: Extrai todos os objetos JÁ BEM FORMADOS.
-    const wellFormedObjects = jsonString.match(/\{[\s\S]*?\}/g) || [];
-
-    // Passo C: Extrai todas as CHAVES ÓRFÃS que ficaram de fora.
-    const orphanKeys = jsonString.replace(/\{[\s\S]*?\}/g, '').match(/"[^"]+?"\s*:\s*(".*?"|\[.*?\]|\d+)/g) || [];
+    // Extrai TODOS os objetos JSON, ignorando colchetes e outros caracteres.
+    const jsonObjects = jsonString.match(/\{[\s\S]*?\}/g);
     
-    let reconstructedObjects = [];
-    if (orphanKeys.length > 0) {
-        // Agrupa as chaves órfãs em um ou mais novos objetos.
-        let currentObject = '{';
-        orphanKeys.forEach((key, index) => {
-            currentObject += key;
-            // Assumimos que a chave "horrorMechanism" ou a última chave encontrada fecha um objeto
-            if (key.includes('horrorMechanism') || index === orphanKeys.length - 1) {
-                currentObject += '}';
-                reconstructedObjects.push(currentObject);
-                currentObject = '{';
-            } else {
-                currentObject += ',';
-            }
-        });
-    }
-
-    // Passo D: Montagem Final - Junta os objetos bem formados com os reconstruídos.
-    const allObjects = [...wellFormedObjects, ...reconstructedObjects.filter(o => o.length > 2)];
-    if (allObjects.length > 0) {
-        jsonString = `[${allObjects.join(',')}]`;
+    if (jsonObjects && jsonObjects.length > 0) {
+        // Monta um único array JSON válido a partir de todos os objetos encontrados.
+        jsonString = `[${jsonObjects.join(',')}]`;
     }
 
     // ======================================================================
-    // >>>>> CAMADA 3: REPARO SINTÁTICO FINO (Polimento) <<<<<
+    // >>>>> CAMADA 4: REPARO SINTÁTICO FINO E VALIDAÇÃO <<<<<
     // ======================================================================
+    
+    // (Lógica de reparo de JSON truncado, mantida)
+    if (!jsonString.trim().endsWith(']') && !jsonString.trim().endsWith('}')) {
+        const lastQuoteIndex = jsonString.lastIndexOf('"');
+        const lastColonIndex = jsonString.lastIndexOf(':');
+        if (lastQuoteIndex > -1 && lastQuoteIndex > lastColonIndex) {
+            const quotesAfterColon = (jsonString.substring(lastColonIndex).match(/"/g) || []).length;
+            if (quotesAfterColon % 2 !== 0) jsonString += '"';
+        }
+        if (jsonString.lastIndexOf('{') > jsonString.lastIndexOf(',')) jsonString += '}';
+        if (jsonString.lastIndexOf('[') > jsonString.lastIndexOf('{')) jsonString += ']';
+    }
+
+    // (Regras de vírgulas e refinamento, todas preservadas)
     jsonString = jsonString.replace(/([}\]])\s*"/g, '$1, "');
     jsonString = jsonString.replace(/"\s*"/g, '", "');
     jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
     jsonString = jsonString.replace(/\}\s*\{/g, '},{');
     jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
 
-    // --- CAMADA 4: VALIDAÇÃO FINAL ---
     try {
         if (jsonString.endsWith(',}')) jsonString = jsonString.slice(0, -2) + '}';
         if (jsonString.endsWith(',]')) jsonString = jsonString.slice(0, -2) + ']';
