@@ -2354,10 +2354,18 @@ ${text.slice(0, 7000)}
         // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
         const perfectJsonText = await fixJsonWithAI(brokenJsonResponse);
 
-        // ETAPA 3: PARSE SEGURO
-        const analysisData = JSON.parse(perfectJsonText);
+        // ETAPA 3: PARSE SEGURO E EXTRAÇÃO DO OBJETO
+        let analysisData = JSON.parse(perfectJsonText);
 
-        if (!analysisData || !('score' in analysisData)) throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
+        // ==========================================================
+        // >>>>> A CORREÇÃO FINAL ESTÁ AQUI <<<<<
+        // Se a IA retornou um array com um único objeto, extraia esse objeto.
+        // ==========================================================
+        if (Array.isArray(analysisData) && analysisData.length > 0) {
+            analysisData = analysisData[0];
+        }
+
+        if (!analysisData || typeof analysisData.score === 'undefined') throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
         
         const formattedData = {
             criterion_name: criterion,
