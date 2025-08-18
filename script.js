@@ -1323,6 +1323,9 @@ const generateIdeasFromReport = async (button) => {
     const promptContext = { originalQuery, rawReport, languageName };
     const prompt = PromptManager.getIdeasPrompt(genre, promptContext);
 
+
+    console.log(`[Especialista: ${genre.toUpperCase()}] - Enviando prompt:`, prompt.substring(0, 300));
+
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
         const ideas = cleanGeneratedText(rawResult, true, true); 
