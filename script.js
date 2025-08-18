@@ -1303,9 +1303,10 @@ const generateIdeasFromReport = async (button) => {
         return;
     }
     
-    const activeTab = document.querySelector('#genreTabs .tab-button.tab-active');
-    const genre = activeTab ? activeTab.dataset.genre : 'geral';
+    const genre = document.querySelector('#genreTabs .tab-button.tab-active')?.dataset.genre || 'geral';
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português do Brasil' : 'English';
+
+    console.log("ESPECIALISTA SENDO USADO PARA O PROMPT:", genre);
     
     const outputContainer = document.getElementById('ideasOutput');
     showButtonLoading(button);
