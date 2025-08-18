@@ -1562,6 +1562,10 @@ const getBasePromptContext = () => {
     return context;
 };
 
+
+
+
+
 const suggestStrategy = async (button) => {
     const theme = document.getElementById('videoTheme')?.value.trim();
     const description = document.getElementById('videoDescription')?.value.trim();
@@ -1583,30 +1587,37 @@ const suggestStrategy = async (button) => {
     
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
 
-    const prompt = `Você é uma API de Estratégia de Conteúdo Viral. Sua única função é gerar um objeto JSON com uma estratégia de vídeo completa.
+    // ==========================================================
+    // >>>>> INÍCIO DO PROMPT BLINDADO E REFORÇADO <<<<<
+    // ==========================================================
+    const prompt = `Você é uma API de Estratégia de Conteúdo Viral. Sua única função é gerar um objeto JSON com uma estratégia de vídeo COMPLETA E DETALHADA.
 
 **REGRAS CRÍTICAS DE SINTAXE JSON (INEGOCIÁVEIS):**
-1.  **JSON PURO:** Responda APENAS com um objeto JSON válido.
+1.  **JSON PURO:** Responda APENAS com um objeto JSON válido. É PROIBIDO omitir qualquer uma das 10 chaves.
 2.  **ASPAS DUPLAS:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
 3.  **IDIOMA:** Todos os valores devem estar em **${languageName}**.
 
-**MANUAL DE PREENCHIMENTO:**
--   "target_audience": Descreva o espectador ideal.
--   "narrative_goal": Escolha UM de: 'storytelling', 'storyselling'.
--   "narrative_structure": Baseado no "narrative_goal", escolha a estrutura MAIS IMPACTANTE. Se 'storytelling', escolha de: ["documentary", "heroes_journey", "pixar_spine", "mystery_loop", "twist"]. Se 'storyselling', escolha de: ["pas", "bab", "aida", "underdog_victory", "discovery_mentor"].
--   "narrative_theme": A "grande ideia" em uma frase.
--   "narrative_tone": Escolha UM de: 'inspirador', 'serio', 'emocional'.
--   "narrative_voice": Descreva a persona do narrador em 2 ou 3 adjetivos (Ex: "Confiante, Sábia, Misteriosa").
--   "central_question": Formule a pergunta que gera MISTÉRIO.
--   "emotional_hook": Crie uma MINI-HISTÓRIA humana.
--   "shocking_ending_hook": Crie a PRIMEIRA FRASE do vídeo.
--   "research_data": Sugira 2 a 3 PONTOS DE PESQUISA concretos.
+**MANUAL DE PREENCHIMENTO (PREENCHIMENTO DE TODAS AS 10 CHAVES É OBRIGATÓRIO):**
+-   **"target_audience":** Descreva o espectador ideal de forma específica.
+-   **"narrative_goal":** Escolha UM de: 'storytelling', 'storyselling'.
+-   **"narrative_structure":** Baseado no "narrative_goal", escolha a estrutura MAIS IMPACTANTE. Se 'storytelling', escolha de: ["documentary", "heroes_journey", "pixar_spine", "mystery_loop", "twist"]. Se 'storyselling', escolha de: ["pas", "bab", "aida", "underdog_victory", "discovery_mentor"].
+-   **"narrative_tone":** Escolha UM de: 'inspirador', 'serio', 'emocional'.
+-   **"central_question":** Formule a pergunta central que o roteiro irá responder.
+
+-   **"narrative_theme" (A GRANDE IDEIA):** ESSENCIAL. Crie a mensagem central e transformadora do vídeo em uma única frase poderosa. Exemplo: "Como a fé pode florescer nos lugares mais inesperados."
+-   **"narrative_voice" (A PERSONALIDADE):** OBRIGATÓRIO. Defina a personalidade do narrador com 2-3 adjetivos impactantes que guiarão o tom da escrita. Ex: "Sábio, porém humilde", "Investigativo e cético", "Apaixonado e urgente".
+-   **"emotional_hook" (A CONEXÃO HUMANA):** CRÍTICO PARA RETENÇÃO. Crie uma micro-narrativa ou anedota emocional que sirva como a alma do vídeo. Deve ser algo que gere empatia imediata. Ex: "Imagine um explorador perdido, encontrando não ouro, mas um símbolo de esperança..."
+-   **"shocking_ending_hook" (O LOOP ABERTO INICIAL):** Crie a PRIMEIRA frase do roteiro, que deve funcionar como um gancho de mistério que só será resolvido no final. Ex: "No final, a descoberta mais chocante não estava no mapa, mas no coração de quem o desenhou."
+-   **"research_data":** Sugira 2 a 3 PONTOS DE PESQUISA concretos e específicos para adicionar credibilidade, baseados no tema.
 
 **DADOS DE ENTRADA:**
 - **Tema do Vídeo:** "${theme}"
 - **Descrição:** "${description}"
 
-**AÇÃO FINAL:** Gere AGORA o objeto JSON completo.`;
+**AÇÃO FINAL:** Gere AGORA o objeto JSON completo com TODAS AS 10 CHAVES preenchidas. Sua criatividade nestes campos é o que define uma estratégia viral.`;
+    // ==========================================================
+    // >>>>> FIM DO PROMPT BLINDADO <<<<<
+    // ==========================================================
 
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
@@ -1618,7 +1629,7 @@ const suggestStrategy = async (button) => {
             narrativeGoalSelect.value = strategy.narrative_goal;
             updateNarrativeStructureOptions();
         }
-        setTimeout(() => { // Pequeno delay para garantir que as opções foram atualizadas
+        setTimeout(() => { 
             const keyToElementIdMap = {
                 'target_audience': 'targetAudience', 'narrative_theme': 'narrativeTheme',
                 'narrative_tone': 'narrativeTone', 'narrative_voice': 'narrativeVoice',
@@ -1626,40 +1637,33 @@ const suggestStrategy = async (button) => {
                 'shocking_ending_hook': 'shockingEndingHook', 'research_data': 'researchData',
                 'narrative_structure': 'narrativeStructure'
             };
-for (const key in keyToElementIdMap) {
-    if (strategy[key]) {
-        const element = document.getElementById(keyToElementIdMap[key]);
-        if (element) {
-            let valueToSet = strategy[key];
-
-            // >>>>> BLINDAGEM UNIVERSAL CONTRA OBJETOS <<<<<
-            if (typeof valueToSet === 'object' && valueToSet !== null) {
-                console.warn(`A IA retornou um objeto para o campo '${key}':`, valueToSet);
-                
-                // Se for um array, junta os valores. Se for um objeto, junta os valores.
-                if (Array.isArray(valueToSet)) {
-                    // Se for um array de objetos, tenta extrair o primeiro valor de cada objeto
-                    if (valueToSet.length > 0 && typeof valueToSet[0] === 'object') {
-                         valueToSet = valueToSet.map(obj => Object.values(obj)[0]).join('; ');
-                    } else { // Se for um array de strings
-                         valueToSet = valueToSet.join('; ');
+            for (const key in keyToElementIdMap) {
+                if (strategy[key]) {
+                    const element = document.getElementById(keyToElementIdMap[key]);
+                    if (element) {
+                        let valueToSet = strategy[key];
+                        if (typeof valueToSet === 'object' && valueToSet !== null) {
+                            console.warn(`A IA retornou um objeto para o campo '${key}':`, valueToSet);
+                            if (Array.isArray(valueToSet)) {
+                                if (valueToSet.length > 0 && typeof valueToSet[0] === 'object') {
+                                     valueToSet = valueToSet.map(obj => Object.values(obj)[0]).join('; ');
+                                } else {
+                                     valueToSet = valueToSet.join('; ');
+                                }
+                            } else {
+                                valueToSet = Object.values(valueToSet).join(', ');
+                            }
+                        }
+                        if (element.tagName === 'SELECT') {
+                            if ([...element.options].some(o => o.value === valueToSet)) {
+                                element.value = valueToSet;
+                            }
+                        } else {
+                            element.value = valueToSet;
+                        }
                     }
-                } else { // Se for um objeto único
-                    valueToSet = Object.values(valueToSet).join(', ');
                 }
             }
-            // >>>>> FIM DA BLINDAGEM <<<<<
-
-            if (element.tagName === 'SELECT') {
-                if ([...element.options].some(o => o.value === valueToSet)) {
-                    element.value = valueToSet;
-                }
-            } else {
-                element.value = valueToSet;
-            }
-        }
-    }
-}
             updateMainTooltip();
         }, 100);
 
@@ -1673,6 +1677,8 @@ for (const key in keyToElementIdMap) {
         hideButtonLoading(button);
     }
 };
+
+
 
 
 
