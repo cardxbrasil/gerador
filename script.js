@@ -573,6 +573,51 @@ const fixJsonWithAI = async (brokenJsonText) => {
 
 
 
+
+// O SUCESSOR: Leve, rápido e confiável para JSONs simples.
+const parseSimpleJson = (text, expectArray = false) => {
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        console.warn("Texto de entrada inválido ou vazio para o parser de JSON.");
+        return expectArray ? [] : null;
+    }
+
+    let jsonString = text;
+    
+    // Passo 1: Isola o bloco JSON principal.
+    const startBracket = jsonString.indexOf('[');
+    const startBrace = jsonString.indexOf('{');
+    const lastBracket = jsonString.lastIndexOf(']');
+    const lastBrace = jsonString.lastIndexOf('}');
+
+    let start = -1;
+    if (startBracket !== -1 && (startBrace === -1 || startBracket < startBrace)) start = startBracket;
+    else if (startBrace !== -1) start = startBrace;
+
+    let end = -1;
+    if (lastBracket !== -1 && (lastBrace === -1 || lastBracket > lastBrace)) end = lastBracket;
+    else if (lastBrace !== -1) end = lastBrace;
+
+    if (start !== -1 && end !== -1 && end > start) {
+        jsonString = jsonString.substring(start, end + 1);
+    } else {
+        console.warn("Não foi possível isolar um bloco JSON da resposta da IA.");
+        return expectArray ? [] : null;
+    }
+
+    // Passo 2: Tenta o parse.
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error("FALHA ao parsear JSON simples. Erro:", error.message);
+        console.log("STRING ISOLADA QUE FALHOU:", jsonString);
+        return expectArray ? [] : null;
+    }
+};
+
+
+
+
+
 // ==========================================================
 // ==== FUNÇÕES UTILITÁRIAS (Completas da v5.0) =============
 // ==========================================================
@@ -1623,7 +1668,7 @@ const suggestStrategy = async (button) => {
 
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
-        const strategy = cleanGeneratedText(rawResult, true);
+        const strategy = parseSimpleJson(rawResult);
         if (!strategy || typeof strategy !== 'object') throw new Error("A IA não retornou uma estratégia em formato JSON válido.");
         
         const narrativeGoalSelect = document.getElementById('narrativeGoal');
