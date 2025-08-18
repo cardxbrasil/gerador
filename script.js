@@ -625,6 +625,28 @@ const parseSimpleJson = (text, expectArray = false) => {
 
 
 
+const fixJsonWithAI = async (brokenJsonText) => {
+    const prompt = `Você é um especialista em correção de sintaxe JSON. Sua única tarefa é pegar o texto abaixo, que é uma tentativa de um array JSON, e consertá-lo para que seja 100% válido.
+
+    REGRAS CRÍTICAS:
+    1.  Corrija quaisquer erros: vírgulas faltando ou sobrando, aspas incorretas (incluindo aspas duplas dentro de valores como ""), objetos incompletos ou quebrados, etc.
+    2.  Se houver objetos duplicados, mantenha apenas a versão mais completa de cada um.
+    3.  Sua resposta deve ser APENAS o array JSON perfeitamente corrigido. NÃO inclua nenhum texto, explicação ou comentário.
+
+    TEXTO QUEBRADO PARA CORRIGIR:
+    ---
+    ${brokenJsonText}
+    ---
+
+    Retorne APENAS o JSON corrigido.`;
+
+    // Usamos um maxTokens generoso para garantir que a resposta completa caiba.
+    const fixedJsonText = await callGroqAPI(prompt, 8000); 
+    return fixedJsonText;
+};
+
+
+
 
 // ==========================================================
 // ==== FUNÇÕES UTILITÁRIAS (Completas da v5.0) =============
@@ -1382,21 +1404,19 @@ const generateIdeasFromReport = async (button) => {
         // ==========================================================
         const promptContext = { originalQuery, rawReport, languageName };
         const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
-        // A IA gera o texto criativo, mas potencialmente quebrado.
-        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(creativePrompt), 8000);
+        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(creativePrompt), 8000); 
 
         outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Corrigindo e validando a sintaxe...</p></div>`;
 
         // ==========================================================
         // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
         // ==========================================================
-        // O "Engenheiro de Sintaxe" entra em ação para consertar o trabalho do "Gênio Criativo".
         const perfectJsonText = await fixJsonWithAI(brokenJsonResponse);
         
         // ==========================================================
         // ETAPA 3: PARSE FINAL (AGORA SIMPLES E SEGURO)
         // ==========================================================
-        const ideas = JSON.parse(perfectJsonText);
+        const ideas = parseSimpleJson(perfectJsonText, true);
 
         if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
             throw new Error("A IA falhou em gerar ou corrigir as ideias.");
@@ -1408,7 +1428,6 @@ const generateIdeasFromReport = async (button) => {
         markStepCompleted('investigate', false);
 
     } catch(err) {
-        // Agora, o erro de parse é muito mais significativo e raro.
         console.error("FALHA CRÍTICA FINAL:", err);
         window.showToast(`Erro ao gerar ideias: ${err.message}`, 'error');
         outputContainer.innerHTML = `<p class="md:col-span-2" style="color: var(--danger);">${err.message}</p>`;
