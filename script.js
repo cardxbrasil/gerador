@@ -283,37 +283,26 @@ __RAW_REPORT__
 
 **AÇÃO FINAL:** Encontre as fissuras na realidade. Transforme fatos em 6 premissas que perturbem e assombrem. Responda APENAS no formato markdown especificado.`,
 
-'enigmas': `Você são TRÊS ESPECIALISTAS TRABALHANDHO EM SINERGIA: 1. Um Teólogo Investigativo, 2. Um Arqueólogo, 3. Um Comunicador Mestre.
-
-**MISSÃO COLETIVA:** Gerar 6 ideias de vídeos que criem pontes revolucionárias entre o relatório, textos bíblicos e questões teológicas, sendo ao mesmo tempo academicamente respeitável e viralmente compartilhável.
-
-**IDENTIDADE E ESPECIALIZAÇÃO:** Vocês formam o "COLETIVO HERMENÊUTICO", renomado por desvendar camadas profundas das Escrituras.
+'enigmas': `Você atua como um 'Coletivo Hermenêutico' (Teólogo, Arqueólogo, Comunicador). Sua missão é gerar 6 ideias de vídeos que conectem o relatório abaixo com temas bíblicos de forma profunda e acessível.
 
 **RELATÓRIO PARA ANÁLISE:**
 ---
 __RAW_REPORT__
 ---
 
-**TAREFA:** Gere 6 ideias de vídeo. Para cada ideia, crie apenas os 5 campos criativos listados no formato de saída abaixo. Foque na qualidade da narrativa.
-
-**MANUAL DE CRIAÇÃO (Siga para cada ideia):**
--   **Título:** Cativante e teológico, prometendo uma revelação.
--   **Ângulo:** Uma frase complexa conectando um FATO do relatório, uma PASSAGEM BÍBLICA e uma IMPLICAÇÃO TEOLÓGICA.
--   **Público-Alvo:** O nicho de espectador específico.
--   **Potencial Viral:** Nota de 1 a 10 para o potencial de gerar DEBATE.
--   **Descrição:** Uma sinopse investigativa rica com pelo menos 7 frases.
+**TAREFA:** Gere 6 ideias de vídeo. Para cada ideia, PREENCHA OS CAMPOS no formato de saída abaixo, seguindo as instruções entre colchetes [ ].
 
 **FORMATO DE SAÍDA OBRIGATÓRIO (use para cada uma das 6 ideias):**
 ---
 **Ideia:** [Número]
-**Título:** [Seu título aqui]
-**Ângulo:** [Seu ângulo aqui]
-**Público-Alvo:** [Seu público-alvo aqui]
-**Potencial Viral:** [Sua nota aqui]
-**Descrição:** [Sua descrição aqui]
+**Título:** [Crie um título cativante e teológico que prometa uma revelação]
+**Ângulo:** [Descreva a conexão inovadora entre um FATO do relatório, uma PASSAGEM BÍBLICA e uma IMPLICAÇÃO TEOLÓGICA]
+**Público-Alvo:** [Descreva o nicho de espectador (ex: "Estudantes de teologia", "Cristãos com interesse em arqueologia")]
+**Potencial Viral:** [Dê uma nota de 1 a 10 para o potencial de gerar DEBATE TEOLÓGICO]
+**Descrição:** [Escreva uma sinopse investigativa e rica com pelo menos 7 frases, apresentando o mistério, a descoberta e as implicações]
 ---
 
-**AÇÃO FINAL:** Como Coletivo Hermenêutico, desvende conexões teológicas ousadas. Responda APENAS no formato markdown especificado.`,
+**AÇÃO FINAL:** Gere todas as 6 ideias seguindo rigorosamente o formato. Responda APENAS no formato markdown especificado.`,
 
     'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis.
 
@@ -361,36 +350,34 @@ Você é um ARQUITETO DE VIRALIDADE. Sua especialidade é identificar padrões o
 
 // DENTRO DO PromptManager
 getTheologicalEnrichmentPrompt: (baseIdeas) => {
-    return `Você é um TEÓLOGO INVESTIGATIVO. Sua única tarefa é analisar as 6 ideias de vídeo abaixo e enriquecê-las com profundidade teológica e fundamentação bíblica, retornando um array JSON.
+    return `Você é um TEÓLOGO INVESTIGATIVO. Sua única tarefa é analisar as 6 ideias de vídeo abaixo e adicionar os dados teológicos que faltam, retornando um array JSON.
 
 **IDEIAS BASE PARA ANÁLISE:**
 ---
 ${baseIdeas}
 ---
 
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
-1.  **JSON PURO:** Sua resposta deve ser **APENAS e SOMENTE** um array JSON válido.
-2.  **ESTRUTURA COMPLETA:** O array de saída deve conter EXATAMENTE 6 objetos. Cada objeto deve ter **EXATAMENTE** estas 3 chaves: "theologicalDepth", "scripturalFoundation", e "discussionQuestions".
-3.  **FALHA AUTOMÁTICA:** Qualquer resposta que não contenha estas 3 chaves para cada um dos 6 objetos será considerada uma falha.
-4.  **SINTAXE:** "scripturalFoundation" e "discussionQuestions" devem ser arrays de strings.
+**REGRAS CRÍTICAS E FORMATO JSON (INEGOCIÁVEIS):**
+1.  **JSON PURO:** Sua resposta deve ser **APENAS e SOMENTE** um array JSON válido contendo 6 objetos.
+2.  **ESTRUTURA COMPLETA:** Cada objeto deve ter **EXATAMENTE** estas 3 chaves: "theologicalDepth", "scripturalFoundation", e "discussionQuestions".
+3.  **FALHA AUTOMÁTICA:** Qualquer resposta que não contenha estas 3 chaves para cada objeto será considerada uma falha.
 
-**MANUAL DE ENRIQUECIMENTO (Para cada ideia):**
--   **"theologicalDepth":** Analise a ideia base e atribua uma nota de 1 a 10 para a profundidade da conexão teológica que você consegue criar.
--   **"scripturalFoundation":** Com base no título e ângulo da ideia, liste de 3 a 5 referências bíblicas (Antigo e Novo Testamento) que sejam diretamente relevantes e que sustentem uma discussão profunda.
--   **"discussionQuestions":** Formule 3 perguntas (teológica, prática, pessoal) que explorem as referências bíblicas que você adicionou e o tema da ideia.
+**INSTRUÇÕES PARA PREENCHIMENTO (Para cada ideia):**
+-   **"theologicalDepth":** [Dê uma nota de 1 a 10 para a profundidade da conexão teológica que você pode criar a partir da ideia base]
+-   **"scripturalFoundation":** [Liste de 3 a 5 referências bíblicas relevantes em um array de strings]
+-   **"discussionQuestions":** [Crie 3 perguntas (teológica, prática, pessoal) em um array de strings]
 
 **EXEMPLO DE FORMATO PERFEITO:**
 [
   {
     "theologicalDepth": 8,
-    "scripturalFoundation": ["Gênesis 11:1-9", "Atos 2:1-4", "1 Coríntios 1:10"],
+    "scripturalFoundation": ["Gênesis 11:1-9", "Atos 2:1-4"],
     "discussionQuestions": [
-      "Teológica: A unidade em Babel era humana e orgulhosa, enquanto a de Pentecostes era divina e humilde. Como isso redefine nossa busca por unidade hoje?",
-      "Prática: Que 'torres' construímos em nossas vidas ou comunidades que criam divisão em vez de verdadeira comunhão?",
-      "Pessoal: Em que momento você sentiu a barreira da 'linguagem' (literal ou figurativa) ser quebrada por uma conexão espiritual?"
+      "Teológica: Como a unidade em Babel difere da unidade de Pentecostes?",
+      "Prática: Que 'torres' construímos em nossas vidas?",
+      "Pessoal: Em que momento você sentiu a barreira da 'linguagem' ser quebrada?"
     ]
-  },
-  { ... mais 5 objetos ... }
+  }
 ]
 
 **AÇÃO FINAL:** Enriqueça todas as 6 ideias e retorne o array JSON perfeito.`;
