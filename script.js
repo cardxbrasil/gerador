@@ -1438,20 +1438,61 @@ const generateIdeasFromReport = async (button) => {
 
 
 const selectIdea = (idea) => {
+    // 1. Preenchimento Padrão (para TODOS os especialistas)
     document.getElementById('videoTheme').value = idea.title || '';
-    document.getElementById('videoDescription').value = idea.videoDescription || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
     document.getElementById('narrativeTheme').value = idea.angle || '';
     
-    ['centralQuestion', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook', 'researchData']
-        .forEach(id => {
+    // 2. Lógica Condicional: É uma ideia do especialista "Enigmas"?
+    // Verificamos se os campos exclusivos de "Enigmas" existem no objeto da ideia.
+    if (idea.scripturalFoundation && idea.discussionQuestions) {
+        
+        // SIM, É 'ENIGMAS'. Agora transferimos a inteligência para a Estratégia.
+        
+        // Transforma o array de versículos em uma string útil para o campo de pesquisa.
+        const researchText = `Base Bíblica: ${idea.scripturalFoundation.join('; ')}.`;
+        document.getElementById('researchData').value = researchText;
+
+        // Usa a primeira pergunta como a "Pergunta Central" principal.
+        document.getElementById('centralQuestion').value = idea.discussionQuestions[0] || '';
+        
+        // Usa a descrição original e anexa as outras perguntas para inspiração extra.
+        const extraQuestions = idea.discussionQuestions.slice(1).map(q => `- ${q}`).join('\n');
+        let fullDescription = idea.videoDescription || '';
+        if (extraQuestions) {
+            fullDescription += `\n\nQuestões-chave para explorar:\n${extraQuestions}`;
+        }
+        document.getElementById('videoDescription').value = fullDescription;
+
+        // Limpa apenas os campos que NÃO foram preenchidos pela IA
+         ['emotionalHook', 'narrativeVoice', 'shockingEndingHook'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
-    
-    window.showToast("Ideia selecionada! Agora, refine a estratégia.", 'success');
+
+    } else {
+        // NÃO, É um especialista genérico. Usa o comportamento antigo.
+        document.getElementById('videoDescription').value = idea.videoDescription || '';
+        
+        // Limpa todos os campos estratégicos para não misturar com ideias antigas.
+        ['centralQuestion', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook', 'researchData']
+            .forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+    }
+
+    // 3. Feedback e Navegação (igual para todos)
+    window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
     showPane('strategy');
+    
+    // BÔNUS: Leva o usuário direto para a aba de Estratégia onde os dados foram preenchidos.
+    document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
 };
+
+
+
+
 
 
 // --- ETAPA 2: DEFINIR ESTRATÉGIA ---
