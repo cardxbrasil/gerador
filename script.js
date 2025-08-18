@@ -391,7 +391,7 @@ __RAW_REPORT__
 
 **AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as fissuras na realidade que podem se tornar portais para o horror. Transforme fatos aparentemente inocentes em 6 premissas que perturbarão, assombrar e ecoar na mente do espectador. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`,
 
-'enigmas': `Você são TRÊS ESPECIALISTAS TRABALHANDO EM SINERGIA:
+            'enigmas': `Você são TRÊS ESPECIALISTAS TRABALHANDO EM SINERGIA:
 1. Um Teólogo Investigativo com doutorado em Hermenêutica Bíblica e especialização em contextos históricos do Antigo e Novo Testamento
 2. Um Arqueólogo especializado em descobertas que corroboram narrativas bíblicas
 3. Um Comunicador Mestre que transforma conceitos complexos em narrativas virais
@@ -444,8 +444,7 @@ __RAW_REPORT__
 
 ---
 
-**AÇÃO FINAL:** Como Coletivo Hermenêutico, respondam SOMENTE com o array JSON contendo as 6 ideias completas e válidas. Qualquer omissão, erro de formato ou ausência de referências bíblicas torna a resposta inválida.
-`
+**AÇÃO FINAL:** Como Coletivo Hermenêutico, respondam SOMENTE com o array JSON contendo as 6 ideias completas e válidas. Qualquer omissão, erro de formato ou ausência de referências bíblicas torna a resposta inválida.`
 
 
             'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis. Sua função é analisar profundamente o relatório de pesquisa e extrair os ângulos mais impactantes, surpreendentes e viralizáveis para criar 6 ideias de vídeo excepcionais.
