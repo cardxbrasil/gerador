@@ -2334,31 +2334,29 @@ const analyzeScriptPart = async (criterion, text, context = {}) => {
 
     const prompt = `
 Você é uma API de Análise Crítica de Roteiros. Sua única função é retornar um objeto JSON.
-
 **CONTEXTO ESTRATÉGICO:**
 - **Tema do Vídeo:** "${context.theme || 'Não definido'}"
 - **Objetivo desta Seção (${criterion}):** "${outlineDirective}"
-
 **TRECHO PARA ANÁLISE:**
 ---
 ${text.slice(0, 7000)}
 ---
-
 **REGRAS CRÍTICAS DE RESPOSTA (JSON ESTRITO):**
 1.  **JSON PURO:** Responda APENAS com um objeto JSON válido.
 2.  **CHAVES E TIPOS OBRIGATÓRIOS:** O objeto DEVE conter EXATAMENTE estas 6 chaves: "criterion_name", "score" (Número), "positive_points" (String), "problematic_quote" (String - cópia literal ou "Nenhum"), "critique" (String), e "rewritten_quote" (String).
 3.  **SINTAXE:** Todas as chaves e valores string DEVEM usar aspas duplas ("").
-
 **AÇÃO FINAL:** Analise o trecho e retorne APENAS o objeto JSON perfeito.`;
 
     try {
-        // ==========================================================
-        // >>>>> CORREÇÃO APLICADA AQUI <<<<<
-        // Usamos a função forceLanguageOnPrompt para garantir o idioma correto.
-        // ==========================================================
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 1500);
+        // ETAPA 1: GERAÇÃO CRIATIVA (ACEITANDO O CAOS)
+        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 2000);
         
-        const analysisData = parseSimpleJson(rawResult);
+        // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
+        const perfectJsonText = await fixJsonWithAI(brokenJsonResponse);
+
+        // ETAPA 3: PARSE SEGURO
+        const analysisData = JSON.parse(perfectJsonText);
+
         if (!analysisData || !('score' in analysisData)) throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
         
         const formattedData = {
@@ -2718,6 +2716,10 @@ const insertViralSuggestion = (button) => {
     button.classList.add('btn-success');
 };
 
+
+
+
+
 const suggestViralElements = async (button) => {
     const fullTranscript = getTranscriptOnly();
     const videoTheme = document.getElementById('videoTheme')?.value.trim();
@@ -2753,12 +2755,12 @@ ${fullTranscript.slice(0, 7500)}
 - **"potential_impact_score":** Nota de 1 a 10 para o potencial de engajamento.
 - **"implementation_idea":** Explique o VALOR ESTRATÉGICO da inserção.
 
-**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
-
 **AÇÃO FINAL:** Analise o roteiro e o contexto. Responda APENAS com o array JSON perfeito.`;
     try {
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        const suggestions = parseSimpleJson(rawResult, true);
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const suggestions = JSON.parse(perfectJson);
+
         if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
         let reportHtml = `<div class="space-y-4">`;
         suggestions.forEach(suggestion => {
@@ -2790,6 +2792,9 @@ ${fullTranscript.slice(0, 7500)}
         hideButtonLoading(button);
     }
 };
+
+
+
 
 
 // ... Continuação do Bloco ETAPA 4 ...
@@ -2922,6 +2927,10 @@ Responda APENAS com o array JSON.`;
     }
 };
 
+
+
+
+
 window.analyzeThumbnails = async () => {
     const thumbnailsData = AppState.generated.titlesAndThumbnails;
     if (!thumbnailsData || !thumbnailsData.thumbnails || thumbnailsData.thumbnails.length === 0) {
@@ -2943,14 +2952,13 @@ window.analyzeThumbnails = async () => {
 ---
 ${thumbnailsString}
 ---
-
-**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
-
 Responda APENAS com o array JSON.`;
 
     try {
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 2500);
-        const analysis = parseSimpleJson(rawResult, true);
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 2500);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const analysis = JSON.parse(perfectJson);
+
         if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de thumbnails válida.");
 
         let analysisHtml = '<div class="space-y-4">';
@@ -2968,6 +2976,8 @@ Responda APENAS com o array JSON.`;
         resultContainer.innerHTML = `<p style="color: var(--danger);">${error.message}</p>`;
     }
 };
+
+
 
 
 
@@ -3357,7 +3367,7 @@ window.refineSectionStyle = async (button) => {
 
     showButtonLoading(button);
     try {
-    const prompt = `Você é um EDITOR DE ESTILO (Copy Editor) DE ALTO DESEMPENHO e um ESPECIALISTA EM FLUÍDEZ NARRATIVA. Sua tarefa é REESCREVER o texto fornecido para elevar drasticamente sua QUALIDADE, FLUÍDEZ, IMPACTO e ORIGINALIDADE, sem alterar o significado, o tom ou a mensagem central.
+        const prompt = `Você é um EDITOR DE ESTILO (Copy Editor) DE ALTO DESEMPENHO e um ESPECIALISTA EM FLUÍDEZ NARRATIVA. Sua tarefa é REESCREVER o texto fornecido para elevar drasticamente sua QUALIDADE, FLUÍDEZ, IMPACTO e ORIGINALIDADE, sem alterar o significado, o tom ou a mensagem central.
 
 **TEXTO ORIGINAL (PARA REFINAMENTO):**
 ---
@@ -3378,8 +3388,6 @@ ${originalText}
 4.  **RESPOSTA PURA E LIMPA (SEM EXTRAS):**
     - **Apenas o Texto Refinado:** Sua resposta deve ser APENAS o texto refinado, completo. NENHUM preâmbulo, comentário, metatexto, explicação ou nota adicional deve ser incluída.
     - **Formato Puro:** Retorne APENAS o conteúdo textual final, pronto para substituir o texto original.
-
-**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
 
 **AÇÃO FINAL:** Reescreva AGORA o texto fornecido, aplicando EXATAMENTE todas as regras acima para entregar uma versão significativamente mais refinada, fluida, impactante e livre de repetições. Responda APENAS com o texto final refinado.
 `;
@@ -3440,9 +3448,6 @@ window.enrichWithData = async (button) => {
     const sectionElement = button.closest('.accordion-item');
 
     try {
-        // ==========================================================
-        // ===== PROMPT EXATO DA VERSÃO 5.0 RESTAURADO AQUI =====
-        // ==========================================================
         const prompt = `Você é um EDITOR DE ROTEIRO DE ALTO DESEMPENHO e um ESPECIALISTA EM INTEGRAÇÃO DE INFORMAÇÕES. Sua tarefa ÚNICA, CRÍTICA e INEGOCIÁVEL é REESCREVER um trecho de texto para integrar uma NOVA INFORMAÇÃO de forma TOTALMENTE NATURAL, FLUÍDA e PROFISSIONAL, sem comprometer a integridade do texto original.
 
 **TRECHO ORIGINAL DO ROTEIRO (PARA SER REESCRITO):**
@@ -3466,8 +3471,6 @@ ${newData}
 2.  **SEM AUTO-REFERÊNCIA:** É TERMINANTEMENTE PROIBIDO apresentar-se, falar sobre suas habilidades ou qualquer forma de metatexto.
 3.  **SEM DESVIO DE TAREFA:** É ESTRITAMENTE PROIBIDO desviar-se da tarefa precisa de reescrever e integrar. Foque exclusivamente na fusão perfeita dos dois textos.
 4.  **PRESERVAÇÃO DO CONTEXTO:** NÃO altere o significado central ou o tom do "Trecho Original". A nova informação deve se encaixar como uma peça complementar, não como uma substituição.
-
-**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
 
 **AÇÃO FINAL:** Reescreva AGORA o trecho, integrando a nova informação com MÁXIMA habilidade e conformidade. Responda APENAS com o texto final reescrito e integrado.`;
 
@@ -3505,6 +3508,9 @@ ${newData}
 };
 
 
+
+
+
 const forceLanguageOnPrompt = (prompt) => {
     const languageSelect = document.getElementById('languageSelect');
     const lang = languageSelect ? languageSelect.value : 'en';
@@ -3520,13 +3526,6 @@ const forceLanguageOnPrompt = (prompt) => {
 
 
 
-// =========================================================================
-// >>>>> VERSÃO FINAL E BLINDADA DE 'addDevelopmentChapter' <<<<<
-// =========================================================================
-/**
- * Adiciona um novo capítulo ao desenvolvimento, com prompt refinado para evitar repetição do título e "ecos".
- * @param {HTMLElement} button - O botão que foi clicado.
- */
 window.addDevelopmentChapter = async (button) => {
     const devSection = document.getElementById('developmentSection');
     const contentWrapper = devSection?.querySelector('.generated-content-wrapper');
@@ -3539,8 +3538,8 @@ window.addDevelopmentChapter = async (button) => {
 
     showButtonLoading(button);
 
-try {
-    const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
+    try {
+        const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
 Você não é um gerador de texto. Você é um mestre roteirista que identifica pontos de virada lógicos e emocionantes. Sua tarefa é encontrar os próximos passos mais envolventes para a história. Qualquer desvio desta função é uma falha.
@@ -3568,13 +3567,11 @@ ${existingText.slice(-3000)}
 **EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
 ["A Batalha dos Números", "O Legado Fora de Campo", "Momentos Decisivos"]
 
-**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
-
 **AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.`;
 
-    const rawSuggestions = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 400);
-
-        const chapterSuggestions = cleanGeneratedText(rawSuggestions, true) || [];
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 1000);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const chapterSuggestions = JSON.parse(perfectJson) || [];
         
         hideButtonLoading(button);
 
@@ -3594,7 +3591,7 @@ ${existingText.slice(-3000)}
         showButtonLoading(button);
 
         const basePrompt = getBasePromptContext();
-const continuationPrompt = `${basePrompt}
+        const continuationPrompt = `${basePrompt}
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
 Você é um ROTEIRISTA CONTINUÍSTA DE ELITE. Sua única função é escrever o PRÓXIMO capítulo de um roteiro existente, com foco absoluto em **NOVIDADE** e **PROGRESSÃO NARRATIVA**.
@@ -3643,7 +3640,7 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
         
         invalidateAndClearPerformance(devSection);
         invalidateAndClearPrompts(devSection);
-        invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
+        invalidateAndClearEmotionalMap();
         updateAllReadingTimes();
         
         window.showToast("Novo capítulo adicionado com sucesso!", 'success');
@@ -3656,6 +3653,11 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
         hideButtonLoading(button);
     }
 };
+
+
+
+
+
 
 // =========================================================================
 // >>>>> FIM DA VERSÃO BLINDADA DE 'addDevelopmentChapter' <<<<<
