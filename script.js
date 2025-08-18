@@ -1375,7 +1375,7 @@ const generateIdeasFromReport = async (button) => {
         const promptContext = { originalQuery, rawReport, languageName };
         const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
         // A IA gera o texto criativo, mas potencialmente quebrado.
-        const brokenJsonResponse = await callGroqAPI(creativePrompt, 8000); 
+        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(creativePrompt), 8000);
 
         outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Corrigindo e validando a sintaxe...</p></div>`;
 
@@ -1661,7 +1661,7 @@ const suggestStrategy = async (button) => {
 **AÇÃO FINAL:** Gere AGORA o objeto JSON completo com TODAS AS 10 CHAVES preenchidas. Sua criatividade nestes campos é o que define uma estratégia viral.`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 4000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
         
         // CORREÇÃO APLICADA AQUI: Usando o novo parser leve e confiável.
         const strategy = parseSimpleJson(rawResult);
@@ -1784,6 +1784,8 @@ ${priorKnowledgeContext}
 2.  **SEPARAÇÃO POR PARÁGRAFOS:** Separe cada parágrafo com **DUAS quebras de linha**.
 3.  **PROIBIÇÃO TOTAL DE EXTRAS:** Não inclua títulos, anotações, comentários ou qualquer texto que não seja parte do roteiro.
 
+**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
+
 **AÇÃO FINAL:** Escreva AGORA os parágrafos para a seção "${sectionTitle}", garantindo que cada frase introduza conteúdo 100% novo. Responda APENAS com o texto puro do roteiro.`;
     
     } else {
@@ -1815,6 +1817,8 @@ ${priorKnowledgeContext}
   "description_text": "Este é um exemplo de descrição de vídeo. Ela começa com um gancho para prender a atenção e termina com uma chamada para ação.",
   "hashtags": ["#Exemplo1", "#Exemplo2", "#Exemplo3", "#Exemplo4", "#Exemplo5", "#Exemplo6", "#Exemplo7", "#Exemplo8", "#Exemplo9", "#Exemplo10"]
 }
+
+**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
 
 **AÇÃO FINAL:** Gere o objeto JSON perfeito.`;
                 maxTokens = 2000;
@@ -1862,8 +1866,8 @@ const generateStrategicOutline = async (button) => {
     outlineContentDiv.innerHTML = `<div class="asset-card-placeholder"><div class="loading-spinner"></div><span style="margin-left: 1rem;">Criando o esqueleto da sua história...</span></div>`;
 
     try {
-        const { prompt } = constructScriptPrompt('outline');
-        const rawResult = await callGroqAPI(prompt, 4000);
+        let { prompt } = constructScriptPrompt('outline'); // Mude para 'let'
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
         AppState.generated.strategicOutline = parseSimpleJson(rawResult);
         
         const { strategicOutline } = AppState.generated;
@@ -2006,10 +2010,10 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
 
         const keyMap = { intro: 'introduction', development: 'development', climax: 'climax' };
         const directive = AppState.generated.strategicOutline ? AppState.generated.strategicOutline[keyMap[sectionName]] : null;
-        
-        const { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
+            
+        let { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText); // Mude para 'let'
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
 
-        const rawResult = await callGroqAPI(prompt, maxTokens);
         // Usa a função `removeMetaComments` para limpar qualquer "lixo" textual que a IA possa ter adicionado
         const cleanText = removeMetaComments(rawResult);
 
@@ -2104,7 +2108,7 @@ const generateConclusion = async (button) => {
     const prompt = `${basePromptContext}\n\n# TAREFA\nEscrever o texto da conclusão para o vídeo, estruturado em parágrafos.\n\n# CONTEXTO\n## Roteiro existente:\n---\n${fullContext}\n---\n\n# DIRETRIZ ESTRATÉGICA\n${strategyDirective}\n\n# REGRAS ESSENCIAIS\n1. **FORMATO**: Responda APENAS com o texto narrativo, em parágrafos. Proibido anotações ou CTA.\n2. **QUALIDADE DOS PARÁGRAFOS**: Cada parágrafo deve ter de 4 a 6 frases.`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 3000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 3000);
         const content = removeMetaComments(rawResult.trim());
         if (!content) throw new Error("A IA não retornou um conteúdo válido para a conclusão.");
         
@@ -2190,7 +2194,7 @@ ${ctaDirective}
 **AÇÃO FINAL:** Escreva AGORA o texto do CTA, aplicando todos os princípios de um copywriter de elite. Responda APENAS com o texto a ser narrado.`;
 
     try {
-        let result = await callGroqAPI(prompt, 400);
+        let result = await callGroqAPI(forceLanguageOnPrompt(prompt), 400);
         result = removeMetaComments(result.trim());
         const paragraphs = result.split('\n').filter(p => p.trim() !== '');
         const contentWithSpans = paragraphs.map((p, index) => `<div id="cta-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
@@ -2289,7 +2293,7 @@ ${fullContext}
 **AÇÃO FINAL:** Sua resposta deve ser **APENAS e SOMENTE** o objeto JSON, sem nenhum texto introdutório, explicação ou comentário. Comece com \`{\` e termine com \`}\`. Gere agora o objeto JSON com as sugestões.`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 1000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 1000);
         const suggestions = parseSimpleJson(rawResult, true);
         if (suggestions && suggestions.conclusion_suggestion && suggestions.cta_suggestion) {
             conclusionSpecifics.value = suggestions.conclusion_suggestion;
@@ -2348,10 +2352,12 @@ ${text.slice(0, 7000)}
 2.  **CHAVES E TIPOS OBRIGATÓRIOS:** O objeto DEVE conter EXATAMENTE estas 6 chaves: "criterion_name", "score" (Número), "positive_points" (String), "problematic_quote" (String - cópia literal ou "Nenhum"), "critique" (String), e "rewritten_quote" (String).
 3.  **SINTAXE:** Todas as chaves e valores string DEVEM usar aspas duplas ("").
 
+**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
+
 **AÇÃO FINAL:** Analise o trecho e retorne APENAS o objeto JSON perfeito.`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 1500);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 1500);
         const analysisData = parseSimpleJson(rawResult);
         if (!analysisData || !('score' in analysisData)) throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
         
@@ -2627,7 +2633,7 @@ ${fullTranscript.slice(0, 7500)}
 
 **AÇÃO FINAL:** Analise o roteiro. Responda APENAS com o array JSON perfeito.`;
     try {
-        const rawResult = await callGroqAPI(prompt, 4000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
         const hooks = parseSimpleJson(rawResult, true);
         if (!hooks || !Array.isArray(hooks) || hooks.length === 0) throw new Error("A IA não encontrou ganchos ou retornou um formato inválido.");
         let reportHtml = `<div class="space-y-4">`;
@@ -2740,9 +2746,11 @@ ${fullTranscript.slice(0, 7500)}
 - **"potential_impact_score":** Nota de 1 a 10 para o potencial de engajamento.
 - **"implementation_idea":** Explique o VALOR ESTRATÉGICO da inserção.
 
+**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
+
 **AÇÃO FINAL:** Analise o roteiro e o contexto. Responda APENAS com o array JSON perfeito.`;
     try {
-        const rawResult = await callGroqAPI(prompt, 4000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
         const suggestions = parseSimpleJson(rawResult, true);
         if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
         let reportHtml = `<div class="space-y-4">`;
@@ -2816,8 +2824,8 @@ const generateTitlesAndThumbnails = async (button) => {
     const targetContentElement = document.getElementById('titlesThumbnailsContent');
     targetContentElement.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
     try {
-        const { prompt, maxTokens } = constructScriptPrompt('titles_thumbnails');
-        const rawResult = await callGroqAPI(prompt, maxTokens);
+    let { prompt, maxTokens } = constructScriptPrompt('titles_thumbnails'); // Mude para 'let'
+    const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
         const parsedContent = parseSimpleJson(rawResult, true);
         if (!Array.isArray(parsedContent) || parsedContent.length === 0 || !parsedContent[0].suggested_title) {
             throw new Error("A IA retornou os dados de títulos em um formato inesperado.");
@@ -2887,7 +2895,7 @@ ${titlesString}
 Responda APENAS com o array JSON.`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 3000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 3000);
         const analysis = parseSimpleJson(rawResult, true);
         if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de títulos válida.");
 
@@ -2928,10 +2936,13 @@ window.analyzeThumbnails = async () => {
 ---
 ${thumbnailsString}
 ---
+
+**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
+
 Responda APENAS com o array JSON.`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 2500);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 2500);
         const analysis = parseSimpleJson(rawResult, true);
         if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de thumbnails válida.");
 
@@ -2959,8 +2970,8 @@ const generateVideoDescription = async (button) => {
     showButtonLoading(button);
     const targetContentElement = document.getElementById('videoDescriptionContent');
     try {
-        const { prompt, maxTokens } = constructScriptPrompt('description');
-        const rawResult = await callGroqAPI(prompt, maxTokens);
+    let { prompt, maxTokens } = constructScriptPrompt('description'); // Mude para 'let'
+    const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
         
         // Agora esperamos um objeto JSON
         const parsedContent = parseSimpleJson(rawResult);
@@ -3075,7 +3086,7 @@ ${JSON.stringify(paragraphs)}
 
 ACTION: Return ONLY the JSON array.`;
 
-        const rawResult = await callGroqAPI(prompt, 8000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
         const emotionalMapData = parseSimpleJson(rawResult, true);
       if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
     throw new Error("A IA não retornou um mapa emocional válido.");
@@ -3216,7 +3227,7 @@ window.analyzeSectionRetention = async (button) => {
 
         **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
 
-        const rawResult = await callGroqAPI(prompt, 4000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
         const analysis = parseSimpleJson(rawResult, true);
 
         if (!analysis || !Array.isArray(analysis)) {
@@ -3361,10 +3372,12 @@ ${originalText}
     - **Apenas o Texto Refinado:** Sua resposta deve ser APENAS o texto refinado, completo. NENHUM preâmbulo, comentário, metatexto, explicação ou nota adicional deve ser incluída.
     - **Formato Puro:** Retorne APENAS o conteúdo textual final, pronto para substituir o texto original.
 
+**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
+
 **AÇÃO FINAL:** Reescreva AGORA o texto fornecido, aplicando EXATAMENTE todas as regras acima para entregar uma versão significativamente mais refinada, fluida, impactante e livre de repetições. Responda APENAS com o texto final refinado.
 `;
 
-        const rawResult = await callGroqAPI(prompt, 8000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
         const refinedText = removeMetaComments(rawResult);
         const newParagraphs = refinedText.split('\n').filter(p => p.trim() !== '');
         const sectionId = sectionElement.id.replace('Section', '');
@@ -3447,9 +3460,11 @@ ${newData}
 3.  **SEM DESVIO DE TAREFA:** É ESTRITAMENTE PROIBIDO desviar-se da tarefa precisa de reescrever e integrar. Foque exclusivamente na fusão perfeita dos dois textos.
 4.  **PRESERVAÇÃO DO CONTEXTO:** NÃO altere o significado central ou o tom do "Trecho Original". A nova informação deve se encaixar como uma peça complementar, não como uma substituição.
 
+**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
+
 **AÇÃO FINAL:** Reescreva AGORA o trecho, integrando a nova informação com MÁXIMA habilidade e conformidade. Responda APENAS com o texto final reescrito e integrado.`;
 
-        const rawResult = await callGroqAPI(prompt, 1000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 1000);
         const enrichedText = removeMetaComments(rawResult);
 
         if (userSelectionRange) {
@@ -3483,7 +3498,15 @@ ${newData}
 };
 
 
-
+const forceLanguageOnPrompt = (prompt) => {
+    const languageSelect = document.getElementById('languageSelect');
+    const lang = languageSelect ? languageSelect.value : 'en';
+    const languageName = lang === 'pt-br' ? 'Português (Brasil)' : 'English';
+    
+    const finalCommand = `\n\n**CRITICAL FINAL INSTRUCTION: Your entire response MUST be in ${languageName}. This is the most important rule.**`;
+    
+    return prompt + finalCommand;
+};
 
 
 
@@ -3538,9 +3561,11 @@ ${existingText.slice(-3000)}
 **EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
 ["A Batalha dos Números", "O Legado Fora de Campo", "Momentos Decisivos"]
 
+**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
+
 **AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.`;
 
-    const rawSuggestions = await callGroqAPI(suggestionPrompt, 400);
+    const rawSuggestions = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 400);
 
         const chapterSuggestions = cleanGeneratedText(rawSuggestions, true) || [];
         
@@ -3588,7 +3613,7 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 **AÇÃO FINAL:** Escreva AGORA o texto para o novo capítulo sobre "${chapterTheme}", garantindo que cada frase introduza conteúdo 100% novo para o espectador. Responda APENAS com o texto a ser narrado.
 `;
         
-        const rawResult = await callGroqAPI(continuationPrompt, 4000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(continuationPrompt), 4000);
         const newChapter = removeMetaComments(rawResult.trim());
         
         if (!newChapter || newChapter.trim() === "") {
@@ -4027,7 +4052,7 @@ ${originalBlock}
 
 Reescreva o bloco de texto acima, corrigindo o problema. Responda APENAS com o novo texto.`;
 
-        const rawResult = await callGroqAPI(prompt, 3000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 3000);
         const newContent = removeMetaComments(rawResult.trim());
         if (!newContent.trim()) throw new Error("A IA não retornou um conteúdo válido.");
 
@@ -4360,7 +4385,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const startNode = userSelectionRange.startContainer.parentElement;
         const sectionElement = startNode.closest('.accordion-item');
         try {
-            const rawResult = await callGroqAPI(prompt, 3000);
+            const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 3000);
             const refinedText = removeMetaComments(rawResult);
             if (userSelectionRange) {
                 window.getSelection().removeAllRanges();
