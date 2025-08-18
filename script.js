@@ -550,28 +550,6 @@ ${fullTranscript}
 
 
 
-// A NOVA FUNÇÃO: O "ENGENHEIRO DE SINTAXE"
-const fixJsonWithAI = async (brokenJsonText) => {
-    const prompt = `Você é um especialista em correção de sintaxe JSON. Sua única tarefa é pegar o texto abaixo, que é uma tentativa de um array JSON, e consertá-lo para que seja 100% válido.
-
-    REGRAS CRÍTICAS:
-    1.  Corrija quaisquer erros: vírgulas faltando ou sobrando, aspas incorretas, objetos incompletos ou quebrados, etc.
-    2.  Se houver objetos duplicados, mantenha apenas a versão mais completa de cada um.
-    3.  Sua resposta deve ser APENAS o array JSON perfeitamente corrigido. NÃO inclua nenhum texto, explicação ou comentário.
-
-    TEXTO QUEBRADO PARA CORRIGIR:
-    ---
-    ${brokenJsonText}
-    ---
-
-    Retorne APENAS o JSON corrigido.`;
-
-    // Usamos um maxTokens menor, pois a tarefa é apenas de formatação.
-    const fixedJsonText = await callGroqAPI(prompt, 4000); 
-    return fixedJsonText;
-};
-
-
 
 
 // O SUCESSOR: Leve, rápido e confiável para JSONs simples.
@@ -625,11 +603,12 @@ const parseSimpleJson = (text, expectArray = false) => {
 
 
 
+// A NOVA FUNÇÃO: O "ENGENHEIRO DE SINTAXE"
 const fixJsonWithAI = async (brokenJsonText) => {
     const prompt = `Você é um especialista em correção de sintaxe JSON. Sua única tarefa é pegar o texto abaixo, que é uma tentativa de um array JSON, e consertá-lo para que seja 100% válido.
 
     REGRAS CRÍTICAS:
-    1.  Corrija quaisquer erros: vírgulas faltando ou sobrando, aspas incorretas (incluindo aspas duplas dentro de valores como ""), objetos incompletos ou quebrados, etc.
+    1.  Corrija quaisquer erros: vírgulas faltando ou sobrando, aspas incorretas, objetos incompletos ou quebrados, etc.
     2.  Se houver objetos duplicados, mantenha apenas a versão mais completa de cada um.
     3.  Sua resposta deve ser APENAS o array JSON perfeitamente corrigido. NÃO inclua nenhum texto, explicação ou comentário.
 
