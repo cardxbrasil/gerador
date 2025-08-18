@@ -756,12 +756,10 @@ const resetApplicationState = () => {
 
 
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
-    // Se não esperamos JSON, apenas limpa e retorna o texto.
     if (!expectJson) {
         return text ? String(text).trim() : (arrayExpected ? [] : '');
     }
     
-    // Se o texto de entrada for inválido
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
         console.warn("Texto de entrada inválido ou vazio para o parser de JSON.");
         return arrayExpected ? [] : null;
@@ -769,88 +767,74 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     let jsonString = text.trim();
 
-    // Remove tokens de controle da API e texto explicativo inicial
-    jsonString = jsonString.replace(/assistant<\|end_header_id\|>[\s\S]*/g, '');
-    jsonString = jsonString.replace(/^Aqui está.*?:/im, '');
+    // Remove tokens de controle da API e texto explicativo inicial/final
+    jsonString = jsonString.replace(/^[\s\S]*?(\[|\{)/, '$1');
+    jsonString = jsonString.replace(/(\]|\})[\s\S]*?$/, '$1');
 
-    // CAMADA 1: EXTRAÇÃO INTELIGENTE
-    // Tenta extrair de um bloco de código primeiro
+    // CAMADA 1: EXTRAÇÃO INTELIGENTE (mantida)
     const markdownMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (markdownMatch && markdownMatch[1]) {
         jsonString = markdownMatch[1].trim();
     }
     
-    // Procura por todos os objetos JSON no texto
-    const jsonObjects = jsonString.match(/\{[\s\S]*?\}/g);
-    
-    if (jsonObjects && jsonObjects.length > 0) {
-        // Se encontrou um ou mais objetos, os une em um array JSON válido.
-        jsonString = `[${jsonObjects.join(',')}]`;
-    } else {
-        // Fallback: se não encontrou objetos, pode ser um array puro '[]'
-        const firstBracket = jsonString.indexOf('[');
-        if (firstBracket !== -1) {
-             const lastBracket = jsonString.lastIndexOf(']');
-             if (lastBracket > firstBracket) {
-                 jsonString = jsonString.substring(firstBracket, lastBracket + 1);
-             }
-        }
+    // Tenta encontrar o início e o fim do JSON principal
+    const firstBracket = jsonString.indexOf('[');
+    const firstBrace = jsonString.indexOf('{');
+    let start = -1;
+
+    if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+        start = firstBracket;
+    } else if (firstBrace !== -1) {
+        start = firstBrace;
     }
 
-    // --- CAMADA 2: REPARO E DESINFECÇÃO ---
+    if (start !== -1) {
+        const endChar = jsonString[start] === '[' ? ']' : '}';
+        const end = jsonString.lastIndexOf(endChar);
+        if (end > start) {
+            jsonString = jsonString.substring(start, end + 1);
+        }
+    }
     
+    // --- CAMADA 2: REPARO E DESINFECÇÃO ---
+
     // ======================================================================
-    // >>>>> EVOLUÇÃO FINAL (FAXINA DOS ARRAYS E VALORES) <<<<<
+    // >>>>> NOVA REGRA ADICIONADA AQUI <<<<<
+    // Adiciona vírgulas faltando entre propriedades ( "valor" "chave": ... )
+    // Esta é a correção principal para o erro que você encontrou.
+    jsonString = jsonString.replace(/}"\s*"/g, '}", "'); // Para aspas duplas no meio
+    jsonString = jsonString.replace(/]\s*"/g, '], "');  // Para array fechado seguido de chave
+    jsonString = jsonString.replace(/"\s*"/g, '", "');  // Caso geral de duas chaves seguidas
+    // ======================================================================
+
     // Adiciona aspas em valores de 'scripturalFoundation' que a IA esqueceu.
     jsonString = jsonString.replace(/("scripturalFoundation":\s*)([^,"\s\[\]][^,\]}]*)/g, '$1"$2"');
 
     // Garante que os itens dentro do array de discussionQuestions estejam entre aspas
     jsonString = jsonString.replace(/("discussionQuestions":\s*\[)([^\]]+)\]/g, (match, start, content) => {
         const items = content.split(',').map(item => {
-            let cleanedItem = item.trim().replace(/^"/, '').replace(/"$/, ''); // Remove aspas existentes para evitar duplicação
-            return `"${cleanedItem}"`; // Adiciona aspas corretamente
+            let cleanedItem = item.trim().replace(/^"/, '').replace(/"$/, '');
+            return `"${cleanedItem.replace(/"/g, '\\"')}"`; // Escapa aspas internas
         });
         return `${start}${items.join(',')}]`;
     });
 
     // Remove strings vazias ou lixo entre ":" e a abertura de um array "[".
     jsonString = jsonString.replace(/:\s*""\s*\[/g, ': [');
-    // ======================================================================
-
+    
     // (Todas as suas regras anteriores estão aqui, mantidas e organizadas)
     jsonString = jsonString.replace(/[´‘’]/g, "'");
     jsonString = jsonString.replace(/''/g, "'");
-    jsonString = jsonString.replace(/"\s*(pode ser reescrito como|ou|alternativamente)\s*"/g, ',"rewritten_quote": "');
     jsonString = jsonString.replace(/"\s*,\s*"/g, '","');
-    jsonString = jsonString.replace(/("\s*[^"]+\s*)"\s*([a-zA-Z\s,]+)\s*,\s*"/g, '$1, "');
-    jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
+    jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3'); // Adiciona aspas nas chaves
     jsonString = jsonString.replace(/:\s*,\s*"/g, ': "", "');
     jsonString = jsonString.replace(/"{2,}/g, '"');
     jsonString = jsonString.replace(/\\"(?=\s*[},\]])/g, '"');
-    jsonString = jsonString.replace(/"\s*([,}])/g, (match, p1) => {
-        const lastKeyIndex = jsonString.lastIndexOf('"', jsonString.indexOf(match));
-        if (lastKeyIndex > -1) {
-            const segment = jsonString.substring(lastKeyIndex);
-            const quoteCount = (segment.match(/"/g) || []).length;
-            if (quoteCount % 2 !== 0) {
-                return `"${p1}`;
-            }
-        }
-        return match;
-    });
     jsonString = jsonString.replace(/\}\s*\{/g, '},{');
-    jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
-    
+    jsonString = jsonString.replace(/,\s*([}\]])/g, '$1'); // Remove vírgulas sobrando no final
+
     // --- CAMADA 3: VALIDAÇÃO ---
     try {
-        if (!jsonString.endsWith('}') && !jsonString.endsWith(']')) {
-             if (jsonString.lastIndexOf('{') > jsonString.lastIndexOf('[')) {
-                jsonString += '}';
-             } else {
-                jsonString += ']';
-             }
-        }
-        
         const parsedJson = JSON.parse(jsonString);
         
         if (arrayExpected && !Array.isArray(parsedJson)) {
