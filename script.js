@@ -175,11 +175,7 @@ __RAW_REPORT__
   * Conter uma promessa implícita de revelação importante
   * Funcionar como um gancho que desperta a curiosidade intelectual
 
-- **"angle" (A Tese Central Forte):** Em uma frase poderosa, resuma a ABORDAGEM DISTINTA da investigação. Deve:
-  * Apresentar uma perspectiva única sobre os fatos
-  * Destacar uma conexão ou implicação não óbvia encontrada nos dados
-  * Formular uma questão central que o documentário responderá
-  * Ex: "Como os padrões ocultos nos dados de [FATO DO RELATÓRIO] revelam uma crise sistêmica que especialistas estão ignorando?"
+- **"angle" (A Tese Central Forte):** Em uma frase poderosa, resuma a abordagem distinta da investigação. Deve apresentar uma perspectiva única sobre os fatos, destacar uma conexão não óbvia encontrada nos dados e formular a questão central que o documentário responderá.
 
 - **"targetAudience" (Público-Alvo Específico):** Defina o espectador ideal para esta investigação. Seja:
   * Específico sobre interesses intelectuais (ex: "Pessoas interessadas em política econômica e justiça social")
@@ -236,11 +232,7 @@ __RAW_REPORT__
   * Conter uma promessa implícita de superação
   * Funcionar como um convite para a mudança pessoal
 
-- **"angle" (O Arco Narrativo Central):** A essência da jornada em uma frase poderosa. Deve:
-  * Capturar a transição de um estado inicial para um transformado
-  * Destacar o momento de virada emocional ou epifania
-  * Conectar o desafio específico com a lição universal aprendida
-  * Ex: "Como um simples [DETALHE DO RELATÓRIO] se tornou o catalisador para transformar o desespero em determinação e criar um movimento que mudaria milhares de vidas"
+- **"angle" (O Arco Narrativo Central):** Resuma a essência da jornada em uma frase poderosa. Deve capturar a transição de um estado inicial para um transformado, destacar o momento de virada emocional e conectar o desafio específico com a lição universal aprendida.
 
 - **"targetAudience" (Público-Alvo EspecÍFICO):** Defina o espectador ideal para esta jornada inspiradora. Seja:
   * Específico sobre necessidades emocionais (ex: "Pessoas buscando motivação para superar obstáculos pessoais")
@@ -297,11 +289,7 @@ __RAW_REPORT__
   * Conter uma camada de significado mais profunda
   * Funcionar como uma porta de entrada para o dilema central
 
-- **"angle" (A Premissa "E Se?"):** A essência da ideia em uma frase que desencadeia a especulação. Deve:
-  * Começar com "E se..." para estabelecer a extrapolação
-  * Transformar um fato do relatório em um ponto de divergência histórica
-  * Introduzir uma consequência inesperada ou perturbadora
-  * Ex: "E se a tecnologia de [FATO DO RELATÓRIO] permitisse não apenas transferir memórias, mas também transferir consciência, criando uma forma de imortalidade digital que escraviza a essência humana?"
+- **"angle" (A Premissa "E Se?"):** Resuma a essência da ideia em uma frase que desencadeia a especulação. Deve começar com "E se...", transformar um fato do relatório em um ponto de divergência histórica e introduzir uma consequência inesperada ou perturbadora.
 
 - **"targetAudience" (Público-Alvo Específico):** Defina o espectador ideal para esta exploração futurista. Seja:
   * Específico sobre subgêneros (ex: "Fãs de ficção científica especulativa e ética tecnológica")
@@ -358,11 +346,7 @@ __RAW_REPORT__
   * Funcionar mesmo sem contexto, como um fragmento de pesadelo
   * Evitar revelações diretas, mantendo o mistério
 
-- **"angle" (A Premissa Inquietante):** A essência do horror em uma frase que distorce a realidade. Deve:
-  * Começar com "E se..." para estabelecer a premissa contraintuitiva
-  * Transformar um fato mundano em algo ameaçador
-  * Questionar a natureza da realidade ou percepção
-  * Ex: "E se os padrões [FENÔMENO DO RELATÓRIO] não fossem aleatórios, mas a assinatura de uma presença que observa?"
+- **"angle" (A Premissa Inquietante):** Resuma a essência do horror em uma frase que distorce a realidade. Deve começar com "E se...", transformar um fato mundano em algo ameaçador e questionar a natureza da realidade ou percepção.
 
 - **"targetAudience" (Público-Alvo Específico):** Defina o espectador ideal para esta experiência de terror. Seja:
   * Específico sobre subgêneros (ex: "Fãs de terror psicológico slow-burn")
@@ -426,7 +410,7 @@ __RAW_REPORT__
 
 - **"title" (Título Cativante e Teológico):** Deve prometer uma revelação transformadora que conecte a descoberta com uma verdade bíblica profunda. Use linguagem que desperte curiosidade intelectual e espiritual simultaneamente.
 
-- **"angle" (O Enigma Central):** Uma frase complexa que apresente uma conexão inovadora entre um FATO do relatório, uma PASSAGEM BÍBLICA e uma IMPLICAÇÃO TEOLÓGICA. Ex: "Como a descoberta de [DADO DO RELATÓRIO] em [LOCAL] desafia nossa compreensão tradicional de [PASSAGEM BÍBLICA] e sugere uma nova perspectiva sobre [CONCEITO TEOLÓGICO]?"
+- **"angle" (O Enigma Central): Formule uma pergunta teológica complexa e instigante que conecte um fato do relatório com uma passagem bíblica e uma implicação doutrinária. A pergunta deve ser a tese central do vídeo.
 
 - **"targetAudience" (Público-Alvo Específico):** Descreva com precisão o nicho de espectador. Ex: "Pastores e líderes cristãos buscando conteúdo teologicamente sólido", "Estudantes de teologia interessados em diálogo fé-ciência", "Cristãos leigos com interesse em arqueologia bíblica".
 
@@ -1449,43 +1433,37 @@ const generateIdeasFromReport = async (button) => {
 
 
 // =========================================================================
-// >>>>> MAPEADOR DE ESTRATÉGIA UNIVERSAL FINAL (COM DROPDOWNS) <<<<<
+// >>>>> MAPEADOR DE ESTRATÉGIA UNIVERSAL FINAL <<<<<
 // =========================================================================
 const strategyMapper = {
     'documentario': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar' },
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => `O que os fatos sobre "${idea.title}" realmente revelam?`,
         researchData: idea => `Abordagem Investigativa: ${idea.investigativeApproach}`,
         dossier: idea => `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`
     },
     'inspiracional': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'heroes_journey', narrativeTone: 'inspirador', videoObjective: 'emocionar' },
         narrativeTheme: idea => idea.angle,
         emotionalHook: idea => `A história deve girar em torno do núcleo emocional de '${idea.emotionalCore}', mostrando a transformação de um desafio em uma lição universal.`,
         dossier: idea => `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`
     },
     'scifi': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar' },
         centralQuestion: idea => idea.angle,
         narrativeTheme: idea => `Explorar as consequências do dilema de '${idea.coreDilemma}'.`,
         dossier: idea => `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`
     },
     'terror': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'twist', narrativeTone: 'serio', videoObjective: 'emocionar' },
         narrativeTheme: idea => `Construir a tensão usando o mecanismo de '${idea.horrorMechanism}'.`,
         centralQuestion: idea => idea.angle,
         dossier: idea => `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`
     },
     'enigmas': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar' },
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => idea.discussionQuestions[0] || '',
         researchData: idea => `Base Bíblica: ${(idea.scripturalFoundation || []).join('; ')}`,
         dossier: idea => `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${(idea.scripturalFoundation || []).join('; ')}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`
     },
     'geral': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'inspirador', videoObjective: 'informar' },
         narrativeTheme: idea => idea.angle,
         dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
     }
@@ -1500,25 +1478,82 @@ const getGenreFromIdea = (idea) => {
     return 'geral';
 };
 
-// FUNÇÃO selectIdea FINAL
-const selectIdea = (idea) => {
+// A CONSULTORA DE ESTRATÉGIA COMPLETA E CORRETA
+const getBestNarrativeStrategy = async (idea) => {
+    const storytellingStructures = Object.entries(narrativeStructures.storytelling).map(([key, value]) => `- "${key}": ${value}`).join('\n');
+    const storysellingStructures = Object.entries(narrativeStructures.storyselling).map(([key, value]) => `- "${key}": ${value}`).join('\n');
+    const tones = ['inspirador', 'serio', 'emocional'];
+
+    const prompt = `Você é uma API de análise estratégica que retorna APENAS um objeto JSON.
+    
+    Analise a seguinte ideia de vídeo:
+    - Título: "${idea.title}"
+    - Descrição: "${idea.videoDescription}"
+
+    Com base na ideia, escolha a MELHOR estrutura narrativa e o TOM mais adequado.
+
+    Opções de Estrutura Storytelling:
+    ${storytellingStructures}
+
+    Opções de Estrutura Storyselling:
+    ${storysellingStructures}
+
+    Opções de Tom: ${tones.join(', ')}
+
+    REGRAS CRÍTICAS:
+    1. Sua resposta DEVE SER APENAS o objeto JSON.
+    2. O objeto deve conter DUAS chaves: "best_structure" e "best_tone".
+    3. Os valores devem ser as CHAVES das opções (ex: "heroes_journey", "inspirador").
+
+    Exemplo de Resposta Perfeita:
+    {
+      "best_structure": "mystery_loop",
+      "best_tone": "serio"
+    }
+
+    Analise a ideia e retorne o JSON agora.`;
+
+    try {
+        const rawResult = await callGroqAPI(prompt, 1000);
+        const result = cleanGeneratedText(rawResult, true);
+        return {
+            structure: result?.best_structure || 'documentary', // Padrão seguro
+            tone: result?.best_tone || 'inspirador' // Padrão seguro
+        };
+    } catch (error) {
+        console.error("Falha ao obter a estratégia dinâmica:", error);
+        return { structure: 'documentary', tone: 'inspirador' }; // Retorna padrões em caso de erro
+    }
+};
+
+
+// FUNÇÃO selectIdea FINAL E 100% DINÂMICA
+const selectIdea = async (idea) => {
     const genre = getGenreFromIdea(idea);
     const mapper = strategyMapper[genre];
 
-    // 1. Aplica as configurações dos Dropdowns PRIMEIRO.
-    if (mapper && mapper.dropdowns) {
-        for (const id in mapper.dropdowns) {
-            const element = document.getElementById(id);
-            if (element) {
-                element.value = mapper.dropdowns[id];
-            }
-        }
+    // 1. ANÁLISE DINÂMICA COMPLETA: Pede à IA para escolher a melhor estrutura E tom.
+    const dynamicStrategy = await getBestNarrativeStrategy(idea);
+    
+    // 2. PREENCHIMENTO DE TODOS OS DROPDOWNS DE FORMA INTELIGENTE
+    // Objetivo da Narrativa e Estrutura Específica
+    let goal = 'storytelling';
+    if (Object.keys(narrativeStructures.storyselling).includes(dynamicStrategy.structure)) {
+        goal = 'storyselling';
     }
-    // Dispara as atualizações de UI que dependem dos dropdowns
+    document.getElementById('narrativeGoal').value = goal;
     updateNarrativeStructureOptions();
+    document.getElementById('narrativeStructure').value = dynamicStrategy.structure;
     updateMainTooltip();
 
-    // 2. Cria uma Estratégia Base com sugestões criativas.
+    // Tom da Narração
+    document.getElementById('narrativeTone').value = dynamicStrategy.tone;
+
+    // Objetivo do Vídeo (derivado do Tom)
+    const videoObjective = (dynamicStrategy.tone === 'serio') ? 'informar' : 'emocionar';
+    document.getElementById('videoObjective').value = videoObjective;
+
+    // 3. ESTRATÉGIA BASE (para garantir que nada fique em branco)
     let strategy = {
         narrativeTheme: idea.angle || `Explorar o tema central de "${idea.title}".`,
         centralQuestion: `Qual é o mistério ou a principal questão por trás de "${idea.title}"?`,
@@ -1528,7 +1563,7 @@ const selectIdea = (idea) => {
         researchData: `Buscar 1-2 estatísticas ou citações que reforcem a mensagem principal de "${idea.title}".`
     };
 
-    // 3. Especialização: Usa o Mapeador para sobrescrever a estratégia base com dados de texto específicos.
+    // 4. ESPECIALIZAÇÃO (sobrescreve a base com dados de texto específicos)
     if (mapper) {
         for (const key in mapper) {
             if (key !== 'dossier' && key !== 'dropdowns') {
@@ -1537,27 +1572,26 @@ const selectIdea = (idea) => {
         }
     }
 
-    // 4. Aplica a Estratégia de Texto Final aos campos do formulário.
+    // 5. APLICA A ESTRATÉGIA DE TEXTO
     for (const id in strategy) {
         const element = document.getElementById(id);
-        if (element) {
-            element.value = strategy[id];
-        }
+        if (element) element.value = strategy[id];
     }
     
-    // 5. Preenche os campos básicos e monta o Dossiê na Descrição.
+    // 6. PREENCHE O RESTO E MONTA O DOSSIÊ
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
-    
     const dossierContent = mapper ? mapper.dossier(idea) : `- Ângulo Único: ${idea.angle || 'N/A'}`;
     const fullDescription = `${idea.videoDescription || ''}\n\n--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n${dossierContent.trim()}`;
     document.getElementById('videoDescription').value = fullDescription;
     
-    // 6. Feedback e Navegação Intuitiva.
-    window.showToast("Ideia selecionada! Estratégia completa pré-preenchida.", 'success');
+    // 7. FEEDBACK E NAVEGAÇÃO
+    window.showToast("Ideia selecionada! Estratégia dinâmica pré-preenchida.", 'success');
     showPane('strategy');
     document.querySelector('[data-tab="input-tab-basico"]')?.click();
 };
+
+
 
 
 
