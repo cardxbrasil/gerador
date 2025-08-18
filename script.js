@@ -1900,19 +1900,30 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
 
 window.regenerateSection = (fullSectionId) => {
     const sectionName = fullSectionId.replace('Section', '');
-    const sectionMap = {
-        'intro': { title: 'Introdução', elementId: 'intro' },
-        'development': { title: 'Desenvolvimento', elementId: 'development' },
-        'climax': { title: 'Clímax', elementId: 'climax' },
-        'conclusion': { title: 'Conclusão', elementId: 'conclusion' },
-        'cta': { title: 'Call to Action (CTA)', elementId: 'cta' }
-    };
-    const sectionInfo = sectionMap[sectionName];
-    if (sectionInfo) {
-        const button = document.querySelector(`[data-action='regenerate'][data-section-id='${fullSectionId}']`);
-        if (button) {
-             handleGenerateSection(button, sectionName, sectionInfo.title, sectionInfo.elementId);
-        }
+    const button = document.querySelector(`[data-action='regenerate'][data-section-id='${fullSectionId}']`);
+    if (!button) return;
+
+    // --- NOVA LÓGICA DE DIRECIONAMENTO ---
+    switch (sectionName) {
+        case 'intro':
+            handleGenerateSection(button, 'intro', 'Introdução', 'intro');
+            break;
+        case 'development':
+            handleGenerateSection(button, 'development', 'Desenvolvimento', 'development');
+            break;
+        case 'climax':
+            handleGenerateSection(button, 'climax', 'Clímax', 'climax');
+            break;
+        case 'conclusion':
+            // Chama a função correta para a conclusão
+            generateConclusion(button); 
+            break;
+        case 'cta':
+            // Chama a função correta para o CTA
+            generateStrategicCta(button); 
+            break;
+        default:
+            console.error("Tentativa de re-gerar uma seção desconhecida:", sectionName);
     }
 };
 
