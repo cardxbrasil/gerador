@@ -750,70 +750,76 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let jsonString = text.trim();
 
     // ======================================================================
-    // >>>>> CAMADA 1: PRÉ-PROCESSAMENTO (Corrige erros grosseiros) <<<<<
-    // ======================================================================
-    // Corrige o erro fatal das "Aspas Duplas Duplas": ""valor"" -> "valor"
-    jsonString = jsonString.replace(/: ""([^"]*)""/g, ': "$1"');
-    
-    // ======================================================================
-    // >>>>> CAMADA 2: LIMPEZA AGRESSIVA (Remove todo o "lixo") <<<<<
+    // >>>>> CAMADA 1: LIMPEZA BRUTA <<<<<
+    // Remove todo o texto que não é JSON.
     // ======================================================================
     const fillerPatterns = [
         /assistant<\|end_header_id\|>/g,
+        /^.*?(\[|\{)/s,
+        /(\]|\})\s*.*$/s,
         /Aqui estão.*?$/gim,
-        /Espero que.*?$/gim,
-        /\*\*JSON:\*\*/gim,
-        /I'm a journalist.*?Here are the proposals:/gims,
-        /I'm glad you asked!/gim
+        /Espero que.*?$/gim
     ];
-    fillerPatterns.forEach(pattern => {
-        jsonString = jsonString.replace(pattern, '');
+    fillerPatterns.forEach(pattern => jsonString = jsonString.replace(pattern, '$1'));
+    jsonString = jsonString.replace(/: ""([^"]+)""/g, ': "$1"');
+
+    // ======================================================================
+    // >>>>> CAMADA 2: EXTRAÇÃO E CATALOGAÇÃO INTELIGENTE <<<<<
+    // A solução definitiva para duplicatas e fragmentos.
+    // ======================================================================
+    
+    // Passo A: Encontra tudo que se parece com um objeto JSON.
+    const allFoundObjects = jsonString.match(/\{[\s\S]*?\}/g);
+    
+    if (!allFoundObjects || allFoundObjects.length === 0) {
+        console.warn("Nenhum objeto JSON foi encontrado após a limpeza inicial.");
+        return arrayExpected ? [] : null;
+    }
+
+    // Passo B: Usa um Map para catalogar e manter apenas a versão mais completa e única de cada ideia.
+    const uniqueObjectsCatalog = new Map();
+    allFoundObjects.forEach(objStr => {
+        // Tenta extrair o título como um identificador único.
+        const titleMatch = objStr.match(/"title"\s*:\s*"([^"]+)"/);
+        if (titleMatch && titleMatch[1]) {
+            const title = titleMatch[1];
+            // Se um objeto com este título já existe, ele será substituído.
+            // Isso garante que a versão mais recente (e mais completa) seja mantida.
+            uniqueObjectsCatalog.set(title, objStr);
+        } else {
+            // Se um objeto não tem título (raro), adiciona com uma chave aleatória para não ser perdido.
+            uniqueObjectsCatalog.set(Math.random(), objStr);
+        }
     });
 
-    // ======================================================================
-    // >>>>> CAMADA 3: CONSOLIDAÇÃO UNIVERSAL (Monta o quebra-cabeça) <<<<<
-    // ======================================================================
-    // Extrai TODOS os objetos JSON, ignorando colchetes e outros caracteres.
-    const jsonObjects = jsonString.match(/\{[\s\S]*?\}/g);
-    
-    if (jsonObjects && jsonObjects.length > 0) {
-        // Monta um único array JSON válido a partir de todos os objetos encontrados.
-        jsonString = `[${jsonObjects.join(',')}]`;
+    // Passo C: Pega apenas os objetos únicos e completos do catálogo.
+    const finalObjects = Array.from(uniqueObjectsCatalog.values());
+
+    if (finalObjects.length === 0) {
+         console.warn("Nenhum objeto com título pôde ser catalogado.");
+         return arrayExpected ? [] : null;
     }
 
     // ======================================================================
-    // >>>>> CAMADA 4: REPARO SINTÁTICO FINO E VALIDAÇÃO <<<<<
+    // >>>>> CAMADA 3: MONTAGEM E REPARO FINAL <<<<<
     // ======================================================================
     
-    // (Lógica de reparo de JSON truncado, mantida)
-    if (!jsonString.trim().endsWith(']') && !jsonString.trim().endsWith('}')) {
-        const lastQuoteIndex = jsonString.lastIndexOf('"');
-        const lastColonIndex = jsonString.lastIndexOf(':');
-        if (lastQuoteIndex > -1 && lastQuoteIndex > lastColonIndex) {
-            const quotesAfterColon = (jsonString.substring(lastColonIndex).match(/"/g) || []).length;
-            if (quotesAfterColon % 2 !== 0) jsonString += '"';
-        }
-        if (jsonString.lastIndexOf('{') > jsonString.lastIndexOf(',')) jsonString += '}';
-        if (jsonString.lastIndexOf('[') > jsonString.lastIndexOf('{')) jsonString += ']';
-    }
+    // Monta o array JSON final a partir das peças únicas.
+    let finalJsonString = `[${finalObjects.join(',')}]`;
 
-    // (Regras de vírgulas e refinamento, todas preservadas)
-    jsonString = jsonString.replace(/([}\]])\s*"/g, '$1, "');
-    jsonString = jsonString.replace(/"\s*"/g, '", "');
-    jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
-    jsonString = jsonString.replace(/\}\s*\{/g, '},{');
-    jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
+    // Aplica as regras de reparo fino no JSON já montado.
+    finalJsonString = finalJsonString.replace(/([}\]])\s*"/g, '$1, "');
+    finalJsonString = finalJsonSring.replace(/,\s*([}\]])/g, '$1');
 
+    // --- CAMADA 4: VALIDAÇÃO ---
     try {
-        if (jsonString.endsWith(',}')) jsonString = jsonString.slice(0, -2) + '}';
-        if (jsonString.endsWith(',]')) jsonString = jsonString.slice(0, -2) + ']';
-        const parsedJson = JSON.parse(jsonString);
+        const parsedJson = JSON.parse(finalJsonString);
         if (arrayExpected && !Array.isArray(parsedJson)) return [parsedJson];
         return parsedJson;
     } catch (error) {
         console.error("FALHA CRÍTICA NO PARSE DO JSON. Erro:", error.message);
         console.log("TEXTO ORIGINAL DA IA:", text);
-        console.log("STRING ISOLADA QUE FALHOU:", jsonString);
+        console.log("STRING ISOLADA QUE FALHOU:", finalJsonString);
         return arrayExpected ? [] : null;
     }
 };
