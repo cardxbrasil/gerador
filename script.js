@@ -603,14 +603,20 @@ const parseSimpleJson = (text, expectArray = false) => {
 
 
 
-// A NOVA FUNÇÃO: O "ENGENHEIRO DE SINTAXE"
+// A FUNÇÃO UNIVERSAL E FINAL: O "ENGENHEIRO DE SINTAXE" BLINDADO
 const fixJsonWithAI = async (brokenJsonText) => {
-    const prompt = `Você é um especialista em correção de sintaxe JSON. Sua única tarefa é pegar o texto abaixo, que é uma tentativa de um array JSON, e consertá-lo para que seja 100% válido.
+    if (!brokenJsonText || brokenJsonText.trim() === '') {
+        console.warn("Texto para correção de JSON estava vazio.");
+        return "[]";
+    }
 
-    REGRAS CRÍTICAS:
-    1.  Corrija quaisquer erros: vírgulas faltando ou sobrando, aspas incorretas, objetos incompletos ou quebrados, etc.
-    2.  Se houver objetos duplicados, mantenha apenas a versão mais completa de cada um.
-    3.  Sua resposta deve ser APENAS o array JSON perfeitamente corrigido. NÃO inclua nenhum texto, explicação ou comentário.
+    const prompt = `Você é um especialista em correção de sintaxe JSON. Sua única tarefa é pegar o texto abaixo, que é uma tentativa de um objeto ou array JSON, e consertá-lo para que seja 100% válido.
+
+    REGRAS CRÍTICAS E INEGOCIÁVEIS:
+    1.  **ESTRUTURA:** Corrija quaisquer erros estruturais: vírgulas faltando ou sobrando, aspas incorretas, objetos incompletos ou quebrados, etc.
+    2.  **DUPLICATAS:** Se houver objetos duplicados, mantenha apenas a versão mais completa de cada um.
+    3.  **CARACTERES DE ESCAPE (A REGRA MAIS IMPORTANTE):** Verifique CUIDADOSAMENTE dentro de cada valor de string. Se encontrar uma barra invertida (\\), garanta que ela seja escapada corretamente (\\\\). Se encontrar aspas duplas (") dentro de uma string, garanta que elas sejam escapadas (\\").
+    4.  **RESPOSTA PURA:** Sua resposta deve ser APENAS o JSON perfeitamente corrigido. NÃO inclua nenhum texto, explicação ou comentário.
 
     TEXTO QUEBRADO PARA CORRIGIR:
     ---
@@ -619,9 +625,15 @@ const fixJsonWithAI = async (brokenJsonText) => {
 
     Retorne APENAS o JSON corrigido.`;
 
-    // Usamos um maxTokens generoso para garantir que a resposta completa caiba.
     const fixedJsonText = await callGroqAPI(prompt, 8000); 
-    return fixedJsonText;
+    
+    // ==========================================================
+    // >>>>> CAMADA FINAL DE PROTEÇÃO DETERMINÍSTICA <<<<<
+    // Removemos quaisquer barras invertidas mal formadas que a IA possa ter deixado passar.
+    // ==========================================================
+    let sanitizedText = fixedJsonText.replace(/\\(?!["\\/bfnrt])/g, '\\\\');
+
+    return sanitizedText;
 };
 
 
