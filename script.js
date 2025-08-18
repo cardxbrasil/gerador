@@ -740,10 +740,7 @@ const resetApplicationState = () => {
 
 
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
-    // Verificações iniciais (mantidas)
-    if (!expectJson) {
-        return text ? String(text).trim() : (arrayExpected ? [] : '');
-    }
+    if (!expectJson) return text ? String(text).trim() : (arrayExpected ? [] : '');
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
         console.warn("Texto de entrada inválido ou vazio para o parser de JSON.");
         return arrayExpected ? [] : null;
@@ -752,82 +749,71 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     let jsonString = text.trim();
 
     // ======================================================================
-    // >>>>> EVOLUÇÃO 1: CAMADA DE NORMALIZAÇÃO BRUTA <<<<<
-    // Limpamos o terreno antes de construir.
+    // >>>>> CAMADA 1: NORMALIZAÇÃO E LIMPEZA PROFUNDA <<<<<
     // ======================================================================
-
-    // Passo A: Limpeza Agressiva de "Lixo" Conversacional e Tokens
     const fillerPatterns = [
         /assistant<\|end_header_id\|>/g,
+        /^.*?(\[|\{)/s, // Remove tudo antes do primeiro [ ou {
+        /(\]|\})\s*.*$/s, // Remove tudo depois do último ] ou }
         /Aqui está.*?:\s*/gim,
-        /Espero que.*?$/gim,
-        /\*\*JSON:\*\*/gim,
-        /Please let me know if this meets your requirements or if I need to make any changes\./gim,
-        /It seems that you have provided a detailed task to create.*?Here is the JSON response with the 6 stories:/gims
+        /Essas são as \d+ premissas.*?$/gims
     ];
-    fillerPatterns.forEach(pattern => {
-        jsonString = jsonString.replace(pattern, '');
-    });
-
-    // Passo B: Correção do erro das "Aspas Duplas Duplas"
-    // Procura por : ""valor"" e transforma em : "valor"
+    fillerPatterns.forEach(pattern => jsonString = jsonString.replace(pattern, '$1'));
     jsonString = jsonString.replace(/: ""([^"]+)""/g, ': "$1"');
 
     // ======================================================================
-    // >>>>> EVOLUÇÃO 2: CAMADA DE CONSOLIDAÇÃO UNIVERSAL <<<<<
-    // Montamos o "quebra-cabeça".
+    // >>>>> CAMADA 2: RECONSTRUÇÃO E CONSOLIDAÇÃO <<<<<
+    // A evolução mais crítica: lida com chaves órfãs e objetos quebrados.
     // ======================================================================
-    
-    // Extrai TODOS os objetos JSON válidos, ignorando os colchetes soltos.
-    const jsonObjects = jsonString.match(/\{[\s\S]*?\}/g);
-    if (jsonObjects && jsonObjects.length > 0) {
-        // Une todos os objetos em um único array JSON válido
-        jsonString = `[${jsonObjects.join(',')}]`;
-    }
 
-    // ======================================================================
-    // >>>>> EVOLUÇÃO 3: CAMADA DE REPARO SINTÁTICO FINO <<<<<
-    // Polimos a peça montada.
-    // ======================================================================
+    // Passo A: Identifica e remove o erro específico: `"],`
+    // Isso libera as chaves órfãs para serem resgatadas.
+    jsonString = jsonString.replace(/"\],/g, '",');
+
+    // Passo B: Extrai todos os objetos JÁ BEM FORMADOS.
+    const wellFormedObjects = jsonString.match(/\{[\s\S]*?\}/g) || [];
+
+    // Passo C: Extrai todas as CHAVES ÓRFÃS que ficaram de fora.
+    const orphanKeys = jsonString.replace(/\{[\s\S]*?\}/g, '').match(/"[^"]+?"\s*:\s*(".*?"|\[.*?\]|\d+)/g) || [];
     
-    // (Lógica de reparo de JSON truncado, mantida)
-    if (!jsonString.trim().endsWith(']') && !jsonString.trim().endsWith('}')) {
-        const lastQuoteIndex = jsonString.lastIndexOf('"');
-        const lastColonIndex = jsonString.lastIndexOf(':');
-        if (lastQuoteIndex > -1 && lastQuoteIndex > lastColonIndex) {
-            const quotesAfterColon = (jsonString.substring(lastColonIndex).match(/"/g) || []).length;
-            if (quotesAfterColon % 2 !== 0) {
-                jsonString += '"';
+    let reconstructedObjects = [];
+    if (orphanKeys.length > 0) {
+        // Agrupa as chaves órfãs em um ou mais novos objetos.
+        let currentObject = '{';
+        orphanKeys.forEach((key, index) => {
+            currentObject += key;
+            // Assumimos que a chave "horrorMechanism" ou a última chave encontrada fecha um objeto
+            if (key.includes('horrorMechanism') || index === orphanKeys.length - 1) {
+                currentObject += '}';
+                reconstructedObjects.push(currentObject);
+                currentObject = '{';
+            } else {
+                currentObject += ',';
             }
-        }
-        if (jsonString.lastIndexOf('{') > jsonString.lastIndexOf(',')) jsonString += '}';
-        if (jsonString.lastIndexOf('[') > jsonString.lastIndexOf('{')) jsonString += ']';
+        });
     }
 
-    // (Regras de vírgulas e refinamento, todas preservadas)
+    // Passo D: Montagem Final - Junta os objetos bem formados com os reconstruídos.
+    const allObjects = [...wellFormedObjects, ...reconstructedObjects.filter(o => o.length > 2)];
+    if (allObjects.length > 0) {
+        jsonString = `[${allObjects.join(',')}]`;
+    }
+
+    // ======================================================================
+    // >>>>> CAMADA 3: REPARO SINTÁTICO FINO (Polimento) <<<<<
+    // ======================================================================
     jsonString = jsonString.replace(/([}\]])\s*"/g, '$1, "');
     jsonString = jsonString.replace(/"\s*"/g, '", "');
     jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
     jsonString = jsonString.replace(/\}\s*\{/g, '},{');
     jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
-    
-    // (Regra específica para 'discussionQuestions', mantida)
-    jsonString = jsonString.replace(/("discussionQuestions":\s*\[)([^\]]+)\]/g, (match, start, content) => {
-        const items = content.split(',').map(item => {
-            let cleanedItem = item.trim().replace(/^"/, '').replace(/"$/, '');
-            return `"${cleanedItem.replace(/"/g, '\\"')}"`;
-        });
-        return `${start}${items.join(',')}]`;
-    });
 
-    // --- CAMADA 4: VALIDAÇÃO FINAL (Mantida) ---
+    // --- CAMADA 4: VALIDAÇÃO FINAL ---
     try {
         if (jsonString.endsWith(',}')) jsonString = jsonString.slice(0, -2) + '}';
         if (jsonString.endsWith(',]')) jsonString = jsonString.slice(0, -2) + ']';
         const parsedJson = JSON.parse(jsonString);
-        if (arrayExpected && !Array.isArray(parsedJson)) {
-            return [parsedJson];
-        }
+        if (arrayExpected && !Array.isArray(parsedJson)) return [parsedJson];
         return parsedJson;
     } catch (error) {
         console.error("FALHA CRÍTICA NO PARSE DO JSON. Erro:", error.message);
@@ -1437,41 +1423,46 @@ const generateIdeasFromReport = async (button) => {
 // >>>>> MAPEADOR DE ESTRATÉGIA FINAL E CONFIÁVEL <<<<<
 // Define a configuração de partida ideal para cada especialista.
 // =========================================================================
+// =========================================================================
+// >>>>> MAPEADOR DE ESTRATÉGIA FINAL E COMPLETO (VERSÃO DEFINITIVA) <<<<<
+// Define a configuração de partida ideal para cada especialista, incluindo
+// TODOS os dropdowns das abas "Estratégia Narrativa" e "Detalhes Técnicos".
+// =========================================================================
 const strategyMapper = {
     'documentario': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => `O que os fatos sobre "${idea.title}" realmente revelam?`,
         researchData: idea => `Abordagem Investigativa: ${idea.investigativeApproach}`,
         dossier: idea => `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`
     },
     'inspiracional': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'heroes_journey', narrativeTone: 'inspirador', videoObjective: 'emocionar' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'heroes_journey', narrativeTone: 'inspirador', videoObjective: 'emocionar', languageStyle: 'inspirador', speakingPace: 'lento' },
         narrativeTheme: idea => idea.angle,
         emotionalHook: idea => `A história deve girar em torno do núcleo emocional de '${idea.emotionalCore}', mostrando a transformação de um desafio em uma lição universal.`,
         dossier: idea => `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`
     },
     'scifi': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
         centralQuestion: idea => idea.angle,
         narrativeTheme: idea => `Explorar as consequências do dilema de '${idea.coreDilemma}'.`,
         dossier: idea => `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`
     },
     'terror': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'twist', narrativeTone: 'serio', videoObjective: 'emocionar' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'twist', narrativeTone: 'serio', videoObjective: 'emocionar', languageStyle: 'formal', speakingPace: 'lento' },
         narrativeTheme: idea => `Construir a tensão usando o mecanismo de '${idea.horrorMechanism}'.`,
         centralQuestion: idea => idea.angle,
         dossier: idea => `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`
     },
     'enigmas': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => idea.discussionQuestions[0] || '',
         researchData: idea => `Base Bíblica: ${(idea.scripturalFoundation || []).join('; ')}`,
         dossier: idea => `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${(idea.scripturalFoundation || []).join('; ')}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`
     },
     'geral': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'pixar_spine', narrativeTone: 'inspirador', videoObjective: 'informar' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'pixar_spine', narrativeTone: 'inspirador', videoObjective: 'informar', languageStyle: 'inspirador', speakingPace: 'moderate' },
         narrativeTheme: idea => idea.angle,
         dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
     }
