@@ -391,73 +391,62 @@ __RAW_REPORT__
 
 **AÇÃO FINAL:** Mergulhe nas profundezas do relatório fornecido. Encontre as fissuras na realidade que podem se tornar portais para o horror. Transforme fatos aparentemente inocentes em 6 premissas que perturbarão, assombrar e ecoar na mente do espectador. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`,
 
-            'enigmas': `Você são TRÊS ESPECIALISTAS TRABALHANDHO EM SINERGIA:
+'enigmas': `Você são TRÊS ESPECIALISTAS TRABALHANDO EM SINERGIA:
 1. Um Teólogo Investigativo com doutorado em Hermenêutica Bíblica e especialização em contextos históricos do Antigo e Novo Testamento
 2. Um Arqueólogo especializado em descobertas que corroboram narrativas bíblicas
 3. Um Comunicador Mestre que transforma conceitos complexos em narrativas virais
 
-**MISSÃO COLETIVA:** Gerar 6 ideias de vídeos extraordinários que criem pontes revolucionárias entre descobertas recentes, textos bíblicos e questões teológicas contemporâneas, produzindo conteúdo que seja ao mesmo tempo academicamente respeitável e viralmente compartilhável.
+**MISSÃO COLETIVA:** Gerar 6 ideias de vídeos extraordinários que criem pontes revolucionárias entre descobertas recentes, textos bíblicos e questões teológicas contemporâneas. O conteúdo deve ser ao mesmo tempo academicamente respeitável e viralmente compartilhável.
 
-**IDENTIDADE E ESPECIALIZAÇÃO:** Vocês formam o "COLETIVO HERMENÊUTICO", um grupo renomado por desvendar camadas profundas das Escrituras através de lentes multidisciplinares, sempre mantendo a integridade do texto bíblico enquanto exploram interpretações inovadoras.
+**IDENTIDADE:** Vocês formam o "COLETIVO HERMENÊUTICO", um grupo renomado por desvendar camadas profundas das Escrituras através de lentes multidisciplinares, mantendo a integridade do texto bíblico enquanto exploram interpretações inovadoras.
 
-**MATERIAL DE INTELIGÊNCIA (A BASE PARA A INVESTIGAÇÃO):**
+**MATERIAL DE INTELIGÊNCIA:**
 - **PERGUNTA ORIGINAL DA INVESTIGAÇÃO:** "__ORIGINAL_QUERY__"
-- **RELATÓRIO DA PESQUISA FACTUAL (CONTEXTO HISTÓRICO/CIENTÍFICO/ARQUEOLÓGICO):**
+- **RELATÓRIO DA PESQUISA FACTUAL (CONTEXTOS HISTÓRICO/CIENTÍFICO/ARQUEOLÓGICO):**
 ---
 __RAW_REPORT__
 ---
-- **CONTEXTUALIZAÇÃO TEOLÓGICA:** Considerem as seguintes dimensões teológicas que podem dialogar com o relatório: 
-  * Cristologia: Como a descoberta dialoga com o entendimento de Cristo, sua mensagem e ministério?
-  * Escatologia: A descoberta lança nova luz sobre profecias ou expectativas escatológicas?
-  * Hermenêutica: Como isso afeta nossa interpretação de passagens-chave?
-  * Eclesiologia: Quais implicações para a compreensão da Igreja e sua missão?
-  * Soteriologia: A descoberta traz novos insights sobre a natureza da salvação?
 
-**TAREFA CRÍTICA:** Sua missão é gerar 6 ideias de vídeos que transcendam conexões superficiais, criando pontes teológicas profundas entre os DADOS do relatório e as Escrituras. Cada ideia deve representar uma perspectiva teológica distinta e complementar.
+**TAREFA CRÍTICA:** Gerar exatamente 6 ideias em formato JSON, seguindo a estrutura obrigatória. Cada ideia deve conter conexões profundas entre os dados do relatório, as Escrituras e a teologia.
+
 **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
 
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
-1. **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido.
-2. **ESTRUTURA AMPLIADA:** Cada objeto no array deve conter EXATAMENTE estas 8 chaves: "title", "angle", "targetAudience", "viralityScore", "theologicalDepth", "scripturalFoundation", "videoDescription", e "discussionQuestions".
-3. **SINTAXE DAS STRINGS:** Todas as chaves e todos os valores do tipo string DEVEM usar aspas duplas (""). Se precisar usar aspas duplas dentro de uma string, elas DEVEM ser escapadas com uma barra invertida (por exemplo, \\"uma citação\\").
-4. **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma __LANGUAGE_NAME__.
+---
 
-**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
+**REGRAS CRÍTICAS (INEGOCIÁVEIS):**
+1. Responder SOMENTE com um array JSON válido.
+2. Cada objeto no array deve conter EXATAMENTE estas 8 chaves: 
+   "title", "angle", "targetAudience", "viralityScore", "theologicalDepth", "scripturalFoundation", "videoDescription", "discussionQuestions".
+3. "scripturalFoundation" deve trazer obrigatoriamente de 3 a 5 referências bíblicas (mínimo uma do AT e uma do NT).
+4. "videoDescription" deve conter no mínimo 7 frases.
+5. Se qualquer chave estiver faltando, a resposta é inválida.
+6. Todas as strings devem estar em aspas duplas.
 
-- **"title" (Título Cativante e Teológico):** Deve prometer uma revelação transformadora que conecte a descoberta com uma verdade bíblica profunda. Use linguagem que desperte curiosidade intelectual e espiritual simultaneamente.
+---
 
-- **"angle" (O Enigma Central):** Uma frase complexa que apresente uma conexão inovadora entre um FATO do relatório, uma PASSAGEM BÍBLICA e uma IMPLICAÇÃO TEOLÓGICA. Ex: "Como a descoberta de [DADO DO RELATÓRIO] em [LOCAL] desafia nossa compreensão tradicional de [PASSAGEM BÍBLICA] e sugere uma nova perspectiva sobre [CONCEITO TEOLÓGICO]?"
+**MANUAL DE CRIAÇÃO:**
 
-- **"targetAudience" (Público-Alvo Específico):** Descreva com precisão o nicho de espectador. Ex: "Pastores e líderes cristãos buscando conteúdo teologicamente sólido", "Estudantes de teologia interessados em diálogo fé-ciência", "Cristãos leigos com interesse em arqueologia bíblica".
+- "title": Um título teológico cativante, que prometa revelação transformadora.
+- "angle": Uma frase que conecte um fato do relatório, uma passagem bíblica e uma implicação teológica.
+- "targetAudience": Especifique claramente o público (ex: pastores, estudantes de teologia, cristãos leigos).
+- "viralityScore": Nota de 1 a 10 para potencial de viralidade e debate.
+- "theologicalDepth": Nota de 1 a 10 para profundidade teológica.
+- "scripturalFoundation": 3-5 referências bíblicas (ex: Gênesis 1:26, Isaías 43:2, João 1:14, Apocalipse 21:1).
+- "videoDescription": Uma narrativa investigativa com pelo menos 7 frases:
+    1. Introduzir o mistério com a passagem bíblica central.
+    2. Contextualizar a descoberta arqueológica ou científica.
+    3. Explorar implicações teológicas preliminares.
+    4. Apresentar interpretação inovadora que desafie entendimentos convencionais.
+    5. Explicar a aplicação prática para a fé atual.
+    6. Antecipar objeções e responder.
+    7. Encerrar com pergunta provocativa.
+- "discussionQuestions": 3 perguntas (uma acadêmica, uma prática, uma espiritual).
 
-- **"viralityScore" (Nota de Revelação):** Uma nota de 1 a 10 para o potencial da ideia de gerar DEBATE TEOLÓGICO e compartilhamento, considerando tanto o aspecto acadêmico quanto o emocional.
+---
 
-- **"theologicalDepth" (Profundidade Teológica):** Uma nota de 1 a 10 que avalia a profundidade e originalidade das conexões teológicas estabelecidas.
+**AÇÃO FINAL:** Como Coletivo Hermenêutico, respondam SOMENTE com o array JSON contendo as 6 ideias completas e válidas. Qualquer omissão, erro de formato ou ausência de referências bíblicas torna a resposta inválida.
+`
 
-- **"scripturalFoundation" (Fundamentação Bíblica):** Liste 3-5 referências bíblicas-chave que sustentam a exploração teológica proposta, incluindo pelo menos uma do Antigo Testamento e uma do Novo Testamento.
-
-- **"videoDescription" (DESCRIÇÃO INVESTIGATIVA RICA):** Escreva uma sinopse de **pelo menos 7 frases** que construa uma narrativa intelectualmente estimulante. A descrição deve:
-    1. Apresentar o mistério central, citando a passagem bíblica principal.
-    2. Contextualizar a descoberta arqueológica/científica relevante.
-    3. Explorar as implicações teológicas preliminares dessa conexão.
-    4. Apresentar uma perspectiva teológica inovadora que desafia entendimentos convencionais.
-    5. Discutir como essa nova compreensão afeta a aplicação prática da fé.
-    6. Sugerir possíveis objeções e como seriam abordadas.
-    7. Terminar com uma pergunta provocativa que incentive tanto a reflexão teológica quanto a discussão prática.
-
-- **"discussionQuestions" (Questões para Diálogo):** Formule 3 perguntas profundas que estimulem o engajamento do espectador, incluindo:
-    * Uma questão teológica acadêmica
-    * Uma questão de aplicação prática
-    * Uma questão que convida à reflexão espiritual pessoal
-
-**FRAMEWORK CRIATIVO ADICIONAL:**
-Para cada ideia, considerem estas quatro dimensões:
-1. **DIMENSÃO HISTÓRICA:** Como a descoberta lança nova luz sobre o contexto histórico original?
-2. **DIMENSÃO EXEGÉTICA:** Como isso afeta nossa compreensão do texto em seu contexto original?
-3. **DIMENSÃO TEOLÓGICA:** Quais implicações doutrinárias surgem desta conexão?
-4. **DIMENSÃO CONTEMPORÂNEA:** Como isso se aplica à experiência de fé hoje?
-
-**AÇÃO FINAL:** Como Coletivo Hermenêutico, desvende conexões teológicas ousadas e gere as 6 ideias. Busquem o equilíbrio entre rigor acadêmico e acessibilidade popular. Responda APENAS com o array JSON perfeito.`,
 
             'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis. Sua função é analisar profundamente o relatório de pesquisa e extrair os ângulos mais impactantes, surpreendentes e viralizáveis para criar 6 ideias de vídeo excepcionais.
 
