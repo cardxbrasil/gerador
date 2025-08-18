@@ -1448,66 +1448,94 @@ const generateIdeasFromReport = async (button) => {
 
 
 
-const selectIdea = (idea) => {
-    // 1. Limpeza inicial de TODOS os campos de estratégia
-    ['narrativeTheme', 'centralQuestion', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook', 'researchData']
-        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+// =========================================================================
+// >>>>> NOVO MAPEADOR DE ESTRATÉGIA UNIVERSAL E SEU CONFIG <<<<<
+// Este objeto é o "cérebro" que traduz cada tipo de ideia em uma estratégia.
+// =========================================================================
+const strategyMapper = {
+    'documentario': {
+        narrativeTheme: idea => idea.angle,
+        centralQuestion: idea => `O que os fatos sobre "${idea.title}" realmente revelam?`,
+        researchData: idea => `Abordagem Investigativa: ${idea.investigativeApproach}`,
+        dossier: idea => `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`
+    },
+    'inspiracional': {
+        narrativeTheme: idea => idea.angle,
+        emotionalHook: idea => `A história deve girar em torno do núcleo emocional de '${idea.emotionalCore}', mostrando a transformação de um desafio em uma lição universal.`,
+        dossier: idea => `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`
+    },
+    'scifi': {
+        centralQuestion: idea => idea.angle,
+        narrativeTheme: idea => `Explorar as consequências do dilema de '${idea.coreDilemma}'.`,
+        dossier: idea => `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`
+    },
+    'terror': {
+        narrativeTheme: idea => `Construir a tensão usando o mecanismo de '${idea.horrorMechanism}'.`,
+        centralQuestion: idea => idea.angle,
+        dossier: idea => `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`
+    },
+    'enigmas': {
+        narrativeTheme: idea => idea.angle,
+        centralQuestion: idea => idea.discussionQuestions[0] || '',
+        researchData: idea => `Base Bíblica: ${(idea.scripturalFoundation || []).join('; ')}`,
+        dossier: idea => `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${(idea.scripturalFoundation || []).join('; ')}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`
+    },
+    'geral': {
+        narrativeTheme: idea => idea.angle,
+        dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
+    }
+};
 
-    // 2. Preenchimento dos campos básicos
+const getGenreFromIdea = (idea) => {
+    if (idea.investigativeApproach) return 'documentario';
+    if (idea.emotionalCore) return 'inspiracional';
+    if (idea.coreDilemma) return 'scifi';
+    if (idea.horrorMechanism) return 'terror';
+    if (idea.scripturalFoundation) return 'enigmas';
+    return 'geral';
+};
+
+// FUNÇÃO selectIdea REENGENHARADA
+const selectIdea = (idea) => {
+    // 1. Cria uma Estratégia Base com sugestões criativas para TODOS os campos.
+    let strategy = {
+        narrativeTheme: idea.angle || `Explorar o tema central de "${idea.title}".`,
+        centralQuestion: `Qual é o mistério ou a principal questão por trás de "${idea.title}"?`,
+        emotionalHook: `Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.`,
+        narrativeVoice: 'Confiante e Esclarecedor',
+        shockingEndingHook: `Crie uma frase de abertura enigmática que só fará sentido no final, como: "A resposta nunca esteve no futuro, mas enterrada no passado."`,
+        researchData: ''
+    };
+
+    // 2. Especialização: Usa o Mapeador para sobrescrever a estratégia base com dados específicos.
+    const genre = getGenreFromIdea(idea);
+    const mapper = strategyMapper[genre];
+    if (mapper) {
+        for (const key in mapper) {
+            if (key !== 'dossier') {
+                strategy[key] = mapper[key](idea);
+            }
+        }
+    }
+
+    // 3. Aplica a Estratégia Final aos campos do formulário.
+    for (const id in strategy) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.value = strategy[id];
+        }
+    }
+    
+    // 4. Preenche os campos básicos e monta o Dossiê na Descrição.
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
     
-    let fullDescription = idea.videoDescription || '';
-    let dossier = `--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n`;
-
-    // 3. Mapeador Inteligente
-    switch (true) {
-        case !!idea.investigativeApproach: // Documentário
-            document.getElementById('narrativeTheme').value = idea.angle || '';
-            // >>>>> CORREÇÃO 1: Adiciona uma Pergunta Central inteligente para o Documentário <<<<<
-            document.getElementById('centralQuestion').value = `O que os fatos sobre "${idea.title}" realmente revelam?`;
-            document.getElementById('researchData').value = `Abordagem Investigativa: ${idea.investigativeApproach}`;
-            dossier += `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`;
-            break;
-
-        case !!idea.emotionalCore: // Inspiracional
-            document.getElementById('narrativeTheme').value = idea.angle || '';
-            document.getElementById('emotionalHook').value = `Desenvolver a história em torno do núcleo emocional de '${idea.emotionalCore}'.`;
-            dossier += `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`;
-            break;
-
-        case !!idea.scripturalFoundation: // Enigmas
-            document.getElementById('narrativeTheme').value = idea.angle || '';
-            document.getElementById('centralQuestion').value = idea.discussionQuestions[0] || '';
-            const scriptureList = (idea.scripturalFoundation || []).join('; ');
-            document.getElementById('researchData').value = `Base Bíblica: ${scriptureList}`;
-            dossier += `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${scriptureList}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`;
-            break;
-
-        default: // Geral e outros
-            document.getElementById('narrativeTheme').value = idea.angle || '';
-            dossier += `- Ângulo Único: ${idea.angle || 'N/A'}`;
-            if (idea.shareTriggers) dossier += `\n- Gatilhos: ${idea.shareTriggers}`;
-            break;
-    }
+    const dossierContent = mapper ? mapper.dossier(idea) : `- Ângulo Único: ${idea.angle || 'N/A'}`;
+    const fullDescription = `${idea.videoDescription || ''}\n\n--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n${dossierContent.trim()}`;
+    document.getElementById('videoDescription').value = fullDescription;
     
-    // 4. Preenche os campos criativos restantes com sugestões LIMPAS, se estiverem vazios
-    if (!document.getElementById('narrativeVoice').value) {
-        document.getElementById('narrativeVoice').value = 'Confiante e Esclarecedor';
-    }
-    // >>>>> CORREÇÃO 2: Remove o meta-texto "[SUGESTÃO:]" <<<<<
-    if (!document.getElementById('emotionalHook').value) {
-        document.getElementById('emotionalHook').value = `Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.`;
-    }
-    if (!document.getElementById('shockingEndingHook').value) {
-        document.getElementById('shockingEndingHook').value = `Crie uma frase de abertura enigmática que só fará sentido no final do vídeo, como: "A resposta nunca esteve no futuro, mas enterrada no passado."`;
-    }
-
-    // 5. Anexa o dossiê à descrição principal
-    document.getElementById('videoDescription').value = `${fullDescription}\n\n${dossier.trim()}`;
-    
-    // 6. Feedback e Navegação
-    window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
+    // 5. Feedback e Navegação Intuitiva.
+    window.showToast("Ideia selecionada! Estratégia completa pré-preenchida.", 'success');
     showPane('strategy');
     document.querySelector('[data-tab="input-tab-basico"]')?.click();
 };
