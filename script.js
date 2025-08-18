@@ -1314,18 +1314,15 @@ const generateIdeasFromReport = async (button) => {
     const outputContainer = document.getElementById('ideasOutput');
     showButtonLoading(button);
 
-    // >>>>> CORREÇÃO #1: HTML DE LOADING SIMPLES E CENTRALIZADO <<<<<
     outputContainer.innerHTML = `
         <div class="md:col-span-2 text-center p-8">
             <div class="loading-spinner mx-auto mb-4" style="width: 32px; height: 32px; border-width: 4px; margin: auto;"></div>
             <p class="text-lg font-semibold" style="color: var(--text-header);">Consultando especialista em ${genre}...</p>
         </div>
     `;
-    // >>>>> FIM DA CORREÇÃO #1 <<<<<
 
     const promptContext = { originalQuery, rawReport, languageName };
     const prompt = PromptManager.getIdeasPrompt(genre, promptContext);
-
 
     console.log(`[Especialista: ${genre.toUpperCase()}] - Enviando prompt:`, prompt.substring(0, 300));
 
@@ -1333,13 +1330,10 @@ const generateIdeasFromReport = async (button) => {
         const rawResult = await callGroqAPI(prompt, 4000);
         const ideas = cleanGeneratedText(rawResult, true, true); 
 
-        // ==========================================================
-        // >>>>> ADICIONE O CÓDIGO DE DEBUG AQUI <<<<<
-        // ==========================================================
-        console.log("✅ [DEBUG] Ideias 'Enigmas' (JSON processado):", ideas);
-        console.table(ideas); // Isso mostrará os dados em uma tabela bonita no console!
-        // ==========================================================
-        
+        // DEBUG PARA COMPARAÇÃO
+        console.log("✅ [DEBUG] Ideias (JSON processado):", ideas);
+        if (ideas && ideas.length > 0) console.table(ideas);
+
         if (!ideas || !Array.isArray(ideas) || ideas.length === 0 || !ideas[0].title) throw new Error("A IA não retornou ideias em um formato JSON válido.");
         
         AppState.generated.ideas = ideas;
@@ -1350,42 +1344,84 @@ const generateIdeasFromReport = async (button) => {
         };
         const colorName = genreColorMap[genre] || 'emerald';
 
-        // >>>>> CORREÇÃO #2: HTML DOS CARDS DA V5.0 <<<<<
-        const allCardsHtml = ideas.map((idea, index) => {
-    const escapedIdea = escapeIdeaForOnclick(idea);
-    const colorName = genreColorMap[genre] || 'emerald';
+        // ==========================================================
+        // >>>>> INÍCIO DA CORREÇÃO: LÓGICA DE RENDERIZAÇÃO CONDICIONAL <<<<<
+        // ==========================================================
+        let allCardsHtml = '';
 
-    // Este é o novo HTML que recria o layout da Imagem 01
-    return `
-    <div class="card idea-card border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
-        
-        <!-- Botão posicionado de forma absoluta no canto superior direito -->
-        <button class="btn btn-primary btn-small idea-card-button" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-        
-        <!-- Cabeçalho do Card (com espaço para o botão) -->
-        <div class="idea-card-header">
-            <h4 class="font-bold text-base" style="color: var(--text-header);">
-                ${index + 1}. ${DOMPurify.sanitize(idea.title)}
-            </h4>
-        </div>
-        
-        <!-- Corpo do Card (descrição) -->
-        <div class="idea-card-body">
-            <p class="text-sm leading-relaxed" style="color: var(--text-body);">
-                "${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"
-            </p>
-        </div>
+        if (genre === 'enigmas') {
+            // --- RENDERIZADOR "DE LUXO" PARA O ESPECIALISTA 'ENIGMAS' ---
+            allCardsHtml = ideas.map((idea, index) => {
+                const escapedIdea = escapeIdeaForOnclick(idea);
+                
+                // Funções auxiliares para criar as listas
+                const createScriptureList = (scriptures) => {
+                    if (!scriptures || !Array.isArray(scriptures)) return '';
+                    return scriptures.map(s => `<li>${DOMPurify.sanitize(s)}</li>`).join('');
+                };
+                 const createQuestionsList = (questions) => {
+                    if (!questions || !Array.isArray(questions)) return '';
+                    return questions.map(q => `<li>${DOMPurify.sanitize(q)}</li>`).join('');
+                };
 
-        <!-- Rodapé do Card (potencial) -->
-        <div class="idea-card-footer">
-            <span class="font-semibold text-sm text-${colorName}-500">
-                Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
-            </span>
-        </div>
-    </div>
-    `;
-}).join('');
-        // >>>>> FIM DA CORREÇÃO #2 <<<<<
+                return `
+                <div class="card idea-card border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
+                    <button class="btn btn-primary btn-small idea-card-button" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+                    
+                    <div class="idea-card-header">
+                        <h4 class="font-bold text-base" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
+                    </div>
+                    
+                    <div class="idea-card-body">
+                        <p class="text-sm leading-relaxed" style="color: var(--text-body); margin-bottom: 1rem;">
+                            "${DOMPurify.sanitize(idea.videoDescription)}"
+                        </p>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <strong class="text-${colorName}-500">Fundamentação Bíblica:</strong>
+                                <ul class="list-disc list-inside mt-1">${createScriptureList(idea.scripturalFoundation)}</ul>
+                            </div>
+                             <div>
+                                <strong class="text-${colorName}-500">Perguntas para Diálogo:</strong>
+                                <ul class="list-disc list-inside mt-1">${createQuestionsList(idea.discussionQuestions)}</ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="idea-card-footer flex justify-between items-center">
+                        <span class="font-semibold text-sm text-${colorName}-500">
+                            Potencial Viral: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
+                        </span>
+                        <span class="font-semibold text-sm text-${colorName}-500">
+                            Profundidade Teológica: ${DOMPurify.sanitize(String(idea.theologicalDepth))} / 10
+                        </span>
+                    </div>
+                </div>`;
+            }).join('');
+
+        } else {
+            // --- RENDERIZADOR PADRÃO PARA OS OUTROS ESPECIALISTAS ---
+            allCardsHtml = ideas.map((idea, index) => {
+                const escapedIdea = escapeIdeaForOnclick(idea);
+                return `
+                <div class="card idea-card border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
+                    <button class="btn btn-primary btn-small idea-card-button" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+                    <div class="idea-card-header">
+                        <h4 class="font-bold text-base" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
+                    </div>
+                    <div class="idea-card-body">
+                        <p class="text-sm leading-relaxed" style="color: var(--text-body);">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
+                    </div>
+                    <div class="idea-card-footer">
+                        <span class="font-semibold text-sm text-${colorName}-500">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        // ==========================================================
+        // >>>>> FIM DA CORREÇÃO <<<<<
+        // ==========================================================
         
         outputContainer.innerHTML = allCardsHtml;
         markStepCompleted('investigate', false);
