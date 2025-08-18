@@ -430,6 +430,9 @@ tas para Diálogo" e "Gatilhos de Compartilhamento" DEVEM ser convertidos em arr
 ]
 
 **AÇÃO FINAL:** Extraia as informações de todas as 6 ideias do texto e formate-as no array JSON perfeito. Não adicione, remova ou altere nenhuma informação. Apenas estruture os dados.`;
+
+}
+
 },
 
 
