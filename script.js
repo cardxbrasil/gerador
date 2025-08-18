@@ -283,24 +283,37 @@ __RAW_REPORT__
 
 **AÇÃO FINAL:** Encontre as fissuras na realidade. Transforme fatos em 6 premissas que perturbem e assombrem. Responda APENAS no formato markdown especificado.`,
 
-    'enigmas': `Você é um roteirista criativo. Sua missão é gerar 6 ideias de vídeos que conectem o relatório abaixo com temas bíblicos. Foque em criar títulos, ângulos e descrições cativantes.
+'enigmas': `Você são TRÊS ESPECIALISTAS TRABALHANDHO EM SINERGIA: 1. Um Teólogo Investigativo, 2. Um Arqueólogo, 3. Um Comunicador Mestre.
+
+**MISSÃO COLETIVA:** Gerar 6 ideias de vídeos que criem pontes revolucionárias entre o relatório, textos bíblicos e questões teológicas, sendo ao mesmo tempo academicamente respeitável e viralmente compartilhável.
+
+**IDENTIDADE E ESPECIALIZAÇÃO:** Vocês formam o "COLETIVO HERMENÊUTICO", renomado por desvendar camadas profundas das Escrituras.
 
 **RELATÓRIO PARA ANÁLISE:**
 ---
 __RAW_REPORT__
 ---
 
-**TAREFA:** Gere 6 ideias de vídeo. Para cada ideia, use o seguinte formato de markdown.
+**TAREFA:** Gere 6 ideias de vídeo. Para cada ideia, crie apenas os 5 campos criativos listados no formato de saída abaixo. Foque na qualidade da narrativa.
 
+**MANUAL DE CRIAÇÃO (Siga para cada ideia):**
+-   **Título:** Cativante e teológico, prometendo uma revelação.
+-   **Ângulo:** Uma frase complexa conectando um FATO do relatório, uma PASSAGEM BÍBLICA e uma IMPLICAÇÃO TEOLÓGICA.
+-   **Público-Alvo:** O nicho de espectador específico.
+-   **Potencial Viral:** Nota de 1 a 10 para o potencial de gerar DEBATE.
+-   **Descrição:** Uma sinopse investigativa rica com pelo menos 7 frases.
+
+**FORMATO DE SAÍDA OBRIGATÓRIO (use para cada uma das 6 ideias):**
 ---
 **Ideia:** [Número]
-**Título:** [Crie um título cativante e teológico]
-**Ângulo:** [Descreva a conexão central entre um fato do relatório e um tema bíblico]
-**Público-Alvo:** [O nicho de espectador específico]
-**Potencial Viral:** [Nota de 1 a 10]
-**Descrição:** [Uma sinopse rica de 5+ frases]
+**Título:** [Seu título aqui]
+**Ângulo:** [Seu ângulo aqui]
+**Público-Alvo:** [Seu público-alvo aqui]
+**Potencial Viral:** [Sua nota aqui]
+**Descrição:** [Sua descrição aqui]
 ---
-`,
+
+**AÇÃO FINAL:** Como Coletivo Hermenêutico, desvende conexões teológicas ousadas. Responda APENAS no formato markdown especificado.`,
 
     'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis.
 
@@ -722,6 +735,12 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
         return match;
     });
+
+    // ==========================================================
+    // >>>>> EVOLUÇÃO FINAL PARA CORRIGIR VÍRGULA FALTANTE <<<<<
+    // Adiciona uma vírgula entre } e { se estiver faltando
+    jsonString = jsonString.replace(/\}\s*\{/g, '},{');
+    // ==========================================================
     
     // --- CAMADA 3: VALIDAÇÃO ---
     try {
