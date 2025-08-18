@@ -1283,6 +1283,118 @@ const handleInvestigate = async (button) => {
 
 
 
+// =========================================================================
+// >>>>> NOVO RENDERIZADOR DE CARDS UNIVERSAL E SEU CONFIG <<<<<
+// =========================================================================
+
+// CONFIG: Define como cada especialista deve ser exibido.
+const ideaCardConfig = {
+    'documentario': {
+        color: 'gray',
+        details: [
+            { key: 'angle', label: 'Tese Central', icon: 'fa-bullseye' },
+            { key: 'investigativeApproach', label: 'Abordagem Investigativa', icon: 'fa-search-plus' },
+            { key: 'targetAudience', label: 'Público-Alvo', icon: 'fa-users' }
+        ],
+        footer: [ { key: 'viralityScore', label: 'Potencial' } ]
+    },
+    'inspiracional': {
+        color: 'violet',
+        details: [
+            { key: 'angle', label: 'Arco Narrativo', icon: 'fa-chart-line' },
+            { key: 'emotionalCore', label: 'Núcleo Emocional', icon: 'fa-heart' }
+        ],
+        footer: [ { key: 'viralityScore', label: 'Potencial de Impacto' } ]
+    },
+    'scifi': {
+        color: 'blue',
+        details: [
+            { key: 'angle', label: 'A Premissa "E Se?"', icon: 'fa-question-circle' },
+            { key: 'coreDilemma', label: 'Dilema Central', icon: 'fa-balance-scale' }
+        ],
+        footer: [ { key: 'viralityScore', label: 'Potencial de Discussão' } ]
+    },
+    'terror': {
+        color: 'red',
+        details: [
+            { key: 'angle', label: 'A Premissa Inquietante', icon: 'fa-eye' },
+            { key: 'horrorMechanism', label: 'Mecanismo de Terror', icon: 'fa-brain' }
+        ],
+        footer: [ { key: 'viralityScore', label: 'Potencial de Perturbação' } ]
+    },
+    'enigmas': {
+        color: 'purple',
+        isComplex: true, // Flag para layout especial
+        details: [
+            { key: 'scripturalFoundation', label: 'Fundamentação Bíblica', icon: 'fa-book-bible', isList: true },
+            { key: 'discussionQuestions', label: 'Perguntas para Diálogo', icon: 'fa-comments', isList: true }
+        ],
+        footer: [
+            { key: 'viralityScore', label: 'Potencial Viral' },
+            { key: 'theologicalDepth', label: 'Profundidade Teológica' }
+        ]
+    },
+    'geral': {
+        color: 'emerald',
+        details: [
+            { key: 'angle', label: 'Ângulo Único', icon: 'fa-lightbulb' },
+            { key: 'shareTriggers', label: 'Gatilhos de Compartilhamento', icon: 'fa-share-alt' }
+        ],
+        footer: [ { key: 'viralityScore', label: 'Potencial Viral' } ]
+    }
+};
+
+// FUNÇÃO: O Renderizador Universal que usa o config acima.
+const renderUniversalIdeaCard = (idea, index, genre) => {
+    const config = ideaCardConfig[genre] || ideaCardConfig['geral'];
+    const escapedIdea = escapeIdeaForOnclick(idea);
+
+    const renderDetails = () => {
+        if (config.isComplex) { // Layout especial para 'Enigmas'
+             return `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                ${config.details.map(detail => `
+                    <div>
+                        <strong class="text-${config.color}-500 flex items-center gap-2"><i class="fas ${detail.icon} fa-fw"></i>${detail.label}:</strong>
+                        <ul class="list-disc list-inside mt-1">${(idea[detail.key] || []).map(item => `<li>${DOMPurify.sanitize(item)}</li>`).join('')}</ul>
+                    </div>
+                `).join('')}
+            </div>`;
+        }
+        // Layout padrão para os outros
+        return config.details.map(detail => `
+            <p class="text-sm text-muted mt-2">
+                <strong class="flex items-center gap-2"><i class="fas ${detail.icon} fa-fw text-${config.color}-500"></i>${detail.label}:</strong>
+                <span class="italic">"${DOMPurify.sanitize(idea[detail.key] || 'N/A')}"</span>
+            </p>
+        `).join('');
+    };
+
+    const renderFooter = () => {
+        return config.footer.map(item => `
+            <span class="font-semibold text-sm text-${config.color}-500">
+                ${item.label}: ${DOMPurify.sanitize(String(idea[item.key]))} / 10
+            </span>
+        `).join('');
+    };
+
+    return `
+    <div class="card idea-card border-l-4 border-${config.color}-500 animate-fade-in" style="border-left-width: 4px !important;">
+        <button class="btn btn-primary btn-small idea-card-button" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
+        <div class="idea-card-header">
+            <h4 class="font-bold text-base" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
+        </div>
+        <div class="idea-card-body">
+            <p class="text-sm leading-relaxed mb-3" style="color: var(--text-body);">${DOMPurify.sanitize(idea.videoDescription)}</p>
+            ${renderDetails()}
+        </div>
+        <div class="idea-card-footer flex justify-between items-center">
+            ${renderFooter()}
+        </div>
+    </div>`;
+};
+
+
+// FUNÇÃO PRINCIPAL: Agora muito mais limpa e usando o sistema universal.
 const generateIdeasFromReport = async (button) => {
     const factCheckOutput = document.getElementById('factCheckOutput');
     const { originalQuery, rawReport } = factCheckOutput.dataset;
@@ -1299,23 +1411,15 @@ const generateIdeasFromReport = async (button) => {
     const outputContainer = document.getElementById('ideasOutput');
     showButtonLoading(button);
 
-    outputContainer.innerHTML = `
-        <div class="md:col-span-2 text-center p-8">
-            <div class="loading-spinner mx-auto mb-4" style="width: 32px; height: 32px; border-width: 4px; margin: auto;"></div>
-            <p class="text-lg font-semibold" style="color: var(--text-header);">Consultando especialista em ${genre}...</p>
-        </div>
-    `;
+    outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4" style="width: 32px; height: 32px; border-width: 4px; margin: auto;"></div><p class="text-lg font-semibold" style="color: var(--text-header);">Consultando especialista em ${genre}...</p></div>`;
 
     const promptContext = { originalQuery, rawReport, languageName };
     const prompt = PromptManager.getIdeasPrompt(genre, promptContext);
-
-    console.log(`[Especialista: ${genre.toUpperCase()}] - Enviando prompt:`, prompt.substring(0, 300));
 
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
         const ideas = cleanGeneratedText(rawResult, true, true); 
 
-        // DEBUG PARA COMPARAÇÃO
         console.log("✅ [DEBUG] Ideias (JSON processado):", ideas);
         if (ideas && ideas.length > 0) console.table(ideas);
 
@@ -1323,90 +1427,8 @@ const generateIdeasFromReport = async (button) => {
         
         AppState.generated.ideas = ideas;
         
-        const genreColorMap = {
-            'documentario': 'gray', 'inspiracional': 'violet', 'scifi': 'blue', 
-            'terror': 'red', 'enigmas': 'purple', 'geral': 'emerald'
-        };
-        const colorName = genreColorMap[genre] || 'emerald';
-
-        // ==========================================================
-        // >>>>> INÍCIO DA CORREÇÃO: LÓGICA DE RENDERIZAÇÃO CONDICIONAL <<<<<
-        // ==========================================================
-        let allCardsHtml = '';
-
-        if (genre === 'enigmas') {
-            // --- RENDERIZADOR "DE LUXO" PARA O ESPECIALISTA 'ENIGMAS' ---
-            allCardsHtml = ideas.map((idea, index) => {
-                const escapedIdea = escapeIdeaForOnclick(idea);
-                
-                // Funções auxiliares para criar as listas
-                const createScriptureList = (scriptures) => {
-                    if (!scriptures || !Array.isArray(scriptures)) return '';
-                    return scriptures.map(s => `<li>${DOMPurify.sanitize(s)}</li>`).join('');
-                };
-                 const createQuestionsList = (questions) => {
-                    if (!questions || !Array.isArray(questions)) return '';
-                    return questions.map(q => `<li>${DOMPurify.sanitize(q)}</li>`).join('');
-                };
-
-                return `
-                <div class="card idea-card border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
-                    <button class="btn btn-primary btn-small idea-card-button" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                    
-                    <div class="idea-card-header">
-                        <h4 class="font-bold text-base" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                    </div>
-                    
-                    <div class="idea-card-body">
-                        <p class="text-sm leading-relaxed" style="color: var(--text-body); margin-bottom: 1rem;">
-                            "${DOMPurify.sanitize(idea.videoDescription)}"
-                        </p>
-                        
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <strong class="text-${colorName}-500">Fundamentação Bíblica:</strong>
-                                <ul class="list-disc list-inside mt-1">${createScriptureList(idea.scripturalFoundation)}</ul>
-                            </div>
-                             <div>
-                                <strong class="text-${colorName}-500">Perguntas para Diálogo:</strong>
-                                <ul class="list-disc list-inside mt-1">${createQuestionsList(idea.discussionQuestions)}</ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="idea-card-footer flex justify-between items-center">
-                        <span class="font-semibold text-sm text-${colorName}-500">
-                            Potencial Viral: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10
-                        </span>
-                        <span class="font-semibold text-sm text-${colorName}-500">
-                            Profundidade Teológica: ${DOMPurify.sanitize(String(idea.theologicalDepth))} / 10
-                        </span>
-                    </div>
-                </div>`;
-            }).join('');
-
-        } else {
-            // --- RENDERIZADOR PADRÃO PARA OS OUTROS ESPECIALISTAS ---
-            allCardsHtml = ideas.map((idea, index) => {
-                const escapedIdea = escapeIdeaForOnclick(idea);
-                return `
-                <div class="card idea-card border-l-4 border-${colorName}-500 animate-fade-in" style="border-left-width: 4px !important;">
-                    <button class="btn btn-primary btn-small idea-card-button" data-action="select-idea" data-idea='${escapedIdea}'>Usar</button>
-                    <div class="idea-card-header">
-                        <h4 class="font-bold text-base" style="color: var(--text-header);">${index + 1}. ${DOMPurify.sanitize(idea.title)}</h4>
-                    </div>
-                    <div class="idea-card-body">
-                        <p class="text-sm leading-relaxed" style="color: var(--text-body);">"${DOMPurify.sanitize(idea.videoDescription || idea.angle)}"</p>
-                    </div>
-                    <div class="idea-card-footer">
-                        <span class="font-semibold text-sm text-${colorName}-500">Potencial: ${DOMPurify.sanitize(String(idea.viralityScore))} / 10</span>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-        // ==========================================================
-        // >>>>> FIM DA CORREÇÃO <<<<<
-        // ==========================================================
+        // A MÁGICA ACONTECE AQUI: Um único map que chama o renderizador universal.
+        const allCardsHtml = ideas.map((idea, index) => renderUniversalIdeaCard(idea, index, genre)).join('');
         
         outputContainer.innerHTML = allCardsHtml;
         markStepCompleted('investigate', false);
@@ -1422,64 +1444,72 @@ const generateIdeasFromReport = async (button) => {
 
 
 
+
+
+
+
 const selectIdea = (idea) => {
-    // 1. Preenchimento dos campos básicos e de identificação (para todos os especialistas)
+    // Limpeza inicial dos campos de estratégia
+    ['narrativeTheme', 'centralQuestion', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook', 'researchData']
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+
+    // Preenchimento dos campos básicos
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
+    
+    let fullDescription = idea.videoDescription || '';
+    let dossier = `--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n`;
 
-    // 2. Lógica Condicional: É uma ideia do especialista "Enigmas"?
-    if (idea.scripturalFoundation && idea.discussionQuestions) {
-        
-        // ==========================================================
-        // >>>>> INÍCIO DA NOVA LÓGICA DE MAPEAMENTO ESTRATÉGICO <<<<<
-        // ==========================================================
+    // Mapeador Inteligente: Identifica o especialista e preenche os campos
+    switch (true) {
+        case !!idea.investigativeApproach: // Documentário
+            document.getElementById('narrativeTheme').value = idea.angle || '';
+            document.getElementById('researchData').value = `Abordagem: ${idea.investigativeApproach}`;
+            dossier += `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`;
+            break;
 
-        // Preenche os campos da aba "Estratégia Narrativa"
-        document.getElementById('narrativeTheme').value = idea.angle || '';
-        document.getElementById('centralQuestion').value = idea.discussionQuestions[0] || '';
-        
-        // Gera sugestões criativas inteligentes para os campos vazios
-        document.getElementById('narrativeVoice').value = 'Investigativo, Reverente e Misterioso';
-        document.getElementById('emotionalHook').value = `[SUGESTÃO: Comece com uma anedota sobre a sensação de descoberta, conectando um mapa antigo ou uma expedição com a revelação espiritual encontrada no tema '${idea.title}'.]`;
-        document.getElementById('shockingEndingHook').value = `[SUGESTÃO: Use uma frase de abertura como: 'E se a resposta para a profecia final não estivesse em um pergaminho, mas viva, crescendo no coração do mundo?']`;
+        case !!idea.emotionalCore: // Inspiracional
+            document.getElementById('narrativeTheme').value = idea.angle || '';
+            document.getElementById('emotionalHook').value = `[SUGESTÃO: Desenvolver a história em torno do núcleo emocional de '${idea.emotionalCore}'.]`;
+            dossier += `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`;
+            break;
 
-        // Preenche os campos da aba "Detalhes Técnicos"
-        const scriptureList = idea.scripturalFoundation.join('; ');
-        document.getElementById('researchData').value = `Base Bíblica: ${scriptureList}`;
+        case !!idea.coreDilemma: // Ficção Científica
+            document.getElementById('centralQuestion').value = idea.angle || '';
+            document.getElementById('narrativeTheme').value = `O dilema de '${idea.coreDilemma}'.`;
+            dossier += `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`;
+            break;
+            
+        case !!idea.horrorMechanism: // Terror
+            document.getElementById('narrativeTheme').value = `Explorando o mecanismo de '${idea.horrorMechanism}'.`;
+            document.getElementById('centralQuestion').value = idea.angle || '';
+            dossier += `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`;
+            break;
 
-        // Cria o "Dossiê Completo" na Descrição do Vídeo (seu objetivo principal)
-        const allQuestions = idea.discussionQuestions.map(q => `- ${q}`).join('\n');
-        const fullDescription = `
-${idea.videoDescription || ''}
+        case !!idea.scripturalFoundation: // Enigmas
+            document.getElementById('narrativeTheme').value = idea.angle || '';
+            document.getElementById('centralQuestion').value = idea.discussionQuestions[0] || '';
+            const scriptureList = (idea.scripturalFoundation || []).join('; ');
+            document.getElementById('researchData').value = `Base Bíblica: ${scriptureList}`;
+            dossier += `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${scriptureList}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`;
+            break;
+            
+        case !!idea.shareTriggers: // Geral
+            document.getElementById('narrativeTheme').value = idea.angle || '';
+            dossier += `- Ângulo Único: ${idea.angle}\n- Gatilhos de Compartilhamento: ${idea.shareTriggers}`;
+            break;
 
---------------------
-**DOSSIÊ DA IDEIA**
---------------------
-- **Tese Principal (Angle):** ${idea.angle || 'N/A'}
-- **Fundamentação Bíblica:** ${scriptureList}
-- **Questões para Diálogo:**
-${allQuestions}
-        `.trim().replace(/^\s+/gm, ''); // Limpa espaços extras e linhas em branco no início
-
-        document.getElementById('videoDescription').value = fullDescription;
-
-    } else {
-        // Comportamento para especialistas genéricos (inalterado)
-        document.getElementById('narrativeTheme').value = idea.angle || '';
-        document.getElementById('videoDescription').value = idea.videoDescription || '';
-        
-        ['centralQuestion', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook', 'researchData']
-            .forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
-            });
+        default: // Fallback
+            document.getElementById('narrativeTheme').value = idea.angle || '';
+            break;
     }
-
-    // 3. Feedback e Navegação (igual para todos)
+    
+    // Anexa o dossiê à descrição principal
+    document.getElementById('videoDescription').value = `${fullDescription}\n\n${dossier.trim()}`;
+    
+    // Feedback e Navegação
     window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
     showPane('strategy');
-    
-    // Leva o usuário direto para a aba de Estratégia para ver os campos preenchidos.
     document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
 };
 
