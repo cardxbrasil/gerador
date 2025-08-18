@@ -2308,7 +2308,12 @@ const goToFinalize = () => {
     window.showToast("Roteiro pronto! Bem-vindo à área de finalização.", 'success');
 };
 
-// --- ETAPA 4: FINALIZAR E EXPORTAR ---
+
+
+
+
+
+
 
 const analyzeScriptPart = async (criterion, text, context = {}) => {
     const sectionKeyMap = {
@@ -2338,12 +2343,15 @@ ${text.slice(0, 7000)}
 2.  **CHAVES E TIPOS OBRIGATÓRIOS:** O objeto DEVE conter EXATAMENTE estas 6 chaves: "criterion_name", "score" (Número), "positive_points" (String), "problematic_quote" (String - cópia literal ou "Nenhum"), "critique" (String), e "rewritten_quote" (String).
 3.  **SINTAXE:** Todas as chaves e valores string DEVEM usar aspas duplas ("").
 
-**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
-
 **AÇÃO FINAL:** Analise o trecho e retorne APENAS o objeto JSON perfeito.`;
 
     try {
+        // ==========================================================
+        // >>>>> CORREÇÃO APLICADA AQUI <<<<<
+        // Usamos a função forceLanguageOnPrompt para garantir o idioma correto.
+        // ==========================================================
         const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 1500);
+        
         const analysisData = parseSimpleJson(rawResult);
         if (!analysisData || !('score' in analysisData)) throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
         
@@ -2354,7 +2362,7 @@ ${text.slice(0, 7000)}
             improvement_points: []
         };
 
-        if (analysisData.critique.toLowerCase() !== "nenhuma crítica significativa.") {
+        if (analysisData.critique && analysisData.critique.toLowerCase() !== "nenhuma crítica significativa." && analysisData.critique.toLowerCase() !== "none.") {
             formattedData.improvement_points.push({
                 suggestion_text: "Substituir por:",
                 problematic_quote: analysisData.problematic_quote,
@@ -2372,6 +2380,13 @@ ${text.slice(0, 7000)}
         };
     }
 };
+
+
+
+
+
+
+
 
 const createReportSection = (analysisData) => {
     const sectionDiv = document.createElement('div');
