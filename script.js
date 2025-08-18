@@ -3383,32 +3383,30 @@ ${existingText.slice(-3000)}
         showButtonLoading(button);
 
         const basePrompt = getBasePromptContext();
-        const continuationPrompt = `${basePrompt}
+const continuationPrompt = `${basePrompt}
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
-Você é um ROTEIRISTA CONTINUÍSTA DE ELITE. Sua única função é escrever o PRÓXIMO capítulo de um roteiro existente, garantindo uma transição PERFEITA e a introdução de NOVAS informações. Você NUNCA repete o que já foi dito.
+Você é um ROTEIRISTA CONTINUÍSTA DE ELITE. Sua única função é escrever o PRÓXIMO capítulo de um roteiro existente, com foco absoluto em **NOVIDADE** e **PROGRESSÃO NARRATIVA**.
 
-**TAREFA CRÍTICA E FOCALIZADA:**
-Escrever o texto puro e narrado para o novo capítulo com o tema: "${chapterTheme}".
+**INFORMAÇÃO CRÍTICA PARA O ROTEIRISTA:**
+O texto abaixo representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É **TERMINANTEMENTE PROIBIDO** repetir, resumir ou parafrasear qualquer conceito ou evento já mencionado. Repetir informações quebra a imersão e será considerado uma falha grave na sua tarefa.
 
-**ROTEIRO ESCRITO ATÉ AGORA (PARA CONTEXTO CRÍTICO DE CONTINUIDADE):**
+**ROTEIRO ESCRITO ATÉ AGORA (CONHECIMENTO JÁ ADQUIRIDO PELO PÚBLICO):**
 ---
 ${existingText}
 ---
 
-**REGRAS DE FORMATAÇÃO E CONTEÚDO (INEGOCIÁVEIS E ABSOLUTAS):**
-1.  **RESPOSTA 100% PURA E LIMPA:** Sua resposta deve conter **APENAS e SOMENTE** o texto que será dito em voz alta.
-2.  **PROIBIÇÃO TOTAL DE FORMATAÇÃO EXTRA:** É **TERMINANTEMENTE PROIBIDO** incluir qualquer tipo de anotação, rótulo ou formatação. A violação desta regra resultará em falha. Isso inclui:
-    -   **NENHUM** rótulo de personagem (Ex: 'Narrador:', 'Júlia:')
-    -   **NENHUMA** descrição de cena (Ex: '(Cena: ...)')
-    -   **NENHUMA** indicação de áudio (Ex: '(O som de ...)')
-    -   **NENHUM** título de capítulo (Ex: 'Capítulo: ${chapterTheme}')
-3.  **FOCO ABSOLUTO NA CONTINUIDADE E NOVIDADE:**
-    -   O novo capítulo deve começar **EXATAMENTE** de onde o roteiro anterior parou, como se fosse a página seguinte de um livro.
-    -   É **PROIBIDO** repetir ou parafrasear ideias, conceitos ou frases do roteiro existente. O espectador já viu isso.
-    -   Sua missão é **AVANÇAR A NARRATIVA**, introduzindo novas informações, aprofundando um argumento ou explorando novas nuances do tema "${chapterTheme}".
+**TAREFA IMEDIATA E FOCALIZADA:**
+Escrever o texto puro e narrado para o **PRÓXIMO CAPÍTULO**, com o tema: "${chapterTheme}".
 
-**AÇÃO FINAL E CRÍTICA:** Escreva AGORA o texto puro para o próximo capítulo sobre "${chapterTheme}", seguindo todas as regras com máxima precisão. Responda APENAS com o texto a ser narrado.
+**SUA MISSÃO:**
+Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde um novo argumento, explore uma nova consequência ou apresente um novo conflito relacionado ao tema "${chapterTheme}". O espectador está esperando para saber o que acontece a seguir, não para ouvir de novo o que já passou.
+
+**REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
+1.  **RESPOSTA 100% PURA:** Sua resposta deve conter **APENAS e SOMENTE** o texto que será dito em voz alta.
+2.  **NENHUMA FORMATAÇÃO EXTRA:** É proibido incluir qualquer anotação, rótulo de personagem, descrição de cena ou o título do capítulo na sua resposta.
+
+**AÇÃO FINAL:** Escreva AGORA o texto para o novo capítulo sobre "${chapterTheme}", garantindo que cada frase introduza conteúdo 100% novo para o espectador. Responda APENAS com o texto a ser narrado.
 `;
         
         const rawResult = await callGroqAPI(continuationPrompt, 4000);
