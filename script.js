@@ -1441,40 +1441,38 @@ const selectIdea = (idea) => {
     // 1. Preenchimento Padrão (para TODOS os especialistas)
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
-    document.getElementById('narrativeTheme').value = idea.angle || '';
     
     // 2. Lógica Condicional: É uma ideia do especialista "Enigmas"?
-    // Verificamos se os campos exclusivos de "Enigmas" existem no objeto da ideia.
     if (idea.scripturalFoundation && idea.discussionQuestions) {
         
-        // SIM, É 'ENIGMAS'. Agora transferimos a inteligência para a Estratégia.
+        // SIM, É 'ENIGMAS'. Mapeamento Estratégico CORRIGIDO:
         
-        // Transforma o array de versículos em uma string útil para o campo de pesquisa.
+        // O "Angle" da ideia agora preenche a "Pergunta Central". É o lugar mais lógico.
+        document.getElementById('centralQuestion').value = idea.angle || '';
+        
+        // A "Fundamentação Bíblica" vai para os dados de pesquisa.
         const researchText = `Base Bíblica: ${idea.scripturalFoundation.join('; ')}.`;
         document.getElementById('researchData').value = researchText;
 
-        // Usa a primeira pergunta como a "Pergunta Central" principal.
-        document.getElementById('centralQuestion').value = idea.discussionQuestions[0] || '';
-        
-        // Usa a descrição original e anexa as outras perguntas para inspiração extra.
-        const extraQuestions = idea.discussionQuestions.slice(1).map(q => `- ${q}`).join('\n');
+        // A descrição original é usada, e TODAS as perguntas são anexadas a ela.
+        const allQuestions = idea.discussionQuestions.map(q => `- ${q}`).join('\n');
         let fullDescription = idea.videoDescription || '';
-        if (extraQuestions) {
-            fullDescription += `\n\nQuestões-chave para explorar:\n${extraQuestions}`;
+        if (allQuestions) {
+            fullDescription += `\n\nQuestões-chave para explorar:\n${allQuestions}`;
         }
         document.getElementById('videoDescription').value = fullDescription;
 
         // Limpa apenas os campos que NÃO foram preenchidos pela IA
-         ['emotionalHook', 'narrativeVoice', 'shockingEndingHook'].forEach(id => {
+        ['narrativeTheme', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
 
     } else {
         // NÃO, É um especialista genérico. Usa o comportamento antigo.
+        document.getElementById('narrativeTheme').value = idea.angle || '';
         document.getElementById('videoDescription').value = idea.videoDescription || '';
         
-        // Limpa todos os campos estratégicos para não misturar com ideias antigas.
         ['centralQuestion', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook', 'researchData']
             .forEach(id => {
                 const el = document.getElementById(id);
@@ -1486,7 +1484,7 @@ const selectIdea = (idea) => {
     window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
     showPane('strategy');
     
-    // BÔNUS: Leva o usuário direto para a aba de Estratégia onde os dados foram preenchidos.
+    // Leva o usuário direto para a aba de Estratégia para ver os campos preenchidos.
     document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
 };
 
