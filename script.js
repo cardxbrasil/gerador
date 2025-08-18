@@ -757,47 +757,28 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     let jsonString = text.trim();
 
-    // Remove tokens de controle da API
+    // Remove tokens de controle da API e texto explicativo inicial
     jsonString = jsonString.replace(/assistant<\|end_header_id\|>[\s\S]*/g, '');
+    jsonString = jsonString.replace(/^Aqui está.*?:/im, '');
 
-    // ======================================================================
-    // >>>>> NOVA EVOLUÇÃO (A MAIS IMPORTANTE ATÉ AGORA) <<<<<
-    // Lida com múltiplos objetos JSON separados por texto.
-    // ======================================================================
+    // --- CAMADA 1: EXTRAÇÃO INTELIGENTE ---
+    // Procura por todos os objetos JSON no texto
     const jsonObjects = jsonString.match(/\{[\s\S]*?\}/g);
     
-    if (jsonObjects && jsonObjects.length > 1) {
-        // Se encontrou múltiplos objetos, junta todos eles em um único array JSON.
+    if (jsonObjects && jsonObjects.length > 0) {
+        // Se encontrou um ou mais objetos, os une em um array JSON válido.
+        // Isso descarta qualquer texto entre os objetos (ex: "**Ideia 2:**")
         jsonString = `[${jsonObjects.join(',')}]`;
     } else {
-        // Se não, continua com a extração normal para um único JSON.
+        // Fallback: Se não encontrou nenhum objeto, tenta extrair de um bloco de código.
         const markdownMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
         if (markdownMatch && markdownMatch[1]) {
             jsonString = markdownMatch[1].trim();
-        } else {
-            const firstBracket = jsonString.indexOf('[');
-            const firstBrace = jsonString.indexOf('{');
-            let startIndex = -1;
-            if (firstBracket === -1) startIndex = firstBrace;
-            else if (firstBrace === -1) startIndex = firstBracket;
-            else startIndex = Math.min(firstBracket, firstBrace);
-            if (startIndex > -1) {
-                jsonString = jsonString.substring(startIndex);
-                const lastBracket = jsonString.lastIndexOf(']');
-                const lastBrace = jsonString.lastIndexOf('}');
-                const endIndex = Math.max(lastBracket, lastBrace);
-                if (endIndex > -1) {
-                    jsonString = jsonString.substring(0, endIndex + 1);
-                }
-            }
         }
     }
-    // ======================================================================
-    // FIM DA NOVA EVOLUÇÃO
-    // ======================================================================
 
     // --- CAMADA 2: REPARO E DESINFECÇÃO ---
-    // (Todos os atributos anteriores mantidos)
+    // (Todas as suas regras anteriores estão aqui, mantidas e organizadas)
     jsonString = jsonString.replace(/[´‘’]/g, "'");
     jsonString = jsonString.replace(/''/g, "'");
     jsonString = jsonString.replace(/"\s*(pode ser reescrito como|ou|alternativamente)\s*"/g, ',"rewritten_quote": "');
@@ -805,17 +786,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     jsonString = jsonString.replace(/("\s*[^"]+\s*)"\s*([a-zA-Z\s,]+)\s*,\s*"/g, '$1, "');
     jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
     jsonString = jsonString.replace(/:\s*,\s*"/g, ': "", "');
-    jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
-    jsonString = jsonString.replace(/:\s*""([\s\S]*?)""/g, ': "$1"');
-    jsonString = jsonString.replace(/"''([\s\S]*?)''"/g, '"$1"');
-    
-    // ======================================================================
-    // >>>>> EVOLUÇÃO ADICIONADA AQUI (FAXINA FINAL DAS ASPAS) <<<<<
-    // Substitui duas ou mais aspas duplas por uma única aspa dupla.
-    // Ex: """ -> "  e  "" -> "
     jsonString = jsonString.replace(/"{2,}/g, '"');
-    // ======================================================================
-
     jsonString = jsonString.replace(/\\"(?=\s*[},\]])/g, '"');
     jsonString = jsonString.replace(/"\s*([,}])/g, (match, p1) => {
         const lastKeyIndex = jsonString.lastIndexOf('"', jsonString.indexOf(match));
@@ -829,6 +800,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         return match;
     });
     jsonString = jsonString.replace(/\}\s*\{/g, '},{');
+    jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
     
     // --- CAMADA 3: VALIDAÇÃO ---
     try {
