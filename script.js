@@ -1613,14 +1613,13 @@ const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = nul
     // Lógica evoluída para as seções principais do roteiro (Introdução, Desenvolvimento, Clímax)
     if (['intro', 'development', 'climax'].includes(sectionName)) {
         
-        // Constrói o contexto do que já foi escrito, ou uma instrução especial para a introdução
         const priorKnowledgeContext = contextText 
             ? `**INFORMAÇÃO CRÍTICA:** O texto abaixo representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É **TERMINANTEMENTE PROIBIDO** repetir, resumir ou parafrasear qualquer conceito já mencionado. Sua missão é **AVANÇAR A HISTÓRIA**.
             \n\n**ROTEIRO ESCRITO ATÉ AGORA (CONHECIMENTO JÁ ADQUIRIDO):**\n---\n${contextText.slice(-4000)}\n---`
             : '**INFORMAÇÃO CRÍTICA:** Esta é a primeira seção do vídeo. Crie um gancho poderoso para prender a atenção desde o primeiro segundo.';
 
         prompt = `
-Você é uma API ROTEIRISTA DE ELITE que retorna APENAS um array JSON. Sua única tarefa é escrever os parágrafos para a seção "${sectionTitle}" de um roteiro de vídeo.
+Você é uma API ROTEIRISTA DE ELITE. Sua única tarefa é escrever os parágrafos para a seção "${sectionTitle}" de um roteiro de vídeo.
 
 **CONTEXTO E DIRETRIZES GERAIS:**
 ---
@@ -1635,11 +1634,11 @@ ${priorKnowledgeContext}
 -   **Duração Estimada:** ${durationInstruction}
 
 **REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
-1.  **JSON PURO:** Sua resposta DEVE ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
-2.  **CONTEÚDO DO ARRAY:** O array deve conter strings, onde cada string é um parágrafo completo e bem desenvolvido (idealmente 4+ frases).
-3.  **SINTAXE:** Use aspas duplas ("") para todas as strings.
+1.  **TEXTO PURO:** Sua resposta deve ser **APENAS e SOMENTE** o texto narrado.
+2.  **SEPARAÇÃO POR PARÁGRAFOS:** Separe cada parágrafo com **DUAS quebras de linha**.
+3.  **PROIBIÇÃO TOTAL DE EXTRAS:** Não inclua títulos, anotações, comentários ou qualquer texto que não seja parte do roteiro.
 
-**AÇÃO FINAL:** Escreva AGORA os parágrafos para a seção "${sectionTitle}", garantindo que cada frase introduza conteúdo 100% novo para o espectador. Responda APENAS com o array JSON válido e completo.`;
+**AÇÃO FINAL:** Escreva AGORA os parágrafos para a seção "${sectionTitle}", garantindo que cada frase introduza conteúdo 100% novo. Responda APENAS com o texto puro do roteiro.`;
     
     } else {
         // Lógica para os outros tipos de prompts (outline, titles, etc.)
@@ -1678,7 +1677,6 @@ ${priorKnowledgeContext}
     }
     return { prompt, maxTokens };
 };
-
 
 
 
@@ -1836,14 +1834,15 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
     return accordionItem;
 };
 
+
+
+
 const handleGenerateSection = async (button, sectionName, sectionTitle, elementId) => {
     if (!validateInputs()) return;
     if (!AppState.generated.strategicOutline && sectionName !== 'intro') {
         window.showToast("Crie o Esboço Estratégico primeiro!", 'info');
         return;
     }
-
-
 
     showButtonLoading(button);
     const targetSectionElement = document.getElementById(`${elementId}Section`);
@@ -1853,17 +1852,25 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
         const sectionOrder = ['intro', 'development', 'climax'];
         const currentSectionIndex = sectionOrder.indexOf(elementId);
         if (currentSectionIndex > 0) {
-            contextText = sectionOrder.slice(0, currentSectionIndex).map(id => AppState.generated.script[id].text).join('\n\n---\n\n');
+            contextText = sectionOrder.slice(0, currentSectionIndex).map(id => {
+                // Garante que o texto exista antes de tentar acessá-lo
+                return AppState.generated.script[id] ? AppState.generated.script[id].text : '';
+            }).join('\n\n---\n\n');
         }
 
         const keyMap = { intro: 'introduction', development: 'development', climax: 'climax' };
         const directive = AppState.generated.strategicOutline ? AppState.generated.strategicOutline[keyMap[sectionName]] : null;
+        
         const { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
 
         const rawResult = await callGroqAPI(prompt, maxTokens);
-        const paragraphs = cleanGeneratedText(rawResult, true, true); 
+        // Usa a função `removeMetaComments` para limpar qualquer "lixo" textual que a IA possa ter adicionado
+        const cleanText = removeMetaComments(rawResult);
 
-        if (!Array.isArray(paragraphs) || paragraphs.length === 0) {
+        // Converte o texto puro em um array de parágrafos, dividindo por duas ou mais quebras de linha
+        const paragraphs = cleanText.split(/\n\s*\n/).filter(p => p.trim() !== '');
+
+        if (!paragraphs || paragraphs.length === 0) {
             throw new Error("A IA não retornou o roteiro no formato de parágrafos esperado.");
         }
 
@@ -1886,6 +1893,10 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
         updateButtonStates();
     }
 };
+
+
+
+
 
 window.regenerateSection = (fullSectionId) => {
     const sectionName = fullSectionId.replace('Section', '');
