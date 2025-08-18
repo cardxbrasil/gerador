@@ -453,6 +453,24 @@ Para cada ideia, considerem estas quatro dimensões:
 3. **DIMENSÃO TEOLÓGICA:** Quais implicações doutrinárias surgem desta conexão?
 4. **DIMENSÃO CONTEMPORÂNEA:** Como isso se aplica à experiência de fé hoje?
 
+**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
+[
+  {
+    "title": "O Selo de Zeleque: A Prova Arqueológica que Ninguém Esperava",
+    "angle": "Como a descoberta de um selo de 3.000 anos com o nome 'Zeleque, o amonita' valida a precisão histórica de 2 Samuel 23 e desafia nossa visão sobre os 'estrangeiros' no círculo de confiança do Rei Davi?",
+    "targetAudience": "Cristãos interessados em arqueologia bíblica e na historicidade das Escrituras.",
+    "viralityScore": 8,
+    "theologicalDepth": 7,
+    "scripturalFoundation": ["2 Samuel 23:37", "1 Crônicas 11:39", "Deuteronômio 23:3", "Salmo 87"],
+    "videoDescription": "A Bíblia menciona Zeleque, o amonita, apenas de passagem. Mas e se a arqueologia o trouxesse de volta à vida? Uma pequena peça de argila, um selo oficial, foi encontrado em Jerusalém com seu nome, provando sua existência como um dos guerreiros de elite de Davi. Isso não só confirma a precisão do texto bíblico, mas nos força a perguntar: por que um 'inimigo' de Israel estaria tão perto do rei? Este vídeo explora as implicações teológicas da graça e da inclusão, escondidas nos detalhes que muitas vezes ignoramos.",
+    "discussionQuestions": [
+      "Teológica: A presença de Zeleque, um amonita, entre os heróis de Israel, pode ser vista como um prenúncio da inclusão dos gentios na Nova Aliança?",
+      "Prática: Como podemos identificar e valorizar os 'Zeleques' em nossas comunidades hoje - aqueles que vêm de fora mas têm um papel vital?",
+      "Pessoal: Qual detalhe bíblico que você sempre ignorou pode conter uma revelação profunda para sua vida?"
+    ]
+  }
+]
+
 **AÇÃO FINAL:** Como Coletivo Hermenêutico, desvende conexões teológicas ousadas e gere as 6 ideias. Busquem o equilíbrio entre rigor acadêmico e acessibilidade popular. Responda APENAS com o array JSON perfeito.`,
 
             'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis. Sua função é analisar profundamente o relatório de pesquisa e extrair os ângulos mais impactantes, surpreendentes e viralizáveis para criar 6 ideias de vídeo excepcionais.
