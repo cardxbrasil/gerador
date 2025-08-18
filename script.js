@@ -1332,6 +1332,14 @@ const generateIdeasFromReport = async (button) => {
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
         const ideas = cleanGeneratedText(rawResult, true, true); 
+
+        // ==========================================================
+        // >>>>> ADICIONE O CÓDIGO DE DEBUG AQUI <<<<<
+        // ==========================================================
+        console.log("✅ [DEBUG] Ideias 'Enigmas' (JSON processado):", ideas);
+        console.table(ideas); // Isso mostrará os dados em uma tabela bonita no console!
+        // ==========================================================
+        
         if (!ideas || !Array.isArray(ideas) || ideas.length === 0 || !ideas[0].title) throw new Error("A IA não retornou ideias em um formato JSON válido.");
         
         AppState.generated.ideas = ideas;
