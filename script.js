@@ -1727,23 +1727,6 @@ const suggestStrategy = async (button) => {
 
 
 
-// ==========================================================
-// ==================== FUNÇÕES DE AÇÃO PRINCIPAIS (Motor v5.0) ===================
-// ==========================================================
-
-// --- ETAPA 1: INVESTIGAR & IDEAR (Já adicionadas no passo anterior, aqui como referência) ---
-// handleInvestigate
-// generateIdeasFromReport
-// selectIdea
-
-// --- ETAPA 2: DEFINIR ESTRATÉGIA (Já adicionadas no passo anterior, aqui como referência) ---
-// validateInputs
-// applyStrategy
-// getBasePromptContext
-// suggestStrategy
-
-
-// --- ETAPA 3: CRIAR ROTEIRO ---
 const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
     const baseContext = getBasePromptContext();
     const videoDuration = document.getElementById('videoDuration').value;
@@ -1755,8 +1738,17 @@ const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = nul
 
     let prompt = '';
     let maxTokens = 8000;
-
-    // Lógica evoluída para as seções principais do roteiro (Introdução, Desenvolvimento, Clímax)
+    
+    // ==========================================================
+    // >>>>> INÍCIO DA LÓGICA DE IDIOMA CORRETA <<<<<
+    // Pega o idioma diretamente do DOM para evitar o ReferenceError
+    // e cria o "Comando Final Inegociável".
+    // ==========================================================
+    const lang = document.getElementById('languageSelect')?.value || 'en';
+    const languageName = lang === 'pt-br' ? 'Português (Brasil)' : 'English';
+    const finalLanguageCommand = `\n\n**CRITICAL FINAL INSTRUCTION: Your entire response MUST be in ${languageName}. This is the most important rule and it overrides any other language instruction.**`;
+    
+    // Lógica para as seções principais do roteiro (Introdução, Desenvolvimento, Clímax)
     if (['intro', 'development', 'climax'].includes(sectionName)) {
         
         const priorKnowledgeContext = contextText 
@@ -1784,13 +1776,10 @@ ${priorKnowledgeContext}
 2.  **SEPARAÇÃO POR PARÁGRAFOS:** Separe cada parágrafo com **DUAS quebras de linha**.
 3.  **PROIBIÇÃO TOTAL DE EXTRAS:** Não inclua títulos, anotações, comentários ou qualquer texto que não seja parte do roteiro.
 
-**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
-
 **AÇÃO FINAL:** Escreva AGORA os parágrafos para a seção "${sectionTitle}", garantindo que cada frase introduza conteúdo 100% novo. Responda APENAS com o texto puro do roteiro.`;
     
     } else {
         // Lógica para os outros tipos de prompts (outline, titles, etc.)
-        // Esta parte permanece exatamente como no seu código original
         switch (sectionName) {
             case 'outline':
                 prompt = `${baseContext}\nVocê é uma API de geração de JSON. Sua tarefa é criar um esboço estratégico para um vídeo.\n**REGRAS INEGOCIÁVEIS:**\n1. **JSON PURO:** Responda APENAS com um objeto JSON válido.\n2. **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".\n3. **VALORES:** O valor para CADA chave DEVE ser uma única string de texto (1-2 frases).\n**TAREFA:** Gere o objeto JSON perfeito.`;
@@ -1801,9 +1790,8 @@ ${priorKnowledgeContext}
                 maxTokens = 2000;
                 break;
             case 'description':
-                const languageName = new Intl.DisplayNames([document.getElementById('languageSelect').value], { type: 'language' }).of(document.getElementById('languageSelect').value);
                 prompt = `${baseContext}
-**TAREFA:** Gerar uma descrição otimizada para um vídeo do YouTube e uma lista de hashtags relevantes, no idioma ${languageName}.
+**TAREFA:** Gerar uma descrição otimizada para um vídeo do YouTube e uma lista de hashtags relevantes.
 
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
 1.  **JSON PURO:** Sua resposta deve ser APENAS um objeto JSON válido.
@@ -1812,19 +1800,17 @@ ${priorKnowledgeContext}
     - "description_text": (String) Um parágrafo único e coeso. Comece com um gancho, detalhe o conteúdo e finalize com um call-to-action sutil.
     - "hashtags": (Array de Strings) Uma lista com 10 hashtags relevantes, cada uma começando com #.
 
-**EXEMPLO DE FORMATO PERFEITO:**
-{
-  "description_text": "Este é um exemplo de descrição de vídeo. Ela começa com um gancho para prender a atenção e termina com uma chamada para ação.",
-  "hashtags": ["#Exemplo1", "#Exemplo2", "#Exemplo3", "#Exemplo4", "#Exemplo5", "#Exemplo6", "#Exemplo7", "#Exemplo8", "#Exemplo9", "#Exemplo10"]
-}
-
-**IDIOMA OBRIGATÓRIO:** Sua resposta final DEVE ESTAR 100% em **${inputs.language === 'pt-br' ? 'Português (Brasil)' : 'English'}**. Esta é a regra mais importante.
-
 **AÇÃO FINAL:** Gere o objeto JSON perfeito.`;
                 maxTokens = 2000;
                 break;
         }
     }
+
+    // ==========================================================
+    // >>>>> APLICAÇÃO DO COMANDO FINAL EM TODOS OS PROMPTS <<<<<
+    // ==========================================================
+    prompt += finalLanguageCommand;
+
     return { prompt, maxTokens };
 };
 
