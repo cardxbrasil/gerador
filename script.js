@@ -556,46 +556,27 @@ ${fullTranscript}
 // A FERRAMENTA UNIVERSAL E FINAL: Leve, rápida e com o reparo final.
 const parseSimpleJson = (text, expectArray = false) => {
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
-        console.warn("Texto de entrada inválido ou vazio para o parser de JSON.");
         return expectArray ? [] : null;
     }
-
     let jsonString = text;
-    
-    // Passo 1: Isola o bloco JSON principal.
     const startBracket = jsonString.indexOf('[');
     const startBrace = jsonString.indexOf('{');
     const lastBracket = jsonString.lastIndexOf(']');
     const lastBrace = jsonString.lastIndexOf('}');
-
     let start = -1;
-    if (startBracket !== -1 && (startBrace === -1 || startBracket < startBrace)) start = startBracket;
+    if (startBracket !== -1 && (startBrace === -1 || startBracket < startBracket)) start = startBracket;
     else if (startBrace !== -1) start = startBrace;
-
     let end = -1;
     if (lastBracket !== -1 && (lastBrace === -1 || lastBracket > lastBrace)) end = lastBracket;
     else if (lastBrace !== -1) end = lastBrace;
-
     if (start !== -1 && end !== -1 && end > start) {
         jsonString = jsonString.substring(start, end + 1);
     } else {
-        console.warn("Não foi possível isolar um bloco JSON da resposta da IA.");
         return expectArray ? [] : null;
     }
-
-    // ==========================================================
-    // >>>>> A EVOLUÇÃO FINAL ESTÁ AQUI <<<<<
-    // Passo 1.5: Reparo Específico para o erro de "Aspas Duplas Internas".
-    // Procura por : ""valor"" e transforma em : "valor"
-    // ==========================================================
-    jsonString = jsonString.replace(/: ""([^"]*)""/g, ': "$1"');
-
-    // Passo 2: Tenta o parse.
     try {
         return JSON.parse(jsonString);
     } catch (error) {
-        console.error("FALHA ao parsear JSON simples. Erro:", error.message);
-        console.log("STRING ISOLADA QUE FALHOU:", jsonString);
         return expectArray ? [] : null;
     }
 };
@@ -2364,20 +2345,21 @@ ${text.slice(0, 7000)}
         const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 2000);
         
         // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
-        const perfectJsonText = await fixJsonWithAI(brokenJsonResponse);
-
-        // ETAPA 3: PARSE SEGURO E EXTRAÇÃO DO OBJETO
-        let analysisData = JSON.parse(perfectJsonText);
+        const almostPerfectJson = await fixJsonWithAI(brokenJsonResponse);
 
         // ==========================================================
-        // >>>>> A CORREÇÃO FINAL ESTÁ AQUI <<<<<
-        // Se a IA retornou um array com um único objeto, extraia esse objeto.
+        // >>>>> O AJUSTE FINAL E DECISIVO ESTÁ AQUI <<<<<
+        // Usamos o parseSimpleJson como a última camada de limpeza.
         // ==========================================================
+        let analysisData = parseSimpleJson(almostPerfectJson);
+
         if (Array.isArray(analysisData) && analysisData.length > 0) {
             analysisData = analysisData[0];
         }
 
-        if (!analysisData || typeof analysisData.score === 'undefined') throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
+        if (!analysisData || typeof analysisData.score === 'undefined') {
+            throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
+        }
         
         const formattedData = {
             criterion_name: criterion,
