@@ -814,6 +814,14 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
     jsonString = jsonString.replace(/:\s*""([\s\S]*?)""/g, ': "$1"');
     jsonString = jsonString.replace(/"''([\s\S]*?)''"/g, '"$1"');
+    
+    // ======================================================================
+    // >>>>> EVOLUÇÃO ADICIONADA AQUI (FAXINA FINAL DAS ASPAS) <<<<<
+    // Substitui duas ou mais aspas duplas por uma única aspa dupla.
+    // Ex: """ -> "  e  "" -> "
+    jsonString = jsonString.replace(/"{2,}/g, '"');
+    // ======================================================================
+
     jsonString = jsonString.replace(/\\"(?=\s*[},\]])/g, '"');
     jsonString = jsonString.replace(/"\s*([,}])/g, (match, p1) => {
         const lastKeyIndex = jsonString.lastIndexOf('"', jsonString.indexOf(match));
@@ -826,6 +834,7 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         }
         return match;
     });
+    jsonString = jsonString.replace(/\}\s*\{/g, '},{');
     
     // --- CAMADA 3: VALIDAÇÃO ---
     try {
