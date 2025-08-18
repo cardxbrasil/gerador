@@ -283,30 +283,24 @@ __RAW_REPORT__
 
 **AÇÃO FINAL:** Encontre as fissuras na realidade. Transforme fatos em 6 premissas que perturbem e assombrem. Responda APENAS no formato markdown especificado.`,
 
-    'enigmas': `Você são TRÊS ESPECIALISTAS TRABALHANDHO EM SINERGIA: 1. Um Teólogo Investigativo, 2. Um Arqueólogo, 3. Um Comunicador Mestre.
+    'enigmas': `Você atua como um 'Coletivo Hermenêutico' (Teólogo, Arqueólogo, Comunicador). Sua missão é gerar 6 ideias de vídeos que conectem o relatório abaixo com temas bíblicos de forma profunda e acessível.
 
-**MISSÃO COLETIVA:** Gerar 6 ideias de vídeos extraordinários que criem pontes revolucionárias entre o relatório, textos bíblicos e questões teológicas, sendo ao mesmo tempo academicamente respeitável e viralmente compartilhável.
+**RELATÓRIO PARA ANÁLISE:**
+---
+__RAW_REPORT__
+---
 
-**IDENTIDADE E ESPECIALIZAÇÃO:** Vocês formam o "COLETIVO HERMENÊUTICO", renomado por desvendar camadas profundas das Escrituras.
+**TAREFA:** Gere 6 ideias de vídeo. Para cada ideia, siga as instruções e o formato de saída abaixo.
 
-**MATERIAL DE INTELIGÊNCIA:**
-- **RELATÓRIO FACTUAL:**
-  ---
-  __RAW_REPORT__
-  ---
-- **CONTEXTUALIZAÇÃO TEOLÓGICA:** Considerem dimensões como Cristologia, Escatologia, Hermenêutica, Eclesiologia e Soteriologia.
-
-**TAREFA CRÍTICA:** Gerar 6 ideias que criem pontes teológicas profundas entre os DADOS do relatório e as Escrituras, seguindo o manual e o formato de saída abaixo.
-
-**MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
--   **Título (Cativante e Teológico):** Deve prometer uma revelação que conecte a descoberta com uma verdade bíblica.
--   **Ângulo (O Enigma Central):** Uma frase complexa que conecte um FATO do relatório, uma PASSAGEM BÍBLICA e uma IMPLICAÇÃO TEOLÓGICA.
--   **Público-Alvo (Específico):** Descreva o nicho de espectador (ex: "Pastores", "Estudantes de teologia").
--   **Potencial Viral (Nota de Revelação):** Nota de 1 a 10 para o potencial de gerar DEBATE TEOLÓGICO.
--   **Profundidade Teológica:** Nota de 1 a 10 que avalia a originalidade da conexão teológica.
--   **Fundamentação Bíblica:** Liste 3-5 referências bíblicas-chave.
--   **Descrição (Investigativa e Rica):** Uma sinopse de 7+ frases que construa uma narrativa estimulante, apresentando o mistério, a descoberta, as implicações e possíveis objeções.
--   **Perguntas para Diálogo:** Formule 3 perguntas profundas (uma teológica, uma prática, uma pessoal).
+**INSTRUÇÕES PARA CADA CAMPO:**
+-   **Título:** Cativante e teológico.
+-   **Ângulo:** A conexão central entre um FATO do relatório e uma PASSAGEM BÍBLICA.
+-   **Público-Alvo:** O nicho de espectador específico.
+-   **Potencial Viral:** Nota de 1 a 10 para o potencial de gerar debate.
+-   **Profundidade Teológica:** Nota de 1 a 10 para a originalidade da conexão.
+-   **Fundamentação Bíblica:** Liste 3-5 referências bíblicas (ex: Gênesis 1:1, João 3:16).
+-   **Descrição:** Uma sinopse rica de 5+ frases.
+-   **Perguntas para Diálogo:** 3 perguntas (teológica, prática, pessoal).
 
 **FORMATO DE SAÍDA OBRIGATÓRIO (use para cada uma das 6 ideias):**
 ---
@@ -324,7 +318,7 @@ __RAW_REPORT__
 3. (Pessoal) [Sua pergunta aqui]
 ---
 
-**AÇÃO FINAL:** Como Coletivo Hermenêutico, desvende conexões teológicas ousadas. Responda APENAS no formato markdown especificado.`,
+**AÇÃO FINAL:** Gere todas as 6 ideias seguindo rigorosamente as instruções e o formato. Responda APENAS no formato markdown especificado.`,
 
     'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis.
 
