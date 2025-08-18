@@ -550,76 +550,6 @@ ${fullTranscript}
 
 
 
-
-
-// O SUCESSOR: Leve, rápido e confiável para JSONs simples.
-// A FERRAMENTA UNIVERSAL E FINAL: Leve, rápida e com o reparo final.
-const parseSimpleJson = (text, expectArray = false) => {
-    if (!text || typeof text !== 'string' || text.trim().length === 0) {
-        return expectArray ? [] : null;
-    }
-    let jsonString = text;
-    const startBracket = jsonString.indexOf('[');
-    const startBrace = jsonString.indexOf('{');
-    const lastBracket = jsonString.lastIndexOf(']');
-    const lastBrace = jsonString.lastIndexOf('}');
-    let start = -1;
-    if (startBracket !== -1 && (startBrace === -1 || startBracket < startBracket)) start = startBracket;
-    else if (startBrace !== -1) start = startBrace;
-    let end = -1;
-    if (lastBracket !== -1 && (lastBrace === -1 || lastBracket > lastBrace)) end = lastBracket;
-    else if (lastBrace !== -1) end = lastBrace;
-    if (start !== -1 && end !== -1 && end > start) {
-        jsonString = jsonString.substring(start, end + 1);
-    } else {
-        return expectArray ? [] : null;
-    }
-    try {
-        return JSON.parse(jsonString);
-    } catch (error) {
-        return expectArray ? [] : null;
-    }
-};
-
-
-
-
-// A FUNÇÃO UNIVERSAL E FINAL: O "ENGENHEIRO DE SINTAXE" BLINDADO
-const fixJsonWithAI = async (brokenJsonText) => {
-    if (!brokenJsonText || brokenJsonText.trim() === '') {
-        console.warn("Texto para correção de JSON estava vazio.");
-        return "[]";
-    }
-
-    const prompt = `Você é um especialista em correção de sintaxe JSON. Sua única tarefa é pegar o texto abaixo, que é uma tentativa de um objeto ou array JSON, e consertá-lo para que seja 100% válido.
-
-    REGRAS CRÍTICAS E INEGOCIÁVEIS:
-    1.  **ESTRUTURA:** Corrija quaisquer erros estruturais: vírgulas faltando ou sobrando, aspas incorretas, objetos incompletos ou quebrados, etc.
-    2.  **DUPLICATAS:** Se houver objetos duplicados, mantenha apenas a versão mais completa de cada um.
-    3.  **CARACTERES DE ESCAPE (A REGRA MAIS IMPORTANTE):** Verifique CUIDADOSAMENTE dentro de cada valor de string. Se encontrar uma barra invertida (\\), garanta que ela seja escapada corretamente (\\\\). Se encontrar aspas duplas (") dentro de uma string, garanta que elas sejam escapadas (\\").
-    4.  **RESPOSTA PURA:** Sua resposta deve ser APENAS o JSON perfeitamente corrigido. NÃO inclua nenhum texto, explicação ou comentário.
-
-    TEXTO QUEBRADO PARA CORRIGIR:
-    ---
-    ${brokenJsonText}
-    ---
-
-    Retorne APENAS o JSON corrigido.`;
-
-    const fixedJsonText = await callGroqAPI(prompt, 8000); 
-    
-    // ==========================================================
-    // >>>>> CAMADA FINAL DE PROTEÇÃO DETERMINÍSTICA <<<<<
-    // Removemos quaisquer barras invertidas mal formadas que a IA possa ter deixado passar.
-    // ==========================================================
-    let sanitizedText = fixedJsonText.replace(/\\(?!["\\/bfnrt])/g, '\\\\');
-
-    return sanitizedText;
-};
-
-
-
-
 // ==========================================================
 // ==== FUNÇÕES UTILITÁRIAS (Completas da v5.0) =============
 // ==========================================================
@@ -809,6 +739,94 @@ const resetApplicationState = () => {
 
 
 
+const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
+    if (!expectJson) return text ? String(text).trim() : (arrayExpected ? [] : '');
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        console.warn("Texto de entrada inválido ou vazio para o parser de JSON.");
+        return arrayExpected ? [] : null;
+    }
+
+    let jsonString = text;
+
+    // ======================================================================
+    // >>>>> PASSO 1: ISOLAMENTO "CAIXA-FORTE" <<<<<
+    // ======================================================================
+    const firstBracket = jsonString.indexOf('[');
+    const firstBrace = jsonString.indexOf('{');
+    const lastBracket = jsonString.lastIndexOf(']');
+    const lastBrace = jsonString.lastIndexOf('}');
+    let start = -1;
+    if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) start = firstBracket;
+    else if (firstBrace !== -1) start = firstBrace;
+    let end = -1;
+    if (lastBracket !== -1 && (lastBrace === -1 || lastBracket > lastBrace)) end = lastBracket;
+    else if (lastBrace !== -1) end = lastBrace;
+
+    if (start !== -1 && end !== -1 && end > start) {
+        jsonString = jsonString.substring(start, end + 1);
+    } else {
+        console.warn("Não foi possível isolar um bloco JSON principal no texto da IA.");
+        return arrayExpected ? [] : null;
+    }
+
+    // ======================================================================
+    // >>>>> EVOLUÇÃO FINAL: PRÉ-SANITIZAÇÃO DE CARACTERES <<<<<
+    // ======================================================================
+    // Troca todas as aspas tipográficas (chiques) por aspas simples padrão.
+    jsonString = jsonString.replace(/[‘’´]/g, "'");
+    // CORRIGE O ERRO DAS "ASPAS MISTAS": Procura por uma aspa simples no final de um valor e a troca por uma aspa dupla.
+    jsonString = jsonString.replace(/'\s*([,}])/g, '"$1');
+    
+    // ======================================================================
+    // >>>>> PASSO 2: CATALOGAÇÃO INTELIGENTE (ANTI-DUPLICATAS) <<<<<
+    // ======================================================================
+    const allFoundObjects = jsonString.match(/\{[\s\S]*?\}/g);
+    if (!allFoundObjects || allFoundObjects.length === 0) {
+        console.warn("Nenhum objeto JSON foi encontrado após o isolamento.");
+        return arrayExpected ? [] : null;
+    }
+
+    const uniqueObjectsCatalog = new Map();
+    allFoundObjects.forEach(objStr => {
+        let cleanObjStr = objStr.replace(/,\s*}/g, '}');
+        const titleMatch = cleanObjStr.match(/"title"\s*:\s*"(.*?)"/);
+        if (titleMatch && titleMatch[1]) uniqueObjectsCatalog.set(titleMatch[1], cleanObjStr);
+        else uniqueObjectsCatalog.set(Math.random(), cleanObjStr);
+    });
+    const finalObjects = Array.from(uniqueObjectsCatalog.values());
+
+    // ======================================================================
+    // >>>>> PASSO 3: MONTAGEM FINAL E VALIDAÇÃO <<<<<
+    // ======================================================================
+    let finalJsonString = `[${finalObjects.join(',')}]`;
+    
+    try {
+        // Se o resultado esperado não for um array, tenta extrair apenas o primeiro objeto.
+        if (!arrayExpected && finalObjects.length > 0) {
+            const singleObject = finalObjects[0];
+            const parsedJson = JSON.parse(singleObject);
+            return parsedJson;
+        }
+        
+        // Se for um array, processa como antes.
+        const parsedJson = JSON.parse(finalJsonString);
+        return parsedJson;
+
+    } catch (error) {
+        // Tenta um último reparo para o erro de "aspas duplas duplas"
+        finalJsonString = finalJsonString.replace(/""/g, '"');
+        try {
+            const parsedJson = JSON.parse(finalJsonString);
+            if (!arrayExpected && Array.isArray(parsedJson)) return parsedJson[0];
+            return parsedJson;
+        } catch (finalError) {
+            console.error("FALHA CRÍTICA NO PARSE DO JSON. Erro:", finalError.message);
+            console.log("TEXTO ORIGINAL DA IA:", text);
+            console.log("STRING ISOLADA QUE FALHOU:", finalJsonString);
+            return arrayExpected ? [] : null;
+        }
+    }
+};
 
 
 
@@ -1350,57 +1368,46 @@ const renderUniversalIdeaCard = (idea, index, genre) => {
 };
 
 
-
-
-
-
-
+// FUNÇÃO PRINCIPAL: Agora muito mais limpa e usando o sistema universal.
 const generateIdeasFromReport = async (button) => {
     const factCheckOutput = document.getElementById('factCheckOutput');
     const { originalQuery, rawReport } = factCheckOutput.dataset;
-    if (!rawReport) {
+    if (!rawReport || !originalQuery) {
         window.showToast("Erro: Relatório da investigação não encontrado.", 'error');
         return;
     }
     
     const genre = document.querySelector('#genreTabs .tab-button.tab-active')?.dataset.genre || 'geral';
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português do Brasil' : 'English';
-    const outputContainer = document.getElementById('ideasOutput');
+
+    console.log("ESPECIALISTA SENDO USADO PARA O PROMPT:", genre);
     
+    const outputContainer = document.getElementById('ideasOutput');
     showButtonLoading(button);
-    outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Consultando especialista criativo...</p></div>`;
+
+    outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4" style="width: 32px; height: 32px; border-width: 4px; margin: auto;"></div><p class="text-lg font-semibold" style="color: var(--text-header);">Consultando especialista em ${genre}...</p></div>`;
+
+    const promptContext = { originalQuery, rawReport, languageName };
+    const prompt = PromptManager.getIdeasPrompt(genre, promptContext);
 
     try {
-        // ==========================================================
-        // ETAPA 1: GERAÇÃO CRIATIVA (ACEITAMOS O CAOS)
-        // ==========================================================
-        const promptContext = { originalQuery, rawReport, languageName };
-        const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
-        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(creativePrompt), 8000); 
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const ideas = cleanGeneratedText(rawResult, true, true); 
 
-        outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Corrigindo e validando a sintaxe...</p></div>`;
+        console.log("✅ [DEBUG] Ideias (JSON processado):", ideas);
+        if (ideas && ideas.length > 0) console.table(ideas);
 
-        // ==========================================================
-        // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
-        // ==========================================================
-        const perfectJsonText = await fixJsonWithAI(brokenJsonResponse);
-        
-        // ==========================================================
-        // ETAPA 3: PARSE FINAL (AGORA SIMPLES E SEGURO)
-        // ==========================================================
-        const ideas = parseSimpleJson(perfectJsonText, true);
-
-        if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
-            throw new Error("A IA falhou em gerar ou corrigir as ideias.");
-        }
+        if (!ideas || !Array.isArray(ideas) || ideas.length === 0 || !ideas[0].title) throw new Error("A IA não retornou ideias em um formato JSON válido.");
         
         AppState.generated.ideas = ideas;
+        
+        // A MÁGICA ACONTECE AQUI: Um único map que chama o renderizador universal.
         const allCardsHtml = ideas.map((idea, index) => renderUniversalIdeaCard(idea, index, genre)).join('');
+        
         outputContainer.innerHTML = allCardsHtml;
         markStepCompleted('investigate', false);
 
     } catch(err) {
-        console.error("FALHA CRÍTICA FINAL:", err);
         window.showToast(`Erro ao gerar ideias: ${err.message}`, 'error');
         outputContainer.innerHTML = `<p class="md:col-span-2" style="color: var(--danger);">${err.message}</p>`;
     } finally {
@@ -1633,6 +1640,9 @@ const suggestStrategy = async (button) => {
     
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
 
+    // ==========================================================
+    // >>>>> INÍCIO DO PROMPT BLINDADO E REFORÇADO <<<<<
+    // ==========================================================
     const prompt = `Você é uma API de Estratégia de Conteúdo Viral. Sua única função é gerar um objeto JSON com uma estratégia de vídeo COMPLETA E DETALHADA.
 
 **REGRAS CRÍTICAS DE SINTAXE JSON (INEGOCIÁVEIS):**
@@ -1658,13 +1668,13 @@ const suggestStrategy = async (button) => {
 - **Descrição:** "${description}"
 
 **AÇÃO FINAL:** Gere AGORA o objeto JSON completo com TODAS AS 10 CHAVES preenchidas. Sua criatividade nestes campos é o que define uma estratégia viral.`;
+    // ==========================================================
+    // >>>>> FIM DO PROMPT BLINDADO <<<<<
+    // ==========================================================
 
     try {
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        
-        // CORREÇÃO APLICADA AQUI: Usando o novo parser leve e confiável.
-        const strategy = parseSimpleJson(rawResult);
-
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const strategy = cleanGeneratedText(rawResult, true);
         if (!strategy || typeof strategy !== 'object') throw new Error("A IA não retornou uma estratégia em formato JSON válido.");
         
         const narrativeGoalSelect = document.getElementById('narrativeGoal');
@@ -1726,6 +1736,23 @@ const suggestStrategy = async (button) => {
 
 
 
+// ==========================================================
+// ==================== FUNÇÕES DE AÇÃO PRINCIPAIS (Motor v5.0) ===================
+// ==========================================================
+
+// --- ETAPA 1: INVESTIGAR & IDEAR (Já adicionadas no passo anterior, aqui como referência) ---
+// handleInvestigate
+// generateIdeasFromReport
+// selectIdea
+
+// --- ETAPA 2: DEFINIR ESTRATÉGIA (Já adicionadas no passo anterior, aqui como referência) ---
+// validateInputs
+// applyStrategy
+// getBasePromptContext
+// suggestStrategy
+
+
+// --- ETAPA 3: CRIAR ROTEIRO ---
 const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
     const baseContext = getBasePromptContext();
     const videoDuration = document.getElementById('videoDuration').value;
@@ -1737,17 +1764,8 @@ const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = nul
 
     let prompt = '';
     let maxTokens = 8000;
-    
-    // ==========================================================
-    // >>>>> INÍCIO DA LÓGICA DE IDIOMA CORRETA <<<<<
-    // Pega o idioma diretamente do DOM para evitar o ReferenceError
-    // e cria o "Comando Final Inegociável".
-    // ==========================================================
-    const lang = document.getElementById('languageSelect')?.value || 'en';
-    const languageName = lang === 'pt-br' ? 'Português (Brasil)' : 'English';
-    const finalLanguageCommand = `\n\n**CRITICAL FINAL INSTRUCTION: Your entire response MUST be in ${languageName}. This is the most important rule and it overrides any other language instruction.**`;
-    
-    // Lógica para as seções principais do roteiro (Introdução, Desenvolvimento, Clímax)
+
+    // Lógica evoluída para as seções principais do roteiro (Introdução, Desenvolvimento, Clímax)
     if (['intro', 'development', 'climax'].includes(sectionName)) {
         
         const priorKnowledgeContext = contextText 
@@ -1779,6 +1797,7 @@ ${priorKnowledgeContext}
     
     } else {
         // Lógica para os outros tipos de prompts (outline, titles, etc.)
+        // Esta parte permanece exatamente como no seu código original
         switch (sectionName) {
             case 'outline':
                 prompt = `${baseContext}\nVocê é uma API de geração de JSON. Sua tarefa é criar um esboço estratégico para um vídeo.\n**REGRAS INEGOCIÁVEIS:**\n1. **JSON PURO:** Responda APENAS com um objeto JSON válido.\n2. **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".\n3. **VALORES:** O valor para CADA chave DEVE ser uma única string de texto (1-2 frases).\n**TAREFA:** Gere o objeto JSON perfeito.`;
@@ -1789,8 +1808,9 @@ ${priorKnowledgeContext}
                 maxTokens = 2000;
                 break;
             case 'description':
+                const languageName = new Intl.DisplayNames([document.getElementById('languageSelect').value], { type: 'language' }).of(document.getElementById('languageSelect').value);
                 prompt = `${baseContext}
-**TAREFA:** Gerar uma descrição otimizada para um vídeo do YouTube e uma lista de hashtags relevantes.
+**TAREFA:** Gerar uma descrição otimizada para um vídeo do YouTube e uma lista de hashtags relevantes, no idioma ${languageName}.
 
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
 1.  **JSON PURO:** Sua resposta deve ser APENAS um objeto JSON válido.
@@ -1799,17 +1819,17 @@ ${priorKnowledgeContext}
     - "description_text": (String) Um parágrafo único e coeso. Comece com um gancho, detalhe o conteúdo e finalize com um call-to-action sutil.
     - "hashtags": (Array de Strings) Uma lista com 10 hashtags relevantes, cada uma começando com #.
 
+**EXEMPLO DE FORMATO PERFEITO:**
+{
+  "description_text": "Este é um exemplo de descrição de vídeo. Ela começa com um gancho para prender a atenção e termina com uma chamada para ação.",
+  "hashtags": ["#Exemplo1", "#Exemplo2", "#Exemplo3", "#Exemplo4", "#Exemplo5", "#Exemplo6", "#Exemplo7", "#Exemplo8", "#Exemplo9", "#Exemplo10"]
+}
+
 **AÇÃO FINAL:** Gere o objeto JSON perfeito.`;
                 maxTokens = 2000;
                 break;
         }
     }
-
-    // ==========================================================
-    // >>>>> APLICAÇÃO DO COMANDO FINAL EM TODOS OS PROMPTS <<<<<
-    // ==========================================================
-    prompt += finalLanguageCommand;
-
     return { prompt, maxTokens };
 };
 
@@ -1851,9 +1871,9 @@ const generateStrategicOutline = async (button) => {
     outlineContentDiv.innerHTML = `<div class="asset-card-placeholder"><div class="loading-spinner"></div><span style="margin-left: 1rem;">Criando o esqueleto da sua história...</span></div>`;
 
     try {
-        let { prompt } = constructScriptPrompt('outline'); // Mude para 'let'
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        AppState.generated.strategicOutline = parseSimpleJson(rawResult);
+        const { prompt } = constructScriptPrompt('outline');
+        const rawResult = await callGroqAPI(prompt, 4000);
+        AppState.generated.strategicOutline = cleanGeneratedText(rawResult, true);
         
         const { strategicOutline } = AppState.generated;
         if (!strategicOutline || typeof strategicOutline !== 'object' || !strategicOutline.introduction) {
@@ -1995,10 +2015,10 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
 
         const keyMap = { intro: 'introduction', development: 'development', climax: 'climax' };
         const directive = AppState.generated.strategicOutline ? AppState.generated.strategicOutline[keyMap[sectionName]] : null;
-            
-        let { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText); // Mude para 'let'
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
+        
+        const { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
 
+        const rawResult = await callGroqAPI(prompt, maxTokens);
         // Usa a função `removeMetaComments` para limpar qualquer "lixo" textual que a IA possa ter adicionado
         const cleanText = removeMetaComments(rawResult);
 
@@ -2093,7 +2113,7 @@ const generateConclusion = async (button) => {
     const prompt = `${basePromptContext}\n\n# TAREFA\nEscrever o texto da conclusão para o vídeo, estruturado em parágrafos.\n\n# CONTEXTO\n## Roteiro existente:\n---\n${fullContext}\n---\n\n# DIRETRIZ ESTRATÉGICA\n${strategyDirective}\n\n# REGRAS ESSENCIAIS\n1. **FORMATO**: Responda APENAS com o texto narrativo, em parágrafos. Proibido anotações ou CTA.\n2. **QUALIDADE DOS PARÁGRAFOS**: Cada parágrafo deve ter de 4 a 6 frases.`;
 
     try {
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 3000);
+        const rawResult = await callGroqAPI(prompt, 3000);
         const content = removeMetaComments(rawResult.trim());
         if (!content) throw new Error("A IA não retornou um conteúdo válido para a conclusão.");
         
@@ -2179,7 +2199,7 @@ ${ctaDirective}
 **AÇÃO FINAL:** Escreva AGORA o texto do CTA, aplicando todos os princípios de um copywriter de elite. Responda APENAS com o texto a ser narrado.`;
 
     try {
-        let result = await callGroqAPI(forceLanguageOnPrompt(prompt), 400);
+        let result = await callGroqAPI(prompt, 400);
         result = removeMetaComments(result.trim());
         const paragraphs = result.split('\n').filter(p => p.trim() !== '');
         const contentWithSpans = paragraphs.map((p, index) => `<div id="cta-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
@@ -2278,8 +2298,8 @@ ${fullContext}
 **AÇÃO FINAL:** Sua resposta deve ser **APENAS e SOMENTE** o objeto JSON, sem nenhum texto introdutório, explicação ou comentário. Comece com \`{\` e termine com \`}\`. Gere agora o objeto JSON com as sugestões.`;
 
     try {
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 1000);
-        const suggestions = parseSimpleJson(rawResult, true);
+        const rawResult = await callGroqAPI(prompt, 1000);
+        const suggestions = cleanGeneratedText(rawResult, true);
         if (suggestions && suggestions.conclusion_suggestion && suggestions.cta_suggestion) {
             conclusionSpecifics.value = suggestions.conclusion_suggestion;
             ctaSpecifics.value = suggestions.cta_suggestion;
@@ -2307,12 +2327,7 @@ const goToFinalize = () => {
     window.showToast("Roteiro pronto! Bem-vindo à área de finalização.", 'success');
 };
 
-
-
-
-
-
-
+// --- ETAPA 4: FINALIZAR E EXPORTAR ---
 
 const analyzeScriptPart = async (criterion, text, context = {}) => {
     const sectionKeyMap = {
@@ -2327,39 +2342,27 @@ const analyzeScriptPart = async (criterion, text, context = {}) => {
 
     const prompt = `
 Você é uma API de Análise Crítica de Roteiros. Sua única função é retornar um objeto JSON.
+
 **CONTEXTO ESTRATÉGICO:**
 - **Tema do Vídeo:** "${context.theme || 'Não definido'}"
 - **Objetivo desta Seção (${criterion}):** "${outlineDirective}"
+
 **TRECHO PARA ANÁLISE:**
 ---
 ${text.slice(0, 7000)}
 ---
+
 **REGRAS CRÍTICAS DE RESPOSTA (JSON ESTRITO):**
 1.  **JSON PURO:** Responda APENAS com um objeto JSON válido.
 2.  **CHAVES E TIPOS OBRIGATÓRIOS:** O objeto DEVE conter EXATAMENTE estas 6 chaves: "criterion_name", "score" (Número), "positive_points" (String), "problematic_quote" (String - cópia literal ou "Nenhum"), "critique" (String), e "rewritten_quote" (String).
 3.  **SINTAXE:** Todas as chaves e valores string DEVEM usar aspas duplas ("").
+
 **AÇÃO FINAL:** Analise o trecho e retorne APENAS o objeto JSON perfeito.`;
 
     try {
-        // ETAPA 1: GERAÇÃO CRIATIVA (ACEITANDO O CAOS)
-        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 2000);
-        
-        // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
-        const almostPerfectJson = await fixJsonWithAI(brokenJsonResponse);
-
-        // ==========================================================
-        // >>>>> O AJUSTE FINAL E DECISIVO ESTÁ AQUI <<<<<
-        // Usamos o parseSimpleJson como a última camada de limpeza.
-        // ==========================================================
-        let analysisData = parseSimpleJson(almostPerfectJson);
-
-        if (Array.isArray(analysisData) && analysisData.length > 0) {
-            analysisData = analysisData[0];
-        }
-
-        if (!analysisData || typeof analysisData.score === 'undefined') {
-            throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
-        }
+        const rawResult = await callGroqAPI(prompt, 1500);
+        const analysisData = cleanGeneratedText(rawResult, true); 
+        if (!analysisData || !('score' in analysisData)) throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
         
         const formattedData = {
             criterion_name: criterion,
@@ -2368,7 +2371,7 @@ ${text.slice(0, 7000)}
             improvement_points: []
         };
 
-        if (analysisData.critique && analysisData.critique.toLowerCase() !== "nenhuma crítica significativa." && analysisData.critique.toLowerCase() !== "none.") {
+        if (analysisData.critique.toLowerCase() !== "nenhuma crítica significativa.") {
             formattedData.improvement_points.push({
                 suggestion_text: "Substituir por:",
                 problematic_quote: analysisData.problematic_quote,
@@ -2386,13 +2389,6 @@ ${text.slice(0, 7000)}
         };
     }
 };
-
-
-
-
-
-
-
 
 const createReportSection = (analysisData) => {
     const sectionDiv = document.createElement('div');
@@ -2640,8 +2636,8 @@ ${fullTranscript.slice(0, 7500)}
 
 **AÇÃO FINAL:** Analise o roteiro. Responda APENAS com o array JSON perfeito.`;
     try {
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        const hooks = parseSimpleJson(rawResult, true);
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const hooks = cleanGeneratedText(rawResult, true);
         if (!hooks || !Array.isArray(hooks) || hooks.length === 0) throw new Error("A IA não encontrou ganchos ou retornou um formato inválido.");
         let reportHtml = `<div class="space-y-4">`;
         hooks.forEach((hook) => {
@@ -2718,10 +2714,6 @@ const insertViralSuggestion = (button) => {
     button.classList.add('btn-success');
 };
 
-
-
-
-
 const suggestViralElements = async (button) => {
     const fullTranscript = getTranscriptOnly();
     const videoTheme = document.getElementById('videoTheme')?.value.trim();
@@ -2759,10 +2751,8 @@ ${fullTranscript.slice(0, 7500)}
 
 **AÇÃO FINAL:** Analise o roteiro e o contexto. Responda APENAS com o array JSON perfeito.`;
     try {
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        const perfectJson = await fixJsonWithAI(brokenJson);
-        const suggestions = JSON.parse(perfectJson);
-
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const suggestions = cleanGeneratedText(rawResult, true);
         if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
         let reportHtml = `<div class="space-y-4">`;
         suggestions.forEach(suggestion => {
@@ -2794,9 +2784,6 @@ ${fullTranscript.slice(0, 7500)}
         hideButtonLoading(button);
     }
 };
-
-
-
 
 
 // ... Continuação do Bloco ETAPA 4 ...
@@ -2838,9 +2825,9 @@ const generateTitlesAndThumbnails = async (button) => {
     const targetContentElement = document.getElementById('titlesThumbnailsContent');
     targetContentElement.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
     try {
-    let { prompt, maxTokens } = constructScriptPrompt('titles_thumbnails'); // Mude para 'let'
-    const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
-        const parsedContent = parseSimpleJson(rawResult, true);
+        const { prompt, maxTokens } = constructScriptPrompt('titles_thumbnails');
+        const rawResult = await callGroqAPI(prompt, maxTokens);
+        const parsedContent = cleanGeneratedText(rawResult, true);
         if (!Array.isArray(parsedContent) || parsedContent.length === 0 || !parsedContent[0].suggested_title) {
             throw new Error("A IA retornou os dados de títulos em um formato inesperado.");
         }
@@ -2909,8 +2896,8 @@ ${titlesString}
 Responda APENAS com o array JSON.`;
 
     try {
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 3000);
-        const analysis = parseSimpleJson(rawResult, true);
+        const rawResult = await callGroqAPI(prompt, 3000);
+        const analysis = cleanGeneratedText(rawResult, true, true);
         if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de títulos válida.");
 
         let analysisHtml = '<div class="space-y-4">';
@@ -2928,10 +2915,6 @@ Responda APENAS com o array JSON.`;
         resultContainer.innerHTML = `<p style="color: var(--danger);">${error.message}</p>`;
     }
 };
-
-
-
-
 
 window.analyzeThumbnails = async () => {
     const thumbnailsData = AppState.generated.titlesAndThumbnails;
@@ -2957,10 +2940,8 @@ ${thumbnailsString}
 Responda APENAS com o array JSON.`;
 
     try {
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 2500);
-        const perfectJson = await fixJsonWithAI(brokenJson);
-        const analysis = JSON.parse(perfectJson);
-
+        const rawResult = await callGroqAPI(prompt, 2500);
+        const analysis = cleanGeneratedText(rawResult, true, true);
         if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de thumbnails válida.");
 
         let analysisHtml = '<div class="space-y-4">';
@@ -2982,18 +2963,16 @@ Responda APENAS com o array JSON.`;
 
 
 
-
-
 const generateVideoDescription = async (button) => {
     if (!validateInputs()) return;
     showButtonLoading(button);
     const targetContentElement = document.getElementById('videoDescriptionContent');
     try {
-    let { prompt, maxTokens } = constructScriptPrompt('description'); // Mude para 'let'
-    const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
+        const { prompt, maxTokens } = constructScriptPrompt('description');
+        const rawResult = await callGroqAPI(prompt, maxTokens);
         
         // Agora esperamos um objeto JSON
-        const parsedContent = parseSimpleJson(rawResult);
+        const parsedContent = cleanGeneratedText(rawResult, true);
         
         if (!parsedContent || !parsedContent.description_text || !Array.isArray(parsedContent.hashtags)) {
             throw new Error("A IA não retornou a descrição e hashtags no formato esperado.");
@@ -3028,7 +3007,7 @@ const generateSoundtrack = async (button) => {
     const prompt = PromptManager.getSoundtrackPrompt(fullTranscript);
     try {
         const rawResult = await callGroqAPI(prompt, 1500);
-        const analysis = parseSimpleJson(rawResult, true);
+        const analysis = cleanGeneratedText(rawResult, true);
         if (!analysis || !Array.isArray(analysis) || analysis.length === 0) throw new Error("A IA não retornou sugestões no formato esperado.");
         let suggestionsHtml = '<ul class="soundtrack-list space-y-2">';
         analysis.forEach(suggestion => {
@@ -3105,8 +3084,8 @@ ${JSON.stringify(paragraphs)}
 
 ACTION: Return ONLY the JSON array.`;
 
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
-        const emotionalMapData = parseSimpleJson(rawResult, true);
+        const rawResult = await callGroqAPI(prompt, 8000);
+        const emotionalMapData = cleanGeneratedText(rawResult, true, true);
       if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
     throw new Error("A IA não retornou um mapa emocional válido.");
 }
@@ -3246,8 +3225,8 @@ window.analyzeSectionRetention = async (button) => {
 
         **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
 
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        const analysis = parseSimpleJson(rawResult, true);
+        const rawResult = await callGroqAPI(prompt, 4000);
+        const analysis = cleanGeneratedText(rawResult, true, true);
 
         if (!analysis || !Array.isArray(analysis)) {
             throw new Error("A análise da IA retornou um formato inválido.");
@@ -3369,7 +3348,7 @@ window.refineSectionStyle = async (button) => {
 
     showButtonLoading(button);
     try {
-        const prompt = `Você é um EDITOR DE ESTILO (Copy Editor) DE ALTO DESEMPENHO e um ESPECIALISTA EM FLUÍDEZ NARRATIVA. Sua tarefa é REESCREVER o texto fornecido para elevar drasticamente sua QUALIDADE, FLUÍDEZ, IMPACTO e ORIGINALIDADE, sem alterar o significado, o tom ou a mensagem central.
+    const prompt = `Você é um EDITOR DE ESTILO (Copy Editor) DE ALTO DESEMPENHO e um ESPECIALISTA EM FLUÍDEZ NARRATIVA. Sua tarefa é REESCREVER o texto fornecido para elevar drasticamente sua QUALIDADE, FLUÍDEZ, IMPACTO e ORIGINALIDADE, sem alterar o significado, o tom ou a mensagem central.
 
 **TEXTO ORIGINAL (PARA REFINAMENTO):**
 ---
@@ -3394,7 +3373,7 @@ ${originalText}
 **AÇÃO FINAL:** Reescreva AGORA o texto fornecido, aplicando EXATAMENTE todas as regras acima para entregar uma versão significativamente mais refinada, fluida, impactante e livre de repetições. Responda APENAS com o texto final refinado.
 `;
 
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
+        const rawResult = await callGroqAPI(prompt, 8000);
         const refinedText = removeMetaComments(rawResult);
         const newParagraphs = refinedText.split('\n').filter(p => p.trim() !== '');
         const sectionId = sectionElement.id.replace('Section', '');
@@ -3450,6 +3429,9 @@ window.enrichWithData = async (button) => {
     const sectionElement = button.closest('.accordion-item');
 
     try {
+        // ==========================================================
+        // ===== PROMPT EXATO DA VERSÃO 5.0 RESTAURADO AQUI =====
+        // ==========================================================
         const prompt = `Você é um EDITOR DE ROTEIRO DE ALTO DESEMPENHO e um ESPECIALISTA EM INTEGRAÇÃO DE INFORMAÇÕES. Sua tarefa ÚNICA, CRÍTICA e INEGOCIÁVEL é REESCREVER um trecho de texto para integrar uma NOVA INFORMAÇÃO de forma TOTALMENTE NATURAL, FLUÍDA e PROFISSIONAL, sem comprometer a integridade do texto original.
 
 **TRECHO ORIGINAL DO ROTEIRO (PARA SER REESCRITO):**
@@ -3476,7 +3458,7 @@ ${newData}
 
 **AÇÃO FINAL:** Reescreva AGORA o trecho, integrando a nova informação com MÁXIMA habilidade e conformidade. Responda APENAS com o texto final reescrito e integrado.`;
 
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 1000);
+        const rawResult = await callGroqAPI(prompt, 1000);
         const enrichedText = removeMetaComments(rawResult);
 
         if (userSelectionRange) {
@@ -3513,21 +3495,17 @@ ${newData}
 
 
 
-const forceLanguageOnPrompt = (prompt) => {
-    const languageSelect = document.getElementById('languageSelect');
-    const lang = languageSelect ? languageSelect.value : 'en';
-    const languageName = lang === 'pt-br' ? 'Português (Brasil)' : 'English';
-    
-    const finalCommand = `\n\n**CRITICAL FINAL INSTRUCTION: Your entire response MUST be in ${languageName}. This is the most important rule.**`;
-    
-    return prompt + finalCommand;
-};
 
 
 
 
-
-
+// =========================================================================
+// >>>>> VERSÃO FINAL E BLINDADA DE 'addDevelopmentChapter' <<<<<
+// =========================================================================
+/**
+ * Adiciona um novo capítulo ao desenvolvimento, com prompt refinado para evitar repetição do título e "ecos".
+ * @param {HTMLElement} button - O botão que foi clicado.
+ */
 window.addDevelopmentChapter = async (button) => {
     const devSection = document.getElementById('developmentSection');
     const contentWrapper = devSection?.querySelector('.generated-content-wrapper');
@@ -3540,8 +3518,8 @@ window.addDevelopmentChapter = async (button) => {
 
     showButtonLoading(button);
 
-    try {
-        const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
+try {
+    const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
 Você não é um gerador de texto. Você é um mestre roteirista que identifica pontos de virada lógicos e emocionantes. Sua tarefa é encontrar os próximos passos mais envolventes para a história. Qualquer desvio desta função é uma falha.
@@ -3571,9 +3549,9 @@ ${existingText.slice(-3000)}
 
 **AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.`;
 
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 1000);
-        const perfectJson = await fixJsonWithAI(brokenJson);
-        const chapterSuggestions = JSON.parse(perfectJson) || [];
+    const rawSuggestions = await callGroqAPI(suggestionPrompt, 400);
+
+        const chapterSuggestions = cleanGeneratedText(rawSuggestions, true) || [];
         
         hideButtonLoading(button);
 
@@ -3593,7 +3571,7 @@ ${existingText.slice(-3000)}
         showButtonLoading(button);
 
         const basePrompt = getBasePromptContext();
-        const continuationPrompt = `${basePrompt}
+const continuationPrompt = `${basePrompt}
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
 Você é um ROTEIRISTA CONTINUÍSTA DE ELITE. Sua única função é escrever o PRÓXIMO capítulo de um roteiro existente, com foco absoluto em **NOVIDADE** e **PROGRESSÃO NARRATIVA**.
@@ -3619,7 +3597,7 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 **AÇÃO FINAL:** Escreva AGORA o texto para o novo capítulo sobre "${chapterTheme}", garantindo que cada frase introduza conteúdo 100% novo para o espectador. Responda APENAS com o texto a ser narrado.
 `;
         
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(continuationPrompt), 4000);
+        const rawResult = await callGroqAPI(continuationPrompt, 4000);
         const newChapter = removeMetaComments(rawResult.trim());
         
         if (!newChapter || newChapter.trim() === "") {
@@ -3642,7 +3620,7 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
         
         invalidateAndClearPerformance(devSection);
         invalidateAndClearPrompts(devSection);
-        invalidateAndClearEmotionalMap();
+        invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
         updateAllReadingTimes();
         
         window.showToast("Novo capítulo adicionado com sucesso!", 'success');
@@ -3655,11 +3633,6 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
         hideButtonLoading(button);
     }
 };
-
-
-
-
-
 
 // =========================================================================
 // >>>>> FIM DA VERSÃO BLINDADA DE 'addDevelopmentChapter' <<<<<
@@ -4063,7 +4036,7 @@ ${originalBlock}
 
 Reescreva o bloco de texto acima, corrigindo o problema. Responda APENAS com o novo texto.`;
 
-        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 3000);
+        const rawResult = await callGroqAPI(prompt, 3000);
         const newContent = removeMetaComments(rawResult.trim());
         if (!newContent.trim()) throw new Error("A IA não retornou um conteúdo válido.");
 
@@ -4396,7 +4369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const startNode = userSelectionRange.startContainer.parentElement;
         const sectionElement = startNode.closest('.accordion-item');
         try {
-            const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 3000);
+            const rawResult = await callGroqAPI(prompt, 3000);
             const refinedText = removeMetaComments(rawResult);
             if (userSelectionRange) {
                 window.getSelection().removeAllRanges();
