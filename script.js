@@ -367,6 +367,14 @@ __RAW_REPORT__
 **AÇÃO FINAL:** Analise o relatório como um caçador de viralidade. Responda APENAS no formato markdown especificado.`
 };
 
+        const promptTemplate = templates[genre] || templates['geral'];
+        return promptTemplate
+            .replace(/__ORIGINAL_QUERY__/g, context.originalQuery)
+            .replace(/__RAW_REPORT__/g, context.rawReport)
+            .replace(/__LANGUAGE_NAME__/g, context.languageName);
+    },
+
+
 
 
 // DENTRO DO OBJETO PromptManager
@@ -400,16 +408,8 @@ ${creativeText}
 **AÇÃO FINAL:** Extraia as informações de todas as 6 ideias do texto e formate-as no array JSON perfeito, seguindo rigorosamente o mapeamento de chaves.`;
 },
 
-// ... (a função getSoundtrackPrompt vem depois)
 
 
-
-        const promptTemplate = templates[genre] || templates['geral'];
-        return promptTemplate
-            .replace(/__ORIGINAL_QUERY__/g, context.originalQuery)
-            .replace(/__RAW_REPORT__/g, context.rawReport)
-            .replace(/__LANGUAGE_NAME__/g, context.languageName);
-    },
 
 
 getSoundtrackPrompt: (fullTranscript) => {
