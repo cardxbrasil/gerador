@@ -758,6 +758,12 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     let jsonString = text.trim();
 
+    // ======================================================================
+    // >>>>> NOVA EVOLUÇÃO ADICIONADA AQUI (A MAIS IMPORTANTE) <<<<<
+    // Remove tokens de controle e respostas repetidas que a API está vazando.
+    jsonString = jsonString.replace(/assistant<\|end_header_id\|>[\s\S]*/g, '');
+    // ======================================================================
+
     // --- CAMADA 1: EXTRAÇÃO ---
     // (Lógica de extração existente)
     const markdownMatch = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -782,22 +788,14 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
     }
 
     // --- CAMADA 2: REPARO E DESINFECÇÃO ---
-    // (Atributos anteriores mantidos)
+    // (Todos os atributos anteriores mantidos)
     jsonString = jsonString.replace(/[´‘’]/g, "'");
     jsonString = jsonString.replace(/''/g, "'");
     jsonString = jsonString.replace(/"\s*(pode ser reescrito como|ou|alternativamente)\s*"/g, ',"rewritten_quote": "');
     jsonString = jsonString.replace(/"\s*,\s*"/g, '","');
     jsonString = jsonString.replace(/("\s*[^"]+\s*)"\s*([a-zA-Z\s,]+)\s*,\s*"/g, '$1, "');
     jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3');
-    
-    // ======================================================================
-    // >>>>> NOVA EVOLUÇÃO ADICIONADA AQUI <<<<<
-    // Corrige o erro de "valor ausente" entre uma chave e a próxima.
-    // Ex: "problematic_quote": ,"critique": ... -> "problematic_quote": "", "critique": ...
     jsonString = jsonString.replace(/:\s*,\s*"/g, ': "", "');
-    // ======================================================================
-
-    // (Outros atributos anteriores mantidos)
     jsonString = jsonString.replace(/,\s*([}\]])/g, '$1');
     jsonString = jsonString.replace(/:\s*""([\s\S]*?)""/g, ': "$1"');
     jsonString = jsonString.replace(/"''([\s\S]*?)''"/g, '"$1"');
