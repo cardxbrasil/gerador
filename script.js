@@ -1634,9 +1634,6 @@ const suggestStrategy = async (button) => {
     
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
 
-    // ==========================================================
-    // >>>>> INÍCIO DO PROMPT BLINDADO E REFORÇADO <<<<<
-    // ==========================================================
     const prompt = `Você é uma API de Estratégia de Conteúdo Viral. Sua única função é gerar um objeto JSON com uma estratégia de vídeo COMPLETA E DETALHADA.
 
 **REGRAS CRÍTICAS DE SINTAXE JSON (INEGOCIÁVEIS):**
@@ -1662,13 +1659,13 @@ const suggestStrategy = async (button) => {
 - **Descrição:** "${description}"
 
 **AÇÃO FINAL:** Gere AGORA o objeto JSON completo com TODAS AS 10 CHAVES preenchidas. Sua criatividade nestes campos é o que define uma estratégia viral.`;
-    // ==========================================================
-    // >>>>> FIM DO PROMPT BLINDADO <<<<<
-    // ==========================================================
 
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
+        
+        // CORREÇÃO APLICADA AQUI: Usando o novo parser leve e confiável.
         const strategy = parseSimpleJson(rawResult);
+
         if (!strategy || typeof strategy !== 'object') throw new Error("A IA não retornou uma estratégia em formato JSON válido.");
         
         const narrativeGoalSelect = document.getElementById('narrativeGoal');
@@ -1867,7 +1864,7 @@ const generateStrategicOutline = async (button) => {
     try {
         const { prompt } = constructScriptPrompt('outline');
         const rawResult = await callGroqAPI(prompt, 4000);
-        AppState.generated.strategicOutline = cleanGeneratedText(rawResult, true);
+        AppState.generated.strategicOutline = parseSimpleJson(rawResult);
         
         const { strategicOutline } = AppState.generated;
         if (!strategicOutline || typeof strategicOutline !== 'object' || !strategicOutline.introduction) {
@@ -2293,7 +2290,7 @@ ${fullContext}
 
     try {
         const rawResult = await callGroqAPI(prompt, 1000);
-        const suggestions = cleanGeneratedText(rawResult, true);
+        const suggestions = parseSimpleJson(rawResult, true);
         if (suggestions && suggestions.conclusion_suggestion && suggestions.cta_suggestion) {
             conclusionSpecifics.value = suggestions.conclusion_suggestion;
             ctaSpecifics.value = suggestions.cta_suggestion;
@@ -2355,7 +2352,7 @@ ${text.slice(0, 7000)}
 
     try {
         const rawResult = await callGroqAPI(prompt, 1500);
-        const analysisData = cleanGeneratedText(rawResult, true); 
+        const analysisData = parseSimpleJson(rawResult);
         if (!analysisData || !('score' in analysisData)) throw new Error("A IA retornou uma resposta sem as chaves obrigatórias.");
         
         const formattedData = {
@@ -2631,7 +2628,7 @@ ${fullTranscript.slice(0, 7500)}
 **AÇÃO FINAL:** Analise o roteiro. Responda APENAS com o array JSON perfeito.`;
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
-        const hooks = cleanGeneratedText(rawResult, true);
+        const hooks = parseSimpleJson(rawResult, true);
         if (!hooks || !Array.isArray(hooks) || hooks.length === 0) throw new Error("A IA não encontrou ganchos ou retornou um formato inválido.");
         let reportHtml = `<div class="space-y-4">`;
         hooks.forEach((hook) => {
@@ -2746,7 +2743,7 @@ ${fullTranscript.slice(0, 7500)}
 **AÇÃO FINAL:** Analise o roteiro e o contexto. Responda APENAS com o array JSON perfeito.`;
     try {
         const rawResult = await callGroqAPI(prompt, 4000);
-        const suggestions = cleanGeneratedText(rawResult, true);
+        const suggestions = parseSimpleJson(rawResult, true);
         if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
         let reportHtml = `<div class="space-y-4">`;
         suggestions.forEach(suggestion => {
@@ -2821,7 +2818,7 @@ const generateTitlesAndThumbnails = async (button) => {
     try {
         const { prompt, maxTokens } = constructScriptPrompt('titles_thumbnails');
         const rawResult = await callGroqAPI(prompt, maxTokens);
-        const parsedContent = cleanGeneratedText(rawResult, true);
+        const parsedContent = parseSimpleJson(rawResult, true);
         if (!Array.isArray(parsedContent) || parsedContent.length === 0 || !parsedContent[0].suggested_title) {
             throw new Error("A IA retornou os dados de títulos em um formato inesperado.");
         }
@@ -2891,7 +2888,7 @@ Responda APENAS com o array JSON.`;
 
     try {
         const rawResult = await callGroqAPI(prompt, 3000);
-        const analysis = cleanGeneratedText(rawResult, true, true);
+        const analysis = parseSimpleJson(rawResult, true);
         if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de títulos válida.");
 
         let analysisHtml = '<div class="space-y-4">';
@@ -2935,7 +2932,7 @@ Responda APENAS com o array JSON.`;
 
     try {
         const rawResult = await callGroqAPI(prompt, 2500);
-        const analysis = cleanGeneratedText(rawResult, true, true);
+        const analysis = parseSimpleJson(rawResult, true);
         if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de thumbnails válida.");
 
         let analysisHtml = '<div class="space-y-4">';
@@ -2966,7 +2963,7 @@ const generateVideoDescription = async (button) => {
         const rawResult = await callGroqAPI(prompt, maxTokens);
         
         // Agora esperamos um objeto JSON
-        const parsedContent = cleanGeneratedText(rawResult, true);
+        const parsedContent = parseSimpleJson(rawResult);
         
         if (!parsedContent || !parsedContent.description_text || !Array.isArray(parsedContent.hashtags)) {
             throw new Error("A IA não retornou a descrição e hashtags no formato esperado.");
@@ -3001,7 +2998,7 @@ const generateSoundtrack = async (button) => {
     const prompt = PromptManager.getSoundtrackPrompt(fullTranscript);
     try {
         const rawResult = await callGroqAPI(prompt, 1500);
-        const analysis = cleanGeneratedText(rawResult, true);
+        const analysis = parseSimpleJson(rawResult, true);
         if (!analysis || !Array.isArray(analysis) || analysis.length === 0) throw new Error("A IA não retornou sugestões no formato esperado.");
         let suggestionsHtml = '<ul class="soundtrack-list space-y-2">';
         analysis.forEach(suggestion => {
@@ -3079,7 +3076,7 @@ ${JSON.stringify(paragraphs)}
 ACTION: Return ONLY the JSON array.`;
 
         const rawResult = await callGroqAPI(prompt, 8000);
-        const emotionalMapData = cleanGeneratedText(rawResult, true, true);
+        const emotionalMapData = parseSimpleJson(rawResult, true);
       if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
     throw new Error("A IA não retornou um mapa emocional válido.");
 }
@@ -3220,7 +3217,7 @@ window.analyzeSectionRetention = async (button) => {
         **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
 
         const rawResult = await callGroqAPI(prompt, 4000);
-        const analysis = cleanGeneratedText(rawResult, true, true);
+        const analysis = parseSimpleJson(rawResult, true);
 
         if (!analysis || !Array.isArray(analysis)) {
             throw new Error("A análise da IA retornou um formato inválido.");
