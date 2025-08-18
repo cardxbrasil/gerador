@@ -756,10 +756,10 @@ const resetApplicationState = () => {
 
 
 const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => {
+    // Verificações iniciais (mantidas)
     if (!expectJson) {
         return text ? String(text).trim() : (arrayExpected ? [] : '');
     }
-    
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
         console.warn("Texto de entrada inválido ou vazio para o parser de JSON.");
         return arrayExpected ? [] : null;
@@ -767,51 +767,62 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
 
     let jsonString = text.trim();
 
-    // --- CAMADA 1: EXTRAÇÃO CIRÚRGICA ---
-    // Remove qualquer texto introdutório ou final, isolando o bloco JSON.
-    const jsonMatch = jsonString.match(/(\[|\{)[\s\S]*(\]|\})/);
-    if (jsonMatch && jsonMatch[0]) {
-        jsonString = jsonString.match(/(\[|\{)[\s\S]*(\]|\})/)[0];
-    } else {
-        // Se não encontrar um bloco completo, não há o que fazer.
-        console.warn("Nenhum bloco JSON válido foi encontrado no texto da IA.");
-        return arrayExpected ? [] : null;
+    // ======================================================================
+    // >>>>> EVOLUÇÃO 1: CAMADA DE CONSOLIDAÇÃO DE FRAGMENTOS <<<<<
+    // Antes de qualquer outra coisa, montamos o "quebra-cabeça" que a IA nos envia.
+    // ======================================================================
+
+    // Passo A: Limpeza Agressiva de "Lixo" Conversacional e Tokens da API
+    const fillerPatterns = [
+        /assistant<\|end_header_id\|>/g,
+        /Aqui está.*?:\s*/gim,
+        /Espero que.*?$/gim
+    ];
+    fillerPatterns.forEach(pattern => {
+        jsonString = jsonString.replace(pattern, '');
+    });
+
+    // Passo B: Extração e Montagem de todos os objetos JSON encontrados
+    const jsonObjects = jsonString.match(/\{[\s\S]*?\}/g);
+    if (jsonObjects && jsonObjects.length > 0) {
+        // Une todos os objetos em um único array JSON válido
+        jsonString = `[${jsonObjects.join(',')}]`;
     }
 
-    // --- CAMADA 2: REPARO E DESINFECÇÃO ---
-
     // ======================================================================
-    // >>>>> EVOLUÇÃO 1: CORREÇÃO DE JSON TRUNCADO (INCOMPLETO) <<<<<
-    // Se o JSON não termina corretamente, tenta fechar a última string aberta e o objeto/array.
+    // >>>>> EVOLUÇÃO 2: CAMADA DE REPARO ESTRUTURAL E SINTÁTICO <<<<<
+    // Agora que temos um bloco único, aplicamos as correções cirúrgicas.
+    // ======================================================================
+    
+    // (Sua lógica de reparo de JSON truncado, mantida e aprimorada)
     if (!jsonString.trim().endsWith(']') && !jsonString.trim().endsWith('}')) {
-        // Adiciona uma aspa dupla de fechamento se a última string estiver aberta
         const lastQuoteIndex = jsonString.lastIndexOf('"');
         const lastColonIndex = jsonString.lastIndexOf(':');
-        if (lastQuoteIndex > lastColonIndex) { // Provavelmente dentro de um valor de string
+        if (lastQuoteIndex > -1 && lastQuoteIndex > lastColonIndex) {
             const quotesAfterColon = (jsonString.substring(lastColonIndex).match(/"/g) || []).length;
             if (quotesAfterColon % 2 !== 0) {
-                jsonString += '"';
+                jsonString += '"'; // Fecha uma string aberta
             }
         }
-        // Tenta fechar o objeto e o array
-        jsonString += '}]}'; 
+        // Tenta fechar o objeto e o array de forma inteligente
+        if (jsonString.lastIndexOf('{') > jsonString.lastIndexOf(',')) {
+             jsonString += '}';
+        }
+        if (jsonString.lastIndexOf('[') > jsonString.lastIndexOf('{')) {
+             jsonString += ']';
+        }
     }
-    // ======================================================================
 
-    // ======================================================================
-    // >>>>> EVOLUÇÃO 2: CORREÇÃO DE VÍRGULAS FALTANTES (MAIS ROBUSTO) <<<<<
-    // Adiciona vírgulas faltando entre propriedades, incluindo após arrays ou objetos.
-    jsonString = jsonString.replace(/([}\]])\s*"/g, '$1, "');
-    jsonString = jsonString.replace(/"\s*"/g, '", "');
-    // ======================================================================
+    // (Sua lógica de correção de vírgulas, mantida e evoluída)
+    jsonString = jsonString.replace(/([}\]])\s*"/g, '$1, "'); // Corrige: } "chave" ou ] "chave"
+    jsonString = jsonString.replace(/"\s*"/g, '", "'); // Corrige: "valor" "chave"
 
-    // (Suas regras anteriores, mantidas e refinadas)
-    jsonString = jsonString.replace(/:\s*"([^"]*?)"\s*,\s*([}\]])/g, ':"$1"$2'); // Remove vírgulas antes de fechar
-    jsonString = jsonString.replace(/,\s*([}\]])/g, '$1'); // Remove vírgulas sobrando no final
-    jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3'); // Adiciona aspas nas chaves
-    jsonString = jsonString.replace(/\}\s*\{/g, '},{'); // Adiciona vírgula entre objetos
+    // (Suas regras anteriores de refinamento, todas preservadas)
+    jsonString = jsonString.replace(/([{,]\s*)([a-zA-Z0-9_]+)(\s*:)/g, '$1"$2"$3'); // Aspas nas chaves
+    jsonString = jsonString.replace(/\}\s*\{/g, '},{'); // Vírgula entre objetos
+    jsonString = jsonString.replace(/,\s*([}\]])/g, '$1'); // Remove vírgulas sobrando
     
-    // Garante que os itens dentro do array de discussionQuestions estejam entre aspas
+    // (Sua regra específica para 'discussionQuestions', mantida)
     jsonString = jsonString.replace(/("discussionQuestions":\s*\[)([^\]]+)\]/g, (match, start, content) => {
         const items = content.split(',').map(item => {
             let cleanedItem = item.trim().replace(/^"/, '').replace(/"$/, '');
@@ -819,23 +830,18 @@ const cleanGeneratedText = (text, expectJson = false, arrayExpected = false) => 
         });
         return `${start}${items.join(',')}]`;
     });
-    
-    // --- CAMADA 3: VALIDAÇÃO FINAL ---
+
+    // --- CAMADA 3: VALIDAÇÃO FINAL (Mantida) ---
     try {
-        // Remove quaisquer objetos incompletos no final do array que possam ter sido mal reparados
-        if (jsonString.endsWith(',}')) {
-           jsonString = jsonString.slice(0, -2) + '}';
-        }
-        if (jsonString.endsWith(',]')) {
-           jsonString = jsonString.slice(0, -2) + ']';
-        }
+        // (Sua lógica de limpeza final, mantida)
+        if (jsonString.endsWith(',}')) jsonString = jsonString.slice(0, -2) + '}';
+        if (jsonString.endsWith(',]')) jsonString = jsonString.slice(0, -2) + ']';
 
         const parsedJson = JSON.parse(jsonString);
         
         if (arrayExpected && !Array.isArray(parsedJson)) {
             return [parsedJson];
         }
-
         return parsedJson;
 
     } catch (error) {
