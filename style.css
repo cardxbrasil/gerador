@@ -777,3 +777,12 @@ textarea.input { min-height: 84px; resize: vertical; }
   border-radius: 4px;
   outline-offset: 2px;
 }
+
+
+.performance-emphasis {
+    font-weight: 700;
+    color: var(--primary);
+    background-color: color-mix(in srgb, var(--primary) 15%, transparent);
+    padding: 0 4px;
+    border-radius: 4px;
+}

@@ -3670,9 +3670,6 @@ window.suggestPerformance = async (button) => {
         const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map((p, index) => ({ index, text: p.textContent.trim() }));
         if (originalParagraphs.length === 0) throw new Error("Não foram encontrados parágrafos estruturados para análise.");
 
-        // ==========================================================
-        // >>>>> PROMPT RE-ENGENHARADO E BLINDADO <<<<<
-        // ==========================================================
         const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração claras e impactantes, retornando um array JSON.
 
 **ROTEIRO PARA ANÁLISE:**
@@ -3705,22 +3702,29 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
             const annotationData = annotations[index] || { general_annotation: '', emphasis_words: [] };
             let annotatedParagraph = p.text;
 
+            // ==========================================================
+            // >>>>> A CORREÇÃO FINAL E DECISIVA ESTÁ AQUI <<<<<
+            // Envolvemos a palavra em um <span> em vez de substituí-la.
+            // ==========================================================
             if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
                 const word = annotationData.emphasis_words[0];
                 if (word && typeof word === 'string' && word.trim() !== '') {
                     const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1']`);
+                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `<span class="performance-emphasis">$1</span>`);
                 }
             }
-            const finalParagraph = `${annotationData.general_annotation || ''} ${annotatedParagraph}`;
+            
+            // Adiciona a anotação de tom no início da linha, se existir.
+            const generalAnnotation = annotationData.general_annotation ? `<span style="color: var(--primary); font-style: italic;">${DOMPurify.sanitize(annotationData.general_annotation)}</span> ` : '';
+            const finalParagraph = `${generalAnnotation}${annotatedParagraph}`;
             annotatedParagraphs.push(finalParagraph.trim());
         });
         
-        const finalAnnotatedText = annotatedParagraphs.join('\n\n');
-        const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span style="color: var(--primary); font-weight: 600; font-style: italic;">$1</span>');
+        // Juntamos os parágrafos com quebras de linha HTML para a renderização correta.
+        const finalAnnotatedText = annotatedParagraphs.join('<br><br>');
 
-        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><p class="whitespace-pre-wrap">${highlightedText}</p></div>`;
+        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><div class="performance-text">${finalAnnotatedText}</div></div>`;
             
     } catch (error) {
         outputContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">Falha ao sugerir performance: ${error.message}</p>`;
