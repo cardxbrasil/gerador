@@ -3882,7 +3882,11 @@ ${promptContextForAI}
 
 Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
             
-            apiPromises.push(callGroqAPI(prompt, 4000).then(res => cleanGeneratedText(res, true, true)));
+       const promise = callGroqAPI(forceLanguageOnPrompt(prompt), 4000)
+                .then(brokenJson => fixJsonWithAI(brokenJson))
+                .then(perfectJson => JSON.parse(perfectJson));
+
+            apiPromises.push(promise);
         }
 
         const allBatchResults = await Promise.all(apiPromises);
@@ -3918,6 +3922,16 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
         hideButtonLoading(button);
     }
 };
+
+
+
+
+
+
+
+
+
+
 
 const renderPaginatedPrompts = (sectionElementId) => {
     const sectionElement = document.getElementById(sectionElementId);
