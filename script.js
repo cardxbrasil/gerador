@@ -2890,7 +2890,6 @@ ${titlesString}
 Responda APENAS com o array JSON.`;
 
     try {
-        // ARQUITETURA DE DUPLA PASSAGEM APLICADA AQUI
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 3000);
         const perfectJson = await fixJsonWithAI(brokenJson);
         const analysis = JSON.parse(perfectJson);
@@ -2899,11 +2898,19 @@ Responda APENAS com o array JSON.`;
 
         let analysisHtml = '<div class="space-y-4">';
         analysis.forEach(item => {
+            // ==========================================================
+            // >>>>> A BLINDAGEM FINAL ESTÁ AQUI <<<<<
+            // Procuramos por variações comuns das chaves que a IA pode usar.
+            // ==========================================================
+            const title = item.titulo_original || item.title || item.original_title || "Título não encontrado";
+            const score = item.nota_ctr || item.ctr_score || item.score || "N/A";
+            const suggestion = item.sugestao_melhora || item.suggestion || item.improvement_suggestion || "Sugestão não encontrada";
+
             analysisHtml += `
                 <div class="p-3 rounded-md" style="background: var(--bg);">
-                    <p class="font-semibold">${DOMPurify.sanitize(item.titulo_original)}</p>
-                    <p class="mt-1"><strong>Nota de CTR:</strong> <span style="color: var(--primary); font-weight: 700;">${DOMPurify.sanitize(String(item.nota_ctr))} / 10</span></p>
-                    <p class="mt-1"><strong>Sugestão:</strong> ${DOMPurify.sanitize(item.sugestao_melhora)}</p>
+                    <p class="font-semibold">${DOMPurify.sanitize(title)}</p>
+                    <p class="mt-1"><strong>Nota de CTR:</strong> <span style="color: var(--primary); font-weight: 700;">${DOMPurify.sanitize(String(score))} / 10</span></p>
+                    <p class="mt-1"><strong>Sugestão:</strong> ${DOMPurify.sanitize(suggestion)}</p>
                 </div>`;
         });
         analysisHtml += '</div>';
@@ -2941,7 +2948,6 @@ ${thumbnailsString}
 Responda APENAS com o array JSON.`;
 
     try {
-        // ARQUITETURA DE DUPLA PASSAGEM APLICADA AQUI
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 2500);
         const perfectJson = await fixJsonWithAI(brokenJson);
         const analysis = JSON.parse(perfectJson);
@@ -2950,11 +2956,16 @@ Responda APENAS com o array JSON.`;
 
         let analysisHtml = '<div class="space-y-4">';
         analysis.forEach(item => {
+            // A MESMA BLINDAGEM APLICADA AQUI
+            const title = item.titulo || item.title || "Ideia Sem Título";
+            const score = item.nota_visual || item.visual_score || item.score || "N/A";
+            const suggestion = item.sugestao_melhora || item.suggestion || item.improvement_suggestion || "Sugestão não encontrada";
+
             analysisHtml += `
                 <div class="p-3 rounded-md" style="background: var(--bg);">
-                    <p class="font-semibold">"${DOMPurify.sanitize(item.titulo || 'Ideia Sem Título')}"</p>
-                    <p class="mt-1"><strong>Nota Visual:</strong> <span style="color: var(--primary); font-weight: 700;">${DOMPurify.sanitize(String(item.nota_visual))} / 10</span></p>
-                    <p class="mt-1"><strong>Sugestão:</strong> ${DOMPurify.sanitize(item.sugestao_melhora)}</p>
+                    <p class="font-semibold">"${DOMPurify.sanitize(title)}"</p>
+                    <p class="mt-1"><strong>Nota Visual:</strong> <span style="color: var(--primary); font-weight: 700;">${DOMPurify.sanitize(String(score))} / 10</span></p>
+                    <p class="mt-1"><strong>Sugestão:</strong> ${DOMPurify.sanitize(suggestion)}</p>
                 </div>`;
         });
         analysisHtml += '</div>';
