@@ -2209,18 +2209,16 @@ const suggestFinalStrategy = async (button) => {
     const conclusionSpecifics = document.getElementById('conclusionSpecifics');
     const ctaSpecifics = document.getElementById('ctaSpecifics');
     
-    // Limpeza
+    // Limpeza (inalterada)
     AppState.generated.script.conclusion = { html: null, text: null };
     AppState.generated.script.cta = { html: null, text: null };
     const conclusionContainer = document.getElementById('conclusionSection');
     if (conclusionContainer) conclusionContainer.innerHTML = '';
     const ctaContainer = document.getElementById('ctaSection');
     if (ctaContainer) ctaContainer.innerHTML = '';
-    
     document.querySelectorAll('input[name="conclusionType"]').forEach(radio => radio.disabled = false);
     conclusionSpecifics.disabled = false;
     ctaSpecifics.disabled = false;
-    
     document.getElementById('generateConclusionBtn').classList.remove('hidden');
     document.getElementById('generateCtaBtn').classList.add('hidden');
 
@@ -2259,8 +2257,23 @@ ${fullContext}
 **AÇÃO FINAL:** Sua resposta deve ser **APENAS e SOMENTE** o objeto JSON, sem nenhum texto introdutório, explicação ou comentário. Comece com \`{\` e termine com \`}\`. Gere agora o objeto JSON com as sugestões.`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 1000);
-        const suggestions = cleanGeneratedText(rawResult, true);
+        // ==========================================================
+        // >>>>> A ARQUITETURA FINAL APLICADA AQUI <<<<<
+        // ==========================================================
+        // ETAPA 1: GERAÇÃO CRIATIVA (ACEITANDO O CAOS)
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 1000);
+        
+        // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
+        const perfectJson = await fixJsonWithAI(brokenJson);
+
+        // ETAPA 3: PARSE SEGURO
+        let suggestions = JSON.parse(perfectJson);
+
+        // Se a IA embrulhou o objeto em um array, extraímos o objeto.
+        if (Array.isArray(suggestions) && suggestions.length > 0) {
+            suggestions = suggestions[0];
+        }
+
         if (suggestions && suggestions.conclusion_suggestion && suggestions.cta_suggestion) {
             conclusionSpecifics.value = suggestions.conclusion_suggestion;
             ctaSpecifics.value = suggestions.cta_suggestion;
@@ -2276,6 +2289,12 @@ ${fullContext}
         updateButtonStates();
     }
 };
+
+
+
+
+
+
 
 const goToFinalize = () => {
     const { script } = AppState.generated;
