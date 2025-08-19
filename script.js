@@ -3653,7 +3653,8 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 // =========================================================================
 
 
-window.suggestPerformance = async (button, sectionId) => {
+window.suggestPerformance = async (button) => {
+    const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
     const outputContainer = sectionElement?.querySelector('.section-performance-output');
@@ -3672,10 +3673,7 @@ window.suggestPerformance = async (button, sectionId) => {
         tempDiv.querySelectorAll('.retention-tooltip').forEach(el => el.remove());
         
         const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map(p => p.textContent.trim());
-
-        if (originalParagraphs.length === 0) {
-            throw new Error("Não foram encontrados parágrafos estruturados para análise.");
-        }
+        if (originalParagraphs.length === 0) throw new Error("Não foram encontrados parágrafos estruturados para análise.");
 
         const batchSize = 15;
         const apiPromises = [];
@@ -3706,31 +3704,37 @@ Analise os ${paragraphBatch.length} parágrafos a seguir e retorne o array JSON.
 
 **ROTEIRO (LOTE ATUAL):**
 ${promptContext}`;
-            apiPromises.push(callGroqAPI(prompt, 3000).then(res => cleanGeneratedText(res, true)));
+
+            // ==========================================================
+            // >>>>> AJUSTE CIRÚRGICO APLICADO AQUI <<<<<
+            // Substituímos a chamada antiga pela arquitetura de "Dupla Passagem".
+            // ==========================================================
+            const promise = callGroqAPI(forceLanguageOnPrompt(prompt), 3000)
+                .then(brokenJson => fixJsonWithAI(brokenJson))
+                .then(perfectJson => JSON.parse(perfectJson));
+
+            apiPromises.push(promise);
         }
 
         const allBatchResults = await Promise.all(apiPromises);
         const annotations = allBatchResults.flat();
 
-        // --- A CORREÇÃO ESTÁ AQUI ---
-        // Nós não lançamos mais um erro. Apenas avisamos no console se houver uma discrepância.
-        if (!Array.isArray(annotations) || annotations.length !== originalParagraphs.length) { 
-            console.warn(`Discrepância no número de anotações: Esperado ${originalParagraphs.length}, Recebido ${annotations?.length || 0}. O processo continuará.`);
+        if (annotations.length !== originalParagraphs.length) {
+            console.warn(`Discrepância no número de anotações: Esperado ${originalParagraphs.length}, Recebido ${annotations.length || 0}. O processo continuará.`);
         }
-        // -----------------------------
         
         let annotatedParagraphs = [];
         originalParagraphs.forEach((p, index) => {
-            // Se a anotação para este parágrafo existir, use-a. Se não, use um objeto vazio.
+            // A sua lógica original e correta de anotação.
             const annotationData = (annotations && annotations[index]) ? annotations[index] : { general_annotation: '', emphasis_words: [] };
             let annotatedParagraph = p;
 
-            if (annotationData && annotationData.emphasis_words && Array.isArray(annotationData.emphasis_words) && annotationData.emphasis_words.length > 0) {
+            if (annotationData.emphasis_words && Array.isArray(annotationData.emphasis_words) && annotationData.emphasis_words.length > 0) {
                 annotationData.emphasis_words.forEach(word => {
                     if (word && typeof word === 'string' && word.trim() !== '') {
                         const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                         const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                        annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1']$1`);
+                        annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1']`);
                     }
                 });
             }
@@ -3739,13 +3743,12 @@ ${promptContext}`;
         });
         
         const finalAnnotatedText = annotatedParagraphs.join('\n\n');
-        const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span class="text-indigo-500 dark:text-indigo-400 font-semibold italic">$1</span>');
+        const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span style="color: var(--primary); font-weight: 600; font-style: italic;">$1</span>');
 
-        outputContainer.innerHTML = `
-            <div class="generated-output-box !border-l-indigo-500">
-                <h5 class="output-subtitle !border-b-indigo-500/50">Sugestão de Performance:</h5>
-                <p class="whitespace-pre-wrap">${highlightedText}</p>
-            </div>`;
+        outputContainer.innerHTML = `<div class="generated-output-box border !border-indigo-500/50">
+            <h5 class="output-subtitle !border-b-indigo-500/50">Sugestão de Performance:</h5>
+            <p class="whitespace-pre-wrap">${highlightedText}</p>
+        </div>`;
             
     } catch (error) {
         outputContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao sugerir performance: ${error.message}</p>`;
