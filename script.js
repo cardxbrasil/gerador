@@ -3700,10 +3700,6 @@ window.suggestPerformance = async (button) => {
         const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map((p, index) => ({ index, text: p.textContent.trim() }));
         if (originalParagraphs.length === 0) throw new Error("Não foram encontrados parágrafos estruturados para análise.");
 
-        // ==========================================================
-        // >>>>> PROMPT RE-ENGENHARADO E BLINDADO <<<<<
-        // Adicionamos regras negativas para forçar o comportamento correto.
-        // ==========================================================
         const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração claras e impactantes, retornando um array JSON.
 
 **ROTEIRO PARA ANÁLISE:**
@@ -3714,10 +3710,9 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
     *   A anotação DEVE ser uma instrução curta para o narrador.
     *   NÃO PODE ser um resumo, um título, ou uma reescrita do parágrafo.
     *   **Exemplos BONS:** "[Tom mais sério e grave]", "[Pausa dramática antes de continuar]", "[Falar mais rápido, com tom de urgência]", "[Sussurrar, como se contasse um segredo]".
-    *   **Exemplos RUINS:** "Resumo do parágrafo", "Introdução sobre a Terra", "O parágrafo fala sobre...".
-    *   Se nenhuma instrução for necessária, deixe a string VAZIA.
+    *   **Se nenhuma instrução for necessária, deixe a string VAZIA.**
 2.  **Para "emphasis_words":**
-    *   Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase.
+    *   Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase para maximizar o impacto.
     *   Se nenhuma ênfase for necessária, deixe o array VAZIO.
 
 **REGRAS DE SINTAXE JSON (INEGOCIÁVEIS):**
@@ -3742,7 +3737,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
             // ==========================================================
             // >>>>> LÓGICA CORRETA RESTAURADA AQUI <<<<<
-            // Adicionamos a anotação APÓS a palavra, sem "engoli-la".
+            // Substituímos a palavra pela PRÓPRIA PALAVRA + a anotação textual.
             // ==========================================================
             if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
                 const word = annotationData.emphasis_words[0];
@@ -3760,6 +3755,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
         
         const finalAnnotatedText = annotatedParagraphs.join('\n\n');
         
+        // A renderização visual agora destaca as anotações [ênfase] como texto.
         const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span style="color: var(--primary); font-weight: 600; font-style: italic;">$1</span>');
 
         outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><p class="whitespace-pre-wrap">${highlightedText}</p></div>`;
