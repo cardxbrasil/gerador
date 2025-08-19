@@ -2890,8 +2890,11 @@ ${titlesString}
 Responda APENAS com o array JSON.`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 3000);
-        const analysis = cleanGeneratedText(rawResult, true, true);
+        // ARQUITETURA DE DUPLA PASSAGEM APLICADA AQUI
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 3000);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const analysis = JSON.parse(perfectJson);
+
         if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de títulos válida.");
 
         let analysisHtml = '<div class="space-y-4">';
@@ -2909,6 +2912,10 @@ Responda APENAS com o array JSON.`;
         resultContainer.innerHTML = `<p style="color: var(--danger);">${error.message}</p>`;
     }
 };
+
+
+
+
 
 window.analyzeThumbnails = async () => {
     const thumbnailsData = AppState.generated.titlesAndThumbnails;
@@ -2934,8 +2941,11 @@ ${thumbnailsString}
 Responda APENAS com o array JSON.`;
 
     try {
-        const rawResult = await callGroqAPI(prompt, 2500);
-        const analysis = cleanGeneratedText(rawResult, true, true);
+        // ARQUITETURA DE DUPLA PASSAGEM APLICADA AQUI
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 2500);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const analysis = JSON.parse(perfectJson);
+
         if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de thumbnails válida.");
 
         let analysisHtml = '<div class="space-y-4">';
