@@ -3703,28 +3703,29 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
             let annotatedParagraph = p.text;
 
             // ==========================================================
-            // >>>>> A CORREÇÃO FINAL E DECISIVA ESTÁ AQUI <<<<<
-            // Envolvemos a palavra em um <span> em vez de substituí-la.
+            // >>>>> LÓGICA CORRETA RESTAURADA AQUI <<<<<
+            // Substituímos a palavra pela anotação de ênfase, como era antes.
             // ==========================================================
             if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
                 const word = annotationData.emphasis_words[0];
                 if (word && typeof word === 'string' && word.trim() !== '') {
                     const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `<span class="performance-emphasis">$1</span>`);
+                    // A substituição agora gera o texto [ênfase em 'palavra']
+                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1']`);
                 }
             }
             
-            // Adiciona a anotação de tom no início da linha, se existir.
-            const generalAnnotation = annotationData.general_annotation ? `<span style="color: var(--primary); font-style: italic;">${DOMPurify.sanitize(annotationData.general_annotation)}</span> ` : '';
-            const finalParagraph = `${generalAnnotation}${annotatedParagraph}`;
+            const finalParagraph = `${annotationData.general_annotation || ''} ${annotatedParagraph}`;
             annotatedParagraphs.push(finalParagraph.trim());
         });
         
-        // Juntamos os parágrafos com quebras de linha HTML para a renderização correta.
-        const finalAnnotatedText = annotatedParagraphs.join('<br><br>');
+        const finalAnnotatedText = annotatedParagraphs.join('\n\n');
+        
+        // Renderizamos o texto, mas agora as anotações são visíveis como texto.
+        const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span style="color: var(--primary); font-weight: 600; font-style: italic;">$1</span>');
 
-        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><div class="performance-text">${finalAnnotatedText}</div></div>`;
+        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><p class="whitespace-pre-wrap">${highlightedText}</p></div>`;
             
     } catch (error) {
         outputContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">Falha ao sugerir performance: ${error.message}</p>`;
