@@ -3214,23 +3214,14 @@ window.analyzeSectionRetention = async (button) => {
 
         **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
 
-        // ==========================================================
-        // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
-        // ==========================================================
-        // ETAPA 1: GERAÇÃO CRIATIVA (ACEITANDO O CAOS)
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        
-        // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
         const perfectJson = await fixJsonWithAI(brokenJson);
-        
-        // ETAPA 3: PARSE SEGURO
         const analysis = JSON.parse(perfectJson);
 
         if (!analysis || !Array.isArray(analysis)) {
             throw new Error("A análise da IA retornou um formato inválido.");
         }
         
-        // O resto da sua lógica de agrupamento e renderização permanece o mesmo...
         if (analysis.length > 0) {
             let currentGroup = [];
             for (let i = 0; i < analysis.length; i++) {
@@ -3261,7 +3252,7 @@ window.analyzeSectionRetention = async (button) => {
         });
 
         analysis.forEach((item, index) => {
-            if (typeof item.paragraphIndex !== 'number' || item.paragraphIndex >= newParagraphs.length) return; // Adiciona segurança
+            if (typeof item.paragraphIndex !== 'number' || item.paragraphIndex >= newParagraphs.length) return;
             const p = newParagraphs[item.paragraphIndex];
             if (p) {
                 p.classList.add(`retention-${item.retentionScore}`);
@@ -3272,8 +3263,26 @@ window.analyzeSectionRetention = async (button) => {
                     if (!previousItem || item.suggestion !== previousItem.suggestion || (analysis.filter(s => s.suggestion === item.suggestion).length === 1)) {
                         const scoreLabels = { yellow: "PONTO DE ATENÇÃO", red: "PONTO DE RISCO" };
                         const tooltipTitle = scoreLabels[item.retentionScore] || 'ANÁLISE';
-                        const suggestionTextEscaped = (item.suggestion || '').replace(/"/g, '\"');
-                        const buttonsHtml = `...`; // Seu HTML de botões aqui
+                        const suggestionTextEscaped = (item.suggestion || '').replace(/"/g, '\\"');
+                        
+                        // ==========================================================
+                        // >>>>> A CORREÇÃO FINAL E DECISIVA ESTÁ AQUI <<<<<
+                        // Restaurando o HTML completo dos botões.
+                        // ==========================================================
+                        const buttonsHtml = `
+                            <div class="flex gap-2 mt-3">
+                                <button class="flex-1 btn btn-primary btn-small py-1" 
+                                        data-action="optimizeGroup" 
+                                        data-suggestion-text="${suggestionTextEscaped}">
+                                    <i class="fas fa-magic mr-2"></i> Otimizar
+                                </button>
+                                <button class="flex-1 btn btn-danger btn-small py-1" 
+                                        data-action="deleteParagraphGroup" 
+                                        data-suggestion-text="${suggestionTextEscaped}">
+                                    <i class="fas fa-trash-alt mr-2"></i> Deletar
+                                </button>
+                            </div>
+                        `;
                         p.innerHTML += `<div class="retention-tooltip"><strong>${tooltipTitle}:</strong> ${DOMPurify.sanitize(item.suggestion)}${buttonsHtml}</div>`;
                     }
                 }
