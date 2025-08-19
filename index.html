@@ -1,502 +1,381 @@
 <!DOCTYPE html>
-
 <html lang="pt-br">
 <head>
-<link href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;text y=%22.9em%22 font-size=%2290%22&gt;🚀&lt;/text&gt;&lt;/svg&gt;" rel="icon" type="image/svg+xml"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&amp;family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet"/>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Gerador de Roteiros Virais v5.0</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.11/dist/purify.min.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerador de Roteiros Virais v6.0 - Wizard</title>
 
+    <link href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;text y=%22.9em%22 font-size=%2290%22&gt;🚀&lt;/text&gt;&lt;/svg&gt;" rel="icon" type="image/svg+xml"/>
+    
+    <!-- Dependências JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.11/dist/purify.min.js"></script>
+    
+    <!-- Fontes e Ícones -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Source+Serif+Pro:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    
+    
 
-<link href="style.css" rel="stylesheet"/></head>
-<body class="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 transition-colors duration-500 ease-in-out">
-<div class="min-h-screen flex">
-
-<div class="flex-1 p-8 space-y-6" id="rightContentWrapper">
-<div class="min-h-screen">
-<!-- Header -->
-<header class="bg-white dark:bg-gray-800 shadow-sm">
-<div class="container mx-auto px-4 py-4 flex justify-between items-center">
-<h1 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-<i class="fas fa-video mr-2"></i>Gerador de Roteiros Virais v5.0
-                </h1>
-<div class="flex items-center space-x-4">
-<button class="theme-toggle" id="darkModeToggle">
-<i class="fas fa-moon text-gray-700 dark:text-gray-300" id="moonIcon"></i>
-<i class="fas fa-sun text-gray-700 dark:text-gray-300 hidden" id="sunIcon"></i>
-</button>
-</div>
-</div>
-</header>
-<!-- Progress Bar -->
-<div class="container mx-auto px-4 py-4">
-<div class="mb-6">
-<div class="flex justify-between text-sm mb-1">
-<span>Progresso do Projeto</span>
-<span id="progressText">0%</span>
-</div>
-<div class="progress-bar">
-<div class="progress-fill" id="progressFill" style="width: 0%"></div>
-</div>
-</div>
-</div>
-<!-- Main Content -->
-<main class="container mx-auto px-4 pb-20">
-<!-- Estratégia Section -->
-<!-- ==================================================================== -->
-<!--     NOVA SEÇÃO 0: CENTRAL DE INVESTIGAÇÃO E IDEIAS (FLUXO 2.0)     -->
-<!-- ==================================================================== -->
-<section class="mb-12">
-<div class="text-center mb-8">
-<h2 class="text-2xl font-bold mb-2">Comece com a Verdade</h2>
-<p class="text-gray-600 dark:text-gray-400">Investigue um tema, fato ou pergunta. A IA buscará fontes e, a partir do relatório, você poderá gerar ideias de roteiro já validadas.</p>
-</div>
-<div class="card">
-<div class="input-group">
-<label for="languageSelect">1. Primeiro, selecione o idioma da pesquisa:</label>
-<select id="languageSelect">
-<option value="pt-br">Português (Brasil)</option>
-<option selected="" value="en">English</option>
-</select>
-</div>
-<div class="input-group">
-<label for="factCheckQuery">2. Agora, digite o tema, fato ou pergunta a ser investigada:</label>
-<textarea ...="" id="factCheckQuery" rows="3"></textarea>
-</div>
-<div class="text-center mt-4">
-<button class="btn btn-secondary" data-action="investigate" id="investigateBtn">
-<i class="fas fa-search-plus mr-2"></i>Investigar Tema
-        </button>
-</div>
-<!-- Container para o relatório da IA -->
-<div class="mt-8" id="factCheckOutput">
-<!-- O relatório da investigação e o "botão mágico" aparecerão aqui -->
-</div>
-<hr class="my-8 border-dashed border-gray-300 dark:border-gray-600"/>
-<!-- Parte 2: A Geração de Ideias -->
-<div class="hidden" id="ideaGenerationSection">
-<div class="text-center">
-<h3 class="text-lg font-bold mb-2">Gerar Ideias a partir do Relatório</h3>
-<p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Agora, escolha um especialista para transformar os fatos investigados em ideias de vídeo criativas.</p>
-</div>
-<!-- A Barra de Navegação com Abas de Gênero -->
-<div class="border-b border-gray-200 dark:border-gray-700">
-<nav aria-label="Tabs" class="-mb-px flex flex-wrap space-x-2 justify-center" id="genreTabs">
-<button class="tab-button tab-active" data-genre="documentario"> <i class="fas fa-film fa-fw"></i> <span>Documentário</span> </button>
-<button class="tab-button" data-genre="inspiracional"> <i class="fas fa-hand-sparkles fa-fw"></i> <span>Inspiracional</span> </button>
-<button class="tab-button" data-genre="scifi"> <i class="fas fa-rocket fa-fw"></i> <span>Ficção Científica</span> </button>
-<button class="tab-button" data-genre="terror"> <i class="fas fa-ghost fa-fw"></i> <span>Terror</span> </button>
-<button class="tab-button" data-genre="enigmas"> <i class="fas fa-scroll fa-fw"></i> <span>Enigmas (Bíblico)</span> </button>
-<button class="tab-button" data-genre="geral"> <i class="fas fa-lightbulb fa-fw"></i> <span>Geral</span> </button>
-</nav>
-</div>
-<div class="mt-6 text-center">
-<button class="btn btn-primary" data-action="generateIdeasFromReport" id="generateIdeasFromReportBtn">
-<i class="fas fa-magic mr-2"></i>Gerar Ideias com Especialista
+    <!-- Nosso CSS -->
+    <link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+    <div class="container">
+        <!-- CABEÇALHO -->
+        <header class="header">
+            <div class="logo"><i class="fas fa-video"></i> Gerador de Roteiros Virais <span class="version-tag">v6.0</span></div>
+            <div class="header-actions">
+                <button id="darkModeToggle" class="btn btn-ghost" title="Alternar tema">
+                    <i id="sunIcon" class="fas fa-sun hidden"></i>
+                    <i id="moonIcon" class="fas fa-moon"></i>
                 </button>
-</div>
-</div>
-<!-- O Container final para a Saída das Ideias -->
-<div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4" id="ideasOutput">
-<!-- As ideias geradas pela IA aparecerão aqui -->
-</div>
-</div>
-</section>
-<div class="section-title" id="step-1">
-<h2 class="text-xl font-bold">1. Definir Estratégia</h2>
-</div>
-<!-- A navegação das abas (continua a mesma) -->
-<div class="border-b border-gray-200 dark:border-gray-700 mb-6">
-<nav aria-label="Tabs" class="-mb-px flex flex-wrap md:flex-nowrap space-x-6" id="inputTabsNav">
-<button class="tab-button tab-active" data-tab="input-tab-basico">
-<i class="fas fa-info-circle mr-2"></i> Básico
-            </button>
-<button class="tab-button" data-tab="input-tab-estrategia">
-<i class="fas fa-lightbulb mr-2"></i> Estratégia Narrativa
-            </button>
-<button class="tab-button" data-tab="input-tab-tecnicos">
-<i class="fas fa-sliders-h mr-2"></i> Detalhes Técnicos
-            </button>
-</nav>
-</div>
-<!-- O conteúdo das abas (AGORA CORRIGIDO) -->
-<div class="card" id="inputTabContent">
-<!-- Aba 1: Básico -->
-<div class="tab-pane active-pane" id="input-tab-basico">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div class="input-group"><label for="channelName">Nome do Canal:</label><input id="channelName" type="text" value="The Biblical Unveiling"/></div>
-<div class="input-group"><label for="videoTheme">Tema do Vídeo:</label><input id="videoTheme" placeholder="Ex: A Arca da Aliança Foi Encontrada?" type="text"/></div>
-<!-- Duração e Ritmo agora ficam lado a lado -->
-<div class="input-group">
-<label for="videoDuration">Duração Desejada:</label>
-<select id="videoDuration">
-<option value="">-- Selecione --</option>
-<option value="short">Curto (~1-3 min)</option>
-<option value="medium">Médio (~4-7 min)</option>
-<option value="long">Longo (~8-12 min)</option>
-</select>
-</div>
-<div class="input-group">
-<label for="visualPacing">Ritmo Visual (Cenas):</label>
-<select id="visualPacing">
-<option selected="" value="">-- Selecione --</option> <!-- Adicionado 'selected' aqui -->
-<option value="dinamico">Dinâmico (3-8s)</option> <!-- Removido 'selected' daqui -->
-<option value="normal">Normal (8-15s)</option>
-<option value="contemplativo">Contemplativo (15-25s)</option>
-</select>
-</div>
-<div class="input-group md:col-span-2"><label for="videoDescription">Descrição do Vídeo (para inspiração):</label><textarea id="videoDescription" placeholder="Cole uma breve descrição do vídeo aqui..." rows="4"></textarea></div>
-</div>
-</div>
-<!-- Aba 2: Estratégia Narrativa (COM NOVOS POPOVERS E TOOLTIPS) -->
-<div class="tab-pane hidden" id="input-tab-estrategia">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<!-- Bloco 1: O Que e Para Quem -->
-<div class="input-group md:col-span-2"><label for="targetAudience">Público-Alvo:</label><input id="targetAudience" placeholder="Quem você quer que assista? Descreva seu espectador ideal." type="text"/></div>
-<div class="input-group md:col-span-2"><label for="narrativeTheme">3. Tema Principal:</label><input id="narrativeTheme" placeholder="Qual é a 'grande ideia'? A única mensagem que seu público deve lembrar?" type="text"/></div>
-<div class="input-group md:col-span-2"><label for="centralQuestion">Pergunta Central (Opcional):</label><textarea id="centralQuestion" placeholder="Qual mistério ou 'coceira mental' você vai criar e prometer resolver?" rows="2"></textarea></div>
-<!-- Bloco 2: A Estrutura e a Alma -->
-<!-- MUDANÇA AQUI: Adicionamos a estrutura para o novo popover -->
-<div class="relative group">
-<div class="input-group">
-<label for="narrativeGoal">1. Objetivo da Narrativa:</label>
-<select id="narrativeGoal">
-<option value="storytelling">Storytelling</option>
-<option value="storyselling">Storyselling</option>
-</select>
-</div>
-<div class="card popover-bg absolute bottom-full left-0 mb-2 w-[400px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-20 pointer-events-none group-hover:pointer-events-auto" id="goalPopover">
-<h4 class="font-bold text-lg text-indigo-400 mb-2"></h4>
-<p class="text-sm leading-relaxed"></p>
-</div>
-</div>
-<div class="relative group">
-<div class="input-group">
-<div class="flex items-center gap-2 mb-2"><label for="narrativeStructure">2. Estrutura Específica:</label></div>
-<select id="narrativeStructure"></select>
-</div>
-<div class="card popover-bg absolute bottom-full left-0 mb-2 w-[400px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-20 pointer-events-none group-hover:pointer-events-auto" id="structurePopover">
-<h4 class="font-bold text-lg text-indigo-400 mb-2" id="popoverTitle"></h4>
-<p class="text-sm leading-relaxed" id="popoverDescription"></p>
-</div>
-</div>
-<div class="input-group md:col-span-2"><label for="emotionalHook">História Pessoal / Gancho Emocional (Opcional):
-            <span class="help-icon tooltip-container">i
-                <span class="tooltip-text">
-<strong>Dê uma alma para sua história.</strong> Este é o 'fio condutor' humano. A IA usará esta pequena história para conectar os grandes fatos a uma experiência pessoal, tornando o roteiro muito mais impactante.
-                </span>
-</span>
-</label><textarea id="emotionalHook" placeholder="Qual rosto humano dará alma à sua história? Ex: a jornada de um indivíduo, uma memória pessoal, um arquétipo (o azarão, o mentor)..." rows="3"></textarea></div>
-<!-- Bloco 3: O Tom e a Jornada -->
-<div class="input-group"><label for="narrativeTone">4. Tom da Narração:
-            <!-- NOVO TOOLTIP AQUI -->
-<span class="help-icon tooltip-container">i
-                <span class="tooltip-text">
-<strong>Define o "sentimento" do vídeo.</strong> É sério e sombrio? Leve e inspirador? A escolha do tom guia a música, o ritmo e o estilo da narração.
-                </span>
-</span>
-</label><select id="narrativeTone"><option selected="" value="inspirador">Inspirador</option><option value="serio">Sério</option><option value="emocional">Emocional</option></select></div>
-<div class="input-group"><label for="narrativeVoice">5. Voz do Narrador:
-            <!-- NOVO TOOLTIP AQUI -->
-<span class="help-icon tooltip-container">i
-                <span class="tooltip-text">
-<strong>Imagine que seu canal é uma pessoa.</strong> Como ela falaria? Um mentor sábio? Um amigo entusiasmado? Um investigador misterioso? Isso define a personalidade da sua narração.
-                </span>
-</span>
-</label><input id="narrativeVoice" placeholder="Ex: Confiante, Engraçada, Misteriosa..." type="text"/></div>
-<div class="input-group md:col-span-2"><label for="emotionalArc">Arco Emocional Desejado (Opcional):
-            <!-- NOVO TOOLTIP AQUI -->
-<span class="help-icon tooltip-container">i
-                <span class="tooltip-text">
-<strong>Qual jornada de sentimentos você quer que o espectador percorra?</strong> Começa com curiosidade, vai para a tensão e termina em alívio? Planejar isso cria um vídeo muito mais impactante.
-                </span>
-</span>
-</label><textarea id="emotionalArc" placeholder="Ex: Curiosidade -&gt; Tensão -&gt; Surpresa -&gt; Alívio" rows="2"></textarea></div>
-<div class="input-group md:col-span-2"><label for="shockingEndingHook">O Desfecho Chocante (Hook Opcional):
-            <span class="help-icon tooltip-container">i
-                <span class="tooltip-text">
-<strong>A técnica do 'loop aberto' reverso.</strong> Coloque a frase final e mais chocante da sua história aqui. A IA usará esta frase como a PRIMEIRA linha do vídeo, criando um mistério instantâneo que prende o espectador até o final.
-                </span>
-</span>
-</label><input id="shockingEndingHook" placeholder="Ex: ...e foi por isso que a Arca nunca deveria ser encontrada." type="text"/></div>
-</div>
-</div>
-<!-- Aba 3: Detalhes Técnicos (COM TOOLTIPS CORRIGIDOS) -->
-<div class="tab-pane hidden" id="input-tab-tecnicos">
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<div class="input-group"><label for="languageStyle">Estilo de Linguagem:</label><select id="languageStyle"><option selected="" value="inspirador">Inspirador</option><option value="formal">Formal</option></select></div>
-<div class="input-group"><label for="videoObjective">Objetivo do Vídeo:</label><select id="videoObjective"><option selected="" value="informar">Informar</option><option value="emocionar">Emocionar</option></select></div>
-<div class="input-group"><label for="speakingPace">Ritmo de Fala:</label><select id="speakingPace"><option selected="" value="moderate">Moderado</option><option value="slow">Lento</option><option value="fast">Rápido</option></select></div>
-<div class="input-group md:col-span-2">
-<label for="researchData">Fontes e Dados de Pesquisa (Opcional):
-                <!-- A CORREÇÃO ESTÁ AQUI: Adicionamos a classe 'tooltip-container' -->
-<span class="help-icon tooltip-container">i
-                    <span class="tooltip-text">
-<strong>Aumente a credibilidade.</strong> Cole aqui nomes, datas, estatísticas, ou citações. A IA irá tecer essas informações na narrativa.
-                        Ex: 'Fonte: Estudo de Harvard; Dr. João da Silva, especialista...'
-                    </span>
-</span>
-</label>
-<textarea id="researchData" placeholder="Para aumentar a credibilidade, cole aqui dados, fontes, nomes e links que a IA deve citar e contextualizar no roteiro. Ex: Fonte: Atlas da Violência 2023; Maria da Silva, coordenadora do Instituto Odara..." rows="4"></textarea>
-</div>
-<div class="input-group md:col-span-2"><label for="imageDescriptionEngine">Motor de Descrição de Imagem:</label><textarea id="imageDescriptionEngine" placeholder="Ex: 'fotografias reais', 'close-up emocional'" rows="2"></textarea></div>
-<div class="input-group md:col-span-2"><label for="imageStyleSelect">Motor de Qualidade de Imagem:</label><select id="imageStyleSelect"><option selected="" value="cinematic">Cinematográfico</option><option value="custom">Personalizado</option><option value="none">Nenhum</option></select></div>
-<div class="input-group md:col-span-2" id="customImageStyleContainer" style="display: none;">
-<label for="customImageStyle">Estilo de Imagem Personalizado:</label>
-<textarea id="customImageStyle" placeholder="Descreva o seu estilo de imagem aqui... Ex: 'estilo de arte de Van Gogh', 'preto e branco com alto contraste'..." rows="3"></textarea>
-</div>
-</div>
-</div>
-<!-- O botão final (continua o mesmo) -->
-<div class="mt-6 text-center">
-<div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
-<!-- Botão Opcional para ajuda da IA -->
-<button class="btn btn-secondary w-full sm:w-auto" data-action="suggestStrategy" id="suggestStrategyBtn">
-<i class="fas fa-magic mr-2"></i> Sugerir Estratégia com IA
-    </button>
-<!-- Botão Principal para avançar -->
-<button class="btn btn-primary w-full sm:w-auto" data-action="startCrafting" id="startCraftingBtn">
-<i class="fas fa-arrow-right mr-2"></i> Iniciar Criação do Roteiro
-    </button>
-</div>
-</div>
+            </div>
+        </header>
 
-<!-- PAINEL DO PROJETO (inicialmente escondido) -->
-<div class="hidden mt-12" id="projectDashboard">
-<!-- SEÇÃO 2: CRIAR ROTEIRO -->
-<section class="mb-10">
-<div class="section-title" id="step-2"><h2 class="text-xl font-bold">2. Criar Roteiro</h2></div>
-<!-- Card do Esboço Estratégico -->
-<div class="card card-placeholder mb-6" id="strategicOutlineCard">
-<div class="flex justify-between items-center mb-3">
-<h3 class="font-semibold text-lg">Esboço Estratégico</h3>
-<button class="btn btn-secondary btn-small" data-action="generateOutline" id="generateOutlineBtn">Criar Esboço</button>
-</div>
-<div id="outlineContent"><div class="asset-card-placeholder">Clique para gerar o esboço.</div></div>
-</div>
-<!-- Container onde as seções do roteiro (Introdução, etc.) serão injetadas -->
-<div class="space-y-4" id="scriptSectionsContainer"></div>
-</section>
-<!-- FIM DA SEÇÃO 2 -->
-<!-- ========================================================================= -->
-<!--  INÍCIO DA CORREÇÃO: O MÓDULO DE CONCLUSÃO AGORA TEM UM LUGAR FIXO AQUI  -->
-<!-- ========================================================================= -->
-<div class="card mb-6 hidden" id="conclusionStrategyModule">
-<div class="text-center mb-4">
-<h3 class="text-lg font-bold">Qual é o objetivo final do seu vídeo?</h3>
-<button class="btn btn-secondary btn-small mt-2" data-action="suggestFinalStrategy" id="suggestFinalStrategyBtn">
-<i class="fas fa-magic mr-2"></i> Sugerir Estratégia Final
-            </button>
-</div>
-<div class="flex justify-center flex-wrap gap-4 mb-6">
-<label class="radio-label">
-<input checked="" name="conclusionType" type="radio" value="lesson"/>
-<span><i class="fas fa-graduation-cap mr-2"></i>Deixar uma Lição / Reflexão</span>
-</label>
-<label class="radio-label">
-<input name="conclusionType" type="radio" value="answer"/>
-<span><i class="fas fa-question-circle mr-2"></i>Responder uma Pergunta Central</span>
-</label>
-<label class="radio-label">
-<input name="conclusionType" type="radio" value="cliffhanger"/>
-<span><i class="fas fa-bolt mr-2"></i>Criar um Gancho / Mistério Contínuo</span>
-</label>
-</div>
-<div class="input-group" id="conclusionInputContainer">
-<label for="conclusionSpecifics">Detalhes para a Conclusão:</label>
-<textarea id="conclusionSpecifics" placeholder="Qual sentimento ou ideia final você quer deixar com o espectador? Esperança? Indignação? Uma nova perspectiva?" rows="3"></textarea>
-</div>
-<div class="input-group mt-4">
-<label for="ctaSpecifics">Detalhes para o Call to Action (CTA) Específico (Opcional):</label>
-<textarea id="ctaSpecifics" placeholder="Qual ação específica você quer que o espectador tome? Ex: Visitar um site, apoiar uma causa, comprar um produto..." rows="2"></textarea>
-</div>
-<div class="text-center mt-6">
-<button class="btn btn-primary" data-action="generateConclusion" id="generateConclusionBtn">
-<i class="fas fa-pen-fancy mr-2"></i>Gerar Conclusão
-            </button>
-<button class="btn btn-primary hidden" data-action="generateCta" id="generateCtaBtn">
-<i class="fas fa-bullhorn mr-2"></i>Gerar CTA Estratégico
-            </button>
-</div>
-</div>
-<!-- ========================================================================= -->
-<!--                 FIM DA CORREÇÃO E DO MÓDULO DE CONCLUSÃO                  -->
-<!-- ========================================================================= -->
-<!-- SEÇÃO 3: RECURSOS E METADADOS -->
+        <!-- BARRA DE PROGRESSO -->
+        <div class="progress-wrap">
+            <div class="progress-info">
+                <span>Progresso do Projeto</span>
+                <span id="progressText">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- ESTRUTURA PRINCIPAL DO APP -->
+        <div class="app" id="appRoot">
+            <!-- SIDEBAR DE NAVEGAÇÃO -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-title">Etapas do Projeto</div>
+
+                <div class="step" data-step="investigate" id="step-investigate">
+                    <div class="badge">1</div>
+                    <div>
+                        <div class="step-title">Investigar & Idear</div>
+                        <div class="small-muted">Pesquise e gere ideias</div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="strategy" id="step-strategy">
+                    <div class="badge">2</div>
+                    <div>
+                        <div class="step-title">Definir Estratégia</div>
+                        <div class="small-muted">Tom, público e estrutura</div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="script" id="step-script">
+                    <div class="badge">3</div>
+                    <div>
+                        <div class="step-title">Criar Roteiro</div>
+                        <div class="small-muted">Esboço, seções e conclusão</div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="finalize" id="step-finalize">
+                    <div class="badge">4</div>
+                    <div>
+                        <div class="step-title">Finalizar & Exportar</div>
+                        <div class="small-muted">Análise, recursos e download</div>
+                    </div>
+                </div>
+
+                <hr class="sidebar-divider" />
+                <div class="sidebar-title small">Gerenciamento</div>
+                <div class="controls">
+                    <button class="btn btn-ghost" data-action="exportProject"><i class="fas fa-download"></i> Exportar</button>
+                    <label class="btn btn-ghost" for="importFileInput"><i class="fas fa-upload"></i> Importar</label>
+                    <input type="file" id="importFileInput" accept=".json" class="hidden" />
+                    <button class="btn btn-danger" data-action="resetProject"><i class="fas fa-sync-alt"></i> Resetar</button>
+                </div>
+            </aside>
+
+            <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
+            <main class="content" id="contentArea">
+                <!-- PAINEL 1: INVESTIGAR & IDEAR -->
+                <div id="pane-investigate" style="display:none;">
+                    <!-- Seção "Comece com a Verdade" (Fluxo 2.0) -->
+                    <section>
+                        <h2 class="pane-title">1. Central de Investigação e Ideias</h2>
+                        <p class="pane-subtitle">Investigue um tema, fato ou pergunta. A IA buscará fontes e, a partir do relatório, você poderá gerar ideias de roteiro já validadas.</p>
+                        
+                        <div class="card">
+                            <div class="grid-2">
+                                <div class="input-group">
+                                    <label for="languageSelect">Idioma da pesquisa:</label>
+                                    <select id="languageSelect" class="input">
+                                        <option value="pt-br">Português (Brasil)</option>
+                                        <option selected value="en">English</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="factCheckQuery">Digite o tema a ser investigado:</label>
+                                <textarea id="factCheckQuery" class="input" rows="3" placeholder="Ex: A Arca da Aliança foi encontrada?"></textarea>
+                            </div>
+                            <div class="controls">
+                                <button class="btn btn-primary" data-action="investigate" id="investigateBtn"><i class="fas fa-search-plus mr-2"></i>Investigar Tema</button>
+                            </div>
+                            <div id="factCheckOutput" class="output-container"></div>
+                        </div>
+
+                        <!-- Geração de Ideias (aparece após a investigação) -->
+                        <div class="hidden" id="ideaGenerationSection">
+                            <hr class="divider">
+                            <h3 class="pane-subtitle">Agora, gere ideias a partir do relatório</h3>
+                            <div class="card">
+                                <div class="border-b border-gray-200 dark:border-gray-700">
+                                    <nav aria-label="Tabs" class="-mb-px flex flex-wrap space-x-2 justify-center" id="genreTabs">
+                                        <button class="tab-button tab-active" data-genre="documentario"><i class="fas fa-film fa-fw"></i> <span>Documentário</span></button>
+                                        <button class="tab-button" data-genre="inspiracional"><i class="fas fa-hand-sparkles fa-fw"></i> <span>Inspiracional</span></button>
+                                        <button class="tab-button" data-genre="scifi"><i class="fas fa-rocket fa-fw"></i> <span>Ficção Científica</span></button>
+                                        <button class="tab-button" data-genre="terror"><i class="fas fa-ghost fa-fw"></i> <span>Terror</span></button>
+                                        <button class="tab-button" data-genre="enigmas"><i class="fas fa-scroll fa-fw"></i> <span>Enigmas (Bíblico)</span></button>
+                                        <button class="tab-button" data-genre="geral"><i class="fas fa-lightbulb fa-fw"></i> <span>Geral</span></button>
+                                    </nav>
+                                </div>
+                                <div class="controls mt-4 justify-center">
+                                    <button class="btn btn-primary" data-action="generateIdeasFromReport" id="generateIdeasFromReportBtn"><i class="fas fa-magic mr-2"></i>Gerar Ideias com Especialista</button>
+                                </div>
+                                <div id="ideasOutput" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4"></div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- PAINEL 2: DEFINIR ESTRATÉGIA -->
+                <div id="pane-strategy" style="display:none;">
+                    <h2 class="pane-title">2. Definir Estratégia</h2>
+                    <p class="pane-subtitle">Preencha os detalhes para guiar a IA na criação de um roteiro alinhado com seus objetivos.</p>
+
+                    <!-- Navegação das abas de input -->
+                    <div class="border-b border-gray-200 dark:border-gray-700 mb-6">
+                        <nav aria-label="Tabs" class="-mb-px flex flex-wrap md:flex-nowrap space-x-6" id="inputTabsNav">
+                            <button class="tab-button tab-active" data-tab="input-tab-basico"><i class="fas fa-info-circle mr-2"></i> Básico</button>
+                            <button class="tab-button" data-tab="input-tab-estrategia"><i class="fas fa-lightbulb mr-2"></i> Estratégia Narrativa</button>
+                            <button class="tab-button" data-tab="input-tab-tecnicos"><i class="fas fa-sliders-h mr-2"></i> Detalhes Técnicos</button>
+                        </nav>
+                    </div>
+
+                    <!-- Conteúdo das abas -->
+                    <div class="card !p-0" id="inputTabContent">
+                        <!-- Aba 1: Básico -->
+                        <div class="tab-pane active-pane p-4" id="input-tab-basico">
+                           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="input-group"><label for="channelName">Nome do Canal:</label><input class="input" id="channelName" type="text" value="The Biblical Unveiling"/></div>
+                                <div class="input-group"><label for="videoTheme">Tema do Vídeo:</label><input class="input" id="videoTheme" placeholder="Ex: A Arca da Aliança Foi Encontrada?" type="text"/></div>
+                                <div class="input-group"><label for="videoDuration">Duração Desejada:</label><select class="input" id="videoDuration"><option value="">-- Selecione --</option><option value="short">Curto (~1-3 min)</option><option value="medium">Médio (~4-7 min)</option><option value="long">Longo (~8-12 min)</option></select></div>
+                                <div class="input-group"><label for="visualPacing">Ritmo Visual (Cenas):</label><select class="input" id="visualPacing"><option selected value="">-- Selecione --</option><option value="dinamico">Dinâmico (3-8s)</option><option value="normal">Normal (8-15s)</option><option value="contemplativo">Contemplativo (15-25s)</option></select></div>
+                                <div class="input-group md:col-span-2"><label for="videoDescription">Descrição do Vídeo (para inspiração):</label><textarea class="input" id="videoDescription" placeholder="Cole uma breve descrição do vídeo aqui..." rows="4"></textarea></div>
+                            </div>
+                        </div>
+                        <!-- Aba 2: Estratégia Narrativa -->
+                        <div class="tab-pane hidden p-4" id="input-tab-estrategia">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="input-group md:col-span-2"><label for="targetAudience">Público-Alvo:</label><input class="input" id="targetAudience" placeholder="Quem você quer que assista?" type="text"/></div>
+                                <div class="input-group md:col-span-2"><label for="narrativeTheme">Tema Principal:</label><input class="input" id="narrativeTheme" placeholder="Qual é a 'grande ideia'?" type="text"/></div>
+                                <div class="input-group md:col-span-2"><label for="centralQuestion">Pergunta Central (Opcional):</label><textarea class="input" id="centralQuestion" placeholder="Qual mistério você vai criar e resolver?" rows="2"></textarea></div>
+                                <div class="relative group">
+                                    <div class="input-group"><label for="narrativeGoal">Objetivo da Narrativa:</label><select class="input" id="narrativeGoal"><option value="storytelling">Storytelling</option><option value="storyselling">Storyselling</option></select></div>
+                                    <div class="card popover-bg absolute bottom-full left-0 mb-2 w-[400px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-20 pointer-events-none group-hover:pointer-events-auto" id="goalPopover"><h4 class="font-bold text-lg text-primary mb-2"></h4><p class="text-sm leading-relaxed"></p></div>
+                                </div>
+                                <div class="relative group">
+                                    <div class="input-group"><label for="narrativeStructure">Estrutura Específica:</label><select class="input" id="narrativeStructure"></select></div>
+                                    <div class="card popover-bg absolute bottom-full left-0 mb-2 w-[400px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-20 pointer-events-none group-hover:pointer-events-auto" id="structurePopover"><h4 class="font-bold text-lg text-primary mb-2" id="popoverTitle"></h4><p class="text-sm leading-relaxed" id="popoverDescription"></p></div>
+                                </div>
+                                <div class="input-group md:col-span-2"><label for="emotionalHook">História Pessoal / Gancho Emocional:<span class="help-icon tooltip-container">i<span class="tooltip-text"><strong>Dê uma alma para sua história.</strong> Conecte os fatos a uma experiência pessoal.</span></span></label><textarea class="input" id="emotionalHook" placeholder="Qual rosto humano dará alma à sua história?" rows="3"></textarea></div>
+                                <div class="input-group"><label for="narrativeTone">Tom da Narração:<span class="help-icon tooltip-container">i<span class="tooltip-text"><strong>Define o "sentimento" do vídeo.</strong> É sério? Inspirador?</span></span></label><select class="input" id="narrativeTone"><option selected value="inspirador">Inspirador</option><option value="serio">Sério</option><option value="emocional">Emocional</option></select></div>
+                                <div class="input-group"><label for="narrativeVoice">Voz do Narrador:<span class="help-icon tooltip-container">i<span class="tooltip-text"><strong>Como seu canal falaria?</strong> Um mentor? Um amigo?</span></span></label><input class="input" id="narrativeVoice" placeholder="Ex: Confiante, Misteriosa..." type="text"/></div>
+                                <div class="input-group md:col-span-2"><label for="shockingEndingHook">O Desfecho Chocante (Hook Opcional):<span class="help-icon tooltip-container">i<span class="tooltip-text"><strong>Técnica do 'loop aberto' reverso.</strong> Coloque a frase final aqui, a IA a usará como a PRIMEIRA linha do vídeo.</span></span></label><input class="input" id="shockingEndingHook" placeholder="Ex: ...e foi por isso que a Arca nunca deveria ser encontrada." type="text"/></div>
+                            </div>
+                        </div>
+                        <!-- Aba 3: Detalhes Técnicos -->
+                        <div class="tab-pane hidden p-4" id="input-tab-tecnicos">
+                           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="input-group"><label for="languageStyle">Estilo de Linguagem:</label><select class="input" id="languageStyle"><option selected value="inspirador">Inspirador</option><option value="formal">Formal</option></select></div>
+                                <div class="input-group"><label for="videoObjective">Objetivo do Vídeo:</label><select class="input" id="videoObjective"><option selected value="informar">Informar</option><option value="emocionar">Emocionar</option></select></div>
+                                <div class="input-group"><label for="speakingPace">Ritmo de Fala:</label><select class="input" id="speakingPace"><option selected value="moderate">Moderado</option><option value="slow">Lento</option><option value="fast">Rápido</option></select></div>
+                                <div class="input-group md:col-span-2"><label for="researchData">Fontes e Dados de Pesquisa:<span class="help-icon tooltip-container">i<span class="tooltip-text"><strong>Aumente a credibilidade.</strong> Cole aqui nomes, datas, estatísticas.</span></span></label><textarea class="input" id="researchData" placeholder="Ex: Fonte: Atlas da Violência 2023..." rows="4"></textarea></div>
+                                <div class="input-group md:col-span-2"><label for="imageStyleSelect">Estilo de Imagem:</label><select class="input" id="imageStyleSelect"><option selected value="cinematic">Cinematográfico</option><option value="custom">Personalizado</option><option value="none">Nenhum</option></select></div>
+                                <div class="input-group md:col-span-2 hidden" id="customImageStyleContainer"><label for="customImageStyle">Estilo de Imagem Personalizado:</label><textarea class="input" id="customImageStyle" placeholder="Descreva o seu estilo de imagem aqui..." rows="3"></textarea></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Botões de ação da Estratégia -->
+                    <div class="controls mt-6 justify-center">
+                        <button class="btn btn-ghost" data-action="suggestStrategy" id="suggestStrategyBtn"><i class="fas fa-magic mr-2"></i> Sugerir com IA</button>
+                        <button class="btn btn-primary" data-action="applyStrategy" id="applyStrategyBtn"><i class="fas fa-arrow-right mr-2"></i> Aplicar e Continuar</button>
+                    </div>
+                </div>
+
+                <!-- PAINEL 3: CRIAR ROTEIRO -->
+                <div id="pane-script" style="display:none;">
+                    <h2 class="pane-title">3. Criar Roteiro</h2>
+                    <p class="pane-subtitle">Gere o esqueleto e, em seguida, cada seção do seu roteiro.</p>
+                    
+                    <!-- Esboço Estratégico -->
+                    <div class="card card-placeholder mb-6" id="strategicOutlineCard">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-semibold text-lg">Esboço Estratégico</h3>
+                            <button class="btn btn-secondary btn-small" data-action="generateOutline" id="generateOutlineBtn">Criar Esboço</button>
+                        </div>
+                        <div id="outlineContent" class="output-container"><div class="asset-card-placeholder">Clique para gerar o esboço.</div></div>
+                    </div>
+                    
+                    <!-- Seções do Roteiro -->
+                    <div class="space-y-4" id="scriptSectionsContainer"></div>
+                    
+                    <!-- Módulo de Conclusão -->
+                    <div class="card mb-6 hidden" id="conclusionStrategyModule">
+                        <div class="text-center mb-4">
+                            <h3 class="text-lg font-bold">Qual é o objetivo final do seu vídeo?</h3>
+                            <button class="btn btn-secondary btn-small mt-2" data-action="suggestFinalStrategy" id="suggestFinalStrategyBtn"><i class="fas fa-magic mr-2"></i> Sugerir Estratégia Final</button>
+                        </div>
+                        <div class="flex justify-center flex-wrap gap-4 mb-6">
+                            <label class="radio-label"><input checked name="conclusionType" type="radio" value="lesson"/><span><i class="fas fa-graduation-cap mr-2"></i>Deixar uma Lição</span></label>
+                            <label class="radio-label"><input name="conclusionType" type="radio" value="answer"/><span><i class="fas fa-question-circle mr-2"></i>Responder Pergunta</span></label>
+                            <label class="radio-label"><input name="conclusionType" type="radio" value="cliffhanger"/><span><i class="fas fa-bolt mr-2"></i>Criar um Gancho</span></label>
+                        </div>
+                        <div class="input-group" id="conclusionInputContainer"><label for="conclusionSpecifics">Detalhes para a Conclusão:</label><textarea class="input" id="conclusionSpecifics" placeholder="Qual sentimento ou ideia final você quer deixar?" rows="3"></textarea></div>
+                        <div class="input-group mt-4"><label for="ctaSpecifics">Detalhes para o CTA (Opcional):</label><textarea class="input" id="ctaSpecifics" placeholder="Qual ação específica você quer que o espectador tome?" rows="2"></textarea></div>
+                        <div class="text-center mt-6">
+                            <button class="btn btn-primary" data-action="generateConclusion" id="generateConclusionBtn"><i class="fas fa-pen-fancy mr-2"></i>Gerar Conclusão</button>
+                            <button class="btn btn-primary hidden" data-action="generateCta" id="generateCtaBtn"><i class="fas fa-bullhorn mr-2"></i>Gerar CTA</button>
+                        </div>
+                    </div>
+
+                    <div class="controls mt-6 justify-center">
+                        <button class="btn btn-primary" data-action="goToFinalize"><i class="fas fa-flag-checkered mr-2"></i> Ir para Finalização</button>
+                    </div>
+                </div>
+                
+                 <!-- PAINEL 4: FINALIZAR & EXPORTAR -->
+                <div id="pane-finalize" style="display:none;">
+                     <h2 class="pane-title">4. Finalizar & Exportar</h2>
+                     <p class="pane-subtitle">Gere os recursos finais, analise o roteiro e salve seu projeto.</p>
+
+                    <!-- Seção de Análise -->
+                    <section class="mb-10" id="scriptAnalysisSection">
+                        <h3 class="section-header">Análise de Roteiro (Beta)</h3>
+                        <div class="card text-center">
+                            <p class="mb-4 small-muted">Nossas IAs analisarão seu roteiro em busca de pontos fortes, oportunidades de melhoria e ganchos de retenção.</p>
+                            <div class="controls justify-center">
+                                <button class="btn btn-secondary" data-action="analyzeScript" id="analyzeScriptBtn"><i class="fas fa-search-plus mr-2"></i> Análise Geral</button>
+                                <button class="btn btn-secondary" data-action="analyzeHooks" id="analyzeHooksBtn"><i class="fas fa-anchor mr-2"></i> Caçar Ganchos</button>
+                                <button class="btn btn-secondary" data-action="suggestViralElements" id="suggestViralBtn"><i class="fas fa-lightbulb mr-2"></i> Sugerir Elementos Virais</button>
+                            </div>
+                            <div class="mt-6 text-left" id="analysisReportContainer"></div>
+                            <div class="mt-6 text-left" id="hooksReportContainer"></div>
+                            <div class="mt-6 text-left" id="viralSuggestionsContainer"></div>
+                        </div>
+                    </section>
+                    
+                    <!-- Seção de Recursos -->
+<!-- Seção de Recursos (REORGANIZADA) -->
 <section>
-<div class="section-title" id="step-3"><h2 class="text-xl font-bold">3. Recursos e Metadados</h2></div>
-<!-- Mapa Emocional -->
-<div class="card card-placeholder mb-6">
-<div class="flex justify-between items-center mb-3">
-<h3 class="font-semibold text-lg">Mapa Emocional</h3>
-<button class="btn btn-secondary btn-small" data-action="mapEmotions" id="mapEmotionsBtn">Mapear</button>
-</div>
-<div id="emotionalMapContent"><div class="asset-card-placeholder">Gere o roteiro completo para habilitar.</div></div>
-</div>
-<!-- Grid para os outros recursos -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-<!-- Títulos & Thumbnails -->
-<div class="card card-placeholder">
-<div class="flex justify-between items-center mb-3">
-<h3 class="font-semibold text-lg">Títulos &amp; Thumbnails</h3>
-<button class="btn btn-secondary btn-small" data-action="generateTitlesAndThumbnails" id="generateTitlesAndThumbnailsBtn">Gerar</button>
-</div>
-<div id="titlesThumbnailsContent"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
-</div>
-<!-- Descrição & Hashtags -->
-<div class="card card-placeholder">
-<div class="flex justify-between items-center mb-3">
-<h3 class="font-semibold text-lg">Descrição &amp; Hashtags</h3>
-<button class="btn btn-secondary btn-small" data-action="generateDescription" id="generateDescriptionBtn">Gerar</button>
-</div>
-<div id="videoDescriptionContent"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
-</div>
-<!-- Trilha Sonora -->
-<div class="card card-placeholder md:col-span-2">
-<div class="flex justify-between items-center mb-3">
-<h3 class="font-semibold text-lg">Trilha Sonora</h3>
-<button class="btn btn-secondary btn-small" data-action="generateSoundtrack" id="generateSoundtrackBtn">Gerar</button>
-</div>
-<div id="soundtrackContent"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
-</div>
-</div>
-<!-- Note que o módulo de conclusão não está mais aqui dentro -->
-</section>
+    <h3 class="section-header">Recursos e Metadados</h3>
+    
+    <!-- Mapa Emocional (Ocupando a largura total) -->
+    <div class="card card-placeholder mb-6">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold text-lg">Mapa Emocional</h3>
+            <button class="btn btn-secondary btn-small" data-action="mapEmotions" id="mapEmotionsBtn">Mapear</button>
+        </div>
+        <div id="emotionalMapContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
+    </div>
 
-<!-- SEÇÃO 5: ANÁLISE DE ROTEIRO COMPLETO -->
-<section class="mt-10 hidden" id="scriptAnalysisSection">
-<div class="section-title" id="step-4">
-<h2 class="text-xl font-bold">5. Análise de Roteiro (Beta)</h2>
-</div>
-<div class="card text-center">
-<p class="mb-4 text-gray-600 dark:text-gray-400">Pronto para receber um feedback de nível profissional? Nossas IAs analisarão seu roteiro em busca de pontos fortes, oportunidades de melhoria e ganchos de retenção.</p>
-<!-- Container dos botões -->
-<div class="flex flex-wrap justify-center gap-4">
-<button class="btn btn-primary" data-action="analyzeScript" id="analyzeScriptBtn">
-<i class="fas fa-search-plus mr-2"></i> Análise Geral
-            </button>
-<button class="btn btn-secondary" data-action="analyzeHooks" id="analyzeHooksBtn">
-<i class="fas fa-anchor mr-2"></i> Caçar Ganchos
-            </button>
-<!-- NOSSO NOVO BOTÃO AQUI -->
-<button class="btn btn-secondary" data-action="suggestViralElements" id="suggestViralBtn">
-<i class="fas fa-lightbulb mr-2"></i> Sugerir Elementos Virais
-            </button>
-</div>
-<!-- Containers para os relatórios -->
-<div class="mt-6 text-left" id="analysisReportContainer"></div>
-<div class="mt-6 text-left" id="hooksReportContainer"></div>
-<!-- NOSSO NOVO CONTAINER DE RELATÓRIO AQUI -->
-<div class="mt-6 text-left" id="viralSuggestionsContainer"></div>
-</div>
-</section>
-<!-- ========================================================== -->
-<!--     NOVA SEÇÃO 4: GERENCIAMENTO DO PROJETO (EXPORTAR/IMPORTAR)     -->
-<!-- ========================================================== -->
-<section class="mt-10">
-<div class="section-title" id="step-5">
-<h2 class="text-xl font-bold">4. Gerenciamento do Projeto</h2>
-</div>
-<div class="card">
-<div class="flex flex-wrap items-center justify-center gap-4">
-<!-- Botão para Importar Projeto -->
-<label class="btn btn-secondary cursor-pointer" for="importFileInput">
-<i class="fas fa-upload mr-2"></i> Importar Projeto
-            </label>
-<input accept=".json" class="hidden" id="importFileInput" type="file"/>
-<!-- Botão para Exportar Projeto -->
-<button class="btn btn-secondary" data-action="exportProject" id="exportProjectBtn">
-<i class="fas fa-download mr-2"></i> Exportar Projeto
-            </button>
-<!-- >>> NOSSO NOVO BOTÃO AQUI <<< -->
-<button class="btn btn-secondary" data-action="exportPdf" id="exportPdfBtn">
-<i class="fas fa-file-pdf mr-2"></i> Exportar PDF
-            </button>
-<!-- >>> Exportar Transcrição <<< -->
-<button class="btn btn-secondary" data-action="exportTranscript" id="exportTranscriptBtn">
-<i class="fas fa-file-alt mr-2"></i> Exportar Transcrição (.rtf)
-            </button>
-<!-- Botão para Resetar -->
-<button class="btn bg-red-600 hover:bg-red-700 text-white" data-action="resetProject" id="resetProjectBtn">
-<i class="fas fa-sync-alt mr-2"></i> Novo Projeto (Resetar)
-            </button>
-</div>
-</div>
-</section>
-</div>
-</div></main>
-<div id="editing-menu">
-<button data-action="expand" title="Expandir Parágrafo">
-<i class="fas fa-expand-alt fa-fw"></i> <span>Expandir</span>
-</button>
-<button data-action="summarize" title="Resumir Parágrafo">
-<i class="fas fa-compress-alt fa-fw"></i> <span>Resumir</span>
-</button>
-<button data-action="correct" title="Corrigir Ortografia e Gramática">
-<i class="fas fa-spell-check fa-fw"></i> <span>Corrigir</span>
-</button>
-</div>
-<!-- Floating Action Bar -->
-<div class="floating-action-bar">
-<button class="theme-toggle bg-indigo-500 text-white">
-<i class="fas fa-save"></i>
-</button>
-</div>
-<!-- Toast Notification -->
-<div class="toast" id="toast">
-<span id="toastMessage">Mensagem de notificação</span>
-</div>
-</div>
-<!-- Confirmation Dialog Overlay -->
-<div id="confirmationDialogOverlay" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center;">
-<div class="card max-w-sm w-full animate-fade-in">
-<h3 class="text-xl font-bold mb-4" id="confirmationTitle">Título da Confirmação</h3>
-<p class="mb-6" id="confirmationMessage">Deseja limpar o trabalho já realziado?</p>
-<div class="flex justify-end gap-4">
-<button class="btn btn-secondary" id="confirmBtnNo">Não</button>
-<button class="btn btn-primary" id="confirmBtnYes">Sim</button>
-</div>
-</div>
-</div>
-<!-- ========================================================== -->
-<!--     MODAL ATUALIZADO COM ÁREA PARA SUGESTÕES         -->
-<!-- ========================================================== -->
-<div id="inputDialogOverlay" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center;">
-<div class="card max-w-md w-full animate-fade-in">
-<h3 class="text-xl font-bold mb-4" id="inputDialogTitle">Título do Diálogo</h3>
-<p class="text-sm text-gray-500 dark:text-gray-400 mb-4" id="inputDialogMessage">Mensagem de ajuda.</p>
-<!-- Container para as sugestões da IA -->
-<div class="space-y-2 mb-4" id="inputDialogSuggestions">
-<!-- As sugestões (botões) serão injetadas aqui pelo JavaScript -->
-</div>
-<!-- Divisor opcional -->
-<div class="relative flex py-2 items-center">
-<div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-<span class="flex-shrink mx-4 text-xs text-gray-400">OU</span>
-<div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
-</div>
-<div class="input-group mt-2">
-<label for="inputDialogField" id="inputDialogLabel">Label do Campo</label>
-<textarea class="!text-[var(--dark-text-body)]" id="inputDialogField" placeholder="Placeholder..." rows="2"></textarea>
-</div>
-<div class="flex justify-end gap-4 mt-6">
-<button class="btn btn-secondary" id="inputBtnCancel">Cancelar</button>
-<button class="btn btn-primary" id="inputBtnConfirm">Usar Tema Personalizado</button>
-</div>
-</div>
-</div>
+    <!-- Trilha Sonora (Ocupando a largura total) -->
+    <div class="card card-placeholder mb-6">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-semibold text-lg">Trilha Sonora</h3>
+            <button class="btn btn-secondary btn-small" data-action="generateSoundtrack" id="generateSoundtrackBtn">Gerar</button>
+        </div>
+        <div id="soundtrackContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
+    </div>
 
-</div>
-</div>
+    <!-- Grid para os dois itens restantes -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Títulos & Thumbnails -->
+        <div class="card card-placeholder">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-semibold text-lg">Títulos &amp; Thumbnails</h3>
+                <button class="btn btn-secondary btn-small" data-action="generateTitlesAndThumbnails" id="generateTitlesAndThumbnailsBtn">Gerar</button>
+            </div>
+            <div id="titlesThumbnailsContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
+        </div>
 
-<script type="module" src="script.js"></script>
+        <!-- Descrição & Hashtags -->
+        <div class="card card-placeholder">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-semibold text-lg">Descrição &amp; Hashtags</h3>
+                <button class="btn btn-secondary btn-small" data-action="generateDescription" id="generateDescriptionBtn">Gerar</button>
+            </div>
+            <div id="videoDescriptionContent" class="output-container"><div class="asset-card-placeholder">Gere o roteiro para habilitar.</div></div>
+        </div>
+    </div>
+</section>
+                    
+                     <!-- Seção de Exportação -->
+                    <section class="mt-10">
+                        <h3 class="section-header">Exportar Projeto</h3>
+                        <div class="card">
+                            <div class="controls justify-center">
+                                <button class="btn btn-primary" data-action="exportPdf" id="exportPdfBtn"><i class="fas fa-file-pdf mr-2"></i> Exportar PDF</button>
+                                <button class="btn btn-secondary" data-action="exportTranscript" id="exportTranscriptBtn"><i class="fas fa-file-alt mr-2"></i> Exportar Transcrição (.rtf)</button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ELEMENTOS FLUTUANTES (MODAIS, TOASTS, ETC) -->
+    <div id="editing-menu">
+        <button data-action="expand" title="Expandir"><i class="fas fa-expand-alt fa-fw"></i> <span>Expandir</span></button>
+        <button data-action="summarize" title="Resumir"><i class="fas fa-compress-alt fa-fw"></i> <span>Resumir</span></button>
+        <button data-action="correct" title="Corrigir"><i class="fas fa-spell-check fa-fw"></i> <span>Corrigir</span></button>
+    </div>
+
+    <div class="toast" id="toast"><span id="toastMessage">Mensagem de notificação</span></div>
+    
+    <div id="confirmationDialogOverlay" class="dialog-overlay">
+        <div class="card dialog-card">
+            <h3 class="text-xl font-bold mb-4" id="confirmationTitle"></h3>
+            <p class="mb-6" id="confirmationMessage"></p>
+            <div class="flex justify-end gap-4">
+                <button class="btn btn-ghost" id="confirmBtnNo">Não</button>
+                <button class="btn btn-primary" id="confirmBtnYes">Sim</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="inputDialogOverlay" class="dialog-overlay">
+        <div class="card dialog-card">
+            <h3 class="text-xl font-bold mb-4" id="inputDialogTitle"></h3>
+            <p class="small-muted mb-4" id="inputDialogMessage"></p>
+            <div class="space-y-2 mb-4" id="inputDialogSuggestions"></div>
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
+                <span class="flex-shrink mx-4 text-xs text-gray-400">OU</span>
+                <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
+            </div>
+            <div class="input-group mt-2">
+                <label for="inputDialogField" id="inputDialogLabel"></label>
+                <textarea class="input" id="inputDialogField" rows="2"></textarea>
+            </div>
+            <div class="flex justify-end gap-4 mt-6">
+                <button class="btn btn-ghost" id="inputBtnCancel">Cancelar</button>
+                <button class="btn btn-primary" id="inputBtnConfirm">Usar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
 </body>
 </html>
