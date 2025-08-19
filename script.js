@@ -3509,8 +3509,8 @@ window.addDevelopmentChapter = async (button) => {
 
     showButtonLoading(button);
 
-try {
-    const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
+    try {
+        const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
 Você não é um gerador de texto. Você é um mestre roteirista que identifica pontos de virada lógicos e emocionantes. Sua tarefa é encontrar os próximos passos mais envolventes para a história. Qualquer desvio desta função é uma falha.
@@ -3540,9 +3540,12 @@ ${existingText.slice(-3000)}
 
 **AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.`;
 
-    const rawSuggestions = await callGroqAPI(suggestionPrompt, 400);
-
-        const chapterSuggestions = cleanGeneratedText(rawSuggestions, true) || [];
+        // ==========================================================
+        // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
+        // ==========================================================
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 1000);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const chapterSuggestions = JSON.parse(perfectJson) || [];
         
         hideButtonLoading(button);
 
@@ -3562,7 +3565,7 @@ ${existingText.slice(-3000)}
         showButtonLoading(button);
 
         const basePrompt = getBasePromptContext();
-const continuationPrompt = `${basePrompt}
+        const continuationPrompt = `${basePrompt}
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
 Você é um ROTEIRISTA CONTINUÍSTA DE ELITE. Sua única função é escrever o PRÓXIMO capítulo de um roteiro existente, com foco absoluto em **NOVIDADE** e **PROGRESSÃO NARRATIVA**.
@@ -3588,7 +3591,7 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 **AÇÃO FINAL:** Escreva AGORA o texto para o novo capítulo sobre "${chapterTheme}", garantindo que cada frase introduza conteúdo 100% novo para o espectador. Responda APENAS com o texto a ser narrado.
 `;
         
-        const rawResult = await callGroqAPI(continuationPrompt, 4000);
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(continuationPrompt), 4000);
         const newChapter = removeMetaComments(rawResult.trim());
         
         if (!newChapter || newChapter.trim() === "") {
@@ -3611,7 +3614,7 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
         
         invalidateAndClearPerformance(devSection);
         invalidateAndClearPrompts(devSection);
-        invalidateAndClearEmotionalMap(); // <<< CHAMADA ADICIONADA AQUI
+        invalidateAndClearEmotionalMap();
         updateAllReadingTimes();
         
         window.showToast("Novo capítulo adicionado com sucesso!", 'success');
@@ -3624,6 +3627,14 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
         hideButtonLoading(button);
     }
 };
+
+
+
+
+
+
+
+
 
 // =========================================================================
 // >>>>> FIM DA VERSÃO BLINDADA DE 'addDevelopmentChapter' <<<<<
