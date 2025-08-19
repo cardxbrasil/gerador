@@ -3653,8 +3653,7 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 // =========================================================================
 
 
-window.suggestPerformance = async (button) => {
-    const sectionId = button.dataset.sectionId;
+window.suggestPerformance = async (button, sectionId) => {
     const sectionElement = document.getElementById(sectionId);
     const contentWrapper = sectionElement?.querySelector('.generated-content-wrapper');
     const outputContainer = sectionElement?.querySelector('.section-performance-output');
@@ -3672,73 +3671,90 @@ window.suggestPerformance = async (button) => {
         tempDiv.innerHTML = contentWrapper.innerHTML;
         tempDiv.querySelectorAll('.retention-tooltip').forEach(el => el.remove());
         
-        const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map((p, index) => ({ index, text: p.textContent.trim() }));
-        if (originalParagraphs.length === 0) throw new Error("Não foram encontrados parágrafos estruturados para análise.");
+        const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map(p => p.textContent.trim());
 
-        const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração claras e impactantes, retornando um array JSON.
-
-**ROTEIRO PARA ANÁLISE:**
-${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')}
-
-**MANUAL DE ANOTAÇÃO (SIGA PARA CADA PARÁGRAFO):**
-1.  **"general_annotation":** Forneça uma instrução curta e clara sobre o TOM, EMOÇÃO ou RITMO da narração para aquele parágrafo. SEJA CRIATIVO.
-    *   **Exemplos BONS:** "[Tom mais sério e grave]", "[Pausa dramática antes de continuar]", "[Falar mais rápido, com um tom de urgência]", "[Sussurrar, como se contasse um segredo]".
-    *   **Se nenhuma anotação for necessária, deixe a string VAZIA.**
-2.  **"emphasis_words":** Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase para maximizar o impacto.
-    *   **Se nenhuma ênfase for necessária, deixe o array VAZIO.**
-
-**REGRAS CRÍTICAS DE SINTAXE JSON (INEGOCIÁVEIS):**
-1.  Sua resposta deve ser APENAS o array JSON, contendo EXATAMENTE ${originalParagraphs.length} objetos.
-2.  Cada objeto DEVE ter DUAS chaves: "general_annotation" (string) e "emphasis_words" (um array de strings).
-3.  Use aspas duplas ("") para todas as chaves e valores string.
-
-**AÇÃO FINAL:** Analise CADA parágrafo e retorne o array JSON completo com suas anotações de diretor.`;
-        
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
-        const perfectJson = await fixJsonWithAI(brokenJson);
-        const annotations = JSON.parse(perfectJson);
-
-        if (!Array.isArray(annotations) || annotations.length < originalParagraphs.length) { 
-            throw new Error("A IA não retornou anotações para todos os parágrafos.");
+        if (originalParagraphs.length === 0) {
+            throw new Error("Não foram encontrados parágrafos estruturados para análise.");
         }
+
+        const batchSize = 15;
+        const apiPromises = [];
+
+        for (let i = 0; i < originalParagraphs.length; i += batchSize) {
+            const paragraphBatch = originalParagraphs.slice(i, i + batchSize);
+            let promptContext = '';
+            paragraphBatch.forEach((p, indexInBatch) => {
+                const globalIndex = i + indexInBatch;
+                promptContext += `Parágrafo ${globalIndex}: "${p}"\n\n`;
+            });
+            
+            const prompt = `Você é uma API de análise de roteiro. Sua resposta DEVE ser um array JSON.
+
+**REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS E CRÍTICAS):**
+1.  Sua resposta final DEVE ser um array JSON válido.
+2.  O array deve conter EXATAMENTE ${paragraphBatch.length} objetos, um para cada parágrafo fornecido.
+3.  Cada objeto DEVE ter duas chaves: "general_annotation" (string) e "emphasis_words" (um array com no máximo 1 string).
+4.  Se um parágrafo não necessitar de anotação, retorne um objeto com valores vazios: {"general_annotation": "", "emphasis_words": []}.
+
+**EXEMPLO DE RESPOSTA PERFEITA:**
+[
+  { "general_annotation": "[Tom de surpresa]", "emphasis_words": ["inacreditável"] },
+  { "general_annotation": "", "emphasis_words": [] }
+]
+
+Analise os ${paragraphBatch.length} parágrafos a seguir e retorne o array JSON.
+
+**ROTEIRO (LOTE ATUAL):**
+${promptContext}`;
+            apiPromises.push(callGroqAPI(prompt, 3000).then(res => cleanGeneratedText(res, true)));
+        }
+
+        const allBatchResults = await Promise.all(apiPromises);
+        const annotations = allBatchResults.flat();
+
+        // --- A CORREÇÃO ESTÁ AQUI ---
+        // Nós não lançamos mais um erro. Apenas avisamos no console se houver uma discrepância.
+        if (!Array.isArray(annotations) || annotations.length !== originalParagraphs.length) { 
+            console.warn(`Discrepância no número de anotações: Esperado ${originalParagraphs.length}, Recebido ${annotations?.length || 0}. O processo continuará.`);
+        }
+        // -----------------------------
         
         let annotatedParagraphs = [];
         originalParagraphs.forEach((p, index) => {
-            const annotationData = annotations[index] || { general_annotation: '', emphasis_words: [] };
-            let annotatedParagraph = p.text;
+            // Se a anotação para este parágrafo existir, use-a. Se não, use um objeto vazio.
+            const annotationData = (annotations && annotations[index]) ? annotations[index] : { general_annotation: '', emphasis_words: [] };
+            let annotatedParagraph = p;
 
-            // ==========================================================
-            // >>>>> LÓGICA CORRETA RESTAURADA AQUI <<<<<
-            // Substituímos a palavra pela PRÓPRIA PALAVRA + a anotação textual.
-            // ==========================================================
-            if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
-                const word = annotationData.emphasis_words[0];
-                if (word && typeof word === 'string' && word.trim() !== '') {
-                    const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-                    const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                    // A substituição agora gera: "palavra [ênfase]"
-                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `$1 [ênfase]`);
-                }
+            if (annotationData && annotationData.emphasis_words && Array.isArray(annotationData.emphasis_words) && annotationData.emphasis_words.length > 0) {
+                annotationData.emphasis_words.forEach(word => {
+                    if (word && typeof word === 'string' && word.trim() !== '') {
+                        const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                        const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
+                        annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1']$1`);
+                    }
+                });
             }
-            
             const finalParagraph = `${annotationData.general_annotation || ''} ${annotatedParagraph}`;
             annotatedParagraphs.push(finalParagraph.trim());
         });
         
         const finalAnnotatedText = annotatedParagraphs.join('\n\n');
-        
-        // A renderização visual agora destaca as anotações [ênfase] como texto.
-        const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span style="color: var(--primary); font-weight: 600; font-style: italic;">$1</span>');
+        const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span class="text-indigo-500 dark:text-indigo-400 font-semibold italic">$1</span>');
 
-        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><p class="whitespace-pre-wrap">${highlightedText}</p></div>`;
+        outputContainer.innerHTML = `
+            <div class="generated-output-box !border-l-indigo-500">
+                <h5 class="output-subtitle !border-b-indigo-500/50">Sugestão de Performance:</h5>
+                <p class="whitespace-pre-wrap">${highlightedText}</p>
+            </div>`;
             
     } catch (error) {
-        outputContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">Falha ao sugerir performance: ${error.message}</p>`;
+        outputContainer.innerHTML = `<p class="text-red-500 text-sm">Falha ao sugerir performance: ${error.message}</p>`;
         console.error("Erro detalhado em suggestPerformance:", error);
     } finally {
         hideButtonLoading(button);
     }
 };
+
 
 
 
