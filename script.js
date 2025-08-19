@@ -3699,13 +3699,20 @@ Analise os ${paragraphBatch.length} parágrafos a seguir e retorne o array JSON.
 
 **ROTEIRO (LOTE ATUAL):**
 ${promptContext}`;
-            apiPromises.push(callGroqAPI(prompt, 3000).then(res => cleanGeneratedText(res, true)));
+
+            // ==========================================================
+            // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
+            // Usamos a "Dupla Passagem" dentro da Promise.all
+            // ==========================================================
+            const promise = callGroqAPI(forceLanguageOnPrompt(prompt), 3000)
+                .then(brokenJson => fixJsonWithAI(brokenJson))
+                .then(perfectJson => JSON.parse(perfectJson));
+
+            apiPromises.push(promise);
         }
 
         const allBatchResults = await Promise.all(apiPromises);
         
-        // >>>>> A CORREÇÃO CRÍTICA ESTÁ AQUI <<<<<
-        // Garante que o número de anotações NUNCA seja maior que o de parágrafos.
         const annotations = allBatchResults.flat().slice(0, originalParagraphs.length);
 
         if (!Array.isArray(annotations)) { 
