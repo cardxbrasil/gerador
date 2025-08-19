@@ -3704,15 +3704,15 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
             // ==========================================================
             // >>>>> LÓGICA CORRETA RESTAURADA AQUI <<<<<
-            // Substituímos a palavra pela anotação de ênfase, como era antes.
+            // Substituímos a palavra pela PRÓPRIA PALAVRA + a anotação textual.
             // ==========================================================
             if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
                 const word = annotationData.emphasis_words[0];
                 if (word && typeof word === 'string' && word.trim() !== '') {
                     const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                    // A substituição agora gera o texto [ênfase em 'palavra']
-                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1']`);
+                    // A substituição agora gera: "palavra [ênfase]"
+                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `$1 [ênfase]`);
                 }
             }
             
@@ -3722,7 +3722,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
         
         const finalAnnotatedText = annotatedParagraphs.join('\n\n');
         
-        // Renderizamos o texto, mas agora as anotações são visíveis como texto.
+        // A renderização visual agora destaca as anotações [ênfase] como texto.
         const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span style="color: var(--primary); font-weight: 600; font-style: italic;">$1</span>');
 
         outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><p class="whitespace-pre-wrap">${highlightedText}</p></div>`;
