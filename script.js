@@ -2810,15 +2810,21 @@ const updateButtonStates = () => {
     }
 };
 
+
+
+
 const generateTitlesAndThumbnails = async (button) => {
     if (!validateInputs()) return;
     showButtonLoading(button);
     const targetContentElement = document.getElementById('titlesThumbnailsContent');
     targetContentElement.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
     try {
-        const { prompt, maxTokens } = constructScriptPrompt('titles_thumbnails');
-        const rawResult = await callGroqAPI(prompt, maxTokens);
-        const parsedContent = cleanGeneratedText(rawResult, true);
+        let { prompt, maxTokens } = constructScriptPrompt('titles_thumbnails');
+        
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const parsedContent = JSON.parse(perfectJson);
+        
         if (!Array.isArray(parsedContent) || parsedContent.length === 0 || !parsedContent[0].suggested_title) {
             throw new Error("A IA retornou os dados de títulos em um formato inesperado.");
         }
@@ -2829,7 +2835,6 @@ const generateTitlesAndThumbnails = async (button) => {
         const titlesListHtml = titles.map((title, index) => `<p>${index + 1}. ${DOMPurify.sanitize(title)}</p>`).join('');
         const thumbnailsListHtml = thumbnails.map((thumb) => `<div class="thumbnail-idea"><h4 class="font-semibold">"${DOMPurify.sanitize(thumb.title)}"</h4><p>Descrição: ${DOMPurify.sanitize(thumb.description)}</p></div>`).join('');
 
-        // >>>>> LÓGICA DE RENDERIZAÇÃO COMPLETA DA V5.0 <<<<<
         targetContentElement.innerHTML = `
             <div class="generated-output-box">
                 <div class="output-content-block">
@@ -2850,8 +2855,6 @@ const generateTitlesAndThumbnails = async (button) => {
                 </div>
             </div>
         `;
-        // >>>>> FIM DA LÓGICA DE RENDERIZAÇÃO <<<<<
-
     } catch (error) {
         window.showToast(`Falha ao gerar Títulos: ${error.message}`, 'error');
         targetContentElement.innerHTML = `<div class="asset-card-placeholder" style="color: var(--danger);">${error.message}</div>`;
@@ -2959,23 +2962,24 @@ const generateVideoDescription = async (button) => {
     showButtonLoading(button);
     const targetContentElement = document.getElementById('videoDescriptionContent');
     try {
-        const { prompt, maxTokens } = constructScriptPrompt('description');
-        const rawResult = await callGroqAPI(prompt, maxTokens);
+        let { prompt, maxTokens } = constructScriptPrompt('description');
         
-        // Agora esperamos um objeto JSON
-        const parsedContent = cleanGeneratedText(rawResult, true);
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        let parsedContent = JSON.parse(perfectJson);
         
+        if (Array.isArray(parsedContent) && parsedContent.length > 0) {
+            parsedContent = parsedContent[0];
+        }
+
         if (!parsedContent || !parsedContent.description_text || !Array.isArray(parsedContent.hashtags)) {
             throw new Error("A IA não retornou a descrição e hashtags no formato esperado.");
         }
-
-        // Salva o objeto inteiro no estado
+        
         AppState.generated.description = parsedContent;
         
-        // Monta o HTML separado
         const descriptionHtml = `<p>${DOMPurify.sanitize(parsedContent.description_text)}</p>`;
         const hashtagsHtml = `<div class="mt-4" style="color: var(--primary); font-weight: 500;">${parsedContent.hashtags.map(h => DOMPurify.sanitize(h)).join(' ')}</div>`;
-
         targetContentElement.innerHTML = `<div class="generated-output-box">${descriptionHtml}${hashtagsHtml}</div>`;
 
     } catch (error) {
@@ -2986,6 +2990,10 @@ const generateVideoDescription = async (button) => {
     }
 };
 
+
+
+
+
 const generateSoundtrack = async (button) => {
     const fullTranscript = getTranscriptOnly();
     if (!fullTranscript) {
@@ -2995,11 +3003,17 @@ const generateSoundtrack = async (button) => {
     const outputContainer = document.getElementById('soundtrackContent');
     showButtonLoading(button);
     outputContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
+    
     const prompt = PromptManager.getSoundtrackPrompt(fullTranscript);
+
     try {
-        const rawResult = await callGroqAPI(prompt, 1500);
-        const analysis = cleanGeneratedText(rawResult, true);
+        // ARQUITETURA DE DUPLA PASSAGEM APLICADA AQUI
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 1500);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const analysis = JSON.parse(perfectJson);
+
         if (!analysis || !Array.isArray(analysis) || analysis.length === 0) throw new Error("A IA não retornou sugestões no formato esperado.");
+        
         let suggestionsHtml = '<ul class="soundtrack-list space-y-2">';
         analysis.forEach(suggestion => {
             if (typeof suggestion === 'string') suggestionsHtml += `<li>${DOMPurify.sanitize(suggestion)}</li>`;
@@ -3074,16 +3088,8 @@ ${JSON.stringify(paragraphs)}
 
 ACTION: Return ONLY the JSON array.`;
 
-        // ==========================================================
-        // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
-        // ==========================================================
-        // ETAPA 1: GERAÇÃO CRIATIVA (ACEITANDO O CAOS)
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
-
-        // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
         const perfectJson = await fixJsonWithAI(brokenJson);
-        
-        // ETAPA 3: PARSE SEGURO
         const emotionalMapData = JSON.parse(perfectJson);
 
         if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
@@ -3093,7 +3099,6 @@ ACTION: Return ONLY the JSON array.`;
         if(emotionalMapData.length < paragraphs.length) {
             console.warn(`Discrepância no Mapa Emocional: Esperado ${paragraphs.length}, Recebido ${emotionalMapData.length}. Usando dados parciais.`);
         }
-
         AppState.generated.emotionalMap = emotionalMapData.slice(0, paragraphs.length);
         
         outputContainer.innerHTML = '';
@@ -3719,7 +3724,7 @@ ${promptContext}`;
         const allBatchResults = await Promise.all(apiPromises);
         const annotations = allBatchResults.flat();
 
-        if (annotations.length !== originalParagraphs.length) {
+        if (Array.isArray(annotations) && annotations.length !== originalParagraphs.length) {
             console.warn(`Discrepância no número de anotações: Esperado ${originalParagraphs.length}, Recebido ${annotations.length || 0}. O processo continuará.`);
         }
         
