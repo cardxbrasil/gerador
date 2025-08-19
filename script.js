@@ -3667,63 +3667,45 @@ window.suggestPerformance = async (button) => {
         tempDiv.innerHTML = contentWrapper.innerHTML;
         tempDiv.querySelectorAll('.retention-tooltip').forEach(el => el.remove());
         
-        const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map(p => p.textContent.trim());
+        const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map((p, index) => ({ index, text: p.textContent.trim() }));
         if (originalParagraphs.length === 0) throw new Error("Não foram encontrados parágrafos estruturados para análise.");
 
-        const batchSize = 15;
-        const apiPromises = [];
+        // ==========================================================
+        // >>>>> PROMPT RE-ENGENHARADO E BLINDADO <<<<<
+        // ==========================================================
+        const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração claras e impactantes, retornando um array JSON.
 
-        for (let i = 0; i < originalParagraphs.length; i += batchSize) {
-            const paragraphBatch = originalParagraphs.slice(i, i + batchSize);
-            let promptContext = '';
-            paragraphBatch.forEach((p, indexInBatch) => {
-                const globalIndex = i + indexInBatch;
-                promptContext += `Parágrafo ${globalIndex}: "${p}"\n\n`;
-            });
-            
-            const prompt = `Você é uma API de análise de roteiro. Sua resposta DEVE ser um array JSON.
+**ROTEIRO PARA ANÁLISE:**
+${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')}
 
-**REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS E CRÍTICAS):**
-1.  Sua resposta final DEVE ser um array JSON válido.
-2.  O array deve conter EXATAMENTE ${paragraphBatch.length} objetos, um para cada parágrafo fornecido.
-3.  Cada objeto DEVE ter duas chaves: "general_annotation" (string) e "emphasis_words" (um array com no máximo 1 string).
-4.  Se um parágrafo não necessitar de anotação, retorne um objeto com valores vazios: {"general_annotation": "", "emphasis_words": []}.
+**MANUAL DE ANOTAÇÃO (SIGA PARA CADA PARÁGRAFO):**
+1.  **"general_annotation":** Forneça uma instrução curta e clara sobre o TOM, EMOÇÃO ou RITMO da narração para aquele parágrafo. SEJA CRIATIVO.
+    *   **Exemplos BONS:** "[Tom mais sério e grave]", "[Pausa dramática antes de continuar]", "[Falar mais rápido, com um tom de urgência]", "[Sussurrar, como se contasse um segredo]".
+    *   **Se nenhuma anotação for necessária, deixe a string VAZIA.**
+2.  **"emphasis_words":** Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase para maximizar o impacto.
+    *   **Se nenhuma ênfase for necessária, deixe o array VAZIO.**
 
-**EXEMPLO DE RESPOSTA PERFEITA:**
-[
-  { "general_annotation": "[Tom de surpresa]", "emphasis_words": ["inacreditável"] },
-  { "general_annotation": "", "emphasis_words": [] }
-]
+**REGRAS CRÍTICAS DE SINTAXE JSON (INEGOCIÁVEIS):**
+1.  Sua resposta deve ser APENAS o array JSON, contendo EXATAMENTE ${originalParagraphs.length} objetos.
+2.  Cada objeto DEVE ter DUAS chaves: "general_annotation" (string) e "emphasis_words" (um array de strings).
+3.  Use aspas duplas ("") para todas as chaves e valores string.
 
-Analise os ${paragraphBatch.length} parágrafos a seguir e retorne o array JSON.
-
-**ROTEIRO (LOTE ATUAL):**
-${promptContext}`;
-
-            // ==========================================================
-            // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
-            // Usamos a "Dupla Passagem" dentro da Promise.all
-            // ==========================================================
-            const promise = callGroqAPI(forceLanguageOnPrompt(prompt), 3000)
-                .then(brokenJson => fixJsonWithAI(brokenJson))
-                .then(perfectJson => JSON.parse(perfectJson));
-
-            apiPromises.push(promise);
-        }
-
-        const allBatchResults = await Promise.all(apiPromises);
+**AÇÃO FINAL:** Analise CADA parágrafo e retorne o array JSON completo com suas anotações de diretor.`;
         
-        const annotations = allBatchResults.flat().slice(0, originalParagraphs.length);
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const annotations = JSON.parse(perfectJson);
 
-        if (!Array.isArray(annotations)) { 
-            throw new Error("A IA não retornou um array de anotações válido.");
+        if (!Array.isArray(annotations) || annotations.length < originalParagraphs.length) { 
+            throw new Error("A IA não retornou anotações para todos os parágrafos.");
         }
         
         let annotatedParagraphs = [];
         originalParagraphs.forEach((p, index) => {
-            const annotationData = (annotations && annotations[index]) ? annotations[index] : { general_annotation: '', emphasis_words: [] };
-            let annotatedParagraph = p;
-            if (annotationData?.emphasis_words?.length > 0) {
+            const annotationData = annotations[index] || { general_annotation: '', emphasis_words: [] };
+            let annotatedParagraph = p.text;
+
+            if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
                 const word = annotationData.emphasis_words[0];
                 if (word && typeof word === 'string' && word.trim() !== '') {
                     const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -3747,7 +3729,6 @@ ${promptContext}`;
         hideButtonLoading(button);
     }
 };
-
 
 
 
