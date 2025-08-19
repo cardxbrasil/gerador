@@ -3043,7 +3043,6 @@ const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa 
 
 
 
-
 const mapEmotionsAndPacing = async (button) => {
     const { script } = AppState.generated;
     const isScriptReady = script.intro?.text && script.development?.text && script.climax?.text;
@@ -3075,19 +3074,27 @@ ${JSON.stringify(paragraphs)}
 
 ACTION: Return ONLY the JSON array.`;
 
-        const rawResult = await callGroqAPI(prompt, 8000);
-        const emotionalMapData = cleanGeneratedText(rawResult, true, true);
-      if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
-    throw new Error("A IA não retornou um mapa emocional válido.");
-}
+        // ==========================================================
+        // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
+        // ==========================================================
+        // ETAPA 1: GERAÇÃO CRIATIVA (ACEITANDO O CAOS)
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
 
-// Se a IA retornou menos itens, avisa no console mas continua o processo com o que temos.
-if(emotionalMapData.length < paragraphs.length) {
-    console.warn(`Discrepância no Mapa Emocional: Esperado ${paragraphs.length}, Recebido ${emotionalMapData.length}. Usando dados parciais.`);
-}
+        // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        
+        // ETAPA 3: PARSE SEGURO
+        const emotionalMapData = JSON.parse(perfectJson);
 
-// Garante que nunca tentaremos acessar um índice que não existe.
-AppState.generated.emotionalMap = emotionalMapData.slice(0, paragraphs.length);
+        if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
+            throw new Error("A IA não retornou um mapa emocional válido.");
+        }
+
+        if(emotionalMapData.length < paragraphs.length) {
+            console.warn(`Discrepância no Mapa Emocional: Esperado ${paragraphs.length}, Recebido ${emotionalMapData.length}. Usando dados parciais.`);
+        }
+
+        AppState.generated.emotionalMap = emotionalMapData.slice(0, paragraphs.length);
         
         outputContainer.innerHTML = '';
         let paragraphCounter = 0;
@@ -3098,7 +3105,6 @@ AppState.generated.emotionalMap = emotionalMapData.slice(0, paragraphs.length);
             { id: 'cta', title: 'Call to Action (CTA)' }
         ];
 
-        // >>>>> LÓGICA DE AGRUPAMENTO DA FERRARI V5.0 <<<<<
         const emotionGroups = {
             'Positiva': ['strongly_positive', 'slightly_positive'], 'Negativa': ['strongly_negative', 'slightly_negative'],
             'Neutra': ['neutral']
@@ -3110,9 +3116,8 @@ AppState.generated.emotionalMap = emotionalMapData.slice(0, paragraphs.length);
             for (const groupName in groups) {
                 if (groups[groupName].includes(value)) return groupName;
             }
-            return value.charAt(0).toUpperCase() + value.slice(1);
+            return value ? value.charAt(0).toUpperCase() + value.slice(1) : 'Indefinido';
         };
-        // >>>>> FIM DA LÓGICA DE AGRUPAMENTO <<<<<
 
         sectionOrder.forEach(section => {
             const sectionScript = script[section.id];
@@ -3121,8 +3126,8 @@ AppState.generated.emotionalMap = emotionalMapData.slice(0, paragraphs.length);
             const numParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim() !== '').length;
             const sectionEmotionsData = AppState.generated.emotionalMap.slice(paragraphCounter, paragraphCounter + numParagraphs);
             
-            const groupedEmotions = [...new Set(sectionEmotionsData.map(e => getGroupName(e.emotion, emotionGroups)))];
-            const groupedPaces = [...new Set(sectionEmotionsData.map(e => getGroupName(e.pace, paceGroups)))];
+            const groupedEmotions = [...new Set(sectionEmotionsData.map(e => e ? getGroupName(e.emotion, emotionGroups) : 'Indefinido'))];
+            const groupedPaces = [...new Set(sectionEmotionsData.map(e => e ? getGroupName(e.pace, paceGroups) : 'Indefinido'))];
 
             const tagsHtml = groupedEmotions.map(emotion => `<span class="tag"><i class="fas fa-theater-masks mr-2"></i>${emotion}</span>`).join('') + 
                              groupedPaces.map(pace => `<span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${pace}</span>`).join('');
