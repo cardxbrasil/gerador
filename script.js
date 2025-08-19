@@ -3713,7 +3713,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
     *   **Se nenhuma instrução for necessária, deixe a string VAZIA.**
 2.  **Para "emphasis_words":**
     *   Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase para maximizar o impacto.
-    *   Se nenhuma ênfase for necessária, deixe o array VAZIO.
+    *   **Se nenhuma ênfase for necessária, deixe o array VAZIO.**
 
 **REGRAS DE SINTAXE JSON (INEGOCIÁVEIS):**
 1.  Sua resposta deve ser APENAS o array JSON, contendo EXATAMENTE ${originalParagraphs.length} objetos.
@@ -3737,15 +3737,15 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
             // ==========================================================
             // >>>>> A LÓGICA CORRETA E FINAL ESTÁ AQUI <<<<<
-            // Substituímos "palavra" por "palavra [ênfase em 'palavra']".
+            // Substituímos "palavra" por "[ênfase em 'palavra'] palavra".
             // ==========================================================
             if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
                 const word = annotationData.emphasis_words[0];
                 if (word && typeof word === 'string' && word.trim() !== '') {
                     const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                    // A substituição agora gera: "palavra [ênfase em 'palavra']"
-                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `$1 [ênfase em '$1']`);
+                    // A substituição agora gera: "[ênfase em 'palavra'] palavra"
+                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1'] $1`);
                 }
             }
             
