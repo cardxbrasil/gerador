@@ -3732,7 +3732,7 @@ Analise os ${paragraphBatch.length} parágrafos a seguir e retorne o array JSON.
 ${promptContext}`;
 
             // ==========================================================
-            // >>>>> AJUSTE CIRÚRGICO APLICADO AQUI <<<<<
+            // >>>>> A CIRURGIA FINAL APLICADA AQUI <<<<<
             // Substituímos a chamada antiga pela arquitetura de "Dupla Passagem".
             // ==========================================================
             const promise = callGroqAPI(forceLanguageOnPrompt(prompt), 3000)
@@ -3751,7 +3751,7 @@ ${promptContext}`;
         
         let annotatedParagraphs = [];
         originalParagraphs.forEach((p, index) => {
-            // A sua lógica original e correta de anotação.
+            // A SUA LÓGICA ORIGINAL E CORRETA DE ANOTAÇÃO
             const annotationData = (annotations && annotations[index]) ? annotations[index] : { general_annotation: '', emphasis_words: [] };
             let annotatedParagraph = p;
 
