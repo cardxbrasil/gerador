@@ -2738,7 +2738,7 @@ const suggestViralElements = async (button) => {
     const reportContainer = document.getElementById('viralSuggestionsContainer');
     reportContainer.innerHTML = `<div class="my-4"><div class="loading-spinner-small mx-auto"></div><p class="text-sm mt-2">O Arquiteto da Viralidade está analisando...</p></div>`;
     const basePromptContext = getBasePromptContext();
-    const prompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA DE CONTEÚDO VIRAL. Sua tarefa é analisar um roteiro e seu contexto para propor 3 elementos que aumentem a viralidade de forma INTELIGENTE e ALINHADA.
+    const prompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA DE CONTEÚDO VIRAL. Sua tarefa é analisar um roteiro e seu contexto para propor 3 elementos que aumentem a viralidade, retornando um array JSON perfeito.
 
 **CONTEXTO ESTRATÉGICO ("DNA" DO VÍDEO):**
 ---
@@ -2753,16 +2753,28 @@ ${fullTranscript.slice(0, 7500)}
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
 1.  **JSON PURO E PERFEITO:** Responda APENAS com um array JSON válido.
 2.  **ESTRUTURA COMPLETA:** Cada objeto DEVE conter EXATAMENTE estas cinco chaves: "anchor_paragraph", "suggested_text", "element_type", "potential_impact_score", "implementation_idea".
-3.  **SINTAXE DAS STRINGS:** Todas as chaves e valores string DEVEM usar aspas duplas ("").
+3.  **ASPAS DUPLAS, SEMPRE:** Todas as chaves e valores de texto DEVEM usar aspas duplas ("").
+4.  **CARACTERES DE ESCAPE (A REGRA MAIS IMPORTANTE):** Se o texto de "anchor_paragraph" ou "suggested_text" contiver aspas duplas ("), você DEVE escapá-las com uma barra invertida (\\"). Exemplo: "Ele disse: \\"Olá\\"."
 
 **MANUAL DE ANÁLISE E CRIAÇÃO:**
-- **"anchor_paragraph":** Cópia EXATA de um parágrafo existente.
-- **"suggested_text":** Um parágrafo completo e coeso para ser inserido.
-- **"element_type":** Escolha de: ["Dado Surpreendente", "Citação de Autoridade", "Mini-Revelação (Teaser)", "Pergunta Compartilhável", "Anedota Pessoal Rápida"].
-- **"potential_impact_score":** Nota de 1 a 10 para o potencial de engajamento.
-- **"implementation_idea":** Explique o VALOR ESTRATÉGICO da inserção.
+- "anchor_paragraph": Cópia EXATA de um parágrafo existente no roteiro.
+- "suggested_text": Um parágrafo completo e coeso para ser inserido APÓS o parágrafo âncora.
+- "element_type": Escolha de: ["Dado Surpreendente", "Citação de Autoridade", "Mini-Revelação (Teaser)", "Pergunta Compartilhável", "Anedota Pessoal Rápida"].
+- "potential_impact_score": Nota de 1 a 10 para o potencial de engajamento.
+- "implementation_idea": Explique o VALOR ESTRATÉGICO da inserção.
 
-**AÇÃO FINAL:** Analise o roteiro e o contexto. Responda APENAS com o array JSON perfeito.`;
+**EXEMPLO DE FORMATO PERFEITO (SIGA-O RIGOROSAMENTE):**
+[
+  {
+    "anchor_paragraph": "No final, a descoberta foi mais do que apenas um fato histórico; era um símbolo de esperança.",
+    "suggested_text": "Para entender a dimensão disso, considere este dado chocante: segundo um estudo da Universidade de Oxford, mais de 70% das pessoas sentem que perderam a esperança no futuro. Esta descoberta veio para desafiar essa estatística de frente.",
+    "element_type": "Dado Surpreendente",
+    "potential_impact_score": 9,
+    "implementation_idea": "Introduzir um dado estatístico forte conecta a narrativa a um sentimento real e contemporâneo do público, aumentando drasticamente a relevância e o potencial de compartilhamento."
+  }
+]
+
+**AÇÃO FINAL:** Analise o roteiro e o contexto. Responda APENAS com o array JSON perfeito, seguindo TODAS as regras, especialmente a de escapar aspas duplas.`;
     try {
 const brokenJson = await callGroqAPI(prompt, 4000);
 const perfectJson = await fixJsonWithAI(brokenJson);
