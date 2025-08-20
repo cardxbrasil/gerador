@@ -3127,6 +3127,7 @@ const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa 
 
 
 
+// VERSÃO FINAL E INTELIGENTE de mapEmotionsAndPacing
 const mapEmotionsAndPacing = async (button) => {
     const { script } = AppState.generated;
     const isScriptReady = script.intro?.text && script.development?.text && script.climax?.text;
@@ -3201,11 +3202,20 @@ ACTION: Return ONLY the JSON array.`;
             const numParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim() !== '').length;
             const sectionEmotionsData = AppState.generated.emotionalMap.slice(paragraphCounter, paragraphCounter + numParagraphs);
             
-            const groupedEmotions = [...new Set(sectionEmotionsData.map(e => e ? getGroupName(e.emotion, emotionGroups) : 'Indefinido'))];
-            const groupedPaces = [...new Set(sectionEmotionsData.map(e => e ? getGroupName(e.pace, paceGroups) : 'Indefinido'))];
+            // >>>>> A LÓGICA INTELIGENTE ESTÁ AQUI <<<<<
+            // 1. Coleta TODOS os grupos de emoção e ritmo da seção
+            const allEmotions = sectionEmotionsData.map(e => e ? getGroupName(e.emotion, emotionGroups) : 'Indefinido');
+            const allPaces = sectionEmotionsData.map(e => e ? getGroupName(e.pace, paceGroups) : 'Indefinido');
 
-            const tagsHtml = groupedEmotions.map(emotion => `<span class="tag"><i class="fas fa-theater-masks mr-2"></i>${emotion}</span>`).join('') + 
-                             groupedPaces.map(pace => `<span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${pace}</span>`).join('');
+            // 2. Usa nossa nova função para encontrar o DOMINANTE de cada um
+            const dominantEmotion = getDominantValue(allEmotions);
+            const dominantPace = getDominantValue(allPaces);
+
+            // 3. Cria as tags baseadas apenas nos valores dominantes
+            const tagsHtml = `
+                <span class="tag"><i class="fas fa-theater-masks mr-2"></i>${dominantEmotion}</span>
+                <span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${dominantPace}</span>
+            `;
 
             const sectionCardHtml = `
             <div class="card !p-6 mb-6 animate-fade-in">
@@ -3217,7 +3227,7 @@ ACTION: Return ONLY the JSON array.`;
                     <pre class="hidden">${DOMPurify.sanitize(sectionScript.text)}</pre>
                 </div>
                 <div class="flex flex-wrap gap-2 mb-4">
-                    ${tagsHtml || '<span class="text-sm italic text-muted">Nenhuma emoção analisada.</span>'}
+                    ${tagsHtml}
                 </div>
                 <div class="generated-content-wrapper text-base leading-relaxed">
                     ${sectionScript.html} 
@@ -3717,6 +3727,19 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 
 
 
+
+
+
+// script.js (Adicionar na seção de utilitários)
+
+const getDominantValue = (arr, defaultValue = 'Indefinido') => {
+    if (!arr || arr.length === 0) return defaultValue;
+    const counts = arr.reduce((acc, value) => {
+        acc[value] = (acc[value] || 0) + 1;
+        return acc;
+    }, {});
+    return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+};
 
 
 
