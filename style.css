@@ -338,8 +338,9 @@ textarea.input { min-height: 84px; resize: vertical; }
     margin: 0; /* Remove margem padrão que pode adicionar altura */
 }
 
-.card-placeholder h3 { 
-    font-size: 0.9rem; 
+.card-placeholder h3 {
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
 .header-title-group .text-xs { 
