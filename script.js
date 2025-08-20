@@ -2756,9 +2756,11 @@ ${fullTranscript.slice(0, 7500)}
 
 **AÇÃO FINAL:** Analise o roteiro e o contexto. Responda APENAS com o array JSON perfeito.`;
     try {
-        const rawResult = await callGroqAPI(prompt, 4000);
-        const suggestions = cleanGeneratedText(rawResult, true);
-        if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
+const brokenJson = await callGroqAPI(prompt, 4000);
+const perfectJson = await fixJsonWithAI(brokenJson);
+const suggestions = JSON.parse(perfectJson); // <--- CORREÇÃO AQUI
+
+if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
         let reportHtml = `<div class="space-y-4">`;
         suggestions.forEach(suggestion => {
             const anchorParagraphEscaped = (suggestion.anchor_paragraph || '').replace(/"/g, '\"');
