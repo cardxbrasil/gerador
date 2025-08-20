@@ -3727,6 +3727,7 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 // >>>>> FIM DA VERSÃO BLINDADA DE 'addDevelopmentChapter' <<<<<
 // =========================================================================
 
+// VERSÃO FINAL E CORRIGIDA de suggestPerformance (com instrução de idioma)
 window.suggestPerformance = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -3749,55 +3750,56 @@ window.suggestPerformance = async (button) => {
         const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map((p, index) => ({ index, text: p.textContent.trim() }));
         if (originalParagraphs.length === 0) throw new Error("Não foram encontrados parágrafos estruturados para análise.");
 
-        const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração claras e impactantes, retornando um array JSON.
+        // >>>>> MUDANÇA 1: Capturamos o contexto do projeto <<<<<
+        const basePromptContext = getBasePromptContext();
+
+        const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração, retornando um array JSON.
+
+**CONTEXTO ESTRATÉGICO DO PROJETO (OBRIGATÓRIO):**
+---
+${basePromptContext} 
+---
+**IDIOMA OBRIGATÓRIO:** A sua resposta, incluindo TODAS as anotações, deve estar no mesmo idioma do contexto (Português do Brasil ou Inglês). Esta é a regra mais importante.
 
 **ROTEIRO PARA ANÁLISE:**
 ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')}
 
 **MANUAL DE ANOTAÇÃO (REGRAS CRÍTICAS):**
 1.  **Para "general_annotation":**
-    *   A anotação DEVE ser uma instrução curta para o narrador.
-    *   NÃO PODE ser um resumo, um título, ou uma reescrita do parágrafo.
-    *   **Exemplos BONS:** "[Tom mais sério e grave]", "[Pausa dramática antes de continuar]", "[Falar mais rápido, com tom de urgência]", "[Sussurrar, como se contasse um segredo]".
-    *   **Se nenhuma instrução for necessária, deixe a string VAZIA.**
+    *   A anotação DEVE ser uma instrução curta para o narrador (ex: "[Tom mais sério e grave]", "[Pausa dramática]", "[Falar com urgência]").
+    *   Se nenhuma instrução for necessária, deixe a string VAZIA ("").
 2.  **Para "emphasis_words":**
-    *   Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase para maximizar o impacto.
-    *   **Se nenhuma ênfase for necessária, deixe o array VAZIO.**
+    *   Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase.
+    *   Se nenhuma ênfase for necessária, deixe o array VAZIO ([]).
 
 **REGRAS DE SINTAXE JSON (INEGOCIÁVEIS):**
-1.  Sua resposta deve ser APENAS o array JSON, contendo EXATAMENTE ${originalParagraphs.length} objetos.
-2.  Cada objeto DEVE ter DUAS chaves: "general_annotation" (string) e "emphasis_words" (um array de strings).
-3.  Use aspas duplas ("") para todas as chaves e valores string.
+1.  Sua resposta deve ser APENAS o array JSON, contendo um objeto para CADA parágrafo enviado.
+2.  Cada objeto DEVE ter DUAS chaves: "general_annotation" (string) e "emphasis_words" (array de strings).
+3.  Use aspas duplas ("") para todas as chaves e valores.
 
-**AÇÃO FINAL:** Analise CADA parágrafo e retorne o array JSON completo com suas anotações de DIRETOR.`;
+**AÇÃO FINAL:** Analise CADA parágrafo e retorne o array JSON completo com suas anotações de DIRETOR no idioma correto.`;
         
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
         const perfectJson = await fixJsonWithAI(brokenJson);
         const annotations = JSON.parse(perfectJson);
-
-if (!Array.isArray(annotations)) { 
-    throw new Error("A IA não retornou um array de anotações válido.");
-}
-if (annotations.length < originalParagraphs.length) {
-    console.warn(`Discrepância na performance: ${originalParagraphs.length} parágrafos enviados, ${annotations.length} anotações recebidas. O restante será ignorado.`);
-}
+        
+        if (!Array.isArray(annotations)) { 
+            throw new Error("A IA não retornou um array de anotações válido.");
+        }
+        if (annotations.length < originalParagraphs.length) {
+            console.warn(`Discrepância na performance: ${originalParagraphs.length} parágrafos enviados, ${annotations.length} anotações recebidas. O restante será ignorado.`);
+        }
         
         let annotatedParagraphs = [];
-originalParagraphs.forEach((p, index) => {
-    // Se a anotação não existir, usamos um objeto padrão vazio.
-    const annotationData = annotations[index] || { general_annotation: '', emphasis_words: [] };
-    let annotatedParagraph = p.text;
+        originalParagraphs.forEach((p, index) => {
+            const annotationData = annotations[index] || { general_annotation: '', emphasis_words: [] };
+            let annotatedParagraph = p.text;
 
-            // ==========================================================
-            // >>>>> A LÓGICA CORRETA E FINAL ESTÁ AQUI <<<<<
-            // Substituímos "palavra" por "[ênfase em 'palavra'] palavra".
-            // ==========================================================
             if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
                 const word = annotationData.emphasis_words[0];
                 if (word && typeof word === 'string' && word.trim() !== '') {
                     const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                    // A substituição agora gera: "[ênfase em 'palavra'] palavra"
                     annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1'] $1`);
                 }
             }
