@@ -3727,7 +3727,7 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 // >>>>> FIM DA VERSÃO BLINDADA DE 'addDevelopmentChapter' <<<<<
 // =========================================================================
 
-// VERSÃO FINAL E CORRIGIDA de suggestPerformance (com instrução de idioma)
+// VERSÃO DEFINITIVA de suggestPerformance (Resiliente e com Idioma Correto)
 window.suggestPerformance = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -3750,16 +3750,12 @@ window.suggestPerformance = async (button) => {
         const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map((p, index) => ({ index, text: p.textContent.trim() }));
         if (originalParagraphs.length === 0) throw new Error("Não foram encontrados parágrafos estruturados para análise.");
 
-        // >>>>> MUDANÇA 1: Capturamos o contexto do projeto <<<<<
-        const basePromptContext = getBasePromptContext();
+        // >>>>> MUDANÇA 1: Capturamos APENAS o nome do idioma <<<<<
+        const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
 
-        const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração, retornando um array JSON.
+        const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração claras e impactantes, retornando um array JSON.
 
-**CONTEXTO ESTRATÉGICO DO PROJETO (OBRIGATÓRIO):**
----
-${basePromptContext} 
----
-**IDIOMA OBRIGATÓRIO:** A sua resposta, incluindo TODAS as anotações, deve estar no mesmo idioma do contexto (Português do Brasil ou Inglês). Esta é a regra mais importante.
+**IDIOMA OBRIGATÓRIO:** Todas as anotações geradas (como "[Pausa dramática]") DEVEM estar em ${languageName}. Esta é a regra mais importante.
 
 **ROTEIRO PARA ANÁLISE:**
 ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')}
