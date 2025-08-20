@@ -2391,7 +2391,9 @@ ${text.slice(0, 7000)}
 
 const createReportSection = (analysisData) => {
     const sectionDiv = document.createElement('div');
-    sectionDiv.className = 'p-4 border rounded-lg mb-4 bg-gray-50 dark:bg-gray-800 animate-fade-in';
+    // Adiciona as novas classes de estilo base e de relatório
+    sectionDiv.className = 'analysis-card-base analysis-card--report animate-fade-in';
+    
     if (!analysisData || typeof analysisData.score === 'undefined') {
         sectionDiv.innerHTML = `<h4 class="font-bold text-lg text-red-500">${analysisData.criterion_name || 'Erro'}</h4><p>Falha ao processar a análise.</p>`;
         return sectionDiv;
@@ -2399,8 +2401,8 @@ const createReportSection = (analysisData) => {
     let improvementHtml = '';
     if (analysisData.improvement_points && analysisData.improvement_points.length > 0) {
         improvementHtml = analysisData.improvement_points.map(point => {
-const problematicQuoteEscaped = (point.problematic_quote || '').replace(/"/g, '&quot;');
-const rewrittenQuoteEscaped = (point.rewritten_quote || '').replace(/"/g, '&quot;');
+            const problematicQuoteEscaped = (point.problematic_quote || '').replace(/"/g, '&quot;');
+            const rewrittenQuoteEscaped = (point.rewritten_quote || '').replace(/"/g, '&quot;');
             return `
             <div class="mt-4 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
                 <p class="text-sm italic text-gray-500 dark:text-gray-400 mb-1">Citação: "${DOMPurify.sanitize(point.problematic_quote || 'N/A')}"</p>
@@ -2414,8 +2416,11 @@ const rewrittenQuoteEscaped = (point.rewritten_quote || '').replace(/"/g, '&quot
     }
     sectionDiv.innerHTML = `
         <div class="flex justify-between items-center">
-            <h4 class="font-bold text-lg">${DOMPurify.sanitize(analysisData.criterion_name)}</h4>
-            <span class="font-bold text-xl text-primary">${analysisData.score}/10</span>
+            <div class="analysis-card__header">
+                <i class="fas fa-clipboard-check text-indigo-500"></i>
+                <h4>${DOMPurify.sanitize(analysisData.criterion_name)}</h4>
+            </div>
+            <span class="font-bold text-xl text-indigo-500">${analysisData.score}/10</span>
         </div>
         <div class="mt-2">
             <p class="text-sm"><strong class="text-indigo-500">Pontos Fortes:</strong> ${DOMPurify.sanitize(analysisData.positive_points)}</p>
@@ -2616,6 +2621,7 @@ const applyHookSuggestion = (button) => {
 
 
 
+// CÓDIGO ATUALIZADO para analyzeRetentionHooks
 const analyzeRetentionHooks = async (button) => {
     const fullTranscript = getTranscriptOnly();
     if (!fullTranscript) {
@@ -2639,9 +2645,6 @@ ${fullTranscript.slice(0, 7500)}
 
 **AÇÃO FINAL:** Analise o roteiro. Responda APENAS com o array JSON perfeito.`;
     try {
-        // ==========================================================
-        // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
-        // ==========================================================
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
         const perfectJson = await fixJsonWithAI(brokenJson);
         const hooks = JSON.parse(perfectJson);
@@ -2654,13 +2657,16 @@ ${fullTranscript.slice(0, 7500)}
             const rewrittenQuoteEscaped = (hook.rewritten_hook || '').replace(/"/g, '\"');
             const scoreColor = hook.effectiveness_score >= 8 ? 'text-green-500' : hook.effectiveness_score >= 5 ? 'text-yellow-500' : 'text-red-500';
             reportHtml += `
-                <div class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 animate-fade-in">
-                    <p class="text-base italic text-gray-500 dark:text-gray-400 mb-2">Original: "${DOMPurify.sanitize(hook.hook_phrase)}"</p>
+                <div class="analysis-card-base analysis-card--hook animate-fade-in">
+                    <p class="text-base italic text-gray-500 dark:text-gray-400 mb-2">
+                        <i class="fas fa-quote-left text-purple-500 mr-2"></i>
+                        Original: "${DOMPurify.sanitize(hook.hook_phrase)}"
+                    </p>
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                        <span class="tag tag-pace !bg-purple-100 !text-purple-700 dark:!bg-purple-900/50 dark:!text-purple-300"><i class="fas fa-anchor mr-2"></i> ${DOMPurify.sanitize(hook.hook_type)}</span>
+                        <span class="tag !bg-purple-100 !text-purple-700 dark:!bg-purple-900/50 dark:!text-purple-300"><i class="fas fa-anchor mr-2"></i> ${DOMPurify.sanitize(hook.hook_type)}</span>
                         <span class="font-bold ${scoreColor}">Eficácia Original: ${DOMPurify.sanitize(String(hook.effectiveness_score))}/10</span>
                     </div>
-                    <p class="text-sm mt-3 text-gray-600 dark:text-gray-400"><strong>Justificativa da Melhoria:</strong> ${DOMPurify.sanitize(hook.justification)}</p>
+                    <p class="text-sm mt-3 text-gray-600 dark:text-gray-400"><strong class="text-purple-500">Justificativa da Melhoria:</strong> ${DOMPurify.sanitize(hook.justification)}</p>
                     <div class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
                         <p class="text-sm flex-1"><strong class="text-green-600 dark:text-green-400">Sugestão:</strong> "${DOMPurify.sanitize(hook.rewritten_hook)}"</p>
                         <button class="btn btn-primary btn-small flex-shrink-0" data-action="applyHookSuggestion" data-problematic-quote="${problematicQuoteEscaped}" data-rewritten-quote="${rewrittenQuoteEscaped}">Aplicar</button>
@@ -2727,6 +2733,10 @@ const insertViralSuggestion = (button) => {
     button.classList.add('btn-success');
 };
 
+
+
+
+// CÓDIGO ATUALIZADO para suggestViralElements
 const suggestViralElements = async (button) => {
     const fullTranscript = getTranscriptOnly();
     const videoTheme = document.getElementById('videoTheme')?.value.trim();
@@ -2776,11 +2786,12 @@ ${fullTranscript.slice(0, 7500)}
 
 **AÇÃO FINAL:** Analise o roteiro e o contexto. Responda APENAS com o array JSON perfeito, seguindo TODAS as regras, especialmente a de escapar aspas duplas.`;
     try {
-const brokenJson = await callGroqAPI(prompt, 4000);
-const perfectJson = await fixJsonWithAI(brokenJson);
-const suggestions = JSON.parse(perfectJson); // <--- CORREÇÃO AQUI
-
-if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
+        const brokenJson = await callGroqAPI(prompt, 4000);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const suggestions = JSON.parse(perfectJson);
+        
+        if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
+        
         let reportHtml = `<div class="space-y-4">`;
         suggestions.forEach(suggestion => {
             const anchorParagraphEscaped = (suggestion.anchor_paragraph || '').replace(/"/g, '\"');
@@ -2788,13 +2799,13 @@ if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) thr
             const score = suggestion.potential_impact_score || 0;
             const scoreColor = score >= 8 ? 'text-green-500' : score >= 5 ? 'text-yellow-500' : 'text-red-500';
             reportHtml += `
-                <div class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 animate-fade-in">
+                <div class="analysis-card-base analysis-card--viral animate-fade-in">
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm mb-2">
                         <span class="tag !bg-blue-100 !text-blue-700 dark:!bg-blue-900/50 dark:!text-blue-300"><i class="fas fa-lightbulb mr-2"></i> ${DOMPurify.sanitize(suggestion.element_type)}</span>
                         <span class="font-bold ${scoreColor}">Impacto Potencial: ${DOMPurify.sanitize(String(score))}/10</span>
                     </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1"><strong>Local Sugerido:</strong> Após o parágrafo que contém "${DOMPurify.sanitize((suggestion.anchor_paragraph || '').substring(0, 70))}..."</p>
-                    <p class="text-sm mt-3 text-gray-600 dark:text-gray-400"><strong>Ideia de Implementação:</strong> ${DOMPurify.sanitize(suggestion.implementation_idea)}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1"><strong class="text-blue-500"><i class="fas fa-map-marker-alt mr-2"></i>Local Sugerido:</strong> Após o parágrafo que contém "${DOMPurify.sanitize((suggestion.anchor_paragraph || '').substring(0, 70))}..."</p>
+                    <p class="text-sm mt-3 text-gray-600 dark:text-gray-400"><strong class="text-blue-500">Ideia de Implementação:</strong> ${DOMPurify.sanitize(suggestion.implementation_idea)}</p>
                     <div class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
                          <p class="text-sm flex-1"><strong class="text-green-600 dark:text-green-400">Texto a Inserir:</strong> "${DOMPurify.sanitize(suggestion.suggested_text)}"</p>
                         <button class="btn btn-primary btn-small flex-shrink-0" data-action="insertViralSuggestion" data-anchor-paragraph="${anchorParagraphEscaped}" data-suggested-text="${suggestedTextEscaped}">Aplicar</button>
@@ -2811,6 +2822,8 @@ if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) thr
         hideButtonLoading(button);
     }
 };
+
+
 
 
 // ... Continuação do Bloco ETAPA 4 ...
