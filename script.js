@@ -3898,18 +3898,18 @@ Você é uma especialista em criação de prompts visuais cinematográficos. Sua
 3. **PROIBIÇÃO DE ASPAS INTERNAS**: Nos valores de texto, use apenas aspas simples (') para ênfase
 4. **ESTRUTURA PADRÃO**: Cada objeto deve ter exatamente duas chaves:
    - "imageDescription" (string): descrição visual detalhada
-   -estimated_duration" (número inteiro): duração estimada em segundos
+   - "estimated_duration" (número inteiro): duração estimada em segundos
 
 ## EXEMPLO DE FORMATAÇÃO CORRETA
 
 [
   {
-    "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras.",
-    "estimated_duration": 5
+    "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras. O cenário úmido e nevoento intensifica a sensação de isolamento. Profundidade de campo média mostra fundo desfocado com vitrines apagadas. Textura da jaqueta de couro encharcada e poças com reflexos distorcidos aumentam o realismo sensorial.",
+    "estimated_duration": 6
   },
   {
-    "imageDescription": "Close-up em mãos trêmulas segurando uma carta antiga. A luz da manhã entra pela janela, destacando a textura do papel amarelado e a caligrafia tremida. Foco shallow com fundo suavizado.",
-    "estimated_duration": 3
+    "imageDescription": "Close-up em mãos trêmulas segurando uma carta antiga. A luz da manhã entra pela janela, destacando a textura do papel amarelado e a caligrafia tremida. Foco shallow com fundo suavizado revela uma cadeira vazia e um retrato emoldurado caído no chão. Estilo cinematográfico realista com paleta quente em sépia e dourado. A posição ligeiramente contrapicada da câmera enfatiza a vulnerabilidade do personagem. Gotas de chuva deslizam pelo vidro, refletindo memórias distantes.",
+    "estimated_duration": 5
   }
 ]
 
@@ -3918,33 +3918,36 @@ Você é uma especialista em criação de prompts visuais cinematográficos. Sua
 Para cada parágrafo, crie uma descrição visual rica respondendo a estas perguntas:
 
 ### Elementos Visuais Principais
-- **Cenário e Ambiente**: Onde a cena acontece? Descreva o local e atmosfera sensorial
-- **Composição Visual**: Quais elementos principais e como estão organizados no quadro?
-- **Iluminação**: Qual a qualidade, direção e tipo de luz?
-- **Paleta de Cores**: Quais cores dominantes refletem a emoção da cena?
+- **Cenário e Ambiente**: Onde a cena acontece? Descreva o local, arquitetura, objetos e atmosfera sensorial (umidade, temperatura, silêncio)
+- **Composição Visual**: Quais elementos principais estão no quadro? Use regra dos terços, simetria ou desequilíbrio intencional
+- **Iluminação**: Qual a qualidade (dura, difusa), direção (contraluz, lateral) e fonte (natural, artificial) da luz?
+- **Paleta de Cores**: Quais cores dominam? Como elas refletem o estado emocional (ex: azul para tristeza, vermelho para tensão)?
 
 ### Técnicas Cinematográficas
-- **Ângulo da Câmera**: De onde olhamos a cena (plano geral, close, etc.)?
-- **Estilo Visual**: Qual a estética (realista, vintage, etc.)?
-- **Foco e Profundidade**: O que está nítido e o que está desfocado?
-- **Movimento e Ação**: Há movimento de câmera ou personagens?
+- **Ângulo da Câmera**: Plano geral, médio, close, contrapicado, picado, drone, steadycam?
+- **Estilo Visual**: Estética clara (realista, vintage, anime, distópico, documental)?
+- **Foco e Profundidade**: Profundidade de campo rasa (shallow) ou ampla? O que está nítido e o que está desfocado?
+- **Movimento e Ação**: Há movimento de câmera (dolly, pan, zoom)? Há ação dos personagens ou elementos do ambiente?
 
 ### Elementos Emocionais e Narrativos
-- **Elementos Emocionais**: Quais elementos visuais amplificam a emoção?
-- **Expressões Faciais**: Como os personagens expressam suas emoções?
-- **Símbolos Chave**: Quais objetos ou elementos são importantes para a narrativa?
-- **Texturas e Materiais**: Quais texturas aumentam o realismo?
+- **Elementos Emocionais**: Quais aspectos visuais evocam emoção (solidão, tensão, esperança)?
+- **Expressões Faciais**: Como os olhos, boca e postura transmitem o estado interno?
+- **Símbolos Chave**: Objetos com significado narrativo (fotos, relógios, cartas, armas)?
+- **Texturas e Materiais**: Tecidos, metal, pele, poeira, água — como aumentam o realismo e a imersão?
 
 ### Contexto e Atmosfera
-- **Profundidade e Escala**: Como o espaço é representado?
-- **Elementos Temporais ou Climáticos**: Qual o momento do dia, clima ou estação?
+- **Profundidade e Escala**: Camadas de profundidade (primeiro plano, fundo)? Sensação de vazio, aglomeração ou claustrofobia?
+- **Elementos Temporais ou Climáticos**: Hora do dia, estação, clima (chuva, neblina, vento)? Como afetam a cena?
 
 ## DIRETRIZES ADICIONAIS
 
-- Priorize elementos visuais que melhor representem a essência do parágrafo
-- Mantenha consistência de estilo entre prompts consecutivos quando aplicável
-- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade da cena
-- Se o texto de entrada for ambíguo, faça escolhas criativas coerentes com o contexto geral
+- Priorize elementos visuais que melhor representem a essência emocional e narrativa do parágrafo
+- Mantenha consistência de estilo entre prompts consecutivos (ex: mesma paleta, iluminação, estética)
+- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade da cena:
+  - Simples (close, poucos elementos): 2–4s
+  - Média (plano médio, ação leve): 5–7s
+  - Complexa (plano geral, múltiplos elementos): 8–10s
+- Se o texto for ambíguo, faça escolhas criativas coerentes com o tom geral (dramático, nostálgico, tenso)
 
 ## DADOS PARA ANÁLISE
 
