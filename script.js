@@ -1725,26 +1725,34 @@ const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = nul
             : '**INFORMAÇÃO CRÍTICA:** Esta é a primeira seção do vídeo. Crie um gancho poderoso para prender a atenção desde o primeiro segundo.';
 
         prompt = `
-Você é uma API ROTEIRISTA DE ELITE. Sua única tarefa é escrever os parágrafos para a seção "${sectionTitle}" de um roteiro de vídeo.
+Você é um ROTEIRISTA CONTINUÍSTA DE ELITE. Sua única função é escrever o PRÓXIMO trecho de um roteiro, com foco absoluto em NOVIDADE e PROGRESSÃO NARRATIVA.
 
-**CONTEXTO E DIRETRIZES GERAIS:**
+**INFORMAÇÃO CRÍTICA PARA O ROTEIRISTA:**
+O texto em "ROTEIRO ESCRITO ATÉ AGORA" representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É TERMINANTEMENTE PROIBIDO repetir, resumir ou parafrasear qualquer conceito, ideia ou evento já mencionado. Repetir informações quebra a imersão do espectador e será considerado uma FALHA GRAVE na sua tarefa.
+
+**CONTEXTO E DIRETRIZES GERAIS DO PROJETO:**
 ---
 ${baseContext}
 ---
 
+**ROTEIRO ESCRITO ATÉ AGORA (CONHECIMENTO JÁ ADQUIRIDO PELO PÚBLICO):**
+---
 ${priorKnowledgeContext}
+---
 
 **TAREFA IMEDIATA E FOCALIZADA:**
 -   **Seção a ser Escrita:** "${sectionTitle}"
 -   **Diretriz Estratégica para esta Seção:** "${outlineDirective || 'Continue a narrativa de forma coesa e impactante.'}"
 -   **Duração Estimada:** ${durationInstruction}
 
-**REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
-1.  **TEXTO PURO:** Sua resposta deve ser **APENAS e SOMENTE** o texto narrado.
-2.  **SEPARAÇÃO POR PARÁGRAFOS:** Separe cada parágrafo com **DUAS quebras de linha**.
-3.  **PROIBIÇÃO TOTAL DE EXTRAS:** Não inclua títulos, anotações, comentários ou qualquer texto que não seja parte do roteiro.
+**SUA MISSÃO:**
+Sua única missão é AVANÇAR A HISTÓRIA. Introduza novos fatos, aprofunde um novo argumento, explore uma nova consequência ou apresente um novo conflito. O espectador está esperando para saber o que acontece a seguir, não para ouvir de novo o que já passou.
 
-**AÇÃO FINAL:** Escreva AGORA os parágrafos para a seção "${sectionTitle}", garantindo que cada frase introduza conteúdo 100% novo. Responda APENAS com o texto puro do roteiro.`;
+**REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
+1.  **RESPOSTA 100% PURA:** Sua resposta deve conter APENAS e SOMENTE o texto que será dito em voz alta.
+2.  **NENHUMA FORMATAÇÃO EXTRA:** É proibido incluir qualquer anotação, rótulo de personagem, descrição de cena ou título na sua resposta.
+
+**AÇÃO FINAL:** Escreva AGORA o texto para a seção "${sectionTitle}", garantindo que cada frase introduza conteúdo 100% novo para o espectador. Responda APENAS com o texto a ser narrado.`;
     
     } else {
         // Lógica para os outros tipos de prompts (outline, titles, etc.)
