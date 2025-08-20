@@ -2604,6 +2604,10 @@ const applyHookSuggestion = (button) => {
     button.classList.add('btn-success');
 };
 
+
+
+
+
 const analyzeRetentionHooks = async (button) => {
     const fullTranscript = getTranscriptOnly();
     if (!fullTranscript) {
@@ -2627,9 +2631,15 @@ ${fullTranscript.slice(0, 7500)}
 
 **AÇÃO FINAL:** Analise o roteiro. Responda APENAS com o array JSON perfeito.`;
     try {
-        const rawResult = await callGroqAPI(prompt, 4000);
-        const hooks = cleanGeneratedText(rawResult, true);
+        // ==========================================================
+        // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
+        // ==========================================================
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const hooks = JSON.parse(perfectJson);
+
         if (!hooks || !Array.isArray(hooks) || hooks.length === 0) throw new Error("A IA não encontrou ganchos ou retornou um formato inválido.");
+        
         let reportHtml = `<div class="space-y-4">`;
         hooks.forEach((hook) => {
             const problematicQuoteEscaped = (hook.hook_phrase || '').replace(/"/g, '\"');
@@ -2659,6 +2669,10 @@ ${fullTranscript.slice(0, 7500)}
         hideButtonLoading(button);
     }
 };
+
+
+
+
 
 const insertViralSuggestion = (button) => {
     const { anchorParagraph, suggestedText } = button.dataset;
