@@ -3727,6 +3727,7 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 // >>>>> FIM DA VERSÃO BLINDADA DE 'addDevelopmentChapter' <<<<<
 // =========================================================================
 
+// CÓDIGO NOVO E RESILIENTE para suggestPerformance
 window.suggestPerformance = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -3756,18 +3757,28 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 **MANUAL DE ANOTAÇÃO (REGRAS CRÍTICAS):**
 1.  **Para "general_annotation":**
-    *   A anotação DEVE ser uma instrução curta para o narrador.
-    *   NÃO PODE ser um resumo, um título, ou uma reescrita do parágrafo.
-    *   **Exemplos BONS:** "[Tom mais sério e grave]", "[Pausa dramática antes de continuar]", "[Falar mais rápido, com tom de urgência]", "[Sussurrar, como se contasse um segredo]".
-    *   **Se nenhuma instrução for necessária, deixe a string VAZIA.**
+    *   A anotação DEVE ser uma instrução curta para o narrador (ex: "[Tom mais sério e grave]", "[Pausa dramática]", "[Falar com urgência]").
+    *   Se nenhuma instrução for necessária, deixe a string VAZIA ("").
 2.  **Para "emphasis_words":**
-    *   Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase para maximizar o impacto.
-    *   **Se nenhuma ênfase for necessária, deixe o array VAZIO.**
+    *   Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase.
+    *   Se nenhuma ênfase for necessária, deixe o array VAZIO ([]).
 
 **REGRAS DE SINTAXE JSON (INEGOCIÁVEIS):**
-1.  Sua resposta deve ser APENAS o array JSON, contendo EXATAMENTE ${originalParagraphs.length} objetos.
-2.  Cada objeto DEVE ter DUAS chaves: "general_annotation" (string) e "emphasis_words" (um array de strings).
-3.  Use aspas duplas ("") para todas as chaves e valores string.
+1.  Sua resposta deve ser APENAS o array JSON, contendo um objeto para CADA parágrafo enviado.
+2.  Cada objeto DEVE ter DUAS chaves: "general_annotation" (string) e "emphasis_words" (array de strings).
+3.  Use aspas duplas ("") para todas as chaves e valores.
+
+**EXEMPLO DE RESPOSTA PERFEITA PARA 2 PARÁGRAFOS:**
+[
+  {
+    "general_annotation": "[Tom de revelação, quase um sussurro]",
+    "emphasis_words": ["nunca esteve no futuro"]
+  },
+  {
+    "general_annotation": "",
+    "emphasis_words": []
+  }
+]
 
 **AÇÃO FINAL:** Analise CADA parágrafo e retorne o array JSON completo com suas anotações de DIRETOR.`;
         
@@ -3775,26 +3786,28 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
         const perfectJson = await fixJsonWithAI(brokenJson);
         const annotations = JSON.parse(perfectJson);
 
-        if (!Array.isArray(annotations) || annotations.length < originalParagraphs.length) { 
-            throw new Error("A IA não retornou anotações para todos os parágrafos.");
+        // ==========================================================
+        // >>>>> A LÓGICA RESILIENTE ESTÁ AQUI <<<<<
+        // ==========================================================
+        if (!Array.isArray(annotations)) { 
+            throw new Error("A IA não retornou um array de anotações válido.");
+        }
+        if (annotations.length < originalParagraphs.length) {
+            console.warn(`Discrepância na performance: ${originalParagraphs.length} parágrafos enviados, ${annotations.length} anotações recebidas. O restante será ignorado.`);
         }
         
         let annotatedParagraphs = [];
         originalParagraphs.forEach((p, index) => {
+            // Se não houver anotação para este parágrafo, usamos um objeto padrão vazio.
             const annotationData = annotations[index] || { general_annotation: '', emphasis_words: [] };
             let annotatedParagraph = p.text;
 
-            // ==========================================================
-            // >>>>> A LÓGICA CORRETA E FINAL ESTÁ AQUI <<<<<
-            // Substituímos "palavra" por "[ênfase em 'palavra'] palavra".
-            // ==========================================================
             if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
                 const word = annotationData.emphasis_words[0];
                 if (word && typeof word === 'string' && word.trim() !== '') {
                     const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                    // A substituição agora gera: "[ênfase em 'palavra'] palavra"
-                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1'] $1`);
+                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `<span class="performance-emphasis">$1</span>`);
                 }
             }
             
@@ -3804,9 +3817,25 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
         
         const finalAnnotatedText = annotatedParagraphs.join('\n\n');
         
-        const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span style="color: var(--primary); font-weight: 600; font-style: italic;">$1</span>');
+        const highlightedInstructions = finalAnnotatedText.replace(/(\[.*?\])/g, '<span style="color: var(--primary); font-weight: 600; font-style: italic;">$1</span>');
 
-        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><p class="whitespace-pre-wrap">${highlightedText}</p></div>`;
+        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><p class="whitespace-pre-wrap">${highlightedInstructions}</p></div>`;
+        
+        // Adiciona a classe de estilo para a ênfase, se ainda não existir
+        if (!document.querySelector('style[data-dynamic-style="performance-emphasis"]')) {
+            const style = document.createElement('style');
+            style.dataset.dynamicStyle = "performance-emphasis";
+            style.innerHTML = `
+                .performance-emphasis {
+                    font-weight: 700;
+                    color: var(--primary);
+                    background-color: color-mix(in srgb, var(--primary) 15%, transparent);
+                    padding: 0 4px;
+                    border-radius: 4px;
+                }
+            `;
+            document.head.appendChild(style);
+        }
             
     } catch (error) {
         outputContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">Falha ao sugerir performance: ${error.message}</p>`;
