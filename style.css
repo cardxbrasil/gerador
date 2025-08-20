@@ -819,7 +819,7 @@ textarea.input { min-height: 84px; resize: vertical; }
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-size: 1.125rem;
+    font-size: 0.9rem;
     font-weight: 700;
     color: var(--text-header);
     margin-bottom: 0.5rem;
