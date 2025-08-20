@@ -3775,14 +3775,18 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
         const perfectJson = await fixJsonWithAI(brokenJson);
         const annotations = JSON.parse(perfectJson);
 
-        if (!Array.isArray(annotations) || annotations.length < originalParagraphs.length) { 
-            throw new Error("A IA não retornou anotações para todos os parágrafos.");
-        }
+if (!Array.isArray(annotations)) { 
+    throw new Error("A IA não retornou um array de anotações válido.");
+}
+if (annotations.length < originalParagraphs.length) {
+    console.warn(`Discrepância na performance: ${originalParagraphs.length} parágrafos enviados, ${annotations.length} anotações recebidas. O restante será ignorado.`);
+}
         
         let annotatedParagraphs = [];
-        originalParagraphs.forEach((p, index) => {
-            const annotationData = annotations[index] || { general_annotation: '', emphasis_words: [] };
-            let annotatedParagraph = p.text;
+originalParagraphs.forEach((p, index) => {
+    // Se a anotação não existir, usamos um objeto padrão vazio.
+    const annotationData = annotations[index] || { general_annotation: '', emphasis_words: [] };
+    let annotatedParagraph = p.text;
 
             // ==========================================================
             // >>>>> A LÓGICA CORRETA E FINAL ESTÁ AQUI <<<<<
