@@ -3619,6 +3619,7 @@ ${newData}
  * @param {HTMLElement} button - O botão que foi clicado.
  */
 // CÓDIGO COMPLETO PARA SUBSTITUIÇÃO (JÁ OTIMIZADO)
+// CÓDIGO COMPLETO PARA SUBSTITUIÇÃO (OTIMIZAÇÃO AGRESSIVA)
 window.addDevelopmentChapter = async (button) => {
     const devSection = document.getElementById('developmentSection');
     const contentWrapper = devSection?.querySelector('.generated-content-wrapper');
@@ -3639,7 +3640,7 @@ Você não é um gerador de texto. Você é um mestre roteirista que identifica 
 
 **ROTEIRO ATUAL (PARA ANÁLISE DE CONTINUIDADE CRÍTICA):**
 ---
-${existingText.slice(-3000)} 
+${existingText.slice(-1500)} 
 ---
 
 **TAREFA:** Analise o fluxo narrativo do roteiro acima e gere um array JSON com as 3 sugestões mais fortes, coerentes e cativantes para o tema do próximo capítulo.
