@@ -1599,9 +1599,9 @@ const getBasePromptContext = () => {
 
 
 
-// script.js (Cole após getBasePromptContext)
 
-// COLE ESTA NOVA FUNÇÃO NO SEU SCRIPT.JS
+
+// CÓDIGO COMPLETO PARA SUBSTITUIÇÃO (VERSÃO FINAL E OTIMIZADA)
 
 const getOptimizedBaseContext = async () => {
     // 1. Pega todos os inputs, incluindo os mais longos
@@ -1614,11 +1614,11 @@ const getOptimizedBaseContext = async () => {
         narrativeStructure: document.getElementById('narrativeStructure')?.value || "",
         narrativeTone: document.getElementById('narrativeTone')?.value || "",
         narrativeVoice: document.getElementById('narrativeVoice')?.value.trim() || "",
-        // Inputs "pesados" que serão otimizados
-        videoDescription: document.getElementById('videoDescription')?.value.trim() || "",
-        centralQuestion: document.getElementById('centralQuestion')?.value.trim() || "",
-        researchData: document.getElementById('researchData')?.value.trim() || "",
-        emotionalHook: document.getElementById('emotionalHook')?.value.trim() || "",
+        // >>>>> A CORREÇÃO ESTÁ AQUI: Limitamos o tamanho do texto ANTES de enviar para otimização <<<<<
+        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 2000),
+        centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
+        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 2000),
+        emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
     };
 
     // 2. Junta apenas os textos longos para a IA resumir
