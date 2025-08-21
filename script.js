@@ -791,6 +791,49 @@ const fixJsonWithAI = async (brokenJsonText) => {
 };
 
 
+// COLE ESTA NOVA FUNÇÃO NO SEU SCRIPT.JS
+
+const extractAndParseJson = (text) => {
+    if (!text) {
+        throw new Error("A IA retornou uma resposta vazia.");
+    }
+
+    // Procura o início do JSON (primeiro '{' ou '[')
+    const firstBrace = text.indexOf('{');
+    const firstBracket = text.indexOf('[');
+    
+    let startIndex;
+    if (firstBrace === -1 && firstBracket === -1) {
+        throw new Error("A resposta da IA não contém um JSON válido.");
+    }
+    if (firstBrace === -1) {
+        startIndex = firstBracket;
+    } else if (firstBracket === -1) {
+        startIndex = firstBrace;
+    } else {
+        startIndex = Math.min(firstBrace, firstBracket);
+    }
+
+    // Procura o fim do JSON (último '}' ou ']')
+    const lastBrace = text.lastIndexOf('}');
+    const lastBracket = text.lastIndexOf(']');
+    const endIndex = Math.max(lastBrace, lastBracket);
+
+    if (endIndex === -1 || endIndex < startIndex) {
+        throw new Error("Não foi possível encontrar o final do bloco JSON na resposta da IA.");
+    }
+
+    // Extrai o bloco de JSON
+    const jsonString = text.substring(startIndex, endIndex + 1);
+
+    try {
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error("Falha ao analisar o JSON extraído:", jsonString);
+        throw new Error(`Erro de sintaxe no JSON fornecido pela IA: ${error.message}`);
+    }
+};
+
 
 
 
@@ -1372,7 +1415,7 @@ const generateIdeasFromReport = async (button) => {
         outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Corrigindo e validando a sintaxe...</p></div>`;
 
         // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
-        const perfectJsonText = await fixJsonWithAI(brokenJsonResponse);
+        const ideas = extractAndParseJson(brokenJsonResponse);
         
         // ETAPA 3: PARSE SEGURO
         const ideas = JSON.parse(perfectJsonText);
@@ -1645,8 +1688,7 @@ const suggestStrategy = async (button) => {
 
     try {
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        const perfectJson = await fixJsonWithAI(brokenJson);
-        const strategy = JSON.parse(perfectJson);
+const strategy = extractAndParseJson(brokenJson);
 
         if (!strategy || typeof strategy !== 'object') throw new Error("A IA não retornou uma estratégia em formato JSON válido.");
         
@@ -1855,8 +1897,7 @@ const generateStrategicOutline = async (button) => {
         const { prompt } = constructScriptPrompt('outline');
 
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        const perfectJson = await fixJsonWithAI(brokenJson);
-        let strategicOutlineData = JSON.parse(perfectJson);
+        let strategicOutlineData = extractAndParseJson(brokenJson);
 
         if (Array.isArray(strategicOutlineData) && strategicOutlineData.length > 0) {
             strategicOutlineData = strategicOutlineData[0];
