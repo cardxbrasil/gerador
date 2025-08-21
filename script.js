@@ -35,7 +35,7 @@ const wordCountMap = {
     'long': { intro: 225, development: 750, climax: 300, conclusion: 225 },
 };
 
-const CINEMATIC_STYLE_BLOCK = `
+        const CINEMATIC_STYLE_BLOCK = `
 # DIRETRIZES DE ESTILO CINEMATOGRÁFICO PARA IMAGENS DE ALTA RESOLUÇÃO
 
 Ultra-realistic, high-resolution photographic image captured with masterfully rendered natural or artificial lighting and cinematic composition. The aesthetic should be of a modern cinematic film, with meticulous attention to physical and sensory details. The image must appear as if photographed by a professional cinematographer using a high-end camera (e.g., ARRI Alexa, RED Komodo), not digitally rendered.
@@ -65,17 +65,6 @@ Para diferentes gêneros e atmosferas, considere estas referências:
 - **Épico/Histórico:** Estilo de Rodrigo Prieto em "The Irishman" - paleta de cores específica do período, iluminação naturalista, detalhes autênticos
 - **Contemporâneo/Realista:** Estilo de Greig Fraser em "The Mandalorian" - iluminação prática, texturas realistas, composição dinâmica
 
-## TERMOS CHAVE PARA FORÇAR REALISMO FOTOGRAFICO (ADICIONAR AO PROMPT FINAL)
-
-Use os seguintes termos como **prefixos ou sufixos** no prompt final:
-- "photographed by a cinematographer"
-- "shot on 35mm film"
-- "natural lighting, no digital enhancement"
-- "real-world textures, no CGI"
-- "imperfectly lit, authentic atmosphere"
-- "lens flare, slight grain, shallow depth of field"
-- "captured in a single take, no retouching"
-
 ## RESTRIÇÕES DE ESTILO (O QUE EVITAR)
 
 - **NO** exaggerated or distorted features (facial features, proportions).
@@ -90,12 +79,20 @@ Use os seguintes termos como **prefixos ou sufixos** no prompt final:
 - **NO** idealized human features — accept wrinkles, pores, scars, uneven skin tone.
 - **NO** hyper-sharpness across the entire image — simulate lens limitations.
 
+## TERMOS CHAVE PARA FORÇAR REALISMO FOTOGRAFICO (ADICIONAR AO PROMPT FINAL)
 
+Use os seguintes termos como **prefixos ou sufixos** no prompt final:
+- "photographed by a cinematographer"
+- "shot on 35mm film"
+- "natural lighting, no digital enhancement"
+- "real-world textures, no CGI"
+- "imperfectly lit, authentic atmosphere"
+- "lens flare, slight grain, shallow depth of field"
+- "captured in a single take, no retouching"
 
 ## INSTRUÇÃO FINAL PARA O MODELO
 
-You are generating an image that must be **indistinguishable from a real photograph taken during filming**. It should not look like a 3D render, digital painting, or concept art. Every surface, shadow, and face must reflect the complexity and imperfection of reality. If you see anything that looks too clean, symmetric, or artificial, reject it and re-generate with more physical authenticity.
-`;
+You are generating an image that must be **indistinguishable from a real photograph taken during filming**. It should not look like a 3D render, digital painting, or concept art. Every surface, shadow, and face must reflect the complexity and imperfection of reality. If you see anything that looks too clean, symmetric, or artificial, reject it and re-generate with more physical authenticity.`;
 
 
 
@@ -3618,8 +3615,6 @@ ${newData}
  * Adiciona um novo capítulo ao desenvolvimento, com prompt refinado para evitar repetição do título e "ecos".
  * @param {HTMLElement} button - O botão que foi clicado.
  */
-// CÓDIGO COMPLETO PARA SUBSTITUIÇÃO (JÁ OTIMIZADO)
-// CÓDIGO COMPLETO PARA SUBSTITUIÇÃO (OTIMIZAÇÃO AGRESSIVA)
 window.addDevelopmentChapter = async (button) => {
     const devSection = document.getElementById('developmentSection');
     const contentWrapper = devSection?.querySelector('.generated-content-wrapper');
@@ -3640,7 +3635,7 @@ Você não é um gerador de texto. Você é um mestre roteirista que identifica 
 
 **ROTEIRO ATUAL (PARA ANÁLISE DE CONTINUIDADE CRÍTICA):**
 ---
-${existingText.slice(-1500)} 
+${existingText.slice(-3000)} 
 ---
 
 **TAREFA:** Analise o fluxo narrativo do roteiro acima e gere um array JSON com as 3 sugestões mais fortes, coerentes e cativantes para o tema do próximo capítulo.
@@ -3653,7 +3648,7 @@ ${existingText.slice(-1500)}
 **MANUAL DE CRIAÇÃO DE SUGESTÕES (SEUS CRITÉRIOS DE QUALIDADE):**
 - **Distinção:** Cada uma das 3 sugestões deve ser claramente diferente das outras.
 - **Coerência e Conexão Lógica:** Cada sugestão deve ser uma consequência natural ou uma ramificação interessante do ponto onde o roteiro atual termina.
-- **Originalidade e Novidade:** Evite o óvio. Cada sugestão deve introduzir um novo elemento, conflito ou perspectiva que avance a narrativa.
+- **Originalidade e Novidade:** Evite o óbvio. Cada sugestão deve introduzir um novo elemento, conflito ou perspectiva que avance a narrativa.
 - **Especificidade:** As sugestões devem ser títulos de capítulo ou temas específicos e acionáveis. Evite generalidades.
     - **Exemplos BONS (Específicos):** "A Descoberta do Diário", "O Confronto com o Antigo Mentor", "O Plano B que Ninguém Esperava".
     - **Exemplos RUINS (Genéricos):** "Mais desenvolvimento", "Uma nova reviravolta", "Aprofundar o personagem".
@@ -3663,6 +3658,9 @@ ${existingText.slice(-1500)}
 
 **AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.`;
 
+        // ==========================================================
+        // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
+        // ==========================================================
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 1000);
         const perfectJson = await fixJsonWithAI(brokenJson);
         const chapterSuggestions = JSON.parse(perfectJson) || [];
@@ -3695,7 +3693,7 @@ O texto abaixo representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É **
 
 **ROTEIRO ESCRITO ATÉ AGORA (CONHECIMENTO JÁ ADQUIRIDO PELO PÚBLICO):**
 ---
-${existingText.slice(-3000)}
+${existingText}
 ---
 
 **TAREFA IMEDIATA E FOCALIZADA:**
