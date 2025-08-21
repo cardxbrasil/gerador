@@ -770,24 +770,25 @@ const fixJsonWithAI = async (brokenJsonText) => {
         // Continua apenas se o JSON estiver quebrado
     }
 
-    const prompt = `Você é um especialista em correção de sintaxe JSON. Sua única tarefa é pegar o texto abaixo, que é uma tentativa de um objeto ou array JSON, e consertá-lo para que seja 100% válido.
+    const prompt = `Você é um engenheiro de sintaxe JSON de elite. Sua única e crítica tarefa é pegar o texto abaixo, que é uma tentativa de JSON, e consertá-lo para que seja 100% válido, sem alterar o conteúdo textual.
 
-    REGRAS CRÍTICAS:
-    1.  Corrija quaisquer erros: vírgulas faltando ou sobrando, aspas incorretas (incluindo aspas duplas dentro de valores como ""), objetos incompletos ou quebrados, etc.
-    2.  Se houver objetos duplicados, mantenha apenas a versão mais completa de cada um.
-    3.  Sua resposta deve ser APENAS o JSON perfeitamente corrigido. NÃO inclua nenhum texto, explicação ou comentário.
+    **REGRAS CRÍTICAS E INEGOCIÁVEIS:**
+    1.  **Estrutura:** Corrija quaisquer erros estruturais, como vírgulas faltando ou sobrando, chaves mal fechadas ({}), ou colchetes mal fechados ([]).
+    2.  **Aspas:** Garanta que TODAS as chaves e valores de string usem aspas duplas ("). Se um valor de string precisar conter aspas duplas, elas DEVEM ser escapadas com uma barra invertida (ex: "Ele disse: \\"Olá\\".").
+    3.  **Caracteres de Controle (A REGRA MAIS IMPORTANTE):** Encontre TODAS as quebras de linha literais (newlines) que estão dentro de valores de string e substitua-as pelo caractere de escape \\n. JSON não permite quebras de linha não escapadas em strings.
+    4.  **Output Puro:** Sua resposta deve ser APENAS o JSON perfeitamente corrigido. NÃO inclua nenhum texto, explicação, comentário ou markdown como \`\`\`json.
 
-    TEXTO QUEBRADO PARA CORRIGIR:
+    **TEXTO QUEBRADO PARA CORRIGIR:**
     ---
     ${brokenJsonText}
     ---
 
-    Retorne APENAS o JSON corrigido.`;
+    Retorne APENAS o JSON corrigido, prestando atenção especial à regra 3.`;
 
     const fixedJsonText = await callGroqAPI(prompt, 8000); 
-    return fixedJsonText;
+    // Uma última limpeza para remover qualquer markdown que a IA possa ter adicionado
+    return fixedJsonText.replace(/```json\n/g, '').replace(/```/g, '').trim();
 };
-
 
 
 
