@@ -65,6 +65,17 @@ Para diferentes gêneros e atmosferas, considere estas referências:
 - **Épico/Histórico:** Estilo de Rodrigo Prieto em "The Irishman" - paleta de cores específica do período, iluminação naturalista, detalhes autênticos
 - **Contemporâneo/Realista:** Estilo de Greig Fraser em "The Mandalorian" - iluminação prática, texturas realistas, composição dinâmica
 
+## TERMOS CHAVE PARA FORÇAR REALISMO FOTOGRAFICO (ADICIONAR AO PROMPT FINAL)
+
+Use os seguintes termos como **prefixos ou sufixos** no prompt final:
+- "photographed by a cinematographer"
+- "shot on 35mm film"
+- "natural lighting, no digital enhancement"
+- "real-world textures, no CGI"
+- "imperfectly lit, authentic atmosphere"
+- "lens flare, slight grain, shallow depth of field"
+- "captured in a single take, no retouching"
+
 ## RESTRIÇÕES DE ESTILO (O QUE EVITAR)
 
 - **NO** exaggerated or distorted features (facial features, proportions).
@@ -79,16 +90,7 @@ Para diferentes gêneros e atmosferas, considere estas referências:
 - **NO** idealized human features — accept wrinkles, pores, scars, uneven skin tone.
 - **NO** hyper-sharpness across the entire image — simulate lens limitations.
 
-## TERMOS CHAVE PARA FORÇAR REALISMO FOTOGRAFICO (ADICIONAR AO PROMPT FINAL)
 
-Use os seguintes termos como **prefixos ou sufixos** no prompt final:
-- "photographed by a cinematographer"
-- "shot on 35mm film"
-- "natural lighting, no digital enhancement"
-- "real-world textures, no CGI"
-- "imperfectly lit, authentic atmosphere"
-- "lens flare, slight grain, shallow depth of field"
-- "captured in a single take, no retouching"
 
 ## INSTRUÇÃO FINAL PARA O MODELO
 
@@ -3615,6 +3617,7 @@ ${newData}
  * Adiciona um novo capítulo ao desenvolvimento, com prompt refinado para evitar repetição do título e "ecos".
  * @param {HTMLElement} button - O botão que foi clicado.
  */
+// CÓDIGO COMPLETO PARA SUBSTITUIÇÃO (JÁ OTIMIZADO)
 window.addDevelopmentChapter = async (button) => {
     const devSection = document.getElementById('developmentSection');
     const contentWrapper = devSection?.querySelector('.generated-content-wrapper');
@@ -3648,7 +3651,7 @@ ${existingText.slice(-3000)}
 **MANUAL DE CRIAÇÃO DE SUGESTÕES (SEUS CRITÉRIOS DE QUALIDADE):**
 - **Distinção:** Cada uma das 3 sugestões deve ser claramente diferente das outras.
 - **Coerência e Conexão Lógica:** Cada sugestão deve ser uma consequência natural ou uma ramificação interessante do ponto onde o roteiro atual termina.
-- **Originalidade e Novidade:** Evite o óbvio. Cada sugestão deve introduzir um novo elemento, conflito ou perspectiva que avance a narrativa.
+- **Originalidade e Novidade:** Evite o óvio. Cada sugestão deve introduzir um novo elemento, conflito ou perspectiva que avance a narrativa.
 - **Especificidade:** As sugestões devem ser títulos de capítulo ou temas específicos e acionáveis. Evite generalidades.
     - **Exemplos BONS (Específicos):** "A Descoberta do Diário", "O Confronto com o Antigo Mentor", "O Plano B que Ninguém Esperava".
     - **Exemplos RUINS (Genéricos):** "Mais desenvolvimento", "Uma nova reviravolta", "Aprofundar o personagem".
@@ -3658,9 +3661,6 @@ ${existingText.slice(-3000)}
 
 **AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.`;
 
-        // ==========================================================
-        // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
-        // ==========================================================
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 1000);
         const perfectJson = await fixJsonWithAI(brokenJson);
         const chapterSuggestions = JSON.parse(perfectJson) || [];
@@ -3693,7 +3693,7 @@ O texto abaixo representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É **
 
 **ROTEIRO ESCRITO ATÉ AGORA (CONHECIMENTO JÁ ADQUIRIDO PELO PÚBLICO):**
 ---
-${existingText}
+${existingText.slice(-3000)}
 ---
 
 **TAREFA IMEDIATA E FOCALIZADA:**
