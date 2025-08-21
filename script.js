@@ -65,6 +65,17 @@ Para diferentes gêneros e atmosferas, considere estas referências:
 - **Épico/Histórico:** Estilo de Rodrigo Prieto em "The Irishman" - paleta de cores específica do período, iluminação naturalista, detalhes autênticos
 - **Contemporâneo/Realista:** Estilo de Greig Fraser em "The Mandalorian" - iluminação prática, texturas realistas, composição dinâmica
 
+## TERMOS CHAVE PARA FORÇAR REALISMO FOTOGRAFICO (ADICIONAR AO PROMPT FINAL)
+
+Use os seguintes termos como **prefixos ou sufixos** no prompt final:
+- "photographed by a cinematographer"
+- "shot on 35mm film"
+- "natural lighting, no digital enhancement"
+- "real-world textures, no CGI"
+- "imperfectly lit, authentic atmosphere"
+- "lens flare, slight grain, shallow depth of field"
+- "captured in a single take, no retouching"
+
 ## RESTRIÇÕES DE ESTILO (O QUE EVITAR)
 
 - **NO** exaggerated or distorted features (facial features, proportions).
@@ -79,16 +90,7 @@ Para diferentes gêneros e atmosferas, considere estas referências:
 - **NO** idealized human features — accept wrinkles, pores, scars, uneven skin tone.
 - **NO** hyper-sharpness across the entire image — simulate lens limitations.
 
-## TERMOS CHAVE PARA FORÇAR REALISMO FOTOGRAFICO (ADICIONAR AO PROMPT FINAL)
 
-Use os seguintes termos como **prefixos ou sufixos** no prompt final:
-- "photographed by a cinematographer"
-- "shot on 35mm film"
-- "natural lighting, no digital enhancement"
-- "real-world textures, no CGI"
-- "imperfectly lit, authentic atmosphere"
-- "lens flare, slight grain, shallow depth of field"
-- "captured in a single take, no retouching"
 
 ## INSTRUÇÃO FINAL PARA O MODELO
 
@@ -1597,6 +1599,71 @@ const getBasePromptContext = () => {
 
 
 
+// script.js (Cole após getBasePromptContext)
+
+// COLE ESTA NOVA FUNÇÃO NO SEU SCRIPT.JS
+
+const getOptimizedBaseContext = async () => {
+    // 1. Pega todos os inputs, incluindo os mais longos
+    const inputs = {
+        channelName: document.getElementById('channelName')?.value.trim() || "",
+        videoTheme: document.getElementById('videoTheme')?.value.trim() || "",
+        targetAudience: document.getElementById('targetAudience')?.value.trim() || "",
+        language: document.getElementById('languageSelect')?.value || "en",
+        videoObjective: document.getElementById('videoObjective')?.value || "",
+        narrativeStructure: document.getElementById('narrativeStructure')?.value || "",
+        narrativeTone: document.getElementById('narrativeTone')?.value || "",
+        narrativeVoice: document.getElementById('narrativeVoice')?.value.trim() || "",
+        // Inputs "pesados" que serão otimizados
+        videoDescription: document.getElementById('videoDescription')?.value.trim() || "",
+        centralQuestion: document.getElementById('centralQuestion')?.value.trim() || "",
+        researchData: document.getElementById('researchData')?.value.trim() || "",
+        emotionalHook: document.getElementById('emotionalHook')?.value.trim() || "",
+    };
+
+    // 2. Junta apenas os textos longos para a IA resumir
+    const heavyContextText = `
+        Inspiration/Context: "${inputs.videoDescription}"
+        Central Question: "${inputs.centralQuestion}"
+        Emotional Anchor Story: "${inputs.emotionalHook}"
+        Critical Research Data: "${inputs.researchData}"
+    `;
+
+    // 3. Cria um prompt para a IA agir como um "assistente" e resumir o contexto
+    const summarizerPrompt = `You are a briefing specialist AI. Your task is to summarize the following user-provided context into a concise, bullet-pointed list for a scriptwriter AI. Extract only the most critical strategic points. Keep the summary under 150 words. The summary language must be the same as the source text.
+    
+    CONTEXT TO SUMMARIZE:
+    ---
+    ${heavyContextText}
+    ---
+    
+    Return ONLY the concise summary.`;
+
+    // 4. Pede à IA para criar o resumo otimizado
+    const optimizedSummary = await callGroqAPI(summarizerPrompt, 500);
+
+    // 5. Monta o contexto final, usando o resumo em vez do texto bruto
+    let finalContext = `Você é um ROTEIRISTA ESPECIALISTA para o canal "${inputs.channelName}".
+    **Core Project Details:**
+    - Video Topic: "${inputs.videoTheme}"
+    - Target Audience: "${inputs.targetAudience}"
+    - Language: "${inputs.language}"
+    - Video Objective: "${inputs.videoObjective}"
+    **Narrative & Style Instructions:**
+    - Narrative Structure to use: "${inputs.narrativeStructure}"
+    - Narrative Tone (The Feeling): "${inputs.narrativeTone}"
+    - Narrator's Voice (The Personality): "${inputs.narrativeVoice}"
+    
+    **Optimized Strategic Briefing (Summary of user inputs):**
+    ---
+    ${optimizedSummary}
+    ---
+    `;
+
+    return finalContext;
+};
+
+
 
 const suggestStrategy = async (button) => {
     const theme = document.getElementById('videoTheme')?.value.trim();
@@ -1725,8 +1792,8 @@ const suggestStrategy = async (button) => {
 
 
 // --- ETAPA 3: CRIAR ROTEIRO ---
-const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
-    const baseContext = getBasePromptContext();
+const constructScriptPrompt = async (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
+    const baseContext = await getOptimizedBaseContext();
     const videoDuration = document.getElementById('videoDuration').value;
     const targetWords = wordCountMap[videoDuration]?.[sectionName];
     let durationInstruction = `A seção deve ter aproximadamente ${targetWords} palavras.`;
@@ -1851,7 +1918,7 @@ const generateStrategicOutline = async (button) => {
 
     try {
         // A única mudança está aqui dentro deste bloco 'try'
-        const { prompt } = constructScriptPrompt('outline');
+        const { prompt } = await constructScriptPrompt('outline');
 
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
         const perfectJson = await fixJsonWithAI(brokenJson);
@@ -2006,7 +2073,7 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
         const keyMap = { intro: 'introduction', development: 'development', climax: 'climax' };
         const directive = AppState.generated.strategicOutline ? AppState.generated.strategicOutline[keyMap[sectionName]] : null;
         
-        const { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
+        const { prompt, maxTokens } = await constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
 
         const rawResult = await callGroqAPI(prompt, maxTokens);
         // Usa a função `removeMetaComments` para limpar qualquer "lixo" textual que a IA possa ter adicionado
@@ -2098,7 +2165,7 @@ const generateConclusion = async (button) => {
     }
 
     const fullContext = getTranscriptOnly();
-    const basePromptContext = getBasePromptContext();
+    const basePromptContext = await getOptimizedBaseContext();
 
     const prompt = `${basePromptContext}\n\n# TAREFA\nEscrever o texto da conclusão para o vídeo, estruturado em parágrafos.\n\n# CONTEXTO\n## Roteiro existente:\n---\n${fullContext}\n---\n\n# DIRETRIZ ESTRATÉGICA\n${strategyDirective}\n\n# REGRAS ESSENCIAIS\n1. **FORMATO**: Responda APENAS com o texto narrativo, em parágrafos. Proibido anotações ou CTA.\n2. **QUALIDADE DOS PARÁGRAFOS**: Cada parágrafo deve ter de 4 a 6 frases.`;
 
@@ -2155,7 +2222,7 @@ const generateStrategicCta = async (button) => {
     // Lógica para obter contexto e criar o prompt (inalterada)
     const ctaSpecifics = document.getElementById('ctaSpecifics').value.trim();
     const fullContext = getTranscriptOnly();
-    const basePromptContext = getBasePromptContext();
+    const basePromptContext = await getOptimizedBaseContext();
 
     let ctaDirective = "Crie um CTA genérico (curtir, comentar, inscrever-se) alinhado ao tom do vídeo.";
     if (ctaSpecifics) {
@@ -2252,7 +2319,7 @@ const suggestFinalStrategy = async (button) => {
     document.getElementById('generateCtaBtn').classList.add('hidden');
 
     const fullContext = getTranscriptOnly();
-    const basePromptContext = getBasePromptContext();
+    const basePromptContext = await getOptimizedBaseContext();
     if (!fullContext) {
         window.showToast("Gere o roteiro principal primeiro para receber sugestões.", 'info');
         hideButtonLoading(button);
@@ -2768,7 +2835,7 @@ const suggestViralElements = async (button) => {
     showButtonLoading(button);
     const reportContainer = document.getElementById('viralSuggestionsContainer');
     reportContainer.innerHTML = `<div class="my-4"><div class="loading-spinner-small mx-auto"></div><p class="text-sm mt-2">O Arquiteto da Viralidade está analisando...</p></div>`;
-    const basePromptContext = getBasePromptContext();
+    const basePromptContext = await getOptimizedBaseContext();
     const prompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA DE CONTEÚDO VIRAL. Sua tarefa é analisar um roteiro e seu contexto para propor 3 elementos que aumentem a viralidade, retornando um array JSON perfeito.
 
 **CONTEXTO ESTRATÉGICO ("DNA" DO VÍDEO):**
@@ -3301,7 +3368,7 @@ window.analyzeSectionRetention = async (button) => {
             text: p.textContent.trim()
         }));
         
-        const basePromptContext = getBasePromptContext();
+        const basePromptContext = await getOptimizedBaseContext();
         const prompt = `Você é uma API de análise de roteiro que retorna JSON.
 
         **CONTEXTO ESTRATÉGICO:**
@@ -4152,7 +4219,7 @@ window.optimizeGroup = async (button, suggestionText) => {
         const originalBlock = Array.from(paragraphsToOptimize).map(p => p.textContent.trim()).join('\n\n');
         if (!originalBlock.trim()) throw new Error("O bloco de texto original está vazio.");
 
-        const basePromptContext = getBasePromptContext();
+        const basePromptContext = await getOptimizedBaseContext();
         const fullScriptContext = getTranscriptOnly();   
         
         const prompt = `Você é um EDITOR DE ROTEIRO DE ELITE e um ESPECIALISTA EM REESCRITA (Copywriter). Sua tarefa é REESCREVER um bloco de texto problemático para que ele se alinhe PERFEITAMENTE ao tom e estilo do roteiro, resolvendo o problema apontado.
