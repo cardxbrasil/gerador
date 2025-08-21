@@ -1640,6 +1640,8 @@ const getBasePromptContext = () => {
 
 
 
+// SUBSTITUA A SUA FUNÇÃO suggestStrategy INTEIRA POR ESTA VERSÃO FINAL
+
 const suggestStrategy = async (button) => {
     const theme = document.getElementById('videoTheme')?.value.trim();
     const description = document.getElementById('videoDescription')?.value.trim();
@@ -1676,7 +1678,7 @@ const suggestStrategy = async (button) => {
 -   **"narrative_voice" (A PERSONALIDADE):** OBRIGATÓRIO. Defina a personalidade do narrador com 2-3 adjetivos impactantes que guiarão o tom da escrita. Ex: "Sábio, porém humilde", "Investigativo e cético", "Apaixonado e urgente".
 -   **"emotional_hook" (A CONEXÃO HUMANA):** CRÍTICO PARA RETENÇÃO. Crie uma micro-narrativa ou anedota emocional que sirva como a alma do vídeo. Deve ser algo que gere empatia imediata. Ex: "Imagine um explorador perdido, encontrando não ouro, mas um símbolo de esperança..."
 -   **"shocking_ending_hook" (O LOOP ABERTO INICIAL):** Crie a PRIMEIRA frase do roteiro, que deve funcionar como um gancho de mistério que só será resolvido no final. Ex: "No final, a descoberta mais chocante não estava no mapa, mas no coração de quem o desenhou."
--   **"research_data":** Sugira 2 a 3 PONTOS DE PESQUISA concretos e específicos para adicionar credibilidade, baseados no tema.
+-   **"research_data":** Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STRING de texto. Exemplo: "Fonte: Artigo da Nature, 2023; Dado: A temperatura média aumentou 1.2°C; Fato: A descoberta foi feita pelo Dr. Smith."
 
 **DADOS DE ENTRADA:**
 - **Tema do Vídeo:** "${theme}"
@@ -1685,8 +1687,10 @@ const suggestStrategy = async (button) => {
 **AÇÃO FINAL:** Gere AGORA o objeto JSON completo com TODAS AS 10 CHAVES preenchidas. Sua criatividade nestes campos é o que define uma estratégia viral.`;
 
     try {
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-const strategy = extractAndParseJson(brokenJson);
+        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
+        
+        // >>>>> CORREÇÃO APLICADA AQUI <<<<<
+        const strategy = extractAndParseJson(brokenJsonResponse);
 
         if (!strategy || typeof strategy !== 'object') throw new Error("A IA não retornou uma estratégia em formato JSON válido.");
         
@@ -1743,7 +1747,6 @@ const strategy = extractAndParseJson(brokenJson);
         hideButtonLoading(button);
     }
 };
-
 
 
 
