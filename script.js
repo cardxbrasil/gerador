@@ -534,7 +534,7 @@ __RAW_REPORT__
         const promptTemplate = templates[genre] || templates['geral'];
         return promptTemplate
             .replace(/__ORIGINAL_QUERY__/g, context.originalQuery)
-            .replace(/__RAW_REPORT__/g, context.rawReport.slice(0, 7000))
+            .replace(/__RAW_REPORT__/g, context.rawReport)
             .replace(/__LANGUAGE_NAME__/g, context.languageName);
     },
 
@@ -1552,9 +1552,7 @@ const applyStrategy = () => {
     window.showToast("Estratégia definida. Pronto para criar o roteiro.", 'success');
 };
 
-const getBasePromptContext = (options = {}) => {
-    const { includeHeavyContext = false } = options;
-
+const getBasePromptContext = () => {
     const inputs = {
         channelName: document.getElementById('channelName')?.value.trim() || "",
         videoTheme: document.getElementById('videoTheme')?.value.trim() || "",
@@ -1569,8 +1567,12 @@ const getBasePromptContext = (options = {}) => {
         narrativeVoice: document.getElementById('narrativeVoice')?.value.trim() || "",
         shockingEndingHook: document.getElementById('shockingEndingHook')?.value.trim() || "",
         imageStyleSelect: document.getElementById('imageStyleSelect')?.value || "",
+        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
+        centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
+        emotionalArc: (document.getElementById('emotionalArc')?.value.trim() || "").slice(0, 500),
+        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
+        emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
     };
-
     let context = `Você é um ROTEIRISTA ESPECIALISTA para o canal "${inputs.channelName}".
     **Core Project Details:**
     - Video Topic: "${inputs.videoTheme}"
@@ -1584,21 +1586,11 @@ const getBasePromptContext = (options = {}) => {
     if (inputs.narrativeTone) context += `\n- Narrative Tone (The Feeling): "${inputs.narrativeTone}"`;
     if (inputs.narrativeVoice) context += `\n- Narrator's Voice (The Personality): "${inputs.narrativeVoice}"`;
     if (inputs.shockingEndingHook) context += `\n- Shocking Ending Hook to use: "${inputs.shockingEndingHook}"`;
-
-    // SÓ ADICIONA O CONTEÚDO PESADO QUANDO SOLICITADO
-    if (includeHeavyContext) {
-        const heavyInputs = {
-            videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
-            centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
-            researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
-            emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
-        };
-        if (heavyInputs.videoDescription) context += `\n\n**Additional Information & Inspiration:**\n- Inspiration/Context: "${heavyInputs.videoDescription}"`;
-        if (heavyInputs.centralQuestion) context += `\n- Central Question to guide the entire script: "${heavyInputs.centralQuestion}"`;
-        if (heavyInputs.emotionalHook) context += `\n\n**CRITICAL NARRATIVE ANCHOR:** Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente. Emotional Anchor Story: "${heavyInputs.emotionalHook}"`;
-        if (heavyInputs.researchData) context += `\n\n**CRITICAL RESEARCH DATA & CONTEXT:** Você DEVE incorporar os seguintes fatos: ${heavyInputs.researchData}`;
-    }
-
+    if (inputs.videoDescription) context += `\n\n**Additional Information & Inspiration:**\n- Inspiration/Context: "${inputs.videoDescription}"`;
+    if (inputs.centralQuestion) context += `\n- Central Question to guide the entire script: "${inputs.centralQuestion}"`;
+    if (inputs.emotionalArc) context += `\n- Desired Emotional Arc: "${inputs.emotionalArc}"`;
+    if (inputs.emotionalHook) context += `\n\n**CRITICAL NARRATIVE ANCHOR:** Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente. Emotional Anchor Story: "${inputs.emotionalHook}"`;
+    if (inputs.researchData) context += `\n\n**CRITICAL RESEARCH DATA & CONTEXT:** Você DEVE incorporar os seguintes fatos: ${inputs.researchData}`;
     return context;
 };
 
@@ -1734,7 +1726,7 @@ const suggestStrategy = async (button) => {
 
 // --- ETAPA 3: CRIAR ROTEIRO ---
 const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
-    const baseContext = getBasePromptContext({ includeHeavyContext: true });
+    const baseContext = getBasePromptContext();
     const videoDuration = document.getElementById('videoDuration').value;
     const targetWords = wordCountMap[videoDuration]?.[sectionName];
     let durationInstruction = `A seção deve ter aproximadamente ${targetWords} palavras.`;
@@ -2106,7 +2098,7 @@ const generateConclusion = async (button) => {
     }
 
     const fullContext = getTranscriptOnly();
-    const basePromptContext = getBasePromptContext({ includeHeavyContext: true });
+    const basePromptContext = getBasePromptContext();
 
     const prompt = `${basePromptContext}\n\n# TAREFA\nEscrever o texto da conclusão para o vídeo, estruturado em parágrafos.\n\n# CONTEXTO\n## Roteiro existente:\n---\n${fullContext}\n---\n\n# DIRETRIZ ESTRATÉGICA\n${strategyDirective}\n\n# REGRAS ESSENCIAIS\n1. **FORMATO**: Responda APENAS com o texto narrativo, em parágrafos. Proibido anotações ou CTA.\n2. **QUALIDADE DOS PARÁGRAFOS**: Cada parágrafo deve ter de 4 a 6 frases.`;
 
@@ -2163,7 +2155,7 @@ const generateStrategicCta = async (button) => {
     // Lógica para obter contexto e criar o prompt (inalterada)
     const ctaSpecifics = document.getElementById('ctaSpecifics').value.trim();
     const fullContext = getTranscriptOnly();
-    const basePromptContext = getBasePromptContext({ includeHeavyContext: true });
+    const basePromptContext = getBasePromptContext();
 
     let ctaDirective = "Crie um CTA genérico (curtir, comentar, inscrever-se) alinhado ao tom do vídeo.";
     if (ctaSpecifics) {
@@ -2260,7 +2252,7 @@ const suggestFinalStrategy = async (button) => {
     document.getElementById('generateCtaBtn').classList.add('hidden');
 
     const fullContext = getTranscriptOnly();
-    const basePromptContext = getBasePromptContext({ includeHeavyContext: true });
+    const basePromptContext = getBasePromptContext();
     if (!fullContext) {
         window.showToast("Gere o roteiro principal primeiro para receber sugestões.", 'info');
         hideButtonLoading(button);
@@ -2776,7 +2768,7 @@ const suggestViralElements = async (button) => {
     showButtonLoading(button);
     const reportContainer = document.getElementById('viralSuggestionsContainer');
     reportContainer.innerHTML = `<div class="my-4"><div class="loading-spinner-small mx-auto"></div><p class="text-sm mt-2">O Arquiteto da Viralidade está analisando...</p></div>`;
-    const basePromptContext = getBasePromptContext({ includeHeavyContext: true });
+    const basePromptContext = getBasePromptContext();
     const prompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA DE CONTEÚDO VIRAL. Sua tarefa é analisar um roteiro e seu contexto para propor 3 elementos que aumentem a viralidade, retornando um array JSON perfeito.
 
 **CONTEXTO ESTRATÉGICO ("DNA" DO VÍDEO):**
