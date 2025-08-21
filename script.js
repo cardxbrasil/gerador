@@ -3602,6 +3602,8 @@ ${newData}
  * Adiciona um novo capítulo ao desenvolvimento, com prompt refinado para evitar repetição do título e "ecos".
  * @param {HTMLElement} button - O botão que foi clicado.
  */
+// SUBSTITUA A SUA FUNÇÃO window.addDevelopmentChapter INTEIRA POR ESTA VERSÃO FINAL
+
 window.addDevelopmentChapter = async (button) => {
     const devSection = document.getElementById('developmentSection');
     const contentWrapper = devSection?.querySelector('.generated-content-wrapper');
@@ -3622,7 +3624,7 @@ Você não é um gerador de texto. Você é um mestre roteirista que identifica 
 
 **ROTEIRO ATUAL (PARA ANÁLISE DE CONTINUIDADE CRÍTICA):**
 ---
-${existingText.slice(-3000)} 
+${existingText.slice(-1500)} 
 ---
 
 **TAREFA:** Analise o fluxo narrativo do roteiro acima e gere um array JSON com as 3 sugestões mais fortes, coerentes e cativantes para o tema do próximo capítulo.
@@ -3635,7 +3637,7 @@ ${existingText.slice(-3000)}
 **MANUAL DE CRIAÇÃO DE SUGESTÕES (SEUS CRITÉRIOS DE QUALIDADE):**
 - **Distinção:** Cada uma das 3 sugestões deve ser claramente diferente das outras.
 - **Coerência e Conexão Lógica:** Cada sugestão deve ser uma consequência natural ou uma ramificação interessante do ponto onde o roteiro atual termina.
-- **Originalidade e Novidade:** Evite o óbvio. Cada sugestão deve introduzir um novo elemento, conflito ou perspectiva que avance a narrativa.
+- **Originalidade e Novidade:** Evite o óvio. Cada sugestão deve introduzir um novo elemento, conflito ou perspectiva que avance a narrativa.
 - **Especificidade:** As sugestões devem ser títulos de capítulo ou temas específicos e acionáveis. Evite generalidades.
     - **Exemplos BONS (Específicos):** "A Descoberta do Diário", "O Confronto com o Antigo Mentor", "O Plano B que Ninguém Esperava".
     - **Exemplos RUINS (Genéricos):** "Mais desenvolvimento", "Uma nova reviravolta", "Aprofundar o personagem".
@@ -3645,12 +3647,11 @@ ${existingText.slice(-3000)}
 
 **AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.`;
 
-        // ==========================================================
-        // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
-        // ==========================================================
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 1000);
-        const perfectJson = await fixJsonWithAI(brokenJson);
-        const chapterSuggestions = JSON.parse(perfectJson) || [];
+        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 1000);
+        
+        // >>>>> A CORREÇÃO ESTÁ AQUI <<<<<
+        // Trocamos fixJsonWithAI e JSON.parse pela nossa função robusta.
+        const chapterSuggestions = extractAndParseJson(brokenJsonResponse) || [];
         
         hideButtonLoading(button);
 
@@ -3669,7 +3670,7 @@ ${existingText.slice(-3000)}
 
         showButtonLoading(button);
 
-        const basePrompt = getBasePromptContext();
+        const basePrompt = getBasePromptContext({ includeHeavyContext: true });
         const continuationPrompt = `${basePrompt}
 
 **IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
@@ -3680,7 +3681,7 @@ O texto abaixo representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É **
 
 **ROTEIRO ESCRITO ATÉ AGORA (CONHECIMENTO JÁ ADQUIRIDO PELO PÚBLICO):**
 ---
-${existingText}
+${existingText.slice(-3000)}
 ---
 
 **TAREFA IMEDIATA E FOCALIZADA:**
