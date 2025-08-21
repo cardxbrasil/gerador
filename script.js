@@ -793,6 +793,8 @@ const fixJsonWithAI = async (brokenJsonText) => {
 
 // COLE ESTA NOVA FUNÇÃO NO SEU SCRIPT.JS
 
+// GARANTA QUE ESTA FUNÇÃO EXISTA NO SEU CÓDIGO (E QUE fixJsonWithAI FOI DELETADA)
+
 const extractAndParseJson = (text) => {
     if (!text) {
         throw new Error("A IA retornou uma resposta vazia.");
@@ -1390,6 +1392,7 @@ const renderUniversalIdeaCard = (idea, index, genre) => {
 
 
 
+// SUBSTITUA A SUA FUNÇÃO generateIdeasFromReport INTEIRA POR ESTA VERSÃO FINAL
 
 const generateIdeasFromReport = async (button) => {
     const factCheckOutput = document.getElementById('factCheckOutput');
@@ -1412,13 +1415,8 @@ const generateIdeasFromReport = async (button) => {
         const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
         const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(creativePrompt), 8000); 
 
-        outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Corrigindo e validando a sintaxe...</p></div>`;
-
-        // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
+        // ETAPA 2: EXTRAÇÃO E ANÁLISE DO JSON (MÉTODO ROBUSTO)
         const ideas = extractAndParseJson(brokenJsonResponse);
-        
-        // ETAPA 3: PARSE SEGURO
-        const ideas = JSON.parse(perfectJsonText);
 
         if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
             throw new Error("A IA falhou em gerar ou corrigir as ideias.");
