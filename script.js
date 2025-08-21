@@ -1554,48 +1554,6 @@ const applyStrategy = () => {
     window.showToast("Estratégia definida. Pronto para criar o roteiro.", 'success');
 };
 
-const getBasePromptContext = () => {
-    const inputs = {
-        channelName: document.getElementById('channelName')?.value.trim() || "",
-        videoTheme: document.getElementById('videoTheme')?.value.trim() || "",
-        targetAudience: document.getElementById('targetAudience')?.value.trim() || "",
-        language: document.getElementById('languageSelect')?.value || "en",
-        languageStyle: document.getElementById('languageStyle')?.value || "",
-        videoObjective: document.getElementById('videoObjective')?.value || "",
-        speakingPace: document.getElementById('speakingPace')?.value || "",
-        narrativeStructure: document.getElementById('narrativeStructure')?.value || "",
-        narrativeTheme: document.getElementById('narrativeTheme')?.value.trim() || "",
-        narrativeTone: document.getElementById('narrativeTone')?.value || "",
-        narrativeVoice: document.getElementById('narrativeVoice')?.value.trim() || "",
-        shockingEndingHook: document.getElementById('shockingEndingHook')?.value.trim() || "",
-        imageStyleSelect: document.getElementById('imageStyleSelect')?.value || "",
-        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
-        centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
-        emotionalArc: (document.getElementById('emotionalArc')?.value.trim() || "").slice(0, 500),
-        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
-        emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
-    };
-    let context = `Você é um ROTEIRISTA ESPECIALISTA para o canal "${inputs.channelName}".
-    **Core Project Details:**
-    - Video Topic: "${inputs.videoTheme}"
-    - Target Audience: "${inputs.targetAudience}"
-    - Language: "${inputs.language}"
-    - Video Objective: "${inputs.videoObjective}"
-    **Narrative & Style Instructions:**
-    - Narrative Structure to use: "${inputs.narrativeStructure}"
-    - Speaking Pace: "${inputs.speakingPace}"`;
-    if (inputs.narrativeTheme) context += `\n- Core Theme (The Big Idea): "${inputs.narrativeTheme}"`;
-    if (inputs.narrativeTone) context += `\n- Narrative Tone (The Feeling): "${inputs.narrativeTone}"`;
-    if (inputs.narrativeVoice) context += `\n- Narrator's Voice (The Personality): "${inputs.narrativeVoice}"`;
-    if (inputs.shockingEndingHook) context += `\n- Shocking Ending Hook to use: "${inputs.shockingEndingHook}"`;
-    if (inputs.videoDescription) context += `\n\n**Additional Information & Inspiration:**\n- Inspiration/Context: "${inputs.videoDescription}"`;
-    if (inputs.centralQuestion) context += `\n- Central Question to guide the entire script: "${inputs.centralQuestion}"`;
-    if (inputs.emotionalArc) context += `\n- Desired Emotional Arc: "${inputs.emotionalArc}"`;
-    if (inputs.emotionalHook) context += `\n\n**CRITICAL NARRATIVE ANCHOR:** Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente. Emotional Anchor Story: "${inputs.emotionalHook}"`;
-    if (inputs.researchData) context += `\n\n**CRITICAL RESEARCH DATA & CONTEXT:** Você DEVE incorporar os seguintes fatos: ${inputs.researchData}`;
-    return context;
-};
-
 
 
 
