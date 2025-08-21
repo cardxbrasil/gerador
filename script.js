@@ -38,31 +38,31 @@ const wordCountMap = {
         const CINEMATIC_STYLE_BLOCK = `
 # DIRETRIZES DE ESTILO CINEMATOGRÁFICO PARA IMAGENS DE ALTA RESOLUÇÃO
 
-Ultra-realistic, high-resolution photographic image captured with masterfully rendered natural or artificial lighting and cinematic composition. The aesthetic should be of a modern cinematic film, with meticulous attention to physical and sensory details. The image must appear as if photographed by a professional cinematographer using a high-end camera (e.g., ARRI Alexa, RED Komodo), not digitally rendered.
+Ultra-realistic, high-resolution photographic image captured with masterfully rendered natural or artificial lighting and cinematic composition. The aesthetic should be of a modern cinematic film, with meticulous attention to physical and sensory details.
 
 ## CARACTERÍSTICAS VISUAIS ESSENCIAIS
 
 ### Qualidade Técnica
-- **Rich & Organic Textures:** Surfaces must display tactile authenticity — visible skin pores, individual fabric threads, weathered materials (wood, metal, stone), realistic reflections, and organic imperfections that add depth and believability. Skin should show subtle blemishes, fine lines, and natural texture, not perfectly smooth.
-- **Focus & Depth of Field:** Employ selective sharp focus with subtle depth of field (slightly blurred background or foreground) to guide the viewer's attention and create a sense of three-dimensionality. Avoid perfect clarity across the entire frame.
+- **Rich & Organic Textures:** Surfaces must display tactile authenticity — visible skin pores, individual fabric threads, weathered materials (wood, metal, stone), realistic reflections, and organic imperfections that add depth and believability.
+- **Focus & Depth of Field:** Employ selective sharp focus with subtle depth of field (slightly blurred background or foreground) to guide the viewer's attention and create a sense of three-dimensionality.
 - **Color Palette & Contrast:** Colors should be "true-to-life" but with a refined, cinematic tonal range. Avoid super-saturated or artificially vibrant hues. Favor contrasts that create visual drama and natural modeling, typical of good cinematography.
-- **Lighting & Atmosphere:** Lighting must be complex and naturalistic, with multiple light sources creating soft shadows, half-tones, and highlights. Include subtle atmospheric elements like dust, mist, or light rays (god rays) when appropriate to enhance the sense of a living environment. Shadows should have soft edges and fall naturally based on geometry.
+- **Lighting & Atmosphere:** Lighting must be complex and naturalistic, with multiple light sources creating soft shadows, half-tones, and highlights. Include subtle atmospheric elements like dust, mist, or light rays (god rays) when appropriate to enhance the sense of a living environment.
 
 ### Composição Visual
 - **Visual Composition:** Apply classic cinematic composition principles (rule of thirds, leading lines, broken symmetry, depth) to create visually appealing frames that tell a story.
-- **Camera Perspective:** Use appropriate focal lengths and camera angles that enhance the emotional impact of the scene (wide shots for epic scale, close-ups for intimate moments). Simulate lens characteristics: slight vignetting, chromatic aberration in corners, shallow depth of field.
-- **Movement Sensation:** Even in still images, create a sense of potential movement or captured moment that suggests cinematic timing. Capture motion blur on hands or clothing if applicable.
+- **Camera Perspective:** Use appropriate focal lengths and camera angles that enhance the emotional impact of the scene (wide shots for epic scale, close-ups for intimate moments).
+- **Movement Sensation:** Even in still images, create a sense of potential movement or captured moment that suggests cinematic timing.
 
 ### Estilo Geral
 - **Overall Style:** The final result must be indistinguishable from a high-quality photograph taken with professional equipment, intended to illustrate a film scene. Nothing should look artificial, "3D rendered," or overly polished. The goal is physical and emotional authenticity.
-- **Post-Production Elements:** Include subtle film grain appropriate to the style (ISO 800–1600), natural lens characteristics (slight vignetting, chromatic aberration when appropriate), and color grading that enhances the mood without appearing artificial. Add minor sensor noise or dust spots in corners if it fits the realism.
+- **Post-Production Elements:** Include subtle film grain appropriate to the style, natural lens characteristics (slight vignetting, chromatic aberration when appropriate), and color grading that enhances the mood without appearing artificial.
 
 ## REFERÊNCIAS DE ESTILO (INSPIRAÇÃO CINEMATOGRÁFICA)
 
 Para diferentes gêneros e atmosferas, considere estas referências:
 - **Drama Intenso:** Estilo de Emmanuel Lubezki em "The Revenant" - iluminação natural, texturas orgânicas, movimento contínuo
 - **Suspense/Thriller:** Estilo de Roger Deakins em "Blade Runner 2049" - composição precisa, cores controladas, iluminação dramática
-- **Épico/Histórico:** Estilo de Rodrigo Prieto em "The Irishman" - paleta de cores específica do período, iluminação naturalista, detalhes autênticos
+- **Épico/Histórico:** Estilo of Rodrigo Prieto em "The Irishman" - paleta de cores específica do período, iluminação naturalista, detalhes autênticos
 - **Contemporâneo/Realista:** Estilo de Greig Fraser em "The Mandalorian" - iluminação prática, texturas realistas, composição dinâmica
 
 ## RESTRIÇÕES DE ESTILO (O QUE EVITAR)
@@ -73,28 +73,7 @@ Para diferentes gêneros e atmosferas, considere estas referências:
 - **NO** super-saturated colors or unreal hues.
 - **NO** element that breaks the illusion of a photorealistic capture.
 - **NO** inconsistent lighting that doesn't match the described environment.
-- **NO** modern digital artifacts that break the cinematic immersion.
-- **NO** perfect symmetry in faces, hands, or objects — allow natural asymmetry.
-- **NO** unnaturally clean surfaces — include dust, scratches, fingerprints, wear.
-- **NO** idealized human features — accept wrinkles, pores, scars, uneven skin tone.
-- **NO** hyper-sharpness across the entire image — simulate lens limitations.
-
-## TERMOS CHAVE PARA FORÇAR REALISMO FOTOGRAFICO (ADICIONAR AO PROMPT FINAL)
-
-Use os seguintes termos como **prefixos ou sufixos** no prompt final:
-- "photographed by a cinematographer"
-- "shot on 35mm film"
-- "natural lighting, no digital enhancement"
-- "real-world textures, no CGI"
-- "imperfectly lit, authentic atmosphere"
-- "lens flare, slight grain, shallow depth of field"
-- "captured in a single take, no retouching"
-
-## INSTRUÇÃO FINAL PARA O MODELO
-
-You are generating an image that must be **indistinguishable from a real photograph taken during filming**. It should not look like a 3D render, digital painting, or concept art. Every surface, shadow, and face must reflect the complexity and imperfection of reality. If you see anything that looks too clean, symmetric, or artificial, reject it and re-generate with more physical authenticity.`;
-
-
+- **NO** modern digital artifacts that break the cinematic immersion.`;
 
 const imageDescriptionLabels = { 'pt-br': 'Descrição da Imagem:', 'pt-pt': 'Descrição da Imagem:', 'en': 'Image Description:' };
 
@@ -3919,18 +3898,18 @@ Você é uma especialista em criação de prompts visuais cinematográficos. Sua
 3. **PROIBIÇÃO DE ASPAS INTERNAS**: Nos valores de texto, use apenas aspas simples (') para ênfase
 4. **ESTRUTURA PADRÃO**: Cada objeto deve ter exatamente duas chaves:
    - "imageDescription" (string): descrição visual detalhada
-   - "estimated_duration" (número inteiro): duração estimada em segundos
+   -estimated_duration" (número inteiro): duração estimada em segundos
 
 ## EXEMPLO DE FORMATAÇÃO CORRETA
 
 [
   {
-    "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras. O cenário úmido e nevoento intensifica a sensação de isolamento. Profundidade de campo média mostra fundo desfocado com vitrines apagadas. Textura da jaqueta de couro encharcada e poças com reflexos distorcidos aumentam o realismo sensorial.",
-    "estimated_duration": 6
+    "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras.",
+    "estimated_duration": 5
   },
   {
-    "imageDescription": "Close-up em mãos trêmulas segurando uma carta antiga. A luz da manhã entra pela janela, destacando a textura do papel amarelado e a caligrafia tremida. Foco shallow com fundo suavizado revela uma cadeira vazia e um retrato emoldurado caído no chão. Estilo cinematográfico realista com paleta quente em sépia e dourado. A posição ligeiramente contrapicada da câmera enfatiza a vulnerabilidade do personagem. Gotas de chuva deslizam pelo vidro, refletindo memórias distantes.",
-    "estimated_duration": 5
+    "imageDescription": "Close-up em mãos trêmulas segurando uma carta antiga. A luz da manhã entra pela janela, destacando a textura do papel amarelado e a caligrafia tremida. Foco shallow com fundo suavizado.",
+    "estimated_duration": 3
   }
 ]
 
@@ -3939,36 +3918,33 @@ Você é uma especialista em criação de prompts visuais cinematográficos. Sua
 Para cada parágrafo, crie uma descrição visual rica respondendo a estas perguntas:
 
 ### Elementos Visuais Principais
-- **Cenário e Ambiente**: Onde a cena acontece? Descreva o local, arquitetura, objetos e atmosfera sensorial (umidade, temperatura, silêncio)
-- **Composição Visual**: Quais elementos principais estão no quadro? Use regra dos terços, simetria ou desequilíbrio intencional
-- **Iluminação**: Qual a qualidade (dura, difusa), direção (contraluz, lateral) e fonte (natural, artificial) da luz?
-- **Paleta de Cores**: Quais cores dominam? Como elas refletem o estado emocional (ex: azul para tristeza, vermelho para tensão)?
+- **Cenário e Ambiente**: Onde a cena acontece? Descreva o local e atmosfera sensorial
+- **Composição Visual**: Quais elementos principais e como estão organizados no quadro?
+- **Iluminação**: Qual a qualidade, direção e tipo de luz?
+- **Paleta de Cores**: Quais cores dominantes refletem a emoção da cena?
 
 ### Técnicas Cinematográficas
-- **Ângulo da Câmera**: Plano geral, médio, close, contrapicado, picado, drone, steadycam?
-- **Estilo Visual**: Estética clara (realista, vintage, anime, distópico, documental)?
-- **Foco e Profundidade**: Profundidade de campo rasa (shallow) ou ampla? O que está nítido e o que está desfocado?
-- **Movimento e Ação**: Há movimento de câmera (dolly, pan, zoom)? Há ação dos personagens ou elementos do ambiente?
+- **Ângulo da Câmera**: De onde olhamos a cena (plano geral, close, etc.)?
+- **Estilo Visual**: Qual a estética (realista, vintage, etc.)?
+- **Foco e Profundidade**: O que está nítido e o que está desfocado?
+- **Movimento e Ação**: Há movimento de câmera ou personagens?
 
 ### Elementos Emocionais e Narrativos
-- **Elementos Emocionais**: Quais aspectos visuais evocam emoção (solidão, tensão, esperança)?
-- **Expressões Faciais**: Como os olhos, boca e postura transmitem o estado interno?
-- **Símbolos Chave**: Objetos com significado narrativo (fotos, relógios, cartas, armas)?
-- **Texturas e Materiais**: Tecidos, metal, pele, poeira, água — como aumentam o realismo e a imersão?
+- **Elementos Emocionais**: Quais elementos visuais amplificam a emoção?
+- **Expressões Faciais**: Como os personagens expressam suas emoções?
+- **Símbolos Chave**: Quais objetos ou elementos são importantes para a narrativa?
+- **Texturas e Materiais**: Quais texturas aumentam o realismo?
 
 ### Contexto e Atmosfera
-- **Profundidade e Escala**: Camadas de profundidade (primeiro plano, fundo)? Sensação de vazio, aglomeração ou claustrofobia?
-- **Elementos Temporais ou Climáticos**: Hora do dia, estação, clima (chuva, neblina, vento)? Como afetam a cena?
+- **Profundidade e Escala**: Como o espaço é representado?
+- **Elementos Temporais ou Climáticos**: Qual o momento do dia, clima ou estação?
 
 ## DIRETRIZES ADICIONAIS
 
-- Priorize elementos visuais que melhor representem a essência emocional e narrativa do parágrafo
-- Mantenha consistência de estilo entre prompts consecutivos (ex: mesma paleta, iluminação, estética)
-- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade da cena:
-  - Simples (close, poucos elementos): 2–4s
-  - Média (plano médio, ação leve): 5–7s
-  - Complexa (plano geral, múltiplos elementos): 8–10s
-- Se o texto for ambíguo, faça escolhas criativas coerentes com o tom geral (dramático, nostálgico, tenso)
+- Priorize elementos visuais que melhor representem a essência do parágrafo
+- Mantenha consistência de estilo entre prompts consecutivos quando aplicável
+- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade da cena
+- Se o texto de entrada for ambíguo, faça escolhas criativas coerentes com o contexto geral
 
 ## DADOS PARA ANÁLISE
 
