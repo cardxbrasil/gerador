@@ -38,31 +38,31 @@ const wordCountMap = {
         const CINEMATIC_STYLE_BLOCK = `
 # DIRETRIZES DE ESTILO CINEMATOGRÁFICO PARA IMAGENS DE ALTA RESOLUÇÃO
 
-Ultra-realistic, high-resolution photographic image captured with masterfully rendered natural or artificial lighting and cinematic composition. The aesthetic should be of a modern cinematic film, with meticulous attention to physical and sensory details.
+Ultra-realistic, high-resolution photographic image captured with masterfully rendered natural or artificial lighting and cinematic composition. The aesthetic should be of a modern cinematic film, with meticulous attention to physical and sensory details. The image must appear as if photographed by a professional cinematographer using a high-end camera (e.g., ARRI Alexa, RED Komodo), not digitally rendered.
 
 ## CARACTERÍSTICAS VISUAIS ESSENCIAIS
 
 ### Qualidade Técnica
-- **Rich & Organic Textures:** Surfaces must display tactile authenticity — visible skin pores, individual fabric threads, weathered materials (wood, metal, stone), realistic reflections, and organic imperfections that add depth and believability.
-- **Focus & Depth of Field:** Employ selective sharp focus with subtle depth of field (slightly blurred background or foreground) to guide the viewer's attention and create a sense of three-dimensionality.
+- **Rich & Organic Textures:** Surfaces must display tactile authenticity — visible skin pores, individual fabric threads, weathered materials (wood, metal, stone), realistic reflections, and organic imperfections that add depth and believability. Skin should show subtle blemishes, fine lines, and natural texture, not perfectly smooth.
+- **Focus & Depth of Field:** Employ selective sharp focus with subtle depth of field (slightly blurred background or foreground) to guide the viewer's attention and create a sense of three-dimensionality. Avoid perfect clarity across the entire frame.
 - **Color Palette & Contrast:** Colors should be "true-to-life" but with a refined, cinematic tonal range. Avoid super-saturated or artificially vibrant hues. Favor contrasts that create visual drama and natural modeling, typical of good cinematography.
-- **Lighting & Atmosphere:** Lighting must be complex and naturalistic, with multiple light sources creating soft shadows, half-tones, and highlights. Include subtle atmospheric elements like dust, mist, or light rays (god rays) when appropriate to enhance the sense of a living environment.
+- **Lighting & Atmosphere:** Lighting must be complex and naturalistic, with multiple light sources creating soft shadows, half-tones, and highlights. Include subtle atmospheric elements like dust, mist, or light rays (god rays) when appropriate to enhance the sense of a living environment. Shadows should have soft edges and fall naturally based on geometry.
 
 ### Composição Visual
 - **Visual Composition:** Apply classic cinematic composition principles (rule of thirds, leading lines, broken symmetry, depth) to create visually appealing frames that tell a story.
-- **Camera Perspective:** Use appropriate focal lengths and camera angles that enhance the emotional impact of the scene (wide shots for epic scale, close-ups for intimate moments).
-- **Movement Sensation:** Even in still images, create a sense of potential movement or captured moment that suggests cinematic timing.
+- **Camera Perspective:** Use appropriate focal lengths and camera angles that enhance the emotional impact of the scene (wide shots for epic scale, close-ups for intimate moments). Simulate lens characteristics: slight vignetting, chromatic aberration in corners, shallow depth of field.
+- **Movement Sensation:** Even in still images, create a sense of potential movement or captured moment that suggests cinematic timing. Capture motion blur on hands or clothing if applicable.
 
 ### Estilo Geral
 - **Overall Style:** The final result must be indistinguishable from a high-quality photograph taken with professional equipment, intended to illustrate a film scene. Nothing should look artificial, "3D rendered," or overly polished. The goal is physical and emotional authenticity.
-- **Post-Production Elements:** Include subtle film grain appropriate to the style, natural lens characteristics (slight vignetting, chromatic aberration when appropriate), and color grading that enhances the mood without appearing artificial.
+- **Post-Production Elements:** Include subtle film grain appropriate to the style (ISO 800–1600), natural lens characteristics (slight vignetting, chromatic aberration when appropriate), and color grading that enhances the mood without appearing artificial. Add minor sensor noise or dust spots in corners if it fits the realism.
 
 ## REFERÊNCIAS DE ESTILO (INSPIRAÇÃO CINEMATOGRÁFICA)
 
 Para diferentes gêneros e atmosferas, considere estas referências:
 - **Drama Intenso:** Estilo de Emmanuel Lubezki em "The Revenant" - iluminação natural, texturas orgânicas, movimento contínuo
 - **Suspense/Thriller:** Estilo de Roger Deakins em "Blade Runner 2049" - composição precisa, cores controladas, iluminação dramática
-- **Épico/Histórico:** Estilo of Rodrigo Prieto em "The Irishman" - paleta de cores específica do período, iluminação naturalista, detalhes autênticos
+- **Épico/Histórico:** Estilo de Rodrigo Prieto em "The Irishman" - paleta de cores específica do período, iluminação naturalista, detalhes autênticos
 - **Contemporâneo/Realista:** Estilo de Greig Fraser em "The Mandalorian" - iluminação prática, texturas realistas, composição dinâmica
 
 ## RESTRIÇÕES DE ESTILO (O QUE EVITAR)
@@ -73,7 +73,28 @@ Para diferentes gêneros e atmosferas, considere estas referências:
 - **NO** super-saturated colors or unreal hues.
 - **NO** element that breaks the illusion of a photorealistic capture.
 - **NO** inconsistent lighting that doesn't match the described environment.
-- **NO** modern digital artifacts that break the cinematic immersion.`;
+- **NO** modern digital artifacts that break the cinematic immersion.
+- **NO** perfect symmetry in faces, hands, or objects — allow natural asymmetry.
+- **NO** unnaturally clean surfaces — include dust, scratches, fingerprints, wear.
+- **NO** idealized human features — accept wrinkles, pores, scars, uneven skin tone.
+- **NO** hyper-sharpness across the entire image — simulate lens limitations.
+
+## TERMOS CHAVE PARA FORÇAR REALISMO FOTOGRAFICO (ADICIONAR AO PROMPT FINAL)
+
+Use os seguintes termos como **prefixos ou sufixos** no prompt final:
+- "photographed by a cinematographer"
+- "shot on 35mm film"
+- "natural lighting, no digital enhancement"
+- "real-world textures, no CGI"
+- "imperfectly lit, authentic atmosphere"
+- "lens flare, slight grain, shallow depth of field"
+- "captured in a single take, no retouching"
+
+## INSTRUÇÃO FINAL PARA O MODELO
+
+You are generating an image that must be **indistinguishable from a real photograph taken during filming**. It should not look like a 3D render, digital painting, or concept art. Every surface, shadow, and face must reflect the complexity and imperfection of reality. If you see anything that looks too clean, symmetric, or artificial, reject it and re-generate with more physical authenticity.`;
+
+
 
 const imageDescriptionLabels = { 'pt-br': 'Descrição da Imagem:', 'pt-pt': 'Descrição da Imagem:', 'en': 'Image Description:' };
 
@@ -2391,7 +2412,9 @@ ${text.slice(0, 7000)}
 
 const createReportSection = (analysisData) => {
     const sectionDiv = document.createElement('div');
-    sectionDiv.className = 'p-4 border rounded-lg mb-4 bg-gray-50 dark:bg-gray-800 animate-fade-in';
+    // Adiciona as novas classes de estilo base e de relatório
+    sectionDiv.className = 'analysis-card-base analysis-card--report animate-fade-in';
+    
     if (!analysisData || typeof analysisData.score === 'undefined') {
         sectionDiv.innerHTML = `<h4 class="font-bold text-lg text-red-500">${analysisData.criterion_name || 'Erro'}</h4><p>Falha ao processar a análise.</p>`;
         return sectionDiv;
@@ -2399,8 +2422,8 @@ const createReportSection = (analysisData) => {
     let improvementHtml = '';
     if (analysisData.improvement_points && analysisData.improvement_points.length > 0) {
         improvementHtml = analysisData.improvement_points.map(point => {
-const problematicQuoteEscaped = (point.problematic_quote || '').replace(/"/g, '&quot;');
-const rewrittenQuoteEscaped = (point.rewritten_quote || '').replace(/"/g, '&quot;');
+            const problematicQuoteEscaped = (point.problematic_quote || '').replace(/"/g, '&quot;');
+            const rewrittenQuoteEscaped = (point.rewritten_quote || '').replace(/"/g, '&quot;');
             return `
             <div class="mt-4 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
                 <p class="text-sm italic text-gray-500 dark:text-gray-400 mb-1">Citação: "${DOMPurify.sanitize(point.problematic_quote || 'N/A')}"</p>
@@ -2414,8 +2437,11 @@ const rewrittenQuoteEscaped = (point.rewritten_quote || '').replace(/"/g, '&quot
     }
     sectionDiv.innerHTML = `
         <div class="flex justify-between items-center">
-            <h4 class="font-bold text-lg">${DOMPurify.sanitize(analysisData.criterion_name)}</h4>
-            <span class="font-bold text-xl text-primary">${analysisData.score}/10</span>
+            <div class="analysis-card__header">
+                <i class="fas fa-clipboard-check text-indigo-500"></i>
+                <h4>${DOMPurify.sanitize(analysisData.criterion_name)}</h4>
+            </div>
+            <span class="font-bold text-xl text-indigo-500">${analysisData.score}/10</span>
         </div>
         <div class="mt-2">
             <p class="text-sm"><strong class="text-indigo-500">Pontos Fortes:</strong> ${DOMPurify.sanitize(analysisData.positive_points)}</p>
@@ -2616,6 +2642,7 @@ const applyHookSuggestion = (button) => {
 
 
 
+// CÓDIGO ATUALIZADO para analyzeRetentionHooks
 const analyzeRetentionHooks = async (button) => {
     const fullTranscript = getTranscriptOnly();
     if (!fullTranscript) {
@@ -2639,9 +2666,6 @@ ${fullTranscript.slice(0, 7500)}
 
 **AÇÃO FINAL:** Analise o roteiro. Responda APENAS com o array JSON perfeito.`;
     try {
-        // ==========================================================
-        // >>>>> ARQUITETURA FINAL APLICADA AQUI <<<<<
-        // ==========================================================
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
         const perfectJson = await fixJsonWithAI(brokenJson);
         const hooks = JSON.parse(perfectJson);
@@ -2654,13 +2678,16 @@ ${fullTranscript.slice(0, 7500)}
             const rewrittenQuoteEscaped = (hook.rewritten_hook || '').replace(/"/g, '\"');
             const scoreColor = hook.effectiveness_score >= 8 ? 'text-green-500' : hook.effectiveness_score >= 5 ? 'text-yellow-500' : 'text-red-500';
             reportHtml += `
-                <div class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 animate-fade-in">
-                    <p class="text-base italic text-gray-500 dark:text-gray-400 mb-2">Original: "${DOMPurify.sanitize(hook.hook_phrase)}"</p>
+                <div class="analysis-card-base analysis-card--hook animate-fade-in">
+                    <p class="text-base italic text-gray-500 dark:text-gray-400 mb-2">
+                        <i class="fas fa-quote-left text-purple-500 mr-2"></i>
+                        Original: "${DOMPurify.sanitize(hook.hook_phrase)}"
+                    </p>
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                        <span class="tag tag-pace !bg-purple-100 !text-purple-700 dark:!bg-purple-900/50 dark:!text-purple-300"><i class="fas fa-anchor mr-2"></i> ${DOMPurify.sanitize(hook.hook_type)}</span>
+                        <span class="tag !bg-purple-100 !text-purple-700 dark:!bg-purple-900/50 dark:!text-purple-300"><i class="fas fa-anchor mr-2"></i> ${DOMPurify.sanitize(hook.hook_type)}</span>
                         <span class="font-bold ${scoreColor}">Eficácia Original: ${DOMPurify.sanitize(String(hook.effectiveness_score))}/10</span>
                     </div>
-                    <p class="text-sm mt-3 text-gray-600 dark:text-gray-400"><strong>Justificativa da Melhoria:</strong> ${DOMPurify.sanitize(hook.justification)}</p>
+                    <p class="text-sm mt-3 text-gray-600 dark:text-gray-400"><strong class="text-purple-500">Justificativa da Melhoria:</strong> ${DOMPurify.sanitize(hook.justification)}</p>
                     <div class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
                         <p class="text-sm flex-1"><strong class="text-green-600 dark:text-green-400">Sugestão:</strong> "${DOMPurify.sanitize(hook.rewritten_hook)}"</p>
                         <button class="btn btn-primary btn-small flex-shrink-0" data-action="applyHookSuggestion" data-problematic-quote="${problematicQuoteEscaped}" data-rewritten-quote="${rewrittenQuoteEscaped}">Aplicar</button>
@@ -2727,6 +2754,10 @@ const insertViralSuggestion = (button) => {
     button.classList.add('btn-success');
 };
 
+
+
+
+// CÓDIGO ATUALIZADO para suggestViralElements
 const suggestViralElements = async (button) => {
     const fullTranscript = getTranscriptOnly();
     const videoTheme = document.getElementById('videoTheme')?.value.trim();
@@ -2776,11 +2807,12 @@ ${fullTranscript.slice(0, 7500)}
 
 **AÇÃO FINAL:** Analise o roteiro e o contexto. Responda APENAS com o array JSON perfeito, seguindo TODAS as regras, especialmente a de escapar aspas duplas.`;
     try {
-const brokenJson = await callGroqAPI(prompt, 4000);
-const perfectJson = await fixJsonWithAI(brokenJson);
-const suggestions = JSON.parse(perfectJson); // <--- CORREÇÃO AQUI
-
-if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
+        const brokenJson = await callGroqAPI(prompt, 4000);
+        const perfectJson = await fixJsonWithAI(brokenJson);
+        const suggestions = JSON.parse(perfectJson);
+        
+        if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
+        
         let reportHtml = `<div class="space-y-4">`;
         suggestions.forEach(suggestion => {
             const anchorParagraphEscaped = (suggestion.anchor_paragraph || '').replace(/"/g, '\"');
@@ -2788,13 +2820,13 @@ if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) thr
             const score = suggestion.potential_impact_score || 0;
             const scoreColor = score >= 8 ? 'text-green-500' : score >= 5 ? 'text-yellow-500' : 'text-red-500';
             reportHtml += `
-                <div class="p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 animate-fade-in">
+                <div class="analysis-card-base analysis-card--viral animate-fade-in">
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm mb-2">
                         <span class="tag !bg-blue-100 !text-blue-700 dark:!bg-blue-900/50 dark:!text-blue-300"><i class="fas fa-lightbulb mr-2"></i> ${DOMPurify.sanitize(suggestion.element_type)}</span>
                         <span class="font-bold ${scoreColor}">Impacto Potencial: ${DOMPurify.sanitize(String(score))}/10</span>
                     </div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1"><strong>Local Sugerido:</strong> Após o parágrafo que contém "${DOMPurify.sanitize((suggestion.anchor_paragraph || '').substring(0, 70))}..."</p>
-                    <p class="text-sm mt-3 text-gray-600 dark:text-gray-400"><strong>Ideia de Implementação:</strong> ${DOMPurify.sanitize(suggestion.implementation_idea)}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1"><strong class="text-blue-500"><i class="fas fa-map-marker-alt mr-2"></i>Local Sugerido:</strong> Após o parágrafo que contém "${DOMPurify.sanitize((suggestion.anchor_paragraph || '').substring(0, 70))}..."</p>
+                    <p class="text-sm mt-3 text-gray-600 dark:text-gray-400"><strong class="text-blue-500">Ideia de Implementação:</strong> ${DOMPurify.sanitize(suggestion.implementation_idea)}</p>
                     <div class="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-dashed border-gray-300 dark:border-gray-600">
                          <p class="text-sm flex-1"><strong class="text-green-600 dark:text-green-400">Texto a Inserir:</strong> "${DOMPurify.sanitize(suggestion.suggested_text)}"</p>
                         <button class="btn btn-primary btn-small flex-shrink-0" data-action="insertViralSuggestion" data-anchor-paragraph="${anchorParagraphEscaped}" data-suggested-text="${suggestedTextEscaped}">Aplicar</button>
@@ -2811,6 +2843,8 @@ if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) thr
         hideButtonLoading(button);
     }
 };
+
+
 
 
 // ... Continuação do Bloco ETAPA 4 ...
@@ -3114,6 +3148,7 @@ const handleCopyAndDownloadTranscript = () => { /* ... Implementação completa 
 
 
 
+// VERSÃO FINAL E INTELIGENTE de mapEmotionsAndPacing
 const mapEmotionsAndPacing = async (button) => {
     const { script } = AppState.generated;
     const isScriptReady = script.intro?.text && script.development?.text && script.climax?.text;
@@ -3188,11 +3223,20 @@ ACTION: Return ONLY the JSON array.`;
             const numParagraphs = sectionScript.text.split('\n\n').filter(p => p.trim() !== '').length;
             const sectionEmotionsData = AppState.generated.emotionalMap.slice(paragraphCounter, paragraphCounter + numParagraphs);
             
-            const groupedEmotions = [...new Set(sectionEmotionsData.map(e => e ? getGroupName(e.emotion, emotionGroups) : 'Indefinido'))];
-            const groupedPaces = [...new Set(sectionEmotionsData.map(e => e ? getGroupName(e.pace, paceGroups) : 'Indefinido'))];
+            // >>>>> A LÓGICA INTELIGENTE ESTÁ AQUI <<<<<
+            // 1. Coleta TODOS os grupos de emoção e ritmo da seção
+            const allEmotions = sectionEmotionsData.map(e => e ? getGroupName(e.emotion, emotionGroups) : 'Indefinido');
+            const allPaces = sectionEmotionsData.map(e => e ? getGroupName(e.pace, paceGroups) : 'Indefinido');
 
-            const tagsHtml = groupedEmotions.map(emotion => `<span class="tag"><i class="fas fa-theater-masks mr-2"></i>${emotion}</span>`).join('') + 
-                             groupedPaces.map(pace => `<span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${pace}</span>`).join('');
+            // 2. Usa nossa nova função para encontrar o DOMINANTE de cada um
+            const dominantEmotion = getDominantValue(allEmotions);
+            const dominantPace = getDominantValue(allPaces);
+
+            // 3. Cria as tags baseadas apenas nos valores dominantes
+            const tagsHtml = `
+                <span class="tag"><i class="fas fa-theater-masks mr-2"></i>${dominantEmotion}</span>
+                <span class="tag tag-pace"><i class="fas fa-tachometer-alt mr-2"></i>${dominantPace}</span>
+            `;
 
             const sectionCardHtml = `
             <div class="card !p-6 mb-6 animate-fade-in">
@@ -3204,7 +3248,7 @@ ACTION: Return ONLY the JSON array.`;
                     <pre class="hidden">${DOMPurify.sanitize(sectionScript.text)}</pre>
                 </div>
                 <div class="flex flex-wrap gap-2 mb-4">
-                    ${tagsHtml || '<span class="text-sm italic text-muted">Nenhuma emoção analisada.</span>'}
+                    ${tagsHtml}
                 </div>
                 <div class="generated-content-wrapper text-base leading-relaxed">
                     ${sectionScript.html} 
@@ -3707,6 +3751,19 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 
 
 
+// script.js (Adicionar na seção de utilitários)
+
+const getDominantValue = (arr, defaultValue = 'Indefinido') => {
+    if (!arr || arr.length === 0) return defaultValue;
+    const counts = arr.reduce((acc, value) => {
+        acc[value] = (acc[value] || 0) + 1;
+        return acc;
+    }, {});
+    return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+};
+
+
+
 
 
 
@@ -3714,6 +3771,7 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 // >>>>> FIM DA VERSÃO BLINDADA DE 'addDevelopmentChapter' <<<<<
 // =========================================================================
 
+// VERSÃO DEFINITIVA de suggestPerformance (Resiliente e com Idioma Correto)
 window.suggestPerformance = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -3736,34 +3794,40 @@ window.suggestPerformance = async (button) => {
         const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map((p, index) => ({ index, text: p.textContent.trim() }));
         if (originalParagraphs.length === 0) throw new Error("Não foram encontrados parágrafos estruturados para análise.");
 
+        // >>>>> MUDANÇA 1: Capturamos APENAS o nome do idioma <<<<<
+        const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
+
         const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração claras e impactantes, retornando um array JSON.
+
+**IDIOMA OBRIGATÓRIO:** Todas as anotações geradas (como "[Pausa dramática]") DEVEM estar em ${languageName}. Esta é a regra mais importante.
 
 **ROTEIRO PARA ANÁLISE:**
 ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')}
 
 **MANUAL DE ANOTAÇÃO (REGRAS CRÍTICAS):**
 1.  **Para "general_annotation":**
-    *   A anotação DEVE ser uma instrução curta para o narrador.
-    *   NÃO PODE ser um resumo, um título, ou uma reescrita do parágrafo.
-    *   **Exemplos BONS:** "[Tom mais sério e grave]", "[Pausa dramática antes de continuar]", "[Falar mais rápido, com tom de urgência]", "[Sussurrar, como se contasse um segredo]".
-    *   **Se nenhuma instrução for necessária, deixe a string VAZIA.**
+    *   A anotação DEVE ser uma instrução curta para o narrador (ex: "[Tom mais sério e grave]", "[Pausa dramática]", "[Falar com urgência]").
+    *   Se nenhuma instrução for necessária, deixe a string VAZIA ("").
 2.  **Para "emphasis_words":**
-    *   Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase para maximizar o impacto.
-    *   **Se nenhuma ênfase for necessária, deixe o array VAZIO.**
+    *   Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase.
+    *   Se nenhuma ênfase for necessária, deixe o array VAZIO ([]).
 
 **REGRAS DE SINTAXE JSON (INEGOCIÁVEIS):**
-1.  Sua resposta deve ser APENAS o array JSON, contendo EXATAMENTE ${originalParagraphs.length} objetos.
-2.  Cada objeto DEVE ter DUAS chaves: "general_annotation" (string) e "emphasis_words" (um array de strings).
-3.  Use aspas duplas ("") para todas as chaves e valores string.
+1.  Sua resposta deve ser APENAS o array JSON, contendo um objeto para CADA parágrafo enviado.
+2.  Cada objeto DEVE ter DUAS chaves: "general_annotation" (string) e "emphasis_words" (array de strings).
+3.  Use aspas duplas ("") para todas as chaves e valores.
 
-**AÇÃO FINAL:** Analise CADA parágrafo e retorne o array JSON completo com suas anotações de DIRETOR.`;
+**AÇÃO FINAL:** Analise CADA parágrafo e retorne o array JSON completo com suas anotações de DIRETOR no idioma correto.`;
         
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
         const perfectJson = await fixJsonWithAI(brokenJson);
         const annotations = JSON.parse(perfectJson);
-
-        if (!Array.isArray(annotations) || annotations.length < originalParagraphs.length) { 
-            throw new Error("A IA não retornou anotações para todos os parágrafos.");
+        
+        if (!Array.isArray(annotations)) { 
+            throw new Error("A IA não retornou um array de anotações válido.");
+        }
+        if (annotations.length < originalParagraphs.length) {
+            console.warn(`Discrepância na performance: ${originalParagraphs.length} parágrafos enviados, ${annotations.length} anotações recebidas. O restante será ignorado.`);
         }
         
         let annotatedParagraphs = [];
@@ -3771,16 +3835,11 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
             const annotationData = annotations[index] || { general_annotation: '', emphasis_words: [] };
             let annotatedParagraph = p.text;
 
-            // ==========================================================
-            // >>>>> A LÓGICA CORRETA E FINAL ESTÁ AQUI <<<<<
-            // Substituímos "palavra" por "[ênfase em 'palavra'] palavra".
-            // ==========================================================
             if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
                 const word = annotationData.emphasis_words[0];
                 if (word && typeof word === 'string' && word.trim() !== '') {
                     const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                    // A substituição agora gera: "[ênfase em 'palavra'] palavra"
                     annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1'] $1`);
                 }
             }
@@ -3860,18 +3919,18 @@ Você é uma especialista em criação de prompts visuais cinematográficos. Sua
 3. **PROIBIÇÃO DE ASPAS INTERNAS**: Nos valores de texto, use apenas aspas simples (') para ênfase
 4. **ESTRUTURA PADRÃO**: Cada objeto deve ter exatamente duas chaves:
    - "imageDescription" (string): descrição visual detalhada
-   -estimated_duration" (número inteiro): duração estimada em segundos
+   - "estimated_duration" (número inteiro): duração estimada em segundos
 
 ## EXEMPLO DE FORMATAÇÃO CORRETA
 
 [
   {
-    "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras.",
-    "estimated_duration": 5
+    "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras. O cenário úmido e nevoento intensifica a sensação de isolamento. Profundidade de campo média mostra fundo desfocado com vitrines apagadas. Textura da jaqueta de couro encharcada e poças com reflexos distorcidos aumentam o realismo sensorial.",
+    "estimated_duration": 6
   },
   {
-    "imageDescription": "Close-up em mãos trêmulas segurando uma carta antiga. A luz da manhã entra pela janela, destacando a textura do papel amarelado e a caligrafia tremida. Foco shallow com fundo suavizado.",
-    "estimated_duration": 3
+    "imageDescription": "Close-up em mãos trêmulas segurando uma carta antiga. A luz da manhã entra pela janela, destacando a textura do papel amarelado e a caligrafia tremida. Foco shallow com fundo suavizado revela uma cadeira vazia e um retrato emoldurado caído no chão. Estilo cinematográfico realista com paleta quente em sépia e dourado. A posição ligeiramente contrapicada da câmera enfatiza a vulnerabilidade do personagem. Gotas de chuva deslizam pelo vidro, refletindo memórias distantes.",
+    "estimated_duration": 5
   }
 ]
 
@@ -3880,33 +3939,36 @@ Você é uma especialista em criação de prompts visuais cinematográficos. Sua
 Para cada parágrafo, crie uma descrição visual rica respondendo a estas perguntas:
 
 ### Elementos Visuais Principais
-- **Cenário e Ambiente**: Onde a cena acontece? Descreva o local e atmosfera sensorial
-- **Composição Visual**: Quais elementos principais e como estão organizados no quadro?
-- **Iluminação**: Qual a qualidade, direção e tipo de luz?
-- **Paleta de Cores**: Quais cores dominantes refletem a emoção da cena?
+- **Cenário e Ambiente**: Onde a cena acontece? Descreva o local, arquitetura, objetos e atmosfera sensorial (umidade, temperatura, silêncio)
+- **Composição Visual**: Quais elementos principais estão no quadro? Use regra dos terços, simetria ou desequilíbrio intencional
+- **Iluminação**: Qual a qualidade (dura, difusa), direção (contraluz, lateral) e fonte (natural, artificial) da luz?
+- **Paleta de Cores**: Quais cores dominam? Como elas refletem o estado emocional (ex: azul para tristeza, vermelho para tensão)?
 
 ### Técnicas Cinematográficas
-- **Ângulo da Câmera**: De onde olhamos a cena (plano geral, close, etc.)?
-- **Estilo Visual**: Qual a estética (realista, vintage, etc.)?
-- **Foco e Profundidade**: O que está nítido e o que está desfocado?
-- **Movimento e Ação**: Há movimento de câmera ou personagens?
+- **Ângulo da Câmera**: Plano geral, médio, close, contrapicado, picado, drone, steadycam?
+- **Estilo Visual**: Estética clara (realista, vintage, anime, distópico, documental)?
+- **Foco e Profundidade**: Profundidade de campo rasa (shallow) ou ampla? O que está nítido e o que está desfocado?
+- **Movimento e Ação**: Há movimento de câmera (dolly, pan, zoom)? Há ação dos personagens ou elementos do ambiente?
 
 ### Elementos Emocionais e Narrativos
-- **Elementos Emocionais**: Quais elementos visuais amplificam a emoção?
-- **Expressões Faciais**: Como os personagens expressam suas emoções?
-- **Símbolos Chave**: Quais objetos ou elementos são importantes para a narrativa?
-- **Texturas e Materiais**: Quais texturas aumentam o realismo?
+- **Elementos Emocionais**: Quais aspectos visuais evocam emoção (solidão, tensão, esperança)?
+- **Expressões Faciais**: Como os olhos, boca e postura transmitem o estado interno?
+- **Símbolos Chave**: Objetos com significado narrativo (fotos, relógios, cartas, armas)?
+- **Texturas e Materiais**: Tecidos, metal, pele, poeira, água — como aumentam o realismo e a imersão?
 
 ### Contexto e Atmosfera
-- **Profundidade e Escala**: Como o espaço é representado?
-- **Elementos Temporais ou Climáticos**: Qual o momento do dia, clima ou estação?
+- **Profundidade e Escala**: Camadas de profundidade (primeiro plano, fundo)? Sensação de vazio, aglomeração ou claustrofobia?
+- **Elementos Temporais ou Climáticos**: Hora do dia, estação, clima (chuva, neblina, vento)? Como afetam a cena?
 
 ## DIRETRIZES ADICIONAIS
 
-- Priorize elementos visuais que melhor representem a essência do parágrafo
-- Mantenha consistência de estilo entre prompts consecutivos quando aplicável
-- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade da cena
-- Se o texto de entrada for ambíguo, faça escolhas criativas coerentes com o contexto geral
+- Priorize elementos visuais que melhor representem a essência emocional e narrativa do parágrafo
+- Mantenha consistência de estilo entre prompts consecutivos (ex: mesma paleta, iluminação, estética)
+- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade da cena:
+  - Simples (close, poucos elementos): 2–4s
+  - Média (plano médio, ação leve): 5–7s
+  - Complexa (plano geral, múltiplos elementos): 8–10s
+- Se o texto for ambíguo, faça escolhas criativas coerentes com o tom geral (dramático, nostálgico, tenso)
 
 ## DADOS PARA ANÁLISE
 
