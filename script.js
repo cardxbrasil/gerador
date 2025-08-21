@@ -1603,47 +1603,30 @@ const getBasePromptContext = () => {
 
 // CÓDIGO COMPLETO PARA SUBSTITUIÇÃO (VERSÃO FINAL E OTIMIZADA)
 
-const getOptimizedBaseContext = async () => {
-    // 1. Pega todos os inputs, incluindo os mais longos
+// SUBSTITUA SUA FUNÇÃO getBasePromptContext INTEIRA POR ESTA VERSÃO
+
+const getBasePromptContext = () => {
     const inputs = {
         channelName: document.getElementById('channelName')?.value.trim() || "",
         videoTheme: document.getElementById('videoTheme')?.value.trim() || "",
         targetAudience: document.getElementById('targetAudience')?.value.trim() || "",
         language: document.getElementById('languageSelect')?.value || "en",
+        languageStyle: document.getElementById('languageStyle')?.value || "",
         videoObjective: document.getElementById('videoObjective')?.value || "",
+        speakingPace: document.getElementById('speakingPace')?.value || "",
         narrativeStructure: document.getElementById('narrativeStructure')?.value || "",
+        narrativeTheme: document.getElementById('narrativeTheme')?.value.trim() || "",
         narrativeTone: document.getElementById('narrativeTone')?.value || "",
         narrativeVoice: document.getElementById('narrativeVoice')?.value.trim() || "",
-        // >>>>> A CORREÇÃO ESTÁ AQUI: Limitamos o tamanho do texto ANTES de enviar para otimização <<<<<
-        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 2000),
+        shockingEndingHook: document.getElementById('shockingEndingHook')?.value.trim() || "",
+        imageStyleSelect: document.getElementById('imageStyleSelect')?.value || "",
+        // >>>>> A OTIMIZAÇÃO ACONTECE AQUI: Cortamos o excesso na fonte! <<<<<
+        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
         centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
-        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 2000),
+        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
         emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
     };
-
-    // 2. Junta apenas os textos longos para a IA resumir
-    const heavyContextText = `
-        Inspiration/Context: "${inputs.videoDescription}"
-        Central Question: "${inputs.centralQuestion}"
-        Emotional Anchor Story: "${inputs.emotionalHook}"
-        Critical Research Data: "${inputs.researchData}"
-    `;
-
-    // 3. Cria um prompt para a IA agir como um "assistente" e resumir o contexto
-    const summarizerPrompt = `You are a briefing specialist AI. Your task is to summarize the following user-provided context into a concise, bullet-pointed list for a scriptwriter AI. Extract only the most critical strategic points. Keep the summary under 150 words. The summary language must be the same as the source text.
-    
-    CONTEXT TO SUMMARIZE:
-    ---
-    ${heavyContextText}
-    ---
-    
-    Return ONLY the concise summary.`;
-
-    // 4. Pede à IA para criar o resumo otimizado
-    const optimizedSummary = await callGroqAPI(summarizerPrompt, 500);
-
-    // 5. Monta o contexto final, usando o resumo em vez do texto bruto
-    let finalContext = `Você é um ROTEIRISTA ESPECIALISTA para o canal "${inputs.channelName}".
+    let context = `Você é um ROTEIRISTA ESPECIALISTA para o canal "${inputs.channelName}".
     **Core Project Details:**
     - Video Topic: "${inputs.videoTheme}"
     - Target Audience: "${inputs.targetAudience}"
@@ -1651,16 +1634,16 @@ const getOptimizedBaseContext = async () => {
     - Video Objective: "${inputs.videoObjective}"
     **Narrative & Style Instructions:**
     - Narrative Structure to use: "${inputs.narrativeStructure}"
-    - Narrative Tone (The Feeling): "${inputs.narrativeTone}"
-    - Narrator's Voice (The Personality): "${inputs.narrativeVoice}"
-    
-    **Optimized Strategic Briefing (Summary of user inputs):**
-    ---
-    ${optimizedSummary}
-    ---
-    `;
-
-    return finalContext;
+    - Speaking Pace: "${inputs.speakingPace}"`;
+    if (inputs.narrativeTheme) context += `\n- Core Theme (The Big Idea): "${inputs.narrativeTheme}"`;
+    if (inputs.narrativeTone) context += `\n- Narrative Tone (The Feeling): "${inputs.narrativeTone}"`;
+    if (inputs.narrativeVoice) context += `\n- Narrator's Voice (The Personality): "${inputs.narrativeVoice}"`;
+    if (inputs.shockingEndingHook) context += `\n- Shocking Ending Hook to use: "${inputs.shockingEndingHook}"`;
+    if (inputs.videoDescription) context += `\n\n**Additional Information & Inspiration:**\n- Inspiration/Context: "${inputs.videoDescription}"`;
+    if (inputs.centralQuestion) context += `\n- Central Question to guide the entire script: "${inputs.centralQuestion}"`;
+    if (inputs.emotionalHook) context += `\n\n**CRITICAL NARRATIVE ANCHOR:** Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente. Emotional Anchor Story: "${inputs.emotionalHook}"`;
+    if (inputs.researchData) context += `\n\n**CRITICAL RESEARCH DATA & CONTEXT:** Você DEVE incorporar os seguintes fatos: ${inputs.researchData}`;
+    return context;
 };
 
 
@@ -1792,8 +1775,8 @@ const suggestStrategy = async (button) => {
 
 
 // --- ETAPA 3: CRIAR ROTEIRO ---
-const constructScriptPrompt = async (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
-    const baseContext = await getOptimizedBaseContext();
+const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
+    const baseContext = getOptimizedBaseContext();
     const videoDuration = document.getElementById('videoDuration').value;
     const targetWords = wordCountMap[videoDuration]?.[sectionName];
     let durationInstruction = `A seção deve ter aproximadamente ${targetWords} palavras.`;
@@ -1918,7 +1901,7 @@ const generateStrategicOutline = async (button) => {
 
     try {
         // A única mudança está aqui dentro deste bloco 'try'
-        const { prompt } = await constructScriptPrompt('outline');
+        const { prompt } = constructScriptPrompt('outline');
 
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
         const perfectJson = await fixJsonWithAI(brokenJson);
@@ -2073,7 +2056,7 @@ const handleGenerateSection = async (button, sectionName, sectionTitle, elementI
         const keyMap = { intro: 'introduction', development: 'development', climax: 'climax' };
         const directive = AppState.generated.strategicOutline ? AppState.generated.strategicOutline[keyMap[sectionName]] : null;
         
-        const { prompt, maxTokens } = await constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
+        const { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
 
         const rawResult = await callGroqAPI(prompt, maxTokens);
         // Usa a função `removeMetaComments` para limpar qualquer "lixo" textual que a IA possa ter adicionado
@@ -2165,7 +2148,7 @@ const generateConclusion = async (button) => {
     }
 
     const fullContext = getTranscriptOnly();
-    const basePromptContext = await getOptimizedBaseContext();
+    const basePromptContext = getOptimizedBaseContext();
 
     const prompt = `${basePromptContext}\n\n# TAREFA\nEscrever o texto da conclusão para o vídeo, estruturado em parágrafos.\n\n# CONTEXTO\n## Roteiro existente:\n---\n${fullContext}\n---\n\n# DIRETRIZ ESTRATÉGICA\n${strategyDirective}\n\n# REGRAS ESSENCIAIS\n1. **FORMATO**: Responda APENAS com o texto narrativo, em parágrafos. Proibido anotações ou CTA.\n2. **QUALIDADE DOS PARÁGRAFOS**: Cada parágrafo deve ter de 4 a 6 frases.`;
 
@@ -2222,7 +2205,7 @@ const generateStrategicCta = async (button) => {
     // Lógica para obter contexto e criar o prompt (inalterada)
     const ctaSpecifics = document.getElementById('ctaSpecifics').value.trim();
     const fullContext = getTranscriptOnly();
-    const basePromptContext = await getOptimizedBaseContext();
+    const basePromptContext = getOptimizedBaseContext();
 
     let ctaDirective = "Crie um CTA genérico (curtir, comentar, inscrever-se) alinhado ao tom do vídeo.";
     if (ctaSpecifics) {
@@ -2319,7 +2302,7 @@ const suggestFinalStrategy = async (button) => {
     document.getElementById('generateCtaBtn').classList.add('hidden');
 
     const fullContext = getTranscriptOnly();
-    const basePromptContext = await getOptimizedBaseContext();
+    const basePromptContext = getOptimizedBaseContext();
     if (!fullContext) {
         window.showToast("Gere o roteiro principal primeiro para receber sugestões.", 'info');
         hideButtonLoading(button);
@@ -2835,7 +2818,7 @@ const suggestViralElements = async (button) => {
     showButtonLoading(button);
     const reportContainer = document.getElementById('viralSuggestionsContainer');
     reportContainer.innerHTML = `<div class="my-4"><div class="loading-spinner-small mx-auto"></div><p class="text-sm mt-2">O Arquiteto da Viralidade está analisando...</p></div>`;
-    const basePromptContext = await getOptimizedBaseContext();
+    const basePromptContext = getOptimizedBaseContext();
     const prompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA DE CONTEÚDO VIRAL. Sua tarefa é analisar um roteiro e seu contexto para propor 3 elementos que aumentem a viralidade, retornando um array JSON perfeito.
 
 **CONTEXTO ESTRATÉGICO ("DNA" DO VÍDEO):**
@@ -3368,7 +3351,7 @@ window.analyzeSectionRetention = async (button) => {
             text: p.textContent.trim()
         }));
         
-        const basePromptContext = await getOptimizedBaseContext();
+        const basePromptContext = getOptimizedBaseContext();
         const prompt = `Você é uma API de análise de roteiro que retorna JSON.
 
         **CONTEXTO ESTRATÉGICO:**
@@ -4200,7 +4183,7 @@ window.navigatePrompts = (sectionElementId, direction) => {
 
 
 
-window.optimizeGroup = async (button, suggestionText) => {
+window.optimizeGroup = (button, suggestionText) => {
     if (!button || !suggestionText) return;
 
     const safeSelector = suggestionText.replace(/"/g, '\\"');
@@ -4219,7 +4202,7 @@ window.optimizeGroup = async (button, suggestionText) => {
         const originalBlock = Array.from(paragraphsToOptimize).map(p => p.textContent.trim()).join('\n\n');
         if (!originalBlock.trim()) throw new Error("O bloco de texto original está vazio.");
 
-        const basePromptContext = await getOptimizedBaseContext();
+        const basePromptContext = getOptimizedBaseContext();
         const fullScriptContext = getTranscriptOnly();   
         
         const prompt = `Você é um EDITOR DE ROTEIRO DE ELITE e um ESPECIALISTA EM REESCRITA (Copywriter). Sua tarefa é REESCREVER um bloco de texto problemático para que ele se alinhe PERFEITAMENTE ao tom e estilo do roteiro, resolvendo o problema apontado.
