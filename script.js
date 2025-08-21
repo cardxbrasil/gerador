@@ -3815,6 +3815,8 @@ const getDominantValue = (arr, defaultValue = 'Indefinido') => {
 // =========================================================================
 
 // VERSÃO DEFINITIVA de suggestPerformance (Resiliente e com Idioma Correto)
+// SUBSTITUA A SUA FUNÇÃO window.suggestPerformance INTEIRA POR ESTA VERSÃO FINAL
+
 window.suggestPerformance = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -3837,7 +3839,6 @@ window.suggestPerformance = async (button) => {
         const originalParagraphs = Array.from(tempDiv.querySelectorAll('div[id]')).map((p, index) => ({ index, text: p.textContent.trim() }));
         if (originalParagraphs.length === 0) throw new Error("Não foram encontrados parágrafos estruturados para análise.");
 
-        // >>>>> MUDANÇA 1: Capturamos APENAS o nome do idioma <<<<<
         const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
 
         const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração claras e impactantes, retornando um array JSON.
@@ -3862,9 +3863,11 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 **AÇÃO FINAL:** Analise CADA parágrafo e retorne o array JSON completo com suas anotações de DIRETOR no idioma correto.`;
         
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
-        const perfectJson = await fixJsonWithAI(brokenJson);
-        const annotations = JSON.parse(perfectJson);
+        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
+        
+        // >>>>> CORREÇÃO DEFINITIVA APLICADA AQUI <<<<<
+        // Usamos o extrator para ignorar qualquer texto extra da IA
+        const annotations = extractAndParseJson(brokenJsonResponse);
         
         if (!Array.isArray(annotations)) { 
             throw new Error("A IA não retornou um array de anotações válido.");
@@ -3904,7 +3907,6 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
         hideButtonLoading(button);
     }
 };
-
 
 // =========================================================================
 // >>>>> VERSÃO OTIMIZADA que NÃO SALVA o styleBlock repetidamente <<<<<
