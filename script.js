@@ -35,7 +35,7 @@ const wordCountMap = {
     'long': { intro: 225, development: 750, climax: 300, conclusion: 225 },
 };
 
-        const CINEMATIC_STYLE_BLOCK = `
+const CINEMATIC_STYLE_BLOCK = `
 # DIRETRIZES DE ESTILO CINEMATOGRÁFICO PARA IMAGENS DE ALTA RESOLUÇÃO
 
 Ultra-realistic, high-resolution photographic image captured with masterfully rendered natural or artificial lighting and cinematic composition. The aesthetic should be of a modern cinematic film, with meticulous attention to physical and sensory details. The image must appear as if photographed by a professional cinematographer using a high-end camera (e.g., ARRI Alexa, RED Komodo), not digitally rendered.
@@ -94,7 +94,8 @@ Use os seguintes termos como **prefixos ou sufixos** no prompt final:
 
 ## INSTRUÇÃO FINAL PARA O MODELO
 
-You are generating an image that must be **indistinguishable from a real photograph taken during filming**. It should not look like a 3D render, digital painting, or concept art. Every surface, shadow, and face must reflect the complexity and imperfection of reality. If you see anything that looks too clean, symmetric, or artificial, reject it and re-generate with more physical authenticity.`;
+You are generating an image that must be **indistinguishable from a real photograph taken during filming**. It should not look like a 3D render, digital painting, or concept art. Every surface, shadow, and face must reflect the complexity and imperfection of reality. If you see anything that looks too clean, symmetric, or artificial, reject it and re-generate with more physical authenticity.
+`;
 
 
 
