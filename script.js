@@ -3817,6 +3817,8 @@ const getDominantValue = (arr, defaultValue = 'Indefinido') => {
 // VERSÃO DEFINITIVA de suggestPerformance (Resiliente e com Idioma Correto)
 // SUBSTITUA A SUA FUNÇÃO window.suggestPerformance INTEIRA POR ESTA VERSÃO FINAL
 
+// SUBSTITUA A SUA FUNÇÃO window.suggestPerformance INTEIRA POR ESTA VERSÃO FINAL
+
 window.suggestPerformance = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
