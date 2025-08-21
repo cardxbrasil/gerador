@@ -65,17 +65,6 @@ Para diferentes gêneros e atmosferas, considere estas referências:
 - **Épico/Histórico:** Estilo de Rodrigo Prieto em "The Irishman" - paleta de cores específica do período, iluminação naturalista, detalhes autênticos
 - **Contemporâneo/Realista:** Estilo de Greig Fraser em "The Mandalorian" - iluminação prática, texturas realistas, composição dinâmica
 
-## TERMOS CHAVE PARA FORÇAR REALISMO FOTOGRAFICO (ADICIONAR AO PROMPT FINAL)
-
-Use os seguintes termos como **prefixos ou sufixos** no prompt final:
-- "photographed by a cinematographer"
-- "shot on 35mm film"
-- "natural lighting, no digital enhancement"
-- "real-world textures, no CGI"
-- "imperfectly lit, authentic atmosphere"
-- "lens flare, slight grain, shallow depth of field"
-- "captured in a single take, no retouching"
-
 ## RESTRIÇÕES DE ESTILO (O QUE EVITAR)
 
 - **NO** exaggerated or distorted features (facial features, proportions).
@@ -90,7 +79,16 @@ Use os seguintes termos como **prefixos ou sufixos** no prompt final:
 - **NO** idealized human features — accept wrinkles, pores, scars, uneven skin tone.
 - **NO** hyper-sharpness across the entire image — simulate lens limitations.
 
+## TERMOS CHAVE PARA FORÇAR REALISMO FOTOGRAFICO (ADICIONAR AO PROMPT FINAL)
 
+Use os seguintes termos como **prefixos ou sufixos** no prompt final:
+- "photographed by a cinematographer"
+- "shot on 35mm film"
+- "natural lighting, no digital enhancement"
+- "real-world textures, no CGI"
+- "imperfectly lit, authentic atmosphere"
+- "lens flare, slight grain, shallow depth of field"
+- "captured in a single take, no retouching"
 
 ## INSTRUÇÃO FINAL PARA O MODELO
 
@@ -571,50 +569,6 @@ ${fullTranscript}
 
 };
 
-
-
-// COLE ESTA FUNÇÃO CORRETA E OTIMIZADA NO LUGAR DAS ANTIGAS
-
-const getBasePromptContext = () => {
-    const inputs = {
-        channelName: document.getElementById('channelName')?.value.trim() || "",
-        videoTheme: document.getElementById('videoTheme')?.value.trim() || "",
-        targetAudience: document.getElementById('targetAudience')?.value.trim() || "",
-        language: document.getElementById('languageSelect')?.value || "en",
-        languageStyle: document.getElementById('languageStyle')?.value || "",
-        videoObjective: document.getElementById('videoObjective')?.value || "",
-        speakingPace: document.getElementById('speakingPace')?.value || "",
-        narrativeStructure: document.getElementById('narrativeStructure')?.value || "",
-        narrativeTheme: document.getElementById('narrativeTheme')?.value.trim() || "",
-        narrativeTone: document.getElementById('narrativeTone')?.value || "",
-        narrativeVoice: document.getElementById('narrativeVoice')?.value.trim() || "",
-        shockingEndingHook: document.getElementById('shockingEndingHook')?.value.trim() || "",
-        imageStyleSelect: document.getElementById('imageStyleSelect')?.value || "",
-        // >>>>> A OTIMIZAÇÃO ACONTECE AQUI: Cortamos o excesso na fonte! <<<<<
-        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
-        centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
-        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
-        emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
-    };
-    let context = `Você é um ROTEIRISTA ESPECIALISTA para o canal "${inputs.channelName}".
-    **Core Project Details:**
-    - Video Topic: "${inputs.videoTheme}"
-    - Target Audience: "${inputs.targetAudience}"
-    - Language: "${inputs.language}"
-    - Video Objective: "${inputs.videoObjective}"
-    **Narrative & Style Instructions:**
-    - Narrative Structure to use: "${inputs.narrativeStructure}"
-    - Speaking Pace: "${inputs.speakingPace}"`;
-    if (inputs.narrativeTheme) context += `\n- Core Theme (The Big Idea): "${inputs.narrativeTheme}"`;
-    if (inputs.narrativeTone) context += `\n- Narrative Tone (The Feeling): "${inputs.narrativeTone}"`;
-    if (inputs.narrativeVoice) context += `\n- Narrator's Voice (The Personality): "${inputs.narrativeVoice}"`;
-    if (inputs.shockingEndingHook) context += `\n- Shocking Ending Hook to use: "${inputs.shockingEndingHook}"`;
-    if (inputs.videoDescription) context += `\n\n**Additional Information & Inspiration:**\n- Inspiration/Context: "${inputs.videoDescription}"`;
-    if (inputs.centralQuestion) context += `\n- Central Question to guide the entire script: "${inputs.centralQuestion}"`;
-    if (inputs.emotionalHook) context += `\n\n**CRITICAL NARRATIVE ANCHOR:** Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente. Emotional Anchor Story: "${inputs.emotionalHook}"`;
-    if (inputs.researchData) context += `\n\n**CRITICAL RESEARCH DATA & CONTEXT:** Você DEVE incorporar os seguintes fatos: ${inputs.researchData}`;
-    return context;
-};
 
 
 // ==========================================================
@@ -1598,6 +1552,47 @@ const applyStrategy = () => {
     window.showToast("Estratégia definida. Pronto para criar o roteiro.", 'success');
 };
 
+const getBasePromptContext = () => {
+    const inputs = {
+        channelName: document.getElementById('channelName')?.value.trim() || "",
+        videoTheme: document.getElementById('videoTheme')?.value.trim() || "",
+        targetAudience: document.getElementById('targetAudience')?.value.trim() || "",
+        language: document.getElementById('languageSelect')?.value || "en",
+        languageStyle: document.getElementById('languageStyle')?.value || "",
+        videoObjective: document.getElementById('videoObjective')?.value || "",
+        speakingPace: document.getElementById('speakingPace')?.value || "",
+        narrativeStructure: document.getElementById('narrativeStructure')?.value || "",
+        narrativeTheme: document.getElementById('narrativeTheme')?.value.trim() || "",
+        narrativeTone: document.getElementById('narrativeTone')?.value || "",
+        narrativeVoice: document.getElementById('narrativeVoice')?.value.trim() || "",
+        shockingEndingHook: document.getElementById('shockingEndingHook')?.value.trim() || "",
+        imageStyleSelect: document.getElementById('imageStyleSelect')?.value || "",
+        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
+        centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
+        emotionalArc: (document.getElementById('emotionalArc')?.value.trim() || "").slice(0, 500),
+        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
+        emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
+    };
+    let context = `Você é um ROTEIRISTA ESPECIALISTA para o canal "${inputs.channelName}".
+    **Core Project Details:**
+    - Video Topic: "${inputs.videoTheme}"
+    - Target Audience: "${inputs.targetAudience}"
+    - Language: "${inputs.language}"
+    - Video Objective: "${inputs.videoObjective}"
+    **Narrative & Style Instructions:**
+    - Narrative Structure to use: "${inputs.narrativeStructure}"
+    - Speaking Pace: "${inputs.speakingPace}"`;
+    if (inputs.narrativeTheme) context += `\n- Core Theme (The Big Idea): "${inputs.narrativeTheme}"`;
+    if (inputs.narrativeTone) context += `\n- Narrative Tone (The Feeling): "${inputs.narrativeTone}"`;
+    if (inputs.narrativeVoice) context += `\n- Narrator's Voice (The Personality): "${inputs.narrativeVoice}"`;
+    if (inputs.shockingEndingHook) context += `\n- Shocking Ending Hook to use: "${inputs.shockingEndingHook}"`;
+    if (inputs.videoDescription) context += `\n\n**Additional Information & Inspiration:**\n- Inspiration/Context: "${inputs.videoDescription}"`;
+    if (inputs.centralQuestion) context += `\n- Central Question to guide the entire script: "${inputs.centralQuestion}"`;
+    if (inputs.emotionalArc) context += `\n- Desired Emotional Arc: "${inputs.emotionalArc}"`;
+    if (inputs.emotionalHook) context += `\n\n**CRITICAL NARRATIVE ANCHOR:** Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente. Emotional Anchor Story: "${inputs.emotionalHook}"`;
+    if (inputs.researchData) context += `\n\n**CRITICAL RESEARCH DATA & CONTEXT:** Você DEVE incorporar os seguintes fatos: ${inputs.researchData}`;
+    return context;
+};
 
 
 
@@ -1731,7 +1726,7 @@ const suggestStrategy = async (button) => {
 
 // --- ETAPA 3: CRIAR ROTEIRO ---
 const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
-    const baseContext = getOptimizedBaseContext();
+    const baseContext = getBasePromptContext();
     const videoDuration = document.getElementById('videoDuration').value;
     const targetWords = wordCountMap[videoDuration]?.[sectionName];
     let durationInstruction = `A seção deve ter aproximadamente ${targetWords} palavras.`;
@@ -2103,7 +2098,7 @@ const generateConclusion = async (button) => {
     }
 
     const fullContext = getTranscriptOnly();
-    const basePromptContext = getOptimizedBaseContext();
+    const basePromptContext = getBasePromptContext();
 
     const prompt = `${basePromptContext}\n\n# TAREFA\nEscrever o texto da conclusão para o vídeo, estruturado em parágrafos.\n\n# CONTEXTO\n## Roteiro existente:\n---\n${fullContext}\n---\n\n# DIRETRIZ ESTRATÉGICA\n${strategyDirective}\n\n# REGRAS ESSENCIAIS\n1. **FORMATO**: Responda APENAS com o texto narrativo, em parágrafos. Proibido anotações ou CTA.\n2. **QUALIDADE DOS PARÁGRAFOS**: Cada parágrafo deve ter de 4 a 6 frases.`;
 
@@ -2160,7 +2155,7 @@ const generateStrategicCta = async (button) => {
     // Lógica para obter contexto e criar o prompt (inalterada)
     const ctaSpecifics = document.getElementById('ctaSpecifics').value.trim();
     const fullContext = getTranscriptOnly();
-    const basePromptContext = getOptimizedBaseContext();
+    const basePromptContext = getBasePromptContext();
 
     let ctaDirective = "Crie um CTA genérico (curtir, comentar, inscrever-se) alinhado ao tom do vídeo.";
     if (ctaSpecifics) {
@@ -2257,7 +2252,7 @@ const suggestFinalStrategy = async (button) => {
     document.getElementById('generateCtaBtn').classList.add('hidden');
 
     const fullContext = getTranscriptOnly();
-    const basePromptContext = getOptimizedBaseContext();
+    const basePromptContext = getBasePromptContext();
     if (!fullContext) {
         window.showToast("Gere o roteiro principal primeiro para receber sugestões.", 'info');
         hideButtonLoading(button);
@@ -2773,7 +2768,7 @@ const suggestViralElements = async (button) => {
     showButtonLoading(button);
     const reportContainer = document.getElementById('viralSuggestionsContainer');
     reportContainer.innerHTML = `<div class="my-4"><div class="loading-spinner-small mx-auto"></div><p class="text-sm mt-2">O Arquiteto da Viralidade está analisando...</p></div>`;
-    const basePromptContext = getOptimizedBaseContext();
+    const basePromptContext = getBasePromptContext();
     const prompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA DE CONTEÚDO VIRAL. Sua tarefa é analisar um roteiro e seu contexto para propor 3 elementos que aumentem a viralidade, retornando um array JSON perfeito.
 
 **CONTEXTO ESTRATÉGICO ("DNA" DO VÍDEO):**
@@ -3306,7 +3301,7 @@ window.analyzeSectionRetention = async (button) => {
             text: p.textContent.trim()
         }));
         
-        const basePromptContext = getOptimizedBaseContext();
+        const basePromptContext = getBasePromptContext();
         const prompt = `Você é uma API de análise de roteiro que retorna JSON.
 
         **CONTEXTO ESTRATÉGICO:**
@@ -4138,7 +4133,7 @@ window.navigatePrompts = (sectionElementId, direction) => {
 
 
 
-window.optimizeGroup = (button, suggestionText) => {
+window.optimizeGroup = async (button, suggestionText) => {
     if (!button || !suggestionText) return;
 
     const safeSelector = suggestionText.replace(/"/g, '\\"');
@@ -4157,7 +4152,7 @@ window.optimizeGroup = (button, suggestionText) => {
         const originalBlock = Array.from(paragraphsToOptimize).map(p => p.textContent.trim()).join('\n\n');
         if (!originalBlock.trim()) throw new Error("O bloco de texto original está vazio.");
 
-        const basePromptContext = getOptimizedBaseContext();
+        const basePromptContext = getBasePromptContext();
         const fullScriptContext = getTranscriptOnly();   
         
         const prompt = `Você é um EDITOR DE ROTEIRO DE ELITE e um ESPECIALISTA EM REESCRITA (Copywriter). Sua tarefa é REESCREVER um bloco de texto problemático para que ele se alinhe PERFEITAMENTE ao tom e estilo do roteiro, resolvendo o problema apontado.
