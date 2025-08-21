@@ -534,7 +534,7 @@ __RAW_REPORT__
         const promptTemplate = templates[genre] || templates['geral'];
         return promptTemplate
             .replace(/__ORIGINAL_QUERY__/g, context.originalQuery)
-            .replace(/__RAW_REPORT__/g, context.rawReport)
+            .replace(/__RAW_REPORT__/g, context.rawReport.slice(0, 7000))
             .replace(/__LANGUAGE_NAME__/g, context.languageName);
     },
 
