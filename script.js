@@ -751,44 +751,6 @@ const resetApplicationState = () => {
 
 
 
-// =================================
-// >>>>> FILTRO JSON ROBUSTO <<<<<
-// =================================
-
-
-// A NOVA FUNÇÃO UNIVERSAL: O "ENGENHEIRO DE SINTAXE"
-const fixJsonWithAI = async (brokenJsonText) => {
-    // Adiciona uma verificação para não gastar API com texto vazio ou já válido
-    if (!brokenJsonText || brokenJsonText.trim() === '') {
-        console.warn("Texto para correção de JSON estava vazio.");
-        return "{}"; // Retorna um objeto JSON vazio como padrão seguro
-    }
-    try {
-        JSON.parse(brokenJsonText);
-        return brokenJsonText; // Se já for válido, retorna sem gastar API
-    } catch (e) {
-        // Continua apenas se o JSON estiver quebrado
-    }
-
-    const prompt = `Você é um engenheiro de sintaxe JSON de elite. Sua única e crítica tarefa é pegar o texto abaixo, que é uma tentativa de JSON, e consertá-lo para que seja 100% válido, sem alterar o conteúdo textual.
-
-    **REGRAS CRÍTICAS E INEGOCIÁVEIS:**
-    1.  **Estrutura:** Corrija quaisquer erros estruturais, como vírgulas faltando ou sobrando, chaves mal fechadas ({}), ou colchetes mal fechados ([]).
-    2.  **Aspas:** Garanta que TODAS as chaves e valores de string usem aspas duplas ("). Se um valor de string precisar conter aspas duplas, elas DEVEM ser escapadas com uma barra invertida (ex: "Ele disse: \\"Olá\\".").
-    3.  **Caracteres de Controle (A REGRA MAIS IMPORTANTE):** Encontre TODAS as quebras de linha literais (newlines) que estão dentro de valores de string e substitua-as pelo caractere de escape \\n. JSON não permite quebras de linha não escapadas em strings.
-    4.  **Output Puro:** Sua resposta deve ser APENAS o JSON perfeitamente corrigido. NÃO inclua nenhum texto, explicação, comentário ou markdown como \`\`\`json.
-
-    **TEXTO QUEBRADO PARA CORRIGIR:**
-    ---
-    ${brokenJsonText}
-    ---
-
-    Retorne APENAS o JSON corrigido, prestando atenção especial à regra 3.`;
-
-    const fixedJsonText = await callGroqAPI(prompt, 8000); 
-    // Uma última limpeza para remover qualquer markdown que a IA possa ter adicionado
-    return fixedJsonText.replace(/```json\n/g, '').replace(/```/g, '').trim();
-};
 
 
 // COLE ESTA NOVA FUNÇÃO NO SEU SCRIPT.JS
@@ -799,35 +761,22 @@ const extractAndParseJson = (text) => {
     if (!text) {
         throw new Error("A IA retornou uma resposta vazia.");
     }
-
-    // Procura o início do JSON (primeiro '{' ou '[')
     const firstBrace = text.indexOf('{');
     const firstBracket = text.indexOf('[');
-    
     let startIndex;
     if (firstBrace === -1 && firstBracket === -1) {
         throw new Error("A resposta da IA não contém um JSON válido.");
     }
-    if (firstBrace === -1) {
-        startIndex = firstBracket;
-    } else if (firstBracket === -1) {
-        startIndex = firstBrace;
-    } else {
-        startIndex = Math.min(firstBrace, firstBracket);
-    }
-
-    // Procura o fim do JSON (último '}' ou ']')
+    if (firstBrace === -1) startIndex = firstBracket;
+    else if (firstBracket === -1) startIndex = firstBrace;
+    else startIndex = Math.min(firstBrace, firstBracket);
     const lastBrace = text.lastIndexOf('}');
     const lastBracket = text.lastIndexOf(']');
     const endIndex = Math.max(lastBrace, lastBracket);
-
     if (endIndex === -1 || endIndex < startIndex) {
         throw new Error("Não foi possível encontrar o final do bloco JSON na resposta da IA.");
     }
-
-    // Extrai o bloco de JSON
     const jsonString = text.substring(startIndex, endIndex + 1);
-
     try {
         return JSON.parse(jsonString);
     } catch (error) {
@@ -1410,12 +1359,10 @@ const generateIdeasFromReport = async (button) => {
     outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Consultando especialista criativo...</p></div>`;
 
     try {
-        // ETAPA 1: GERAÇÃO CRIATIVA (ACEITAMOS O CAOS)
         const promptContext = { originalQuery, rawReport, languageName };
         const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
         const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(creativePrompt), 8000); 
 
-        // ETAPA 2: EXTRAÇÃO E ANÁLISE DO JSON (MÉTODO ROBUSTO)
         const ideas = extractAndParseJson(brokenJsonResponse);
 
         if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
@@ -1435,7 +1382,6 @@ const generateIdeasFromReport = async (button) => {
         hideButtonLoading(button);
     }
 };
-
 
 
 
@@ -1688,8 +1634,6 @@ const suggestStrategy = async (button) => {
 
     try {
         const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        
-        // >>>>> CORREÇÃO APLICADA AQUI <<<<<
         const strategy = extractAndParseJson(brokenJsonResponse);
 
         if (!strategy || typeof strategy !== 'object') throw new Error("A IA não retornou uma estratégia em formato JSON válido.");
@@ -3866,9 +3810,6 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 **AÇÃO FINAL:** Analise CADA parágrafo e retorne o array JSON completo com suas anotações de DIRETOR no idioma correto.`;
         
         const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
-        
-        // >>>>> CORREÇÃO DEFINITIVA APLICADA AQUI <<<<<
-        // Usamos o extrator para ignorar qualquer texto extra da IA
         const annotations = extractAndParseJson(brokenJsonResponse);
         
         if (!Array.isArray(annotations)) { 
