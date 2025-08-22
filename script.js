@@ -752,57 +752,72 @@ const resetApplicationState = () => {
 
 
 
+const fixJsonWithAI = async (brokenJsonText) => {
+    if (!brokenJsonText || brokenJsonText.trim() === '') return "{}";
 
-const extractAndParseJson = (text) => {
-    if (!text) {
-        throw new Error("A IA retornou uma resposta vazia.");
-    }
+    const prompt = `You are an elite JSON syntax engineer. Your one and only task is to take the following text, which is an attempted JSON object or array, and fix it to be 100% valid without altering the text content.
 
-    // >>>>> NOVA ETAPA DE LIMPEZA <<<<<
-    // Remove os tokens de controle e frases de continuação que a IA está inserindo.
-    const cleanedText = text.replace(/assistant<\|end_header_id\|>|Continuação da resposta:/g, '').trim();
+    **CRITICAL RULES:**
+    1.  **Structure:** Fix any structural errors like missing/extra commas, unclosed braces ({}), or brackets ([]).
+    2.  **Quotes:** Ensure ALL keys and string values use double quotes ("). If a string value must contain a double quote, it MUST be escaped with a backslash (e.g., "He said: \\"Hello\\".").
+    3.  **Control Characters:** Find ALL literal newlines inside string values and replace them with the \\n escape character.
+    4.  **Pure Output:** Your response MUST BE ONLY the perfectly corrected JSON. Do NOT include any text, explanations, or markdown like \`\`\`json.
 
-    // Procura o início do JSON (primeiro '{' ou '[') no texto JÁ LIMPO
-    const firstBrace = cleanedText.indexOf('{');
-    const firstBracket = cleanedText.indexOf('[');
-    
-    let startIndex;
-    if (firstBrace === -1 && firstBracket === -1) {
-        console.error("Texto recebido da IA após limpeza:", cleanedText);
-        throw new Error("A resposta da IA não contém um JSON válido após a limpeza.");
-    }
-    if (firstBrace === -1) {
-        startIndex = firstBracket;
-    } else if (firstBracket === -1) {
-        startIndex = firstBrace;
-    } else {
-        startIndex = Math.min(firstBrace, firstBracket);
-    }
+    **BROKEN TEXT TO FIX:**
+    ---
+    ${brokenJsonText}
+    ---
 
-    // Procura o fim do JSON (último '}' ou ']') no texto JÁ LIMPO
-    const lastBrace = cleanedText.lastIndexOf('}');
-    const lastBracket = cleanedText.lastIndexOf(']');
-    const endIndex = Math.max(lastBrace, lastBracket);
+    Return ONLY the corrected JSON.`;
 
-    if (endIndex === -1 || endIndex < startIndex) {
-        console.error("Texto recebido da IA após limpeza:", cleanedText);
-        throw new Error("Não foi possível encontrar o final do bloco JSON na resposta da IA.");
-    }
-
-    // Extrai o bloco de JSON do texto JÁ LIMPO
-    const jsonString = cleanedText.substring(startIndex, endIndex + 1);
-
-    try {
-        return JSON.parse(jsonString);
-    } catch (error) {
-        console.error("Falha ao analisar o JSON extraído:", jsonString);
-        throw new Error(`Erro de sintaxe no JSON fornecido pela IA: ${error.message}`);
-    }
+    const fixedJsonText = await callGroqAPI(prompt, 8000);
+    return fixedJsonText.replace(/```json\n/g, '').replace(/```/g, '').trim();
 };
 
 
 
 
+
+
+// PASSO 1.B: A FUNÇÃO "MESTRA" HÍBRIDA
+const getRobustJson = async (text) => {
+    if (!text) {
+        throw new Error("A IA retornou uma resposta vazia.");
+    }
+
+    const cleanedText = text.replace(/assistant<\|end_header_id\|>|Continuação da resposta:|Aqui está a resposta em JSON:|Aqui está a minha resposta:/gi, '').trim();
+
+    const firstBrace = cleanedText.indexOf('{');
+    const firstBracket = cleanedText.indexOf('[');
+    
+    if (firstBrace === -1 && firstBracket === -1) {
+        throw new Error("A resposta da IA não contém um JSON válido.");
+    }
+    
+    const startIndex = (firstBrace === -1) ? firstBracket : (firstBracket === -1) ? firstBrace : Math.min(firstBrace, firstBracket);
+    const endIndex = Math.max(cleanedText.lastIndexOf('}'), cleanedText.lastIndexOf(']'));
+
+    if (endIndex === -1 || endIndex < startIndex) {
+        throw new Error("Não foi possível encontrar o final do bloco JSON na resposta da IA.");
+    }
+
+    const jsonString = cleanedText.substring(startIndex, endIndex + 1);
+
+    try {
+        // TENTATIVA 1: O método rápido
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.warn("Falha no parse rápido. Tentando conserto com IA...", error.message);
+        // TENTATIVA 2: O resgate com IA
+        const fixedJson = await fixJsonWithAI(jsonString);
+        try {
+            return JSON.parse(fixedJson);
+        } catch (finalError) {
+            console.error("Falha final ao analisar JSON, mesmo após conserto da IA:", fixedJson);
+            throw new Error(`A IA retornou um JSON estruturalmente inválido que não pôde ser consertado. Detalhe: ${finalError.message}`);
+        }
+    }
+};
 
 
 
@@ -1361,8 +1376,6 @@ const renderUniversalIdeaCard = (idea, index, genre) => {
 
 
 
-// SUBSTITUA A SUA FUNÇÃO generateIdeasFromReport INTEIRA POR ESTA VERSÃO FINAL
-
 const generateIdeasFromReport = async (button) => {
     const factCheckOutput = document.getElementById('factCheckOutput');
     const { originalQuery, rawReport } = factCheckOutput.dataset;
@@ -1383,7 +1396,7 @@ const generateIdeasFromReport = async (button) => {
         const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
         const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(creativePrompt), 8000); 
 
-        const ideas = extractAndParseJson(brokenJsonResponse);
+        const ideas = await getRobustJson(brokenJsonResponse);
 
         if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
             throw new Error("A IA falhou em gerar ou corrigir as ideias.");
@@ -1562,9 +1575,9 @@ const applyStrategy = () => {
 
 // SUBSTITUA A SUA FUNÇÃO getBasePromptContext INTEIRA POR ESTA VERSÃO CORRIGIDA
 
-const getBasePromptContext = (options = {}) => {
-    const { includeHeavyContext = false } = options;
+// PASSO 2: SUBSTITUA A SUA FUNÇÃO getBasePromptContext INTEIRA POR ESTA
 
+const getBasePromptContext = () => {
     const inputs = {
         channelName: document.getElementById('channelName')?.value.trim() || "",
         videoTheme: document.getElementById('videoTheme')?.value.trim() || "",
@@ -1579,8 +1592,12 @@ const getBasePromptContext = (options = {}) => {
         narrativeVoice: document.getElementById('narrativeVoice')?.value.trim() || "",
         shockingEndingHook: document.getElementById('shockingEndingHook')?.value.trim() || "",
         imageStyleSelect: document.getElementById('imageStyleSelect')?.value || "",
+        // >>>>> OTIMIZAÇÃO APLICADA <<<<<
+        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
+        centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
+        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
+        emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
     };
-
     let context = `Você é um ROTEIRISTA ESPECIALISTA para o canal "${inputs.channelName}".
     **Core Project Details:**
     - Video Topic: "${inputs.videoTheme}"
@@ -1594,29 +1611,16 @@ const getBasePromptContext = (options = {}) => {
     if (inputs.narrativeTone) context += `\n- Narrative Tone (The Feeling): "${inputs.narrativeTone}"`;
     if (inputs.narrativeVoice) context += `\n- Narrator's Voice (The Personality): "${inputs.narrativeVoice}"`;
     if (inputs.shockingEndingHook) context += `\n- Shocking Ending Hook to use: "${inputs.shockingEndingHook}"`;
-
-    if (includeHeavyContext) {
-        const heavyInputs = {
-            videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
-            centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
-            researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
-            emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
-        };
-        // >>>>> A CORREÇÃO ESTÁ AQUI <<<<<
-        if (heavyInputs.videoDescription) context += `\n\n**CRITICAL IDEA DOSSIER (Primary Source of Truth):**\n${heavyInputs.videoDescription}`;
-        if (heavyInputs.centralQuestion) context += `\n- Central Question to guide the entire script: "${heavyInputs.centralQuestion}"`;
-        if (heavyInputs.emotionalHook) context += `\n\n**CRITICAL NARRATIVE ANCHOR:** Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente. Emotional Anchor Story: "${heavyInputs.emotionalHook}"`;
-        if (heavyInputs.researchData) context += `\n\n**CRITICAL RESEARCH DATA & CONTEXT:** Você DEVE incorporar os seguintes fatos: ${heavyInputs.researchData}`;
-    }
-
+    if (inputs.videoDescription) context += `\n\n**Additional Information & Inspiration:**\n- Inspiration/Context: "${inputs.videoDescription}"`;
+    if (inputs.centralQuestion) context += `\n- Central Question to guide the entire script: "${inputs.centralQuestion}"`;
+    if (inputs.emotionalHook) context += `\n\n**CRITICAL NARRATIVE ANCHOR:** Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente. Emotional Anchor Story: "${inputs.emotionalHook}"`;
+    if (inputs.researchData) context += `\n\n**CRITICAL RESEARCH DATA & CONTEXT:** Você DEVE incorporar os seguintes fatos: ${inputs.researchData}`;
     return context;
 };
 
 
 
 
-
-// SUBSTITUA A SUA FUNÇÃO suggestStrategy INTEIRA POR ESTA VERSÃO FINAL
 
 const suggestStrategy = async (button) => {
     const theme = document.getElementById('videoTheme')?.value.trim();
@@ -1664,7 +1668,7 @@ const suggestStrategy = async (button) => {
 
     try {
         const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        const strategy = extractAndParseJson(brokenJsonResponse);
+        const strategy = await getRobustJson(brokenJsonResponse);
 
         if (!strategy || typeof strategy !== 'object') throw new Error("A IA não retornou uma estratégia em formato JSON válido.");
         
@@ -1882,11 +1886,9 @@ const generateStrategicOutline = async (button) => {
     outlineContentDiv.innerHTML = `<div class="asset-card-placeholder"><div class="loading-spinner"></div><span style="margin-left: 1rem;">Criando o esqueleto da sua história...</span></div>`;
 
     try {
-        // A única mudança está aqui dentro deste bloco 'try'
         const { prompt } = constructScriptPrompt('outline');
-
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        let strategicOutlineData = extractAndParseJson(brokenJson);
+        let strategicOutlineData = await getRobustJson(brokenJson);
 
         if (Array.isArray(strategicOutlineData) && strategicOutlineData.length > 0) {
             strategicOutlineData = strategicOutlineData[0];
@@ -2327,7 +2329,7 @@ ${fullContext}
         const perfectJson = await fixJsonWithAI(brokenJson);
 
         // ETAPA 3: PARSE SEGURO
-        let suggestions = JSON.parse(perfectJson);
+        let suggestions = await getRobustJson(brokenJson);
 
         // Se a IA embrulhou o objeto em um array, extraímos o objeto.
         if (Array.isArray(suggestions) && suggestions.length > 0) {
@@ -2402,7 +2404,7 @@ ${text.slice(0, 7000)}
     try {
         const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 2000);
         const perfectJsonText = await fixJsonWithAI(brokenJsonResponse);
-        let analysisData = JSON.parse(perfectJsonText);
+        let analysisData = await getRobustJson(brokenJsonResponse);
 
         if (Array.isArray(analysisData) && analysisData.length > 0) {
             analysisData = analysisData[0];
@@ -2699,7 +2701,7 @@ ${fullTranscript.slice(0, 7500)}
     try {
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
         const perfectJson = await fixJsonWithAI(brokenJson);
-        const hooks = JSON.parse(perfectJson);
+        const hooks = await getRobustJson(brokenJson);
 
         if (!hooks || !Array.isArray(hooks) || hooks.length === 0) throw new Error("A IA não encontrou ganchos ou retornou um formato inválido.");
         
@@ -2840,7 +2842,7 @@ ${fullTranscript.slice(0, 7500)}
     try {
         const brokenJson = await callGroqAPI(prompt, 4000);
         const perfectJson = await fixJsonWithAI(brokenJson);
-        const suggestions = JSON.parse(perfectJson);
+        const suggestions = await getRobustJson(brokenJson);
         
         if (!suggestions || !Array.isArray(suggestions) || suggestions.length === 0) throw new Error("A IA não encontrou oportunidades ou retornou um formato inválido.");
         
@@ -2924,7 +2926,7 @@ const generateTitlesAndThumbnails = async (button) => {
         
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
         const perfectJson = await fixJsonWithAI(brokenJson);
-        const parsedContent = JSON.parse(perfectJson);
+        const parsedContent = await getRobustJson(brokenJson);
         
         if (!Array.isArray(parsedContent) || parsedContent.length === 0 || !parsedContent[0].suggested_title) {
             throw new Error("A IA retornou os dados de títulos em um formato inesperado.");
@@ -2993,7 +2995,7 @@ Responda APENAS com o array JSON.`;
     try {
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 3000);
         const perfectJson = await fixJsonWithAI(brokenJson);
-        const analysis = JSON.parse(perfectJson);
+        const analysis = await getRobustJson(brokenJson);
 
         if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de títulos válida.");
 
@@ -3051,7 +3053,7 @@ Responda APENAS com o array JSON.`;
     try {
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 2500);
         const perfectJson = await fixJsonWithAI(brokenJson);
-        const analysis = JSON.parse(perfectJson);
+        const analysis = await getRobustJson(brokenJson);
 
         if (!analysis || !Array.isArray(analysis)) throw new Error("A IA não retornou uma análise de thumbnails válida.");
 
@@ -3088,7 +3090,8 @@ const generateVideoDescription = async (button) => {
         
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
         const perfectJson = await fixJsonWithAI(brokenJson);
-        let parsedContent = JSON.parse(perfectJson);
+        let parsedContent = await getRobustJson(brokenJson);
+
         
         if (Array.isArray(parsedContent) && parsedContent.length > 0) {
             parsedContent = parsedContent[0];
@@ -3132,7 +3135,7 @@ const generateSoundtrack = async (button) => {
         // ARQUITETURA DE DUPLA PASSAGEM APLICADA AQUI
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 1500);
         const perfectJson = await fixJsonWithAI(brokenJson);
-        const analysis = JSON.parse(perfectJson);
+        const analysis = await getRobustJson(brokenJson);
 
         if (!analysis || !Array.isArray(analysis) || analysis.length === 0) throw new Error("A IA não retornou sugestões no formato esperado.");
         
@@ -3213,7 +3216,7 @@ ACTION: Return ONLY the JSON array.`;
 
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
         const perfectJson = await fixJsonWithAI(brokenJson);
-        const emotionalMapData = JSON.parse(perfectJson);
+        const emotionalMapData = await getRobustJson(brokenJson);
 
         if (!emotionalMapData || !Array.isArray(emotionalMapData) || emotionalMapData.length === 0) {
             throw new Error("A IA não retornou um mapa emocional válido.");
@@ -3663,9 +3666,6 @@ window.addDevelopmentChapter = async (button) => {
     try {
         const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
 
-**IDENTIDADE E ESPECIALIZAÇÃO (A REGRA MAIS IMPORTANTE):**
-Você não é um gerador de texto. Você é um mestre roteirista que identifica pontos de virada lógicos e emocionantes. Sua tarefa é encontrar os próximos passos mais envolventes para a história. Qualquer desvio desta função é uma falha.
-
 **ROTEIRO ATUAL (PARA ANÁLISE DE CONTINUIDADE CRÍTICA):**
 ---
 ${existingText.slice(-1500)} 
@@ -3674,28 +3674,17 @@ ${existingText.slice(-1500)}
 **TAREFA:** Analise o fluxo narrativo do roteiro acima e gere um array JSON com as 3 sugestões mais fortes, coerentes e cativantes para o tema do próximo capítulo.
 
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`. Nenhum texto, comentário ou metadado é permitido.
+1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido.
 2.  **ESTRUTURA DO ARRAY:** O array deve conter EXATAMENTE 3 strings.
-3.  **SINTAXE DAS STRINGS:** Todas as strings DEVEM usar aspas duplas (""). Cada string, EXCETO a última, DEVE ser seguida por uma vírgula (,).
-
-**MANUAL DE CRIAÇÃO DE SUGESTÕES (SEUS CRITÉRIOS DE QUALIDADE):**
-- **Distinção:** Cada uma das 3 sugestões deve ser claramente diferente das outras.
-- **Coerência e Conexão Lógica:** Cada sugestão deve ser uma consequência natural ou uma ramificação interessante do ponto onde o roteiro atual termina.
-- **Originalidade e Novidade:** Evite o óvio. Cada sugestão deve introduzir um novo elemento, conflito ou perspectiva que avance a narrativa.
-- **Especificidade:** As sugestões devem ser títulos de capítulo ou temas específicos e acionáveis. Evite generalidades.
-    - **Exemplos BONS (Específicos):** "A Descoberta do Diário", "O Confronto com o Antigo Mentor", "O Plano B que Ninguém Esperava".
-    - **Exemplos RUINS (Genéricos):** "Mais desenvolvimento", "Uma nova reviravolta", "Aprofundar o personagem".
+3.  **SINTAXE DAS STRINGS:** Todas as strings DEVEM usar aspas duplas ("").
 
 **EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
 ["A Batalha dos Números", "O Legado Fora de Campo", "Momentos Decisivos"]
 
-**AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras.`;
+**AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito.`;
 
         const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 1000);
-        
-        // >>>>> A CORREÇÃO ESTÁ AQUI <<<<<
-        // Trocamos fixJsonWithAI e JSON.parse pela nossa função robusta.
-        const chapterSuggestions = extractAndParseJson(brokenJsonResponse) || [];
+        const chapterSuggestions = await getRobustJson(brokenJsonResponse) || [];
         
         hideButtonLoading(button);
 
@@ -3855,7 +3844,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 **AÇÃO FINAL:** Analise CADA parágrafo e retorne o array JSON completo com suas anotações de DIRETOR no idioma correto.`;
         
         const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
-        const annotations = extractAndParseJson(brokenJsonResponse);
+        const annotations = await getRobustJson(brokenJsonResponse);
         
         if (!Array.isArray(annotations)) { 
             throw new Error("A IA não retornou um array de anotações válido.");
@@ -4017,7 +4006,7 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
             
             // >>>>> A CORREÇÃO ESTÁ AQUI <<<<<
             const promise = callGroqAPI(forceLanguageOnPrompt(prompt), 4000)
-                .then(brokenJsonResponse => extractAndParseJson(brokenJsonResponse));
+                .then(brokenJsonResponse => getRobustJson(brokenJsonResponse));
 
             apiPromises.push(promise);
         }
