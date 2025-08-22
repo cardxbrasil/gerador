@@ -753,30 +753,45 @@ const resetApplicationState = () => {
 
 
 
-// COLE ESTA NOVA FUNÇÃO NO SEU SCRIPT.JS
-
-// GARANTA QUE ESTA FUNÇÃO EXISTA NO SEU CÓDIGO (E QUE fixJsonWithAI FOI DELETADA)
-
 const extractAndParseJson = (text) => {
     if (!text) {
         throw new Error("A IA retornou uma resposta vazia.");
     }
-    const firstBrace = text.indexOf('{');
-    const firstBracket = text.indexOf('[');
+
+    // >>>>> NOVA ETAPA DE LIMPEZA <<<<<
+    // Remove os tokens de controle e frases de continuação que a IA está inserindo.
+    const cleanedText = text.replace(/assistant<\|end_header_id\|>|Continuação da resposta:/g, '').trim();
+
+    // Procura o início do JSON (primeiro '{' ou '[') no texto JÁ LIMPO
+    const firstBrace = cleanedText.indexOf('{');
+    const firstBracket = cleanedText.indexOf('[');
+    
     let startIndex;
     if (firstBrace === -1 && firstBracket === -1) {
-        throw new Error("A resposta da IA não contém um JSON válido.");
+        console.error("Texto recebido da IA após limpeza:", cleanedText);
+        throw new Error("A resposta da IA não contém um JSON válido após a limpeza.");
     }
-    if (firstBrace === -1) startIndex = firstBracket;
-    else if (firstBracket === -1) startIndex = firstBrace;
-    else startIndex = Math.min(firstBrace, firstBracket);
-    const lastBrace = text.lastIndexOf('}');
-    const lastBracket = text.lastIndexOf(']');
+    if (firstBrace === -1) {
+        startIndex = firstBracket;
+    } else if (firstBracket === -1) {
+        startIndex = firstBrace;
+    } else {
+        startIndex = Math.min(firstBrace, firstBracket);
+    }
+
+    // Procura o fim do JSON (último '}' ou ']') no texto JÁ LIMPO
+    const lastBrace = cleanedText.lastIndexOf('}');
+    const lastBracket = cleanedText.lastIndexOf(']');
     const endIndex = Math.max(lastBrace, lastBracket);
+
     if (endIndex === -1 || endIndex < startIndex) {
+        console.error("Texto recebido da IA após limpeza:", cleanedText);
         throw new Error("Não foi possível encontrar o final do bloco JSON na resposta da IA.");
     }
-    const jsonString = text.substring(startIndex, endIndex + 1);
+
+    // Extrai o bloco de JSON do texto JÁ LIMPO
+    const jsonString = cleanedText.substring(startIndex, endIndex + 1);
+
     try {
         return JSON.parse(jsonString);
     } catch (error) {
@@ -784,6 +799,11 @@ const extractAndParseJson = (text) => {
         throw new Error(`Erro de sintaxe no JSON fornecido pela IA: ${error.message}`);
     }
 };
+
+
+
+
+
 
 
 
