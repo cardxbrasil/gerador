@@ -3855,6 +3855,8 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 // =========================================================================
 // >>>>> VERSÃO OTIMIZADA que NÃO SALVA o styleBlock repetidamente <<<<<
 // =========================================================================
+// SUBSTITUA A SUA FUNÇÃO window.generatePromptsForSection INTEIRA POR ESTA VERSÃO FINAL
+
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -3897,7 +3899,7 @@ window.generatePromptsForSection = async (button) => {
                 promptContextForAI += `\nParágrafo ${globalIndex}:\n- Título do Capítulo (Guia Temático): "${item.chapter}"\n- Texto do Parágrafo: "${item.text}"`;
             });
             
-const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
+            const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 
 Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar parágrafos e transformá-los em descrições de imagem ricas em detalhes.
 
@@ -3969,9 +3971,9 @@ ${promptContextForAI}
 
 Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
             
-       const promise = callGroqAPI(forceLanguageOnPrompt(prompt), 4000)
-                .then(brokenJson => fixJsonWithAI(brokenJson))
-                .then(perfectJson => JSON.parse(perfectJson));
+            // >>>>> A CORREÇÃO ESTÁ AQUI <<<<<
+            const promise = callGroqAPI(forceLanguageOnPrompt(prompt), 4000)
+                .then(brokenJsonResponse => extractAndParseJson(brokenJsonResponse));
 
             apiPromises.push(promise);
         }
