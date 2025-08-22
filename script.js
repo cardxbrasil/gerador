@@ -474,7 +474,7 @@ __RAW_REPORT__
 - Busque o equilíbrio entre verdade e graça
 
 ## AÇÃO FINAL
-Gere exatamente 6 ideias no formato JSON especificado. Cada ideia deve explorar uma **dimensão teológica diferente** (Cristologia, Escatologia, etc.). Priorize profundidade, originalidade e clareza. Responda APENAS com o array JSON válido.`;
+Gere exatamente 6 ideias no formato JSON especificado. Cada ideia deve explorar uma **dimensão teológica diferente** (Cristologia, Escatologia, etc.). Priorize profundidade, originalidade e clareza. Responda APENAS com o array JSON válido.`
 
 
             'geral': `Você é uma API DE ELITE de Estratégia de Conteúdo Viral, especializada em transformar dados brutos em narrativas irresistíveis. Sua função é analisar profundamente o relatório de pesquisa e extrair os ângulos mais impactantes, surpreendentes e viralizáveis para criar 6 ideias de vídeo excepcionais.
