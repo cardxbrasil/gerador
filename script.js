@@ -1795,16 +1795,20 @@ const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = nul
     // Lógica evoluída para as seções principais do roteiro (Introdução, Desenvolvimento, Clímax)
     if (['intro', 'development', 'climax'].includes(sectionName)) {
         
-        const priorKnowledgeContext = contextText 
-            ? `**INFORMAÇÃO CRÍTICA:** O texto abaixo representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É **TERMINANTEMENTE PROIBIDO** repetir, resumir ou parafrasear qualquer conceito já mencionado. Sua missão é **AVANÇAR A HISTÓRIA**.
-            \n\n**ROTEIRO ESCRITO ATÉ AGORA (CONHECIMENTO JÁ ADQUIRIDO):**\n---\n${contextText.slice(-4000)}\n---`
-            : '**INFORMAÇÃO CRÍTICA:** Esta é a primeira seção do vídeo. Crie um gancho poderoso para prender a atenção desde o primeiro segundo.';
+const priorKnowledgeContext = contextText 
+    ? `**INFORMAÇÃO CRÍTICA:** O texto abaixo representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É **TERMINANTEMENTE PROIBIDO** repetir, resumir ou parafrasear qualquer conceito já mencionado. Sua missão é **AVANÇAR A HISTÓRIA**.
+    \n\n**ROTEIRO ESCRITO ATÉ AGORA (CONHECIMENTO JÁ ADQUIRIDO):**\n---\n${contextText.slice(-4000)}\n---`
+    : '**INFORMAÇÃO CRÍTICA:** Esta é a primeira seção do vídeo. Crie um gancho poderoso para prender a atenção desde o primeiro segundo.';
 
-        prompt = `
+prompt = `
 Você é um ROTEIRISTA CONTINUÍSTA DE ELITE. Sua única função é escrever o PRÓXIMO trecho de um roteiro, com foco absoluto em NOVIDADE e PROGRESSÃO NARRATIVA.
 
 **INFORMAÇÃO CRÍTICA PARA O ROTEIRISTA:**
-O texto em "ROTEIRO ESCRITO ATÉ AGORA" representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É TERMINANTEMENTE PROIBIDO repetir, resumir ou parafrasear qualquer conceito, ideia ou evento já mencionado. Repetir informações quebra a imersão do espectador e será considerado uma FALHA GRAVE na sua tarefa.
+O texto em "ROTEIRO ESCRITO ATÉ AGORA" representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É TERMINANTEMENTE PROIBIDO:
+- Repetir, resumir ou parafrasear qualquer conceito, frase ou dado já mencionado
+- Reafirmar conclusões anteriores como se fossem novas
+- Usar exemplos ou analogias já apresentadas
+Qualquer repetição será considerada uma FALHA GRAVE, pois quebra a imersão e desrespeita o espectador.
 
 **CONTEXTO E DIRETRIZES GERAIS DO PROJETO:**
 ---
@@ -1822,13 +1826,25 @@ ${priorKnowledgeContext}
 -   **Duração Estimada:** ${durationInstruction}
 
 **SUA MISSÃO:**
-Sua única missão é AVANÇAR A HISTÓRIA. Introduza novos fatos, aprofunde um novo argumento, explore uma nova consequência ou apresente um novo conflito. O espectador está esperando para saber o que acontece a seguir, não para ouvir de novo o que já passou.
+Sua única missão é AVANÇAR A HISTÓRIA. Para isso, você DEVE:
+1. Introduzir **novos fatos, eventos ou dados** não mencionados antes
+2. Explorar uma **nova camada de consequência, conflito ou revelação**
+3. Ou apresentar uma **perspectiva inédita** que muda o entendimento anterior
+O espectador já sabe o que foi dito. Ele quer saber: **"E agora?"**
+
+**ESTRATÉGIAS DE PROGRESSÃO (ESCOLHA UMA):**
+- **Revelação**: Apresente uma descoberta que muda o jogo
+- **Consequência**: Mostre o impacto de algo já mencionado, mas de forma nova
+- **Expansão**: Leve a história para um novo cenário, personagem ou dimensão
+- **Inversão**: Desafie uma suposição anterior com uma nova evidência
+- **Aprofundamento**: Explore o "porquê" por trás de um fenômeno já citado, sem repeti-lo
 
 **REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
 1.  **RESPOSTA 100% PURA:** Sua resposta deve conter APENAS e SOMENTE o texto que será dito em voz alta.
 2.  **NENHUMA FORMATAÇÃO EXTRA:** É proibido incluir qualquer anotação, rótulo de personagem, descrição de cena ou título na sua resposta.
+3.  **NENHUMA TRANSIÇÃO DO TIPO "Como vimos antes..."**: Evite qualquer frase que remeta ao passado.
 
-**AÇÃO FINAL:** Escreva AGORA o texto para a seção "${sectionTitle}", garantindo que cada frase introduza conteúdo 100% novo para o espectador. Responda APENAS com o texto a ser narrado.`;
+**AÇÃO FINAL:** Escreva AGORA o texto para a seção "${sectionTitle}", garantindo que cada frase introduza conteúdo 100% novo para o espectador. Use uma das estratégias de progressão acima. Responda APENAS com o texto a ser narrado.`;
     
     } else {
         // Lógica para os outros tipos de prompts (outline, titles, etc.)
