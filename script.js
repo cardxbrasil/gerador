@@ -1540,7 +1540,11 @@ const applyStrategy = () => {
     window.showToast("Estratégia definida. Pronto para criar o roteiro.", 'success');
 };
 
-const getBasePromptContext = () => {
+// SUBSTITUA A SUA FUNÇÃO getBasePromptContext INTEIRA POR ESTA VERSÃO CORRIGIDA
+
+const getBasePromptContext = (options = {}) => {
+    const { includeHeavyContext = false } = options;
+
     const inputs = {
         channelName: document.getElementById('channelName')?.value.trim() || "",
         videoTheme: document.getElementById('videoTheme')?.value.trim() || "",
@@ -1555,12 +1559,8 @@ const getBasePromptContext = () => {
         narrativeVoice: document.getElementById('narrativeVoice')?.value.trim() || "",
         shockingEndingHook: document.getElementById('shockingEndingHook')?.value.trim() || "",
         imageStyleSelect: document.getElementById('imageStyleSelect')?.value || "",
-        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
-        centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
-        emotionalArc: (document.getElementById('emotionalArc')?.value.trim() || "").slice(0, 500),
-        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
-        emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
     };
+
     let context = `Você é um ROTEIRISTA ESPECIALISTA para o canal "${inputs.channelName}".
     **Core Project Details:**
     - Video Topic: "${inputs.videoTheme}"
@@ -1574,11 +1574,21 @@ const getBasePromptContext = () => {
     if (inputs.narrativeTone) context += `\n- Narrative Tone (The Feeling): "${inputs.narrativeTone}"`;
     if (inputs.narrativeVoice) context += `\n- Narrator's Voice (The Personality): "${inputs.narrativeVoice}"`;
     if (inputs.shockingEndingHook) context += `\n- Shocking Ending Hook to use: "${inputs.shockingEndingHook}"`;
-    if (inputs.videoDescription) context += `\n\n**Additional Information & Inspiration:**\n- Inspiration/Context: "${inputs.videoDescription}"`;
-    if (inputs.centralQuestion) context += `\n- Central Question to guide the entire script: "${inputs.centralQuestion}"`;
-    if (inputs.emotionalArc) context += `\n- Desired Emotional Arc: "${inputs.emotionalArc}"`;
-    if (inputs.emotionalHook) context += `\n\n**CRITICAL NARRATIVE ANCHOR:** Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente. Emotional Anchor Story: "${inputs.emotionalHook}"`;
-    if (inputs.researchData) context += `\n\n**CRITICAL RESEARCH DATA & CONTEXT:** Você DEVE incorporar os seguintes fatos: ${inputs.researchData}`;
+
+    if (includeHeavyContext) {
+        const heavyInputs = {
+            videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
+            centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
+            researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
+            emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
+        };
+        // >>>>> A CORREÇÃO ESTÁ AQUI <<<<<
+        if (heavyInputs.videoDescription) context += `\n\n**CRITICAL IDEA DOSSIER (Primary Source of Truth):**\n${heavyInputs.videoDescription}`;
+        if (heavyInputs.centralQuestion) context += `\n- Central Question to guide the entire script: "${heavyInputs.centralQuestion}"`;
+        if (heavyInputs.emotionalHook) context += `\n\n**CRITICAL NARRATIVE ANCHOR:** Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente. Emotional Anchor Story: "${heavyInputs.emotionalHook}"`;
+        if (heavyInputs.researchData) context += `\n\n**CRITICAL RESEARCH DATA & CONTEXT:** Você DEVE incorporar os seguintes fatos: ${heavyInputs.researchData}`;
+    }
+
     return context;
 };
 
@@ -1768,7 +1778,21 @@ Sua única missão é AVANÇAR A HISTÓRIA. Introduza novos fatos, aprofunde um 
         // Esta parte permanece exatamente como no seu código original
         switch (sectionName) {
             case 'outline':
-                prompt = `${baseContext}\nVocê é uma API de geração de JSON. Sua tarefa é criar um esboço estratégico para um vídeo.\n**REGRAS INEGOCIÁVEIS:**\n1. **JSON PURO:** Responda APENAS com um objeto JSON válido.\n2. **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".\n3. **VALORES:** O valor para CADA chave DEVE ser uma única string de texto (1-2 frases).\n**TAREFA:** Gere o objeto JSON perfeito.`;
+                prompt = `Você é um ROTEIRISTA ESTRATÉGICO DE ELITE. Sua única função é criar um objeto JSON com o esboço de um vídeo.
+
+**SUA FONTE DE VERDADE PRIMÁRIA (A REGRA MAIS IMPORTANTE):**
+Abaixo está o "DOSSIÊ DA IDEIA". A história, os fatos e os conceitos principais do seu esboço DEVEM ser baseados EXCLUSIVAMENTE neste dossiê. Os outros campos de contexto servem para refinar o tom e o estilo, mas a SUBSTÂNCIA do roteiro vem do dossiê.
+
+---
+${baseContext}
+---
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
+1.  **JSON PURO:** Sua resposta deve ser APENAS um objeto JSON válido, sem comentários ou texto extra.
+2.  **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".
+3.  **VALORES DETALHADOS:** O valor para CADA chave DEVE ser uma string de texto detalhada (pelo menos 1-2 frases) que descreva o que acontecerá naquela seção do vídeo, usando os fatos e conceitos do DOSSIÊ.
+
+**AÇÃO FINAL:** Leia o dossiê, entenda a história central e gere o objeto JSON perfeito para o esboço do vídeo.`;
                 maxTokens = 2000;
                 break;
             case 'titles_thumbnails':
