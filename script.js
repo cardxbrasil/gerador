@@ -186,7 +186,7 @@ __RAW_REPORT__
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
 1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido, começando com \`[\` e terminando com \`]\`.
 2.  **ESTRUTURA COMPLETA:** Cada objeto no array deve conter EXATAMENTE estas 6 chaves: "title", "angle", "targetAudience", "viralityScore", "videoDescription", e "investigativeApproach".
-3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma __LANGUAGE_NAME__'}.
+3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma __LANGUAGE_NAME__.
 4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
 
 **MANUAL DE CRIAÇÃO DETALHADO (SIGA EXATAMENTE PARA CADA IDEIA):**
@@ -210,20 +210,20 @@ __RAW_REPORT__
   * Capacidade de desafiar narrativas estabelecidas ou crenças populares
 
 - **"videoDescription" (O CORAÇÃO DA INVESTIGAÇÃO):** Escreva uma sinopse rica de **pelo menos 5 frases substantivas**. A descrição DEVE:
-  1. Começar com um gancho que estabeleça a importância e urgência do tema
-  2. Mencionar explicitamente 2-3 FATOS ESPECÍFICOS e verificáveis retirados do relatório
+  1. Começar com uma cena, pergunta ou dado impactante que imediatamente coloque o espectador no centro da investigação. Evite frases genéricas como 'Este documentário explora...'
+  2. Mencionar explicitamente 2-3 FATOS ESPECÍFICOS e verificáveis retirados do relatório, como datas, porcentagens, nomes ou declarações diretas. Ex: 'em 12 de março de 2023, 87% dos sensores registraram anomalias'
   3. Apresentar a jornada investigativa, incluindo obstáculos encontrados e fontes consultadas
   4. Construir o clímax quando as evidências convergem para revelar a verdade oculta
-  5. Terminar com as implicações mais amplas dessa descoberta para a sociedade ou indivíduos
+  5. Terminar com as implicações concretas: mudanças políticas, impacto social, riscos ou exigências éticas. Evite conclusões vagas como 'isso muda tudo'
 
-- **"investigativeApproach" (Abordagem Investigativa):** Identifique o método jornalístico principal da investigação. Escolha UM dos seguintes:
+- **"investigativeApproach" (Abordagem Investigativa):** Identifique o método jornalístico principal da investigação. Escolha UM dos seguintes e justifique brevemente por que é o mais adequado:
   * "Análise de Dados" - Quando a história emerge de padrões e anomalias em conjuntos de dados
   * "Reportagem de Campo" - Quando a verdade é descoberta através de entrevistas e observação direta
   * "Investigação Histórica" - Quando o presente só pode ser entendido através do contexto histórico
   * "Denúncia de Sistemas" - Quando a investigação revela falhas estruturais em instituições
   * "Narrativa Humana" - Quando os dados ganham vida através das histórias individuais afetadas
 
-**AÇÃO FINAL:** Mergulhe profundamente no relatório fornecido. Extraia os fatos mais relevantes, identifique as conexões não óbvias e construa 6 propostas documentais que mantenham o rigor absoluto dos fatos enquanto criam narrativas irresistíveis. Cada proposta deve prometer não apenas informar, mas iluminar aspectos da realidade que permanecem ocultos para a maioria. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`,
+**AÇÃO FINAL:** Mergulhe profundamente no relatório fornecido. Extraia os fatos mais relevantes, identifique as conexões não óbvias e construa 6 propostas documentais que mantenham o rigor absoluto dos fatos enquanto criam narrativas irresistíveis. Cada proposta deve prometer não apenas informar, mas iluminar aspectos da realidade que permanecem ocultos para a maioria. O tom deve ser imersivo e com tensão crescente, como em 'The Tinder Swindler' ou 'The Keepers'. Responda APENAS com o array JSON perfeito, seguindo EXATAMENTE todas as regras acima.`,
 
             'inspiracional': `Você é uma API DE ELITE em CRIAÇÃO DE CONTEÚDO NARRATIVO INSPIRADOR E TRANSFORMADOR. Sua função é atuar como um ARQUITETO DE JORNADAS EMOCIONAIS, mestre na arte de transformar fatos aparentemente ordinários em narrativas que tocam a alma humana e inspiram ação, no estilo de documentários premiados e discursos TED que mudam vidas.
 
