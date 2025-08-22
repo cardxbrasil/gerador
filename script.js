@@ -1573,17 +1573,45 @@ const applyStrategy = () => {
     window.showToast("Estratégia definida. Pronto para criar o roteiro.", 'success');
 };
 
-// SUBSTITUA A SUA FUNÇÃO getBasePromptContext INTEIRA POR ESTA VERSÃO CORRIGIDA
 
-// PASSO 2: SUBSTITUA A SUA FUNÇÃO getBasePromptContext INTEIRA POR ESTA
 
-const getBasePromptContext = () => {
+
+
+
+// SUBSTITUA A SUA FUNÇÃO getBasePromptContext INTEIRA POR ESTA VERSÃO FINAL
+
+const getBasePromptContext = (options = {}) => {
+    const { includeHeavyContext = false } = options;
+    const lang = document.getElementById('languageSelect').value || "en";
+
+    // Define as etiquetas com base no idioma
+    const labels = {
+        role: lang === 'pt-br' ? 'Você é um ROTEIRISTA ESPECIALISTA' : 'You are an EXPERT SCREENWRITER',
+        channel: lang === 'pt-br' ? 'para o canal' : 'for the channel',
+        coreDetails: lang === 'pt-br' ? '**Detalhes Centrais do Projeto:**' : '**Core Project Details:**',
+        topic: lang === 'pt-br' ? 'Tópico do Vídeo' : 'Video Topic',
+        audience: lang === 'pt-br' ? 'Público-Alvo' : 'Target Audience',
+        language: lang === 'pt-br' ? 'Idioma' : 'Language',
+        objective: lang === 'pt-br' ? 'Objetivo do Vídeo' : 'Video Objective',
+        narrativeStyle: lang === 'pt-br' ? '**Instruções de Narrativa & Estilo:**' : '**Narrative & Style Instructions:**',
+        structure: lang === 'pt-br' ? 'Estrutura Narrativa a usar' : 'Narrative Structure to use',
+        pace: lang === 'pt-br' ? 'Ritmo da Fala' : 'Speaking Pace',
+        theme: lang === 'pt-br' ? 'Tema Central (A Grande Ideia)' : 'Core Theme (The Big Idea)',
+        tone: lang === 'pt-br' ? 'Tom da Narrativa (O Sentimento)' : 'Narrative Tone (The Feeling)',
+        voice: lang === 'pt-br' ? 'Voz do Narrador (A Personalidade)' : 'Narrator\'s Voice (The Personality)',
+        hook: lang === 'pt-br' ? 'Gancho de Final Chocante a usar' : 'Shocking Ending Hook to use',
+        dossier: lang === 'pt-br' ? '**DOSSIÊ CRÍTICO DA IDEIA (Fonte Primária):**' : '**CRITICAL IDEA DOSSIER (Primary Source of Truth):**',
+        centralQuestion: lang === 'pt-br' ? 'Questão Central para guiar o roteiro' : 'Central Question to guide the entire script',
+        emotionalAnchor: lang === 'pt-br' ? '**ÂNCORA NARRATIVA CRÍTICA:** Você DEVE usar a seguinte história pessoal como núcleo emocional.' : '**CRITICAL NARRATIVE ANCHOR:** You MUST use the following personal story as the emotional core.',
+        anchorStory: lang === 'pt-br' ? 'História Âncora' : 'Emotional Anchor Story',
+        research: lang === 'pt-br' ? '**DADOS DE PESQUISA CRÍTICOS:** Você DEVE incorporar os seguintes fatos:' : '**CRITICAL RESEARCH DATA & CONTEXT:** You MUST incorporate the following facts:',
+    };
+
     const inputs = {
         channelName: document.getElementById('channelName')?.value.trim() || "",
         videoTheme: document.getElementById('videoTheme')?.value.trim() || "",
         targetAudience: document.getElementById('targetAudience')?.value.trim() || "",
-        language: document.getElementById('languageSelect')?.value || "en",
-        languageStyle: document.getElementById('languageStyle')?.value || "",
+        language: lang === 'pt-br' ? 'Português (Brasil)' : 'English',
         videoObjective: document.getElementById('videoObjective')?.value || "",
         speakingPace: document.getElementById('speakingPace')?.value || "",
         narrativeStructure: document.getElementById('narrativeStructure')?.value || "",
@@ -1591,30 +1619,35 @@ const getBasePromptContext = () => {
         narrativeTone: document.getElementById('narrativeTone')?.value || "",
         narrativeVoice: document.getElementById('narrativeVoice')?.value.trim() || "",
         shockingEndingHook: document.getElementById('shockingEndingHook')?.value.trim() || "",
-        imageStyleSelect: document.getElementById('imageStyleSelect')?.value || "",
-        // >>>>> OTIMIZAÇÃO APLICADA <<<<<
-        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
-        centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
-        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
-        emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
     };
-    let context = `Você é um ROTEIRISTA ESPECIALISTA para o canal "${inputs.channelName}".
-    **Core Project Details:**
-    - Video Topic: "${inputs.videoTheme}"
-    - Target Audience: "${inputs.targetAudience}"
-    - Language: "${inputs.language}"
-    - Video Objective: "${inputs.videoObjective}"
-    **Narrative & Style Instructions:**
-    - Narrative Structure to use: "${inputs.narrativeStructure}"
-    - Speaking Pace: "${inputs.speakingPace}"`;
-    if (inputs.narrativeTheme) context += `\n- Core Theme (The Big Idea): "${inputs.narrativeTheme}"`;
-    if (inputs.narrativeTone) context += `\n- Narrative Tone (The Feeling): "${inputs.narrativeTone}"`;
-    if (inputs.narrativeVoice) context += `\n- Narrator's Voice (The Personality): "${inputs.narrativeVoice}"`;
-    if (inputs.shockingEndingHook) context += `\n- Shocking Ending Hook to use: "${inputs.shockingEndingHook}"`;
-    if (inputs.videoDescription) context += `\n\n**Additional Information & Inspiration:**\n- Inspiration/Context: "${inputs.videoDescription}"`;
-    if (inputs.centralQuestion) context += `\n- Central Question to guide the entire script: "${inputs.centralQuestion}"`;
-    if (inputs.emotionalHook) context += `\n\n**CRITICAL NARRATIVE ANCHOR:** Você DEVE utilizar a seguinte história pessoal como o núcleo emocional recorrente. Emotional Anchor Story: "${inputs.emotionalHook}"`;
-    if (inputs.researchData) context += `\n\n**CRITICAL RESEARCH DATA & CONTEXT:** Você DEVE incorporar os seguintes fatos: ${inputs.researchData}`;
+
+    let context = `${labels.role} ${labels.channel} "${inputs.channelName}".
+    ${labels.coreDetails}
+    - ${labels.topic}: "${inputs.videoTheme}"
+    - ${labels.audience}: "${inputs.targetAudience}"
+    - ${labels.language}: "${inputs.language}"
+    - ${labels.objective}: "${inputs.videoObjective}"
+    ${labels.narrativeStyle}
+    - ${labels.structure}: "${inputs.narrativeStructure}"
+    - ${labels.pace}: "${inputs.speakingPace}"`;
+    if (inputs.narrativeTheme) context += `\n- ${labels.theme}: "${inputs.narrativeTheme}"`;
+    if (inputs.narrativeTone) context += `\n- ${labels.tone}: "${inputs.narrativeTone}"`;
+    if (inputs.narrativeVoice) context += `\n- ${labels.voice}: "${inputs.narrativeVoice}"`;
+    if (inputs.shockingEndingHook) context += `\n- ${labels.hook}: "${inputs.shockingEndingHook}"`;
+
+    if (includeHeavyContext) {
+        const heavyInputs = {
+            videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
+            centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
+            researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
+            emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
+        };
+        if (heavyInputs.videoDescription) context += `\n\n${labels.dossier}\n${heavyInputs.videoDescription}`;
+        if (heavyInputs.centralQuestion) context += `\n- ${labels.centralQuestion}: "${heavyInputs.centralQuestion}"`;
+        if (heavyInputs.emotionalHook) context += `\n\n${labels.emotionalAnchor}\n- ${labels.anchorStory}: "${heavyInputs.emotionalHook}"`;
+        if (heavyInputs.researchData) context += `\n\n${labels.research}\n${heavyInputs.researchData}`;
+    }
+
     return context;
 };
 
