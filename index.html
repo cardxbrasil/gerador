@@ -139,10 +139,12 @@
                                         <button class="tab-button" data-genre="geral"><i class="fas fa-lightbulb fa-fw"></i> <span>Geral</span></button>
                                     </nav>
                                 </div>
-                                <div class="controls mt-4 justify-center">
-                                    <button class="btn btn-primary" data-action="generateIdeasFromReport" id="generateIdeasFromReportBtn"><i class="fas fa-magic mr-2"></i>Gerar Ideias com Especialista</button>
-                                </div>
-                                <div id="ideasOutput" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4"></div>
+                                        <div class="controls mt-4 justify-center">
+                                                <button class="btn btn-primary" data-action="showIdeaPromptDialog" id="generateIdeasBtn">
+                                                <i class="fas fa-scroll mr-2"></i>Gerar Prompt de Ideias
+                                        </button>
+                                    </div>
+                                <div id="ideasOutput" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                             </div>
                         </div>
                     </section>
@@ -207,52 +209,48 @@
                         </div>
                     </div>
                     <!-- Botões de ação da Estratégia -->
-                    <div class="controls mt-6 justify-center">
-                        <button class="btn btn-ghost" data-action="suggestStrategy" id="suggestStrategyBtn"><i class="fas fa-magic mr-2"></i> Sugerir com IA</button>
-                        <button class="btn btn-primary" data-action="applyStrategy" id="applyStrategyBtn"><i class="fas fa-arrow-right mr-2"></i> Aplicar e Continuar</button>
-                    </div>
+                                <div class="controls mt-6 justify-center">
+                                     <button class="btn btn-ghost" data-action="suggestStrategy" id="suggestStrategyBtn">
+                                        <i class="fas fa-magic mr-2"></i> Refinar Estratégia com IA (Interno)
+                                        </button>
+                                    <button class="btn btn-primary" data-action="buildPromptAndContinue" id="buildPromptBtn">
+                                <i class="fas fa-arrow-right mr-2"></i> Continuar para Criação do Roteiro
+                            </button>
+                        </div>
                 </div>
 
                 <!-- PAINEL 3: CRIAR ROTEIRO -->
-                <div id="pane-script" style="display:none;">
-                    <h2 class="pane-title">3. Criar Roteiro</h2>
-                    <p class="pane-subtitle">Gere o esqueleto e, em seguida, cada seção do seu roteiro.</p>
-                    
-                    <!-- Esboço Estratégico -->
-                    <div class="card card-placeholder mb-6" id="strategicOutlineCard">
-                        <div class="flex justify-between items-center mb-3">
-                            <h3 class="font-semibold text-lg">Esboço Estratégico</h3>
-                            <button class="btn btn-secondary btn-small" data-action="generateOutline" id="generateOutlineBtn">Criar Esboço</button>
-                        </div>
-                        <div id="outlineContent" class="output-container"><div class="asset-card-placeholder">Clique para gerar o esboço.</div></div>
-                    </div>
-                    
-                    <!-- Seções do Roteiro -->
-                    <div class="space-y-4" id="scriptSectionsContainer"></div>
-                    
-                    <!-- Módulo de Conclusão -->
-                    <div class="card mb-6 hidden" id="conclusionStrategyModule">
-                        <div class="text-center mb-4">
-                            <h3 class="text-lg font-bold">Qual é o objetivo final do seu vídeo?</h3>
-                            <button class="btn btn-secondary btn-small mt-2" data-action="suggestFinalStrategy" id="suggestFinalStrategyBtn"><i class="fas fa-magic mr-2"></i> Sugerir Estratégia Final</button>
-                        </div>
-                        <div class="flex justify-center flex-wrap gap-4 mb-6">
-                            <label class="radio-label"><input checked name="conclusionType" type="radio" value="lesson"/><span><i class="fas fa-graduation-cap mr-2"></i>Deixar uma Lição</span></label>
-                            <label class="radio-label"><input name="conclusionType" type="radio" value="answer"/><span><i class="fas fa-question-circle mr-2"></i>Responder Pergunta</span></label>
-                            <label class="radio-label"><input name="conclusionType" type="radio" value="cliffhanger"/><span><i class="fas fa-bolt mr-2"></i>Criar um Gancho</span></label>
-                        </div>
-                        <div class="input-group" id="conclusionInputContainer"><label for="conclusionSpecifics">Detalhes para a Conclusão:</label><textarea class="input" id="conclusionSpecifics" placeholder="Qual sentimento ou ideia final você quer deixar?" rows="3"></textarea></div>
-                        <div class="input-group mt-4"><label for="ctaSpecifics">Detalhes para o CTA (Opcional):</label><textarea class="input" id="ctaSpecifics" placeholder="Qual ação específica você quer que o espectador tome?" rows="2"></textarea></div>
-                        <div class="text-center mt-6">
-                            <button class="btn btn-primary" data-action="generateConclusion" id="generateConclusionBtn"><i class="fas fa-pen-fancy mr-2"></i>Gerar Conclusão</button>
-                            <button class="btn btn-primary hidden" data-action="generateCta" id="generateCtaBtn"><i class="fas fa-bullhorn mr-2"></i>Gerar CTA</button>
-                        </div>
-                    </div>
+<!-- INÍCIO DO NOVO PAINEL 3: CENTRAL DE CRIAÇÃO -->
+<div id="pane-script" style="display:none;">
+    <h2 class="pane-title">3. Central de Criação de Roteiro</h2>
+    <p class="pane-subtitle">Copie o prompt, gere o roteiro na sua IA e cole o resultado para continuar.</p>
+    
+    <!-- Parte 1: O Prompt Gerado -->
+    <div class="card">
+        <label class="font-semibold block mb-2">1. Seu Prompt Mestre de Roteiro:</label>
+        <p class="small-muted mb-2">Este prompt foi construído com base na sua estratégia. Copie-o e leve-o para sua IA de preferência.</p>
+        <textarea id="masterPromptOutput" class="input" rows="10" readonly placeholder="Defina uma estratégia no Painel 2 para gerar o prompt aqui..."></textarea>
+        <button class="btn btn-secondary mt-2 w-full" data-action="copyMasterPrompt">
+            <i class="fas fa-copy mr-2"></i> Copiar Prompt para a Área de Transferência
+        </button>
+    </div>
 
-                    <div class="controls mt-6 justify-center">
-                        <button class="btn btn-primary" data-action="goToFinalize"><i class="fas fa-flag-checkered mr-2"></i> Ir para Finalização</button>
-                    </div>
-                </div>
+    <!-- Parte 2: A Área para Colar o Roteiro -->
+    <div class="card mt-6">
+        <label class="font-semibold block mb-2">2. Cole aqui o Roteiro JSON gerado pela IA:</label>
+        <p class="small-muted mb-2">A resposta da IA deve ser um objeto JSON com as chaves: "introducao", "desenvolvimento", "climax", "conclusao", e "cta".</p>
+        <textarea id="scriptInputArea" class="input" rows="10" placeholder="Cole aqui a resposta completa da IA..."></textarea>
+        <button class="btn btn-primary mt-2 w-full" data-action="processPastedScript">
+            <i class="fas fa-cogs mr-2"></i> Importar e Organizar Roteiro
+        </button>
+    </div>
+
+    <!-- Parte 3: Onde o Roteiro Final será Renderizado -->
+    <div class="space-y-4 mt-6" id="scriptSectionsContainer">
+        <!-- Os 5 acordeões do roteiro aparecerão aqui após a importação -->
+    </div>
+</div>
+<!-- FIM DO NOVO PAINEL 3 -->
                 
                  <!-- PAINEL 4: FINALIZAR & EXPORTAR -->
                 <div id="pane-finalize" style="display:none;">
