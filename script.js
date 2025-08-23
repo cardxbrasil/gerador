@@ -685,6 +685,37 @@ const setupInputTabs = () => {
 
 
 
+// Adicione esta nova função ao seu script.js
+const buildPromptAndContinue = () => {
+    if (!validateInputs()) { // Reutilizamos sua função de validação
+        return;
+    }
+
+    // 1. Marca a etapa de estratégia como concluída
+    markStepCompleted('strategy');
+    
+    // 2. Muda para o novo Painel de Criação
+    showPane('script'); 
+
+    // 3. Constrói o prompt mestre e o insere na textarea
+    const masterPromptOutput = document.getElementById('masterPromptOutput');
+    if (masterPromptOutput) {
+        masterPromptOutput.value = buildMasterPrompt(); // buildMasterPrompt é a função que já projetamos
+    }
+
+    window.showToast("Estratégia finalizada! Seu Prompt Mestre está pronto.", "success");
+};
+
+// No seu objeto `actions`, adicione a nova chave:
+const actions = {
+    // ...suas outras ações...
+    'buildPromptAndContinue': (btn) => buildPromptAndContinue(),
+    // ...
+};
+
+
+
+
 const resetApplicationState = () => {
     // 1. Define o estado inicial limpo
     const initialState = {
@@ -4647,6 +4678,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================================
     const actions = {
         'investigate': (btn) => handleInvestigate(btn),
+        'buildPromptAndContinue': (btn) => buildPromptAndContinue(),
         'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn),
         'select-idea': (btn) => { const ideaString = btn.dataset.idea; if(ideaString) selectIdea(JSON.parse(ideaString.replace(/&quot;/g, '"'))); },
         'suggestStrategy': (btn) => suggestStrategy(btn), 'applyStrategy': (btn) => applyStrategy(btn),
@@ -4676,7 +4708,88 @@ document.addEventListener('DOMContentLoaded', () => {
         'deleteParagraphGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.deleteParagraphGroup(btn, text); },
         'applySuggestion': (btn) => applySuggestion(btn), 'applyAllSuggestions': (btn) => applyAllSuggestions(btn),
         'applyHookSuggestion': (btn) => applyHookSuggestion(btn), 'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
+
+
+    'copyMasterPrompt': (btn) => {
+        const promptText = document.getElementById('masterPromptOutput').value;
+        window.copyTextToClipboard(promptText); // Usando sua função utilitária
+        window.showCopyFeedback(btn); // Usando sua outra função utilitária para feedback
+    },
+
+
     };
+
+
+
+// Adicione esta nova função async ao seu script.js
+const processPastedScript = async (button) => {
+    const scriptInputArea = document.getElementById('scriptInputArea');
+    const pastedJson = scriptInputArea.value.trim();
+
+    if (!pastedJson) {
+        window.showToast("Por favor, cole o roteiro JSON gerado pela IA.", "error");
+        return;
+    }
+
+    showButtonLoading(button);
+    const scriptContainer = document.getElementById('scriptSectionsContainer');
+    scriptContainer.innerHTML = `<div class="card text-center"><div class="loading-spinner loading-spinner-large mx-auto"></div><p class="mt-4">Processando e organizando seu roteiro...</p></div>`;
+
+    try {
+        // 1. Usa sua função robusta para parsear o JSON
+        const scriptObject = await getRobustJson(pastedJson);
+
+        // 2. Valida se o objeto tem a estrutura mínima esperada
+        if (!scriptObject.introducao || !scriptObject.desenvolvimento || !scriptObject.climax) {
+            throw new Error("O JSON colado não contém as chaves esperadas (introducao, desenvolvimento, climax, etc). Verifique a resposta da IA.");
+        }
+
+        // 3. Mapeia as chaves do JSON para as chaves internas do AppState
+        const sectionMap = { introducao: 'intro', desenvolvimento: 'development', climax: 'climax', conclusao: 'conclusion', cta: 'cta' };
+        const titles = { intro: 'Introdução', development: 'Desenvolvimento', climax: 'Clímax', conclusao: 'Conclusão', cta: 'Call to Action (CTA)' };
+
+        scriptContainer.innerHTML = ''; // Limpa a mensagem de "Processando"
+
+        // 4. Itera, processa e renderiza cada seção do roteiro
+        for (const key in sectionMap) {
+            if (scriptObject[key]) {
+                const sectionName = sectionMap[key];
+                const rawText = scriptObject[key];
+                
+                // Processa o texto para o formato HTML que suas ferramentas esperam
+                const paragraphs = rawText.split(/\n\s*\n/).filter(p => p.trim() !== '');
+                const htmlContent = paragraphs.map((p, index) => `<div id="${sectionName}-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
+
+                // Salva no estado
+                AppState.generated.script[sectionName] = { html: htmlContent, text: rawText };
+
+                // Renderiza o acordeão na tela usando sua função existente
+                const sectionElement = generateSectionHtmlContent(sectionName, titles[sectionName], htmlContent);
+                scriptContainer.appendChild(sectionElement);
+            }
+        }
+        
+        // 5. Finaliza o fluxo
+        markStepCompleted('script');
+        window.showToast("Roteiro importado e processado com sucesso!", "success");
+        goToFinalize(); // Avança automaticamente para a finalização
+
+    } catch (error) {
+        console.error("Erro ao processar roteiro importado:", error);
+        window.showToast(`Erro no processamento: ${error.message}`, 'error');
+        scriptContainer.innerHTML = `<div class="card card-placeholder text-danger">${error.message}</div>`;
+    } finally {
+        hideButtonLoading(button);
+    }
+};
+
+// No seu objeto `actions`, adicione a nova chave:
+const actions = {
+    // ...
+    'processPastedScript': (btn) => processPastedScript(btn),
+    // ...
+};
+
 
 
 // ==========================================================
