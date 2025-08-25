@@ -576,11 +576,6 @@ ${fullTranscript}
 
 
 
-
-
-
-
-
 };
 
 
