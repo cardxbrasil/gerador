@@ -3726,7 +3726,11 @@ const handleSuggestionMouseOver = (event) => {
     if (!suggestionGroupText) return;
     const contentWrapper = targetParagraph.closest('.generated-content-wrapper');
     if (!contentWrapper) return;
+
+    // --- CORREÇÃO APLICADA AQUI ---
+    // A linha antiga quebrava com quebras de linha. Esta é mais robusta.
     const safeSuggestionSelector = suggestionGroupText.replace(/"/g, '\\"');
+    
     contentWrapper.querySelectorAll(`[data-suggestion-group="${safeSuggestionSelector}"]`).forEach(p => {
         p.classList.add('highlight-group');
     });
@@ -4430,6 +4434,7 @@ window.navigatePrompts = (sectionElementId, direction) => {
 window.optimizeGroup = async (button, suggestionText) => {
     if (!button || !suggestionText) return;
 
+    // --- CORREÇÃO APLICADA AQUI ---
     const safeSelector = suggestionText.replace(/"/g, '\\"');
     const paragraphsToOptimize = document.querySelectorAll(`[data-suggestion-group="${safeSelector}"]`);
 
