@@ -30,9 +30,13 @@ window.criterionMap = {
 };
 
 const wordCountMap = {
-    'short': { intro: 60, development: 190, climax: 75, conclusion: 50 },
-    'medium': { intro: 120, development: 420, climax: 165, conclusion: 120 },
-    'long': { intro: 225, development: 750, climax: 300, conclusion: 225 },
+    'short': { intro: 60, development: 190, climax: 75, conclusion: 50 }, // Total: ~400 palavras (~2.5 min)
+    'medium': { intro: 120, development: 420, climax: 165, conclusion: 120 }, // Total: ~825 palavras (~5.5 min)
+    'long': { intro: 225, development: 750, climax: 300, conclusion: 225 }, // Total: ~1500 palavras (~10 min)
+    
+    // <<< NOVAS OPÇÕES ADICIONADAS AQUI >>>
+    'extra_long': { intro: 360, development: 1200, climax: 480, conclusion: 360 }, // Total: ~2400 palavras (~16 min)
+    'epic': { intro: 560, development: 1875, climax: 750, conclusion: 565 } // Total: ~3750 palavras (~25 min)
 };
 
 
