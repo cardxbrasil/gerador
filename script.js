@@ -1820,6 +1820,8 @@ const getBasePromptContext = (options = {}) => {
 
 
 
+// SUBSTITUA a sua função suggestStrategy antiga por esta nova versão v7.0
+
 const suggestStrategy = async (button) => {
     const theme = document.getElementById('videoTheme')?.value.trim();
     const description = document.getElementById('videoDescription')?.value.trim();
@@ -1827,13 +1829,15 @@ const suggestStrategy = async (button) => {
         window.showToast("Preencha o Tema e a Descrição do Vídeo para receber sugestões.", 'info');
         return;
     }
-    const userConfirmed = await showConfirmationDialog( "Refinar Estratégia com IA?", "Isso usará a IA para redefinir a estratégia e LIMPARÁ qualquer esboço ou roteiro já gerado. Deseja continuar?");
+    const userConfirmed = await showConfirmationDialog( "Refinar Estratégia com IA?", "Isso usará a IA para redefinir os campos de estratégia e LIMPARÁ qualquer roteiro já gerado no Painel 3. Deseja continuar?");
     if (!userConfirmed) return;
     
-    AppState.generated.strategicOutline = null;
+    // --- LÓGICA ATUALIZADA PARA A v7.0 ---
+    // Em vez de limpar 'strategicOutline' e 'outlineContent',
+    // limpamos o roteiro e o contêiner dos acordeões.
     AppState.generated.script = { intro: {}, development: {}, climax: {}, conclusion: {}, cta: {} };
     document.getElementById('scriptSectionsContainer').innerHTML = '';
-    document.getElementById('outlineContent').innerHTML = `<div class="asset-card-placeholder">Clique para gerar o esboço.</div>`;
+    // --- FIM DA ATUALIZAÇÃO ---
 
     showButtonLoading(button);
     AppState.ui.isSettingStrategy = true;
@@ -1923,7 +1927,6 @@ const suggestStrategy = async (button) => {
         hideButtonLoading(button);
     }
 };
-
 
 
 

@@ -27,36 +27,7 @@
 
 
 
-<!-- MODAL DE GERAÇÃO DE IDEIAS -->
-<div id="ideaPromptDialogOverlay" class="dialog-overlay">
-    <div class="card dialog-card" style="max-width: 800px;">
-        <h3 class="text-xl font-bold mb-4">Gerador de Prompts para Ideias</h3>
-        
-        <!-- ETAPA 1: COPIAR O PROMPT DO ESPECIALISTA -->
-        <div class="mb-4">
-            <label for="ideaMasterPromptOutput" class="font-semibold block mb-2">1. Copie este Prompt de Especialista:</label>
-            <p class="small-muted mb-2">Este prompt foi criado pelo especialista selecionado. Leve-o para sua IA de preferência.</p>
-            <textarea id="ideaMasterPromptOutput" class="input" rows="10" readonly></textarea>
-            <button class="btn btn-secondary mt-2 w-full" data-action="copyIdeaPrompt">
-                <i class="fas fa-copy mr-2"></i> Copiar Prompt
-            </button>
-        </div>
 
-        <!-- ETAPA 2: COLAR AS IDEIAS GERADAS -->
-        <div class="mt-6">
-            <label for="ideasInputArea" class="font-semibold block mb-2">2. Cole a resposta da IA aqui:</label>
-            <p class="small-muted mb-2">A IA deve retornar um array JSON com as ideias. Cole a resposta completa abaixo.</p>
-            <textarea id="ideasInputArea" class="input" rows="10" placeholder="Cole o array JSON gerado pela IA aqui..."></textarea>
-        </div>
-        
-        <div class="flex justify-end gap-4 mt-6">
-            <button class="btn btn-ghost" id="ideaBtnCancel">Cancelar</button>
-            <button class="btn btn-primary" id="ideaBtnProcess">
-                <i class="fas fa-cogs mr-2"></i> Processar Ideias
-            </button>
-        </div>
-    </div>
-</div>
 
 
 
@@ -410,6 +381,41 @@
             </div>
         </div>
     </div>
+
+
+
+<!-- MODAL DE GERAÇÃO DE IDEIAS -->
+<div id="ideaPromptDialogOverlay" class="dialog-overlay">
+    <div class="card dialog-card" style="max-width: 800px;">
+        <h3 class="text-xl font-bold mb-4">Gerador de Prompts para Ideias</h3>
+        
+        <!-- ETAPA 1: COPIAR O PROMPT DO ESPECIALISTA -->
+        <div class="mb-4">
+            <label for="ideaMasterPromptOutput" class="font-semibold block mb-2">1. Copie este Prompt de Especialista:</label>
+            <p class="small-muted mb-2">Este prompt foi criado pelo especialista selecionado. Leve-o para sua IA de preferência.</p>
+            <textarea id="ideaMasterPromptOutput" class="input" rows="10" readonly></textarea>
+            <button class="btn btn-secondary mt-2 w-full" data-action="copyIdeaPrompt">
+                <i class="fas fa-copy mr-2"></i> Copiar Prompt
+            </button>
+        </div>
+
+        <!-- ETAPA 2: COLAR AS IDEIAS GERADAS -->
+        <div class="mt-6">
+            <label for="ideasInputArea" class="font-semibold block mb-2">2. Cole a resposta da IA aqui:</label>
+            <p class="small-muted mb-2">A IA deve retornar um array JSON com as ideias. Cole a resposta completa abaixo.</p>
+            <textarea id="ideasInputArea" class="input" rows="10" placeholder="Cole o array JSON gerado pela IA aqui..."></textarea>
+        </div>
+        
+        <div class="flex justify-end gap-4 mt-6">
+            <button class="btn btn-ghost" id="ideaBtnCancel">Cancelar</button>
+            <button class="btn btn-primary" id="ideaBtnProcess">
+                <i class="fas fa-cogs mr-2"></i> Processar Ideias
+            </button>
+        </div>
+    </div>
+</div>
+
+
 
     <script type="module" src="script.js"></script>
 </body>
