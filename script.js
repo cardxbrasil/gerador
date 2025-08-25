@@ -35,72 +35,6 @@ const wordCountMap = {
     'long': { intro: 225, development: 750, climax: 300, conclusion: 225 },
 };
 
-        const CINEMATIC_STYLE_BLOCK = `
-
-# DIRETRIZES DE ESTILO CINEMOTOGRÁFICO PARA IMAGENS DE ALTA RESOLUÇÃO
-
-Ultra-realistic, high-resolution photographic image captured with masterfully rendered natural or artificial lighting and cinematic composition. The aesthetic should be of a modern cinematic film, with meticulous attention to physical and sensory details. The image must appear as if photographed by a professional cinematographer using a high-end camera (e.g., ARRI Alexa, RED Komodo), not digitally rendered.
-
-## CARACTERÍSTICAS VISUAIS ESSENCIAIS
-
-### Qualidade Técnica
-- **Rich & Organic Textures:** Surfaces must display tactile authenticity — visible skin pores, individual fabric threads, weathered materials (wood, metal, stone), realistic reflections, and organic imperfections that add depth and believability. Skin should show subtle blemishes, fine lines, and natural texture, not perfectly smooth.
-- **Focus & Depth of Field:** Employ selective sharp focus with subtle depth of field (slightly blurred background or foreground) to guide the viewer's attention and create a sense of three-d. Avoid perfect clarity across the entire frame.
-- **Color Palette & Contrast:** Colors should be "true-to-life" but with a refined, cinematical range. Avoid super-saturated or artificially vibrant hues. Favor contrasts that create visual drama and natural modeling, typical of good cinematography.
-- **Lighting & Atmosphere:** Lighting must be complex and naturalistic, with multiple light sources creating soft shadows, half-tones, and highlights. Include subtle atmospheric elements like dust, mist, or light rays (god rays) when appropriate to enhance the sense of a living environment. Shadows should have soft edges and fall naturally based on geometry.
-
-### Composição Visual
-- **Visual Composition:** Apply classic cinematic composition principles (rules of thirds, leading lines, broken symmetry, depth) to create visually appealing frames that tell a story.
-- **Camera Perspective:** Use appropriate focal lengths and camera angles that enhance the emotional impact of the scene (wide shots for epic scale, close-ups for intimate moments). Simulate lens characteristics: slight vignettinging, chromatic aberration in corners, shallow depth of field.
-- **Movement Sensation:** Even in still images, create a sense of potential movement or captured moment that suggests cinematic timing. Capture motion blur on hands or clothing if applicable.
-
-### Estilo Geral
-- **Overall Style:** The final result must be indistinguishable from a high-quality photograph taken with professional equipment, intended to illustrate a film scene. Nothing should look artificial, "3D rendered," or overly polished. The goal is physical and emotional authenticity.
-- **Post-Production Elements:** Include subtle film grain appropriate to the style (ISO 800–1600), natural lens characteristics (slight vignetting, chromatic aberration when appropriate), and color grading that enhances the mood without appearing artificial. Add minor sensor noise or dust spots in corners if it fits the realism.
-
-## REFERÊNCIAS DE ESTILO (INSPIRAÇÃO CINEMTOGRÁFICA)
-
-Para diferentes gêneros e atmosferas, considere estas referências:
-- **Drama intenso:** Estilo de Emmanuel Lubezki em "TheRevenant" - iluminação natural, texturas orgânicas, movimento contínuo
-- **Suspense/Thriller:** Estilo de Roger Deakins em "Bladeunner 2049" - composição precisa, cores controladas, iluminação dramática
-- **Épico/histórico:** Estilo de Rodrigo Prieto em "The Irishman" - paleta de cores específicaa do período, iluminação naturalista, detalhes autênticos
-- **Contemporâneo/Realista:** Estilo de Greig Fraser em "The Mandalorian" - iluminação prática, texturas realistas, composição dinâmica
-
-## RESTRIÇÕES DE ESTILO (O QUE EVITAR)
-
-- **NO** exaggerated or distorted features (facial features, proportions).
-- **NO** artificial "glow" or excessive smoothing (airbrushing).
-- **NO** visible 3D render or CGI look.
-- **NO** super-saturated colors or unreal hues.
-- **NO** element that breaks the illusion of a photorealistic capture.
-- **NO** inconsistent lighting that doesn't match the described environment.
-- **NO** modern digital artifacts that break the cinematic immersion.
-- **NO** perfect symmetry in faces, hands, or objects — allow natural asymmetry.
-- **NO** unnaturally clean surfaces — include dust, scratches, fingerprints, wear.
-- **NO** idealized human features — accept wrinkles, pores, scars, uneven skin tone.
-- **NO** hyper-sharpness across the entire image — simulate lens limitations.
-
-## TERMOS CHAVE PARA FOR FOR REALISMO fOTOGRAfico (ADICIONAR AO PROMPTFINAL)
-
-Use os seguintes termos como **prefixos ou sufixos** no promptfinal:
-- "photographed by a cinematographer"
-- "shot on 35mm film"
-- "natural lighting, no digital enhancement"
-- "real-world textures, no CGI"
-- "imperfectly lit, authentic atmosphere"
-- "lensflare, slight grain, shallow depth of field"
-- "captured in a single take, no retouching"
-
-## INSTRUÇÃO FINAL PARA O MODELO
-
-You are generating an image that must be **indistinguishable from a real photograph taken during filming**. It should not look like a 3D render, digital painting, or concept art. Every surface, shadow, and face must reflect the complexity and imperfection of reality. If you see anything that looks too clean, symmetric, or artificial, reject it and re-generate with more physical authenticity.
-
-### ✅ ADICIONAL AO PROMPTINICIAL:
-**"with signs of physical labor, dust on clothes, sweat on faces, imperfective stonework, and natural variations in material texts. Show fatigue, exhaustion, and the weight of time. This is not a model—this is a real construction site."**
-
-### ✅ NOVA ADICIONAL (CRUCIAL):
-**"Add micro-details: dust particles in air, tiny insects, tool marks on wood, small cracks in stones, and subtle variations in skin texture. The scene must feel lived, not constructed."**`;
-
 
 
 const imageStyleLibrary = {
@@ -1657,13 +1591,7 @@ const invalidateAndClearEmotionalMap = () => {
     }
 };
 
-const toggleCustomImageStyleVisibility = () => {
-    const container = document.getElementById('customImageStyleContainer');
-    const select = document.getElementById('imageStyleSelect');
-    if (container && select) {
-        container.style.display = select.value === 'custom' ? 'block' : 'none';
-    }
-};
+
 
 const narrativeStructures = {
     storytelling: {
@@ -4409,7 +4337,7 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
             estimated_duration: promptData.estimated_duration || 5
         }));
 
-        const defaultStyleKey = document.getElementById('imageStyleSelect').value;
+        const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({
             ...p, selectedStyle: defaultStyleKey // Agora salvamos a chave do estilo
         }));
@@ -5276,7 +5204,7 @@ if (button && actions[button.dataset.action]) {
     document.getElementById('importFileInput')?.addEventListener('change', importProject);
     document.getElementById('narrativeGoal')?.addEventListener('change', updateNarrativeStructureOptions);
     document.getElementById('narrativeStructure')?.addEventListener('change', updateMainTooltip);
-    document.getElementById('imageStyleSelect')?.addEventListener('change', toggleCustomImageStyleVisibility);
+    
 
     // ==========================================================
     // ===== INICIALIZAÇÃO FINAL (ORDEM CORRIGIDA) =================
