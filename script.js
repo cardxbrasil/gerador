@@ -103,7 +103,125 @@ You are generating an image that must be **indistinguishable from a real photogr
 
 
 
+const imageStyleLibrary = {
+    'none': {
+        name: 'Nenhum (Padrão)',
+        block: '' // Bloco de texto vazio
+    },
+    'cinematic': {
+        name: 'Cinematográfico Realista',
+        block: `# DIRETRIZES DE ESTILO CINEMOTOGRÁFICO PARA IMAGENS DE ALTA RESOLUÇÃO
+
+Ultra-realistic, high-resolution photographic image captured with masterfully rendered natural or artificial lighting and cinematic composition. The aesthetic should be of a modern cinematic film, with meticulous attention to physical and sensory details. The image must appear as if photographed by a professional cinematographer using a high-end camera (e.g., ARRI Alexa, RED Komodo), not digitally rendered.
+
+## CARACTERÍSTICAS VISUAIS ESSENCIAIS
+
+### Qualidade Técnica
+- **Rich & Organic Textures:** Surfaces must display tactile authenticity — visible skin pores, individual fabric threads, weathered materials (wood, metal, stone), realistic reflections, and organic imperfections that add depth and believability. Skin should show subtle blemishes, fine lines, and natural texture, not perfectly smooth.
+- **Focus & Depth of Field:** Employ selective sharp focus with subtle depth of field (slightly blurred background or foreground) to guide the viewer's attention and create a sense of three-d. Avoid perfect clarity across the entire frame.
+- **Color Palette & Contrast:** Colors should be "true-to-life" but with a refined, cinematical range. Avoid super-saturated or artificially vibrant hues. Favor contrasts that create visual drama and natural modeling, typical of good cinematography.
+- **Lighting & Atmosphere:** Lighting must be complex and naturalistic, with multiple light sources creating soft shadows, half-tones, and highlights. Include subtle atmospheric elements like dust, mist, or light rays (god rays) when appropriate to enhance the sense of a living environment. Shadows should have soft edges and fall naturally based on geometry.
+
+### Composição Visual
+- **Visual Composition:** Apply classic cinematic composition principles (rules of thirds, leading lines, broken symmetry, depth) to create visually appealing frames that tell a story.
+- **Camera Perspective:** Use appropriate focal lengths and camera angles that enhance the emotional impact of the scene (wide shots for epic scale, close-ups for intimate moments). Simulate lens characteristics: slight vignettinging, chromatic aberration in corners, shallow depth of field.
+- **Movement Sensation:** Even in still images, create a sense of potential movement or captured moment that suggests cinematic timing. Capture motion blur on hands or clothing if applicable.
+
+### Estilo Geral
+- **Overall Style:** The final result must be indistinguishable from a high-quality photograph taken with professional equipment, intended to illustrate a film scene. Nothing should look artificial, "3D rendered," or overly polished. The goal is physical and emotional authenticity.
+- **Post-Production Elements:** Include subtle film grain appropriate to the style (ISO 800–1600), natural lens characteristics (slight vignetting, chromatic aberration when appropriate), and color grading that enhances the mood without appearing artificial. Add minor sensor noise or dust spots in corners if it fits the realism.
+
+## REFERÊNCIAS DE ESTILO (INSPIRAÇÃO CINEMTOGRÁFICA)
+
+Para diferentes gêneros e atmosferas, considere estas referências:
+- **Drama intenso:** Estilo de Emmanuel Lubezki em "TheRevenant" - iluminação natural, texturas orgânicas, movimento contínuo
+- **Suspense/Thriller:** Estilo de Roger Deakins em "Bladeunner 2049" - composição precisa, cores controladas, iluminação dramática
+- **Épico/histórico:** Estilo de Rodrigo Prieto em "The Irishman" - paleta de cores específicaa do período, iluminação naturalista, detalhes autênticos
+- **Contemporâneo/Realista:** Estilo de Greig Fraser em "The Mandalorian" - iluminação prática, texturas realistas, composição dinâmica
+
+## RESTRIÇÕES DE ESTILO (O QUE EVITAR)
+
+- **NO** exaggerated or distorted features (facial features, proportions).
+- **NO** artificial "glow" or excessive smoothing (airbrushing).
+- **NO** visible 3D render or CGI look.
+- **NO** super-saturated colors or unreal hues.
+- **NO** element that breaks the illusion of a photorealistic capture.
+- **NO** inconsistent lighting that doesn't match the described environment.
+- **NO** modern digital artifacts that break the cinematic immersion.
+- **NO** perfect symmetry in faces, hands, or objects — allow natural asymmetry.
+- **NO** unnaturally clean surfaces — include dust, scratches, fingerprints, wear.
+- **NO** idealized human features — accept wrinkles, pores, scars, uneven skin tone.
+- **NO** hyper-sharpness across the entire image — simulate lens limitations.
+
+## TERMOS CHAVE PARA FOR FOR REALISMO fOTOGRAfico (ADICIONAR AO PROMPTFINAL)
+
+Use os seguintes termos como **prefixos ou sufixos** no promptfinal:
+- "photographed by a cinematographer"
+- "shot on 35mm film"
+- "natural lighting, no digital enhancement"
+- "real-world textures, no CGI"
+- "imperfectly lit, authentic atmosphere"
+- "lensflare, slight grain, shallow depth of field"
+- "captured in a single take, no retouching"
+
+## INSTRUÇÃO FINAL PARA O MODELO
+
+You are generating an image that must be **indistinguishable from a real photograph taken during filming**. It should not look like a 3D render, digital painting, or concept art. Every surface, shadow, and face must reflect the complexity and imperfection of reality. If you see anything that looks too clean, symmetric, or artificial, reject it and re-generate with more physical authenticity.
+
+### ✅ ADICIONAL AO PROMPTINICIAL:
+**"with signs of physical labor, dust on clothes, sweat on faces, imperfective stonework, and natural variations in material texts. Show fatigue, exhaustion, and the weight of time. This is not a model—this is a real construction site."**
+
+### ✅ NOVA ADICIONAL (CRUCIAL):
+**"Add micro-details: dust particles in air, tiny insects, tool marks on wood, small cracks in stones, and subtle variations in skin texture. The scene must feel lived, not constructed."**`
+
+
+    },
+    'blade': {
+        name: 'Blade Runner 2049',
+        block: `
+# SUSPENSE SOMBRIO E CONTROLADO
+cinematic film still, meticulously composed. cinematography by Roger Deakins. dramatic, high-contrast lighting from a single key source, sculpting shapes out of darkness. controlled and desaturated color palette. shot on ARRI Alexa, pristine clarity in focus, with heavy falloff into soft shadows. immense depth and scale, with a clean, sharp, and intentional look. no digital artifacts, no cgi look.`
+    },
+    'regresso': {
+        name: 'O Regresso',
+        block: `
+# REALISMO ÉPICO E NATURAL
+cinematic film still, shot on large format film for immense detail. photography by Emmanuel Lubezki. lit only by natural, raw light, creating deep, soft shadows. tangible atmosphere, with visible breath in the cold air and dust motes in the light. ultra-realistic textures, weathered skin, and organic imperfections. shallow depth of field, slight lens breathing, and a feeling of continuous movement.`
+    },
+    'translation': {
+        name: 'Lost in Translation',
+        block: `
+# SONHADOR E NOSTALGICO
+cinematic film still, shot on 35mm Kodak Vision3 film. dreamy and nostalgic atmosphere. soft, diffused lighting, with prominent lens flare and bokeh. shallow depth of field focusing on emotional detail. colors are warm and slightly faded, with a gentle film grain. feels like a captured memory, imperfect and beautiful. photography by Hoyte van Hoytema.`
+    },
+    'batman': {
+        name: 'The Batman ou Dune',
+        block: `
+# REALISMO URBANO E TEXTURIZADO
+cinematic film still, shot on anamorphic lens. cinematography by Greig Fraser. practical, motivated lighting that feels grounded in the environment. ultra-realistic and gritty textures, showing wear, dust, and moisture. shallow depth of field with distinct oval bokeh. subtle motion blur on movement. heavy, tangible atmosphere. colors are muted but rich. feels visceral and real.`
+    },
+    'chefao': {
+        name: 'O Poderoso Chefão',
+        block: `
+# CLASSICO E ELEGANTE
+cinematic film still, reminiscent of a classic painting. cinematography by Gordon Willis. top-down lighting that often leaves eyes in shadow, creating mystery and power. rich, dark tones and a warm, golden color palette. shot on vintage 35mm film, with visible but pleasant film grain. composition is formal and balanced. every frame feels deliberate and heavy with meaning. avoids modern digital sharpness.`
+    }
+
+
+};
+
+
+
+
+
+
+
+
 const imageDescriptionLabels = { 'pt-br': 'Descrição da Imagem:', 'pt-pt': 'Descrição da Imagem:', 'en': 'Image Description:' };
+
+
+
+
 
 
 // ==========================================================
@@ -4291,9 +4409,9 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
             estimated_duration: promptData.estimated_duration || 5
         }));
 
-        const applyCinematicStyle = document.getElementById('imageStyleSelect').value === 'cinematic';
+        const defaultStyleKey = document.getElementById('imageStyleSelect').value;
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({
-            ...p, applyStyleBlock: applyCinematicStyle
+            ...p, selectedStyle: defaultStyleKey // Agora salvamos a chave do estilo
         }));
         
         AppState.ui.promptPaginationState[sectionId] = 0;
@@ -4339,7 +4457,6 @@ const renderPaginatedPrompts = (sectionElementId) => {
     if (!promptItemsContainer || !navContainer) return;
     promptItemsContainer.innerHTML = '';
     
-    // Lógica exata da V5.0 que você me mostrou, com cumulativeSeconds e globalSceneCounter
     let cumulativeSeconds = 0;
     let globalSceneCounter = 1;
     const sectionOrder = ['introSection', 'developmentSection', 'climaxSection', 'conclusionSection', 'ctaSection'];
@@ -4347,53 +4464,59 @@ const renderPaginatedPrompts = (sectionElementId) => {
 
     for (let i = 0; i < currentSectionIndex; i++) {
         const prevPrompts = AppState.generated.imagePrompts[sectionOrder[i]] || [];
-        prevPrompts.forEach(p => {
-            cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
-        });
+        prevPrompts.forEach(p => { cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0; });
         globalSceneCounter += prevPrompts.length;
     }
     
     const startIndex = currentPage * itemsPerPage;
-    prompts.slice(0, startIndex).forEach(p => {
-        cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
-    });
+    prompts.slice(0, startIndex).forEach(p => { cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0; });
     globalSceneCounter += startIndex;
 
     const promptsToShow = prompts.slice(startIndex, startIndex + itemsPerPage);
     
     promptsToShow.forEach((promptData, index) => {
+        const sceneNumber = globalSceneCounter + index;
         const minutes = Math.floor(cumulativeSeconds / 60);
         const seconds = cumulativeSeconds % 60;
         const timestamp = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        const sceneNumber = globalSceneCounter + index;
+        const sanitizedDescription = DOMPurify.sanitize(promptData.imageDescription);
 
-        const fullPromptText = promptData.applyStyleBlock
-            ? `${promptData.imageDescription} ${CINEMATIC_STYLE_BLOCK}`
-            : promptData.imageDescription;
+        // CRIA O DROPDOWN DE ESTILOS DINAMICAMENTE
+        let styleOptionsHtml = '';
+        for (const key in imageStyleLibrary) {
+            const isSelected = key === promptData.selectedStyle ? 'selected' : '';
+            styleOptionsHtml += `<option value="${key}" ${isSelected}>${imageStyleLibrary[key].name}</option>`;
+        }
         
-        const styleIndicatorHtml = promptData.applyStyleBlock
-            ? `<p class="text-xs italic" style="color: var(--primary);">[Estilo Cinematográfico Aplicado]</p>`
-            : '';
-
         const promptHtml = `
             <div class="card !p-3 animate-fade-in" style="background: var(--bg);">
                 <div class="prompt-header" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
                     <span class="tag tag-scene"><i class="fas fa-film mr-2"></i>Cena ${String(sceneNumber).padStart(2, '0')}</span>
                     <span class="tag tag-time"><i class="fas fa-clock mr-2"></i>${timestamp}</span>
-                    <button class="btn btn-ghost btn-small ml-auto" onclick="window.copyTextToClipboard(this.nextElementSibling.textContent); window.showCopyFeedback(this)" title="Copiar Prompt Completo" style="padding: 4px 8px !important;">
+                    
+                    <!-- CRIA O NOVO BOTÃO DE COPIAR INTELIGENTE -->
+                    <button class="btn btn-ghost btn-small ml-auto" 
+                            onclick="window.copyPromptWithStyle(${sceneNumber}, \`${sanitizedDescription.replace(/`/g, '\\`')}\`)" 
+                            title="Copiar Prompt Completo com Estilo">
                         <i class="fas fa-copy"></i>
                     </button>
-                    <pre class="hidden">${DOMPurify.sanitize(fullPromptText)}</pre>
                 </div>
                 <p class="paragraph-preview" style="font-size: 0.85rem; font-style: italic; color: var(--text-muted); margin-bottom: 0.5rem;">"${DOMPurify.sanitize(promptData.scriptPhrase.substring(0, 100))}..."</p>
-                <p>${DOMPurify.sanitize(promptData.imageDescription)}</p>
-                ${styleIndicatorHtml}
+                <p>${sanitizedDescription}</p>
+                
+                <!-- O NOVO SELETOR DE ESTILO -->
+                <div class="mt-3">
+                    <select id="style-select-${sceneNumber}" class="input input-small w-full">
+                        ${styleOptionsHtml}
+                    </select>
+                </div>
             </div>
         `;
         promptItemsContainer.innerHTML += promptHtml;
         cumulativeSeconds += parseInt(promptData.estimated_duration, 10) || 0;
     });
     
+    // O resto da lógica de paginação continua igual...
     if (totalPages > 1) {
         navContainer.innerHTML = `
             <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', -1)" ${currentPage === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
@@ -4404,6 +4527,12 @@ const renderPaginatedPrompts = (sectionElementId) => {
         navContainer.innerHTML = '';
     }
 };
+
+
+
+
+
+
 
 window.navigatePrompts = (sectionElementId, direction) => {
     const prompts = AppState.generated.imagePrompts[sectionElementId] || [];
@@ -4557,7 +4686,23 @@ window.deleteParagraphGroup = async (button, suggestionText) => {
 
 
 
-
+window.copyPromptWithStyle = (sceneNumber, imageDescription) => {
+    const styleSelect = document.getElementById(`style-select-${sceneNumber}`);
+    if (!styleSelect) {
+        window.showToast('Erro: Seletor de estilo não encontrado.', 'error');
+        return;
+    }
+    
+    const selectedStyleKey = styleSelect.value;
+    const styleBlock = imageStyleLibrary[selectedStyleKey]?.block || '';
+    
+    const fullPromptText = `${imageDescription}${styleBlock}`;
+    
+    window.copyTextToClipboard(fullPromptText);
+    // Encontra o botão específico para dar o feedback "Copiado!"
+    const button = styleSelect.closest('.card').querySelector('button[onclick*="copyPromptWithStyle"]');
+    if(button) window.showCopyFeedback(button);
+};
 
 
 
