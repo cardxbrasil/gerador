@@ -706,12 +706,6 @@ const buildPromptAndContinue = () => {
     window.showToast("Estratégia finalizada! Seu Prompt Mestre está pronto.", "success");
 };
 
-// No seu objeto `actions`, adicione a nova chave:
-const actions = {
-    // ...suas outras ações...
-    'buildPromptAndContinue': (btn) => buildPromptAndContinue(),
-    // ...
-};
 
 
 
