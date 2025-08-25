@@ -4773,9 +4773,9 @@ const syncUiFromState = () => {
         }
     }
 
-    // 2. Dispara eventos para atualizar UI dependente (sem mudanças)
+    // 2. Dispara eventos para atualizar UI dependente
     updateNarrativeStructureOptions();
-    toggleCustomImageStyleVisibility();
+    // A LINHA PROBLEMÁTICA 'toggleCustomImageStyleVisibility();' FOI REMOVIDA DAQUI.
 
     // 3. Restaura os outputs dos painéis de resultado (sem mudanças)
     if (state.generated.emotionalMapHTML) document.getElementById('emotionalMapContent').innerHTML = state.generated.emotionalMapHTML;
@@ -4798,12 +4798,8 @@ const syncUiFromState = () => {
         outputContainer.innerHTML = `<div class="prose dark:prose-invert max-w-none p-4 card rounded-lg mt-4 border-l-4" style="border-color: var(--success);">${htmlReport}</div>`;
         document.getElementById('ideaGenerationSection').classList.remove('hidden');
     }
-
-    // ==========================================================
-    // >>>>> O BLOCO DO 'strategicOutline' FOI REMOVIDO DAQUI <<<<<
-    // ==========================================================
     
-    // 5. Lógica de Reconstrução do Roteiro
+    // 5. Lógica de Reconstrução do Roteiro (sem mudanças)
     const scriptContainer = document.getElementById('scriptSectionsContainer');
     scriptContainer.innerHTML = '';
     const sectionDetailsMap = {
