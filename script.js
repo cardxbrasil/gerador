@@ -4790,13 +4790,6 @@ const processPastedScript = async (button) => {
     }
 };
 
-// No seu objeto `actions`, adicione a nova chave:
-const actions = {
-    // ...
-    'processPastedScript': (btn) => processPastedScript(btn),
-    // ...
-};
-
 
 
 // ==========================================================
