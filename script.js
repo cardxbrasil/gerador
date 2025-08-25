@@ -2580,249 +2580,17 @@ window.regenerateSection = (fullSectionId) => {
 
 
 
-const generateConclusion = async (button) => {
-    if (!validateInputs()) return;
-    showButtonLoading(button);
-
-    // Lógica para obter contexto e criar o prompt (inalterada)
-    const conclusionType = document.querySelector('input[name="conclusionType"]:checked').value;
-    const conclusionSpecifics = document.getElementById('conclusionSpecifics').value.trim();
-    const centralQuestion = document.getElementById('centralQuestion')?.value.trim() || 'a pergunta central do vídeo';
-    
-    let strategyDirective = '';
-    switch (conclusionType) {
-        case 'lesson':
-            strategyDirective = `O objetivo é reforçar uma lição ou reflexão central. Detalhe do usuário: '${conclusionSpecifics || 'Nenhum'}'.`;
-            break;
-        case 'answer':
-            strategyDirective = `O objetivo é responder à pergunta central ('${centralQuestion}'). Detalhe do usuário: '${conclusionSpecifics || 'Nenhum'}'.`;
-            break;
-        case 'cliffhanger':
-            strategyDirective = `O objetivo é criar um gancho para o próximo vídeo. Detalhe do usuário: '${conclusionSpecifics || 'Nenhum'}'.`;
-            break;
-    }
-
-    const fullContext = getTranscriptOnly();
-    const basePromptContext = getBasePromptContext();
-
-    const prompt = `${basePromptContext}\n\n# TAREFA\nEscrever o texto da conclusão para o vídeo, estruturado em parágrafos.\n\n# CONTEXTO\n## Roteiro existente:\n---\n${fullContext}\n---\n\n# DIRETRIZ ESTRATÉGICA\n${strategyDirective}\n\n# REGRAS ESSENCIAIS\n1. **FORMATO**: Responda APENAS com o texto narrativo, em parágrafos. Proibido anotações ou CTA.\n2. **QUALIDADE DOS PARÁGRAFOS**: Cada parágrafo deve ter de 4 a 6 frases.`;
-
-    try {
-        const rawResult = await callGroqAPI(prompt, 3000);
-        const content = removeMetaComments(rawResult.trim());
-        if (!content) throw new Error("A IA não retornou um conteúdo válido para a conclusão.");
-        
-        const paragraphs = content.split('\n').filter(p => p.trim() !== '');
-        const contentWithSpans = paragraphs.map((p, index) => `<div id="conclusion-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
-        const fullText = paragraphs.join('\n\n');
-
-        AppState.generated.script.conclusion = { html: contentWithSpans, text: fullText };
-        
-        // --- LÓGICA CORRIGIDA ---
-        const scriptContainer = document.getElementById('scriptSectionsContainer');
-        let conclusionContainer = document.getElementById('conclusionSection'); // O ID aqui se refere ao próprio acordeão
-        
-        const conclusionElement = generateSectionHtmlContent('conclusion', 'Conclusão', contentWithSpans);
-
-        if (conclusionContainer) {
-            // Se um acordeão de conclusão já existe (ex: de um projeto carregado), substitui
-            conclusionContainer.replaceWith(conclusionElement);
-        } else {
-            // Se não existe, simplesmente adiciona ao final
-            scriptContainer.appendChild(conclusionElement);
-        }
-        
-        // Lógica para desabilitar inputs e mostrar o próximo botão (inalterada)
-        document.querySelectorAll('input[name="conclusionType"]').forEach(radio => radio.disabled = true);
-        document.getElementById('conclusionSpecifics').disabled = true;
-        document.querySelector('#conclusionInputContainer').classList.add('opacity-50');
-        
-        button.classList.add('hidden');
-        document.getElementById('generateCtaBtn').classList.remove('hidden');
-        window.showToast("Conclusão gerada! Agora, vamos ao CTA.", 'success');
-        
-    } catch (error) {
-        console.error("Erro em generateConclusion:", error);
-        window.showToast(`Falha ao gerar a conclusão: ${error.message}`, 'error');
-    } finally {
-        hideButtonLoading(button);
-        updateButtonStates();
-    }
-};
-
-
-
-
-
-const generateStrategicCta = async (button) => {
-    showButtonLoading(button);
-    
-    // Lógica para obter contexto e criar o prompt (inalterada)
-    const ctaSpecifics = document.getElementById('ctaSpecifics').value.trim();
-    const fullContext = getTranscriptOnly();
-    const basePromptContext = getBasePromptContext();
-
-    let ctaDirective = "Crie um CTA genérico (curtir, comentar, inscrever-se) alinhado ao tom do vídeo.";
-    if (ctaSpecifics) {
-        ctaDirective = `Crie um CTA específico e persuasivo. Instrução: "${ctaSpecifics}".`;
-    }
-
-    const prompt = `${basePromptContext}
-
-**IDENTIDADE E ESPECIALIZAÇÃO:**
-Você é um ESPECIALISTA EM ENGAJAMENTO e um COPYWRITER DE RESPOSTA DIRETA. Sua única função é escrever um CTA (Call to Action) que seja uma continuação natural e persuasiva do roteiro.
-
-**ROTEIRO COMPLETO (PARA CONTEXTO):**
----
-${fullContext}
----
-
-**DIRETRIZ ESTRATÉGICA PARA O CTA:**
-${ctaDirective}
-
-**MANUAL DE CRIAÇÃO DE UM CTA PERFEITO:**
-1.  **TRANSIÇÃO SUAVE:** O CTA não deve parecer um comercial. Ele precisa ser uma ponte natural a partir da conclusão do vídeo.
-2.  **CLAREZA E ESPECIFICIDADE:** A ação que você quer que o espectador tome deve ser cristalina. Evite pedidos vagos.
-3.  **CONEXÃO EMOCIONAL:** O CTA deve ecoar o tom e o sentimento do vídeo. Se o vídeo foi inspirador, o CTA deve ser encorajador.
-4.  **BENEFÍCIO CLARO (WIIFM - "What's In It For Me?"):** Dê ao espectador uma razão para agir. O que ele ganha ao curtir, comentar ou se inscrever?
-
-**REGRAS DE FORMATAÇÃO E CONTEÚDO (INEGOCIÁVEIS):**
-1.  **RESPOSTA 100% PURA:** Sua resposta deve ser **APENAS e SOMENTE** o texto que será dito em voz alta.
-2.  **PROIBIÇÃO TOTAL DE EXTRAS:** É **TERMINANTEMENTE PROIBIDO** incluir qualquer anotação, título (como "**CTA:**") ou comentário.
-3.  **TAMANHO IDEAL:** O CTA deve ser um parágrafo coeso de 3 a 5 frases.
-
-**AÇÃO FINAL:** Escreva AGORA o texto do CTA, aplicando todos os princípios de um copywriter de elite. Responda APENAS com o texto a ser narrado.`;
-
-    try {
-        let result = await callGroqAPI(prompt, 400);
-        result = removeMetaComments(result.trim());
-        const paragraphs = result.split('\n').filter(p => p.trim() !== '');
-        const contentWithSpans = paragraphs.map((p, index) => `<div id="cta-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
-        const fullText = paragraphs.join('\n\n');
-
-        AppState.generated.script.cta = { html: contentWithSpans, text: fullText };
-
-        // --- LÓGICA CORRIGIDA ---
-        const scriptContainer = document.getElementById('scriptSectionsContainer');
-        let ctaContainer = document.getElementById('ctaSection'); // O ID aqui se refere ao próprio acordeão
-
-        const ctaElement = generateSectionHtmlContent('cta', 'Call to Action (CTA)', contentWithSpans);
-        
-        if (ctaContainer){
-            // Se um acordeão de CTA já existe, substitui
-            ctaContainer.replaceWith(ctaElement);
-        } else {
-            // Se não existe, simplesmente adiciona ao final
-            scriptContainer.appendChild(ctaElement);
-        }
-        
-        // Lógica para desabilitar inputs e ir para a finalização (inalterada)
-        const ctaSpecificsElement = document.getElementById('ctaSpecifics');
-        ctaSpecificsElement.disabled = true;
-        ctaSpecificsElement.parentElement.classList.add('opacity-50');
-        
-        window.showToast("Roteiro finalizado! Seção de Análise liberada.", 'success');
-        goToFinalize();
-
-    } catch(error) {
-        console.error("Erro em generateStrategicCta:", error);
-        window.showToast(`Falha ao gerar o CTA: ${error.message}`, 'error');
-    } finally {
-        hideButtonLoading(button);
-        updateButtonStates();
-    }
-};
 
 
 
 
 
 
-const suggestFinalStrategy = async (button) => {
-    showButtonLoading(button);
-    const conclusionSpecifics = document.getElementById('conclusionSpecifics');
-    const ctaSpecifics = document.getElementById('ctaSpecifics');
-    
-    // Limpeza (inalterada)
-    AppState.generated.script.conclusion = { html: null, text: null };
-    AppState.generated.script.cta = { html: null, text: null };
-    const conclusionContainer = document.getElementById('conclusionSection');
-    if (conclusionContainer) conclusionContainer.innerHTML = '';
-    const ctaContainer = document.getElementById('ctaSection');
-    if (ctaContainer) ctaContainer.innerHTML = '';
-    document.querySelectorAll('input[name="conclusionType"]').forEach(radio => radio.disabled = false);
-    conclusionSpecifics.disabled = false;
-    ctaSpecifics.disabled = false;
-    document.getElementById('generateConclusionBtn').classList.remove('hidden');
-    document.getElementById('generateCtaBtn').classList.add('hidden');
 
-    const fullContext = getTranscriptOnly();
-    const basePromptContext = getBasePromptContext();
-    if (!fullContext) {
-        window.showToast("Gere o roteiro principal primeiro para receber sugestões.", 'info');
-        hideButtonLoading(button);
-        return;
-    }
 
-    const prompt = `Você é uma API de ESTRATÉGIA NARRATIVA DE ALTO NÍVEL. Sua função é analisar um roteiro completo e, com base nele, propor uma conclusão e um CTA (Call to Action) estratégicos e impactantes.
 
-**CONTEXTO GERAL DO VÍDEO (DNA NARRATIVO):**
----
-${basePromptContext}
----
 
-**ROTEIRO COMPLETO (PARA ANÁLISE):**
----
-${fullContext}
----
 
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
-1.  **JSON PURO:** Sua resposta deve ser **APENAS e SOMENTE** um objeto JSON válido.
-2.  **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas duas chaves: "conclusion_suggestion" e "cta_suggestion".
-3.  **VALORES:** Os valores devem ser strings de texto, concisas e acionáveis, no mesmo idioma do roteiro.
-4.  **SINTAXE DAS STRINGS:** Todas as chaves e valores string DEVEM usar aspas duplas ("").
-
-**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
-{
-  "conclusion_suggestion": "Reforce a ideia de que a superação não é um destino, mas um processo contínuo de aprendizado, conectando a jornada do protagonista com a do espectador.",
-  "cta_suggestion": "Convide o espectador a compartilhar nos comentários qual foi o maior obstáculo que já superou em sua própria jornada, criando uma comunidade de apoio."
-}
-
-**AÇÃO FINAL:** Sua resposta deve ser **APENAS e SOMENTE** o objeto JSON, sem nenhum texto introdutório, explicação ou comentário. Comece com \`{\` e termine com \`}\`. Gere agora o objeto JSON com as sugestões.`;
-
-    try {
-        // ==========================================================
-        // >>>>> A ARQUITETURA FINAL APLICADA AQUI <<<<<
-        // ==========================================================
-        // ETAPA 1: GERAÇÃO CRIATIVA (ACEITANDO O CAOS)
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 1000);
-        
-        // ETAPA 2: CORREÇÃO DE SINTAXE PELA IA
-        const perfectJson = await fixJsonWithAI(brokenJson);
-
-        // ETAPA 3: PARSE SEGURO
-        let suggestions = await getRobustJson(brokenJson);
-
-        // Se a IA embrulhou o objeto em um array, extraímos o objeto.
-        if (Array.isArray(suggestions) && suggestions.length > 0) {
-            suggestions = suggestions[0];
-        }
-
-        if (suggestions && suggestions.conclusion_suggestion && suggestions.cta_suggestion) {
-            conclusionSpecifics.value = suggestions.conclusion_suggestion;
-            ctaSpecifics.value = suggestions.cta_suggestion;
-            window.showToast("Sugestões para Conclusão e CTA preenchidas!", 'success');
-        } else {
-            throw new Error("A IA não retornou sugestões no formato esperado.");
-        }
-    } catch (error) {
-        console.error("Erro em suggestFinalStrategy:", error);
-        window.showToast(`Falha ao sugerir estratégia final: ${error.message}`, 'error');
-    } finally {
-        hideButtonLoading(button);
-        updateButtonStates();
-    }
-};
 
 
 
@@ -4911,7 +4679,7 @@ const loadStateFromLocalStorage = () => {
 const syncUiFromState = () => {
     const state = AppState;
 
-    // 1. Restaura os valores dos inputs
+    // 1. Restaura os valores dos inputs (sem mudanças)
     for (const id in state.inputs) {
         const element = document.getElementById(id);
         if (element) {
@@ -4928,11 +4696,11 @@ const syncUiFromState = () => {
         }
     }
 
-    // 2. Dispara eventos para atualizar UI dependente
+    // 2. Dispara eventos para atualizar UI dependente (sem mudanças)
     updateNarrativeStructureOptions();
     toggleCustomImageStyleVisibility();
 
-    // 3. Restaura os outputs dos painéis de resultado (O CÓDIGO QUE FALTAVA)
+    // 3. Restaura os outputs dos painéis de resultado (sem mudanças)
     if (state.generated.emotionalMapHTML) document.getElementById('emotionalMapContent').innerHTML = state.generated.emotionalMapHTML;
     if (state.generated.soundtrackHTML) document.getElementById('soundtrackContent').innerHTML = state.generated.soundtrackHTML;
     if (state.generated.titlesAndThumbnailsHTML) document.getElementById('titlesThumbnailsContent').innerHTML = state.generated.titlesAndThumbnailsHTML;
@@ -4941,8 +4709,7 @@ const syncUiFromState = () => {
     if (state.generated.hooksReportHTML) document.getElementById('hooksReportContainer').innerHTML = state.generated.hooksReportHTML;
     if (state.generated.viralSuggestionsHTML) document.getElementById('viralSuggestionsContainer').innerHTML = state.generated.viralSuggestionsHTML;
 
-
-    // 4. Restaura painel de Investigação (Já estava correto)
+    // 4. Restaura painel de Investigação (sem mudanças)
     if (state.generated.investigationReport) {
         const outputContainer = document.getElementById('factCheckOutput');
         const converter = new showdown.Converter({ simplifiedAutoLink: true, tables: true });
@@ -4955,31 +4722,21 @@ const syncUiFromState = () => {
         document.getElementById('ideaGenerationSection').classList.remove('hidden');
     }
 
-    // 5. Lógica de Reconstrução do Esboço e Roteiro (Já corrigida)
-    if (state.generated.strategicOutline) {
-        const outlineContentDiv = document.getElementById('outlineContent');
-        const titleTranslations = { 'introduction': 'Introdução', 'development': 'Desenvolvimento', 'climax': 'Clímax', 'conclusion': 'Conclusão', 'cta': 'CTA' };
-        let outlineHtml = '<ul class="space-y-4 text-sm" style="list-style-position: inside; padding-left: 1rem;">';
-        for (const key in state.generated.strategicOutline) {
-            if (state.generated.strategicOutline[key]) {
-                outlineHtml += `<li><div><strong style="color: var(--primary);">${titleTranslations[key] || key}:</strong> <span style="color: var(--text-body);">${DOMPurify.sanitize(state.generated.strategicOutline[key])}</span></div></li>`;
-            }
-        }
-        outlineHtml += '</ul>';
-        outlineContentDiv.innerHTML = outlineHtml;
-    }
+    // ==========================================================
+    // >>>>> O BLOCO DO 'strategicOutline' FOI REMOVIDO DAQUI <<<<<
+    // ==========================================================
     
+    // 5. Lógica de Reconstrução do Roteiro
     const scriptContainer = document.getElementById('scriptSectionsContainer');
     scriptContainer.innerHTML = '';
     const sectionDetailsMap = {
-        intro: { title: 'Introdução', action: 'generateIntro' },
-        development: { title: 'Desenvolvimento', action: 'generateDevelopment' },
-        climax: { title: 'Clímax', action: 'generateClimax' },
+        intro: { title: 'Introdução' },
+        development: { title: 'Desenvolvimento' },
+        climax: { title: 'Clímax' },
         conclusion: { title: 'Conclusão' },
         cta: { title: 'Call to Action (CTA)' }
     };
     const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
-    const outlineExists = !!state.generated.strategicOutline;
     
     sectionOrder.forEach(id => {
         const sectionData = state.generated.script[id];
@@ -4987,12 +4744,10 @@ const syncUiFromState = () => {
         if (sectionData && sectionData.html) {
             const sectionElement = generateSectionHtmlContent(id, details.title, sectionData.html);
             scriptContainer.appendChild(sectionElement);
-        } else if (outlineExists && details && details.action) {
-            scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder(id, details.title, details.action));
         }
     });
     
-    // 6. Garante que os estados finais da UI sejam aplicados
+    // 6. Garante que os estados finais da UI sejam aplicados (sem mudanças)
     updateButtonStates();
     updateAllReadingTimes();
 };
