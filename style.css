@@ -570,12 +570,6 @@ textarea.input { min-height: 84px; resize: vertical; }
     pointer-events: none;
 }
 
-.retention-paragraph-live:hover .retention-tooltip { 
-    opacity: 1; 
-    visibility: visible; 
-    transform: translateY(-5px);
-    pointer-events: auto;
-}
 
 /* --- Destaque visual para grupos --- */
 .highlight-group { 
