@@ -3587,6 +3587,7 @@ ACTION: Return ONLY the JSON array.`;
 // ==========================================================
 // ===== ANALISE DE RETENÇÃO ======
 // ==========================================================
+// SUBSTITUA TODA A SUA FUNÇÃO window.analyzeSectionRetention POR ESTA VERSÃO
 
 window.analyzeSectionRetention = async (button) => {
     const sectionId = button.dataset.sectionId;
@@ -3638,14 +3639,16 @@ window.analyzeSectionRetention = async (button) => {
 
         **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
 
+        // --- AQUI ESTÁ A CORREÇÃO ---
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        const perfectJson = await fixJsonWithAI(brokenJson);
-        const analysis = JSON.parse(perfectJson);
+        const analysis = await getRobustJson(brokenJson); // Usando a função correta!
+        // --- FIM DA CORREÇÃO ---
 
         if (!analysis || !Array.isArray(analysis)) {
             throw new Error("A análise da IA retornou um formato inválido.");
         }
         
+        // O resto da função continua exatamente como está...
         if (analysis.length > 0) {
             let currentGroup = [];
             for (let i = 0; i < analysis.length; i++) {
@@ -3689,10 +3692,6 @@ window.analyzeSectionRetention = async (button) => {
                         const tooltipTitle = scoreLabels[item.retentionScore] || 'ANÁLISE';
                         const suggestionTextEscaped = (item.suggestion || '').replace(/"/g, '\\"');
                         
-                        // ==========================================================
-                        // >>>>> A CORREÇÃO FINAL E DECISIVA ESTÁ AQUI <<<<<
-                        // Restaurando o HTML completo dos botões.
-                        // ==========================================================
                         const buttonsHtml = `
                             <div class="flex gap-2 mt-3">
                                 <button class="flex-1 btn btn-primary btn-small py-1" 
