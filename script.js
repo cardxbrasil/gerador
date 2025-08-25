@@ -1972,9 +1972,20 @@ const getGenreFromIdea = (idea) => {
 };
 
 
+
+
 // FUNÇÃO selectIdea FINAL E 100% CONFIÁVEL (NÃO USA a consultora de IA)
 const selectIdea = (idea) => {
     const genre = getGenreFromIdea(idea);
+    
+    // ==========================================================
+    // >>>>> CORREÇÃO DO EFEITO COLATERAL APLICADA AQUI <<<<<
+    // Esta linha salva o gênero da ideia selecionada no estado
+    // global. Isso garante que o Prompt Mestre, na próxima
+    // etapa, usará o template do especialista correto.
+    AppState.inputs.selectedGenre = genre;
+    // ==========================================================
+
     const mapper = strategyMapper[genre];
 
     // 1. PREENCHIMENTO DOS DROPDOWNS DE FORMA DETERMINÍSTICA E RÁPIDA
@@ -2026,7 +2037,6 @@ const selectIdea = (idea) => {
     showPane('strategy');
     document.querySelector('[data-tab="input-tab-basico"]')?.click();
 };
-
 
 
 
