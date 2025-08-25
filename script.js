@@ -5037,11 +5037,8 @@ const actions = {
 
 
 
-// ==========================================================
-// ===== IMPORTADOR DE ROTEIRO (v7.1) =======================
-// ==========================================================
+// SUBSTITUA A FUNÇÃO processPastedScript INTEIRA PELA VERSÃO v7.2
 const processPastedScript = async (button) => {
-    // Limpa o botão "Ir para Finalização" de uma importação anterior, se existir
     document.getElementById('finalizeBtnContainer')?.remove();
 
     const scriptInputArea = document.getElementById('scriptInputArea');
@@ -5057,25 +5054,40 @@ const processPastedScript = async (button) => {
     scriptContainer.innerHTML = `<div class="card text-center"><div class="loading-spinner loading-spinner-large mx-auto"></div><p class="mt-4">Processando e organizando seu roteiro...</p></div>`;
 
     try {
-        // 1. Usa sua função robusta para parsear o JSON
         const scriptObject = await getRobustJson(pastedJson);
 
-        // 2. Valida se o objeto tem a estrutura mínima esperada
-        if (!scriptObject.introducao || !scriptObject.desenvolvimento || !scriptObject.climax) {
+        // --- INÍCIO DA CORREÇÃO ---
+        // Normaliza as chaves do objeto recebido da IA para garantir consistência
+        const normalizedScriptObject = {};
+        for (const key in scriptObject) {
+            let normalizedKey = key.toLowerCase();
+            if (normalizedKey === 'conclusao' || normalizedKey === 'conclusion') {
+                normalizedKey = 'conclusao'; // Padroniza para 'conclusao'
+            }
+            if (normalizedKey === 'introducao' || normalizedKey === 'introduction') {
+                normalizedKey = 'introducao'; // Padroniza para 'introducao'
+            }
+             if (normalizedKey === 'desenvolvimento' || normalizedKey === 'development') {
+                normalizedKey = 'desenvolvimento'; // Padroniza para 'desenvolvimento'
+            }
+            normalizedScriptObject[normalizedKey] = scriptObject[key];
+        }
+        // --- FIM DA CORREÇÃO ---
+
+        if (!normalizedScriptObject.introducao || !normalizedScriptObject.desenvolvimento || !normalizedScriptObject.climax) {
             throw new Error("O JSON colado não contém as chaves esperadas (introducao, desenvolvimento, climax, etc). Verifique a resposta da IA.");
         }
 
-        // 3. Mapeia as chaves do JSON para as chaves internas do AppState
         const sectionMap = { introducao: 'intro', desenvolvimento: 'development', climax: 'climax', conclusao: 'conclusion', cta: 'cta' };
-        const titles = { intro: 'Introdução', development: 'Desenvolvimento', climax: 'Clímax', conclusao: 'Conclusão', cta: 'Call to Action (CTA)' };
+        const titles = { intro: 'Introdução', development: 'Desenvolvimento', climax: 'Clímax', conclusion: 'Conclusão', cta: 'Call to Action (CTA)' };
 
-        scriptContainer.innerHTML = ''; // Limpa a mensagem de "Processando"
+        scriptContainer.innerHTML = '';
 
-        // 4. Itera, processa e renderiza cada seção do roteiro
         for (const key in sectionMap) {
-            if (scriptObject[key]) {
+            // Agora usamos o objeto normalizado
+            if (normalizedScriptObject[key]) {
                 const sectionName = sectionMap[key];
-                const rawText = scriptObject[key];
+                const rawText = normalizedScriptObject[key];
                 
                 const paragraphs = rawText.split(/\n\s*\n/).filter(p => p.trim() !== '');
                 const htmlContent = paragraphs.map((p, index) => `<div id="${sectionName}-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
@@ -5087,11 +5099,9 @@ const processPastedScript = async (button) => {
             }
         }
         
-        // 5. Finaliza o fluxo sem navegar automaticamente
-        markStepCompleted('script', false); // O 'false' impede a navegação automática
+        markStepCompleted('script', false);
         window.showToast("Roteiro importado e processado com sucesso!", "success");
         
-        // Adiciona o botão para avançar manualmente ao final do contêiner do painel
         const mainContentArea = document.getElementById('pane-script');
         mainContentArea.insertAdjacentHTML('beforeend', `
             <div class="controls mt-6 justify-center" id="finalizeBtnContainer">
