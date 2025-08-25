@@ -576,6 +576,14 @@ ${fullTranscript}
 
 
 
+
+
+
+
+
+};
+
+
 // COLE ESTE BLOCO INTEIRO DENTRO DO SEU 'const PromptManager = { ... };'
 
 getScriptPrompt: (genre, baseContext, technicalDetails) => {
@@ -672,8 +680,6 @@ Gere o objeto JSON com o roteiro completo agora.
 
 
 
-
-};
 
 
 
