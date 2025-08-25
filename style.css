@@ -489,9 +489,9 @@ textarea.input { min-height: 84px; resize: vertical; }
 /* --- O Tooltip que contém os botões --- */
 .retention-tooltip { 
     position: absolute; 
-    bottom: 95%; /* << MUDANÇA AQUI */
+    bottom: 100%; /* Posiciona acima do parágrafo */
     left: 0; 
-    transform: translateY(0);
+    margin-bottom: 5px; /* Pequeno espaço entre o parágrafo e o tooltip */
     background-color: var(--surface); 
     color: var(--text-body); 
     padding: 0.75rem; 
@@ -501,18 +501,13 @@ textarea.input { min-height: 84px; resize: vertical; }
     z-index: 10; 
     font-size: 0.8rem; 
     border: 1px solid var(--border); 
+    
+    /* A MÁGICA ESTÁ AQUI: Usamos opacity e visibility para a transição */
     opacity: 0; 
     visibility: hidden; 
-    transition: opacity 0.3s, transform 0.3s;
-    pointer-events: none; /* Impede que o tooltip interaja com o mouse quando escondido */
-}
-
-/* --- A MÁGICA: Mostrar o tooltip ao passar o mouse no parágrafo pai --- */
-.retention-paragraph-live:hover .retention-tooltip { 
-    opacity: 1; 
-    visibility: visible; 
-    transform: translateY(-5px);
-    pointer-events: auto; /* Permite clicar nos botões quando visível */
+    transform: translateY(5px); /* Efeito sutil de subida */
+    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
+    pointer-events: none; /* Impede interação quando escondido */
 }
 
 /* --- Destaque visual para grupos de parágrafos --- */

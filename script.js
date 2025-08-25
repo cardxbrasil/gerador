@@ -3567,6 +3567,9 @@ ACTION: Return ONLY the JSON array.`;
 // ==========================================================
 // SUBSTITUA TODA A SUA FUNÇÃO window.analyzeSectionRetention POR ESTA VERSÃO
 
+// ==========================================================
+// ===== ANALISE DE RETENÇÃO (VERSÃO FINAL E CORRIGIDA) ======
+// ==========================================================
 window.analyzeSectionRetention = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -3595,97 +3598,84 @@ window.analyzeSectionRetention = async (button) => {
         
         const basePromptContext = getBasePromptContext();
         const prompt = `Você é uma API de análise de roteiro que retorna JSON.
-
         **CONTEXTO ESTRATÉGICO:**
         ---
         ${basePromptContext}
         ---
-
         **REGRAS DE RESPOSTA (JSON ESTRITO):**
         1.  **JSON PURO:** Responda APENAS com o array JSON.
         2.  **ESTRUTURA COMPLETA:** Cada objeto DEVE conter "paragraphIndex" (número), "retentionScore" ("green", "yellow", ou "red"), e "suggestion" (string).
         3.  **SUGESTÕES ESTRATÉGICAS:** A "suggestion" DEVE ser um CONSELHO ACIONÁVEL sobre COMO melhorar, NÃO a reescrita do texto.
         4.  **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores string.
-
         **MANUAL DE PONTUAÇÃO:**
         - **green:** Excelente. Prende a atenção. Sugestão: "Excelente fluidez.".
         - **yellow:** Ponto de Atenção. Funcional, mas pode ser mais impactante.
         - **red:** Ponto de Risco. Confuso, repetitivo ou quebra o engajamento.
-
         **DADOS PARA ANÁLISE:**
         ${JSON.stringify(paragraphsWithIndexes, null, 2)}
-
         **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
 
-        // --- AQUI ESTÁ A CORREÇÃO ---
         const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        const analysis = await getRobustJson(brokenJson); // Usando a função correta!
-        // --- FIM DA CORREÇÃO ---
+        const analysis = await getRobustJson(brokenJson);
 
         if (!analysis || !Array.isArray(analysis)) {
             throw new Error("A análise da IA retornou um formato inválido.");
         }
         
-        // O resto da função continua exatamente como está...
-        if (analysis.length > 0) {
-            let currentGroup = [];
-            for (let i = 0; i < analysis.length; i++) {
-                const currentItem = analysis[i];
-                const previousItem = i > 0 ? analysis[i - 1] : null;
-                if (previousItem && currentItem.retentionScore === previousItem.retentionScore && currentItem.retentionScore !== 'green') {
-                    currentGroup.push(currentItem);
-                } else {
-                    if (currentGroup.length > 1) {
-                        const unifiedSuggestion = currentGroup[0].suggestion;
-                        currentGroup.forEach(groupItem => groupItem.suggestion = unifiedSuggestion);
-                    }
-                    currentGroup = [currentItem];
-                }
-            }
-            if (currentGroup.length > 1) {
-                const unifiedSuggestion = currentGroup[0].suggestion;
-                currentGroup.forEach(groupItem => groupItem.suggestion = unifiedSuggestion);
-            }
-        }
-        
-        const newParagraphs = paragraphs.map(p => {
-            const newP = p.cloneNode(true);
-            newP.className = 'retention-paragraph-live';
-            newP.innerHTML = p.innerHTML.replace(/<div class="retention-tooltip">.*?<\/div>/g, '');
-            p.parentNode.replaceChild(newP, p);
-            return newP;
+        // Limpa os parágrafos de tooltips antigos antes de adicionar novos
+        paragraphs.forEach(p => {
+            p.className = 'retention-paragraph-live'; // Reseta as classes
+            p.innerHTML = p.innerHTML.replace(/<div class="retention-tooltip">.*?<\/div>/g, '');
         });
 
-        analysis.forEach((item, index) => {
-            if (typeof item.paragraphIndex !== 'number' || item.paragraphIndex >= newParagraphs.length) return;
-            const p = newParagraphs[item.paragraphIndex];
+        analysis.forEach((item) => {
+            if (typeof item.paragraphIndex !== 'number' || item.paragraphIndex >= paragraphs.length) return;
+            const p = paragraphs[item.paragraphIndex];
             if (p) {
                 p.classList.add(`retention-${item.retentionScore}`);
                 p.dataset.suggestionGroup = item.suggestion;
 
                 if (item.retentionScore === 'yellow' || item.retentionScore === 'red') {
-                    const previousItem = index > 0 ? analysis[index - 1] : null;
-                    if (!previousItem || item.suggestion !== previousItem.suggestion || (analysis.filter(s => s.suggestion === item.suggestion).length === 1)) {
-                        const scoreLabels = { yellow: "PONTO DE ATENÇÃO", red: "PONTO DE RISCO" };
-                        const tooltipTitle = scoreLabels[item.retentionScore] || 'ANÁLISE';
-                        const suggestionTextEscaped = (item.suggestion || '').replace(/"/g, '\\"');
-                        
-                        const buttonsHtml = `
-                            <div class="flex gap-2 mt-3">
-                                <button class="flex-1 btn btn-primary btn-small py-1" 
-                                        data-action="optimizeGroup" 
-                                        data-suggestion-text="${suggestionTextEscaped}">
-                                    <i class="fas fa-magic mr-2"></i> Otimizar
-                                </button>
-                                <button class="flex-1 btn btn-danger btn-small py-1" 
-                                        data-action="deleteParagraphGroup" 
-                                        data-suggestion-text="${suggestionTextEscaped}">
-                                    <i class="fas fa-trash-alt mr-2"></i> Deletar
-                                </button>
-                            </div>
-                        `;
-                        p.innerHTML += `<div class="retention-tooltip"><strong>${tooltipTitle}:</strong> ${DOMPurify.sanitize(item.suggestion)}${buttonsHtml}</div>`;
-                    }
+                    const scoreLabels = { yellow: "PONTO DE ATENÇÃO", red: "PONTO DE RISCO" };
+                    const tooltipTitle = scoreLabels[item.retentionScore] || 'ANÁLISE';
+                    const suggestionTextEscaped = (item.suggestion || '').replace(/"/g, '&quot;');
+                    
+                    const buttonsHtml = `
+                        <div class="flex gap-2 mt-3">
+                            <button class="flex-1 btn btn-primary btn-small py-1" data-action="optimizeGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-magic mr-2"></i> Otimizar</button>
+                            <button class="flex-1 btn btn-danger btn-small py-1" data-action="deleteParagraphGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-trash-alt mr-2"></i> Deletar</button>
+                        </div>`;
+                    
+                    const tooltipElement = document.createElement('div');
+                    tooltipElement.className = 'retention-tooltip';
+                    tooltipElement.innerHTML = `<strong>${tooltipTitle}:</strong> ${DOMPurify.sanitize(item.suggestion)}${buttonsHtml}`;
+                    p.appendChild(tooltipElement);
+
+                    // ===============================================
+                    // >>>>> NOVA LÓGICA DE HOVER INTELIGENTE <<<<<
+                    // ===============================================
+                    let hideTimer;
+                    const showTooltip = () => {
+                        clearTimeout(hideTimer);
+                        tooltipElement.style.opacity = '1';
+                        tooltipElement.style.visibility = 'visible';
+                        tooltipElement.style.transform = 'translateY(-5px)';
+                        tooltipElement.style.pointerEvents = 'auto';
+                    };
+                    const startHideTimer = () => {
+                        hideTimer = setTimeout(() => {
+                            tooltipElement.style.opacity = '0';
+                            tooltipElement.style.visibility = 'hidden';
+                            tooltipElement.style.transform = 'translateY(0)';
+                            tooltipElement.style.pointerEvents = 'none';
+                        }, 200); // Espera 200ms antes de esconder
+                    };
+
+                    p.addEventListener('mouseenter', showTooltip);
+                    p.addEventListener('mouseleave', startHideTimer);
+                    tooltipElement.addEventListener('mouseenter', showTooltip);
+                    tooltipElement.addEventListener('mouseleave', startHideTimer);
+                    // ===============================================
                 }
                  p.addEventListener('mouseover', handleSuggestionMouseOver);
                  p.addEventListener('mouseout', handleSuggestionMouseOut);
