@@ -3896,15 +3896,6 @@ ${newData}
 
 
 
-// =========================================================================
-// >>>>> VERSÃO FINAL E BLINDADA DE 'addDevelopmentChapter' <<<<<
-// =========================================================================
-/**
- * Adiciona um novo capítulo ao desenvolvimento, com prompt refinado para evitar repetição do título e "ecos".
- * @param {HTMLElement} button - O botão que foi clicado.
- */
-// SUBSTITUA A SUA FUNÇÃO window.addDevelopmentChapter INTEIRA POR ESTA VERSÃO FINAL
-
 window.addDevelopmentChapter = async (button) => {
     const devSection = document.getElementById('developmentSection');
     const contentWrapper = devSection?.querySelector('.generated-content-wrapper');
@@ -4004,6 +3995,15 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
         ).join('');
 
         contentWrapper.insertAdjacentHTML('beforeend', chapterTitleHtml + newContentWithDivs);
+
+        // ==========================================================
+        // >>>>> A CORREÇÃO ESTÁ AQUI <<<<<
+        // Salva o conteúdo completo (antigo + novo) de volta no estado central
+        if (AppState.generated.script.development) {
+            AppState.generated.script.development.text = contentWrapper.textContent;
+            AppState.generated.script.development.html = contentWrapper.innerHTML;
+        }
+        // ==========================================================
         
         invalidateAndClearPerformance(devSection);
         invalidateAndClearPrompts(devSection);
