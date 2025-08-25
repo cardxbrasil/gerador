@@ -1930,20 +1930,46 @@ const getBasePromptContext = (options = {}) => {
 
 
 
-// SUBSTITUA A SUA FUNÇÃO buildMasterPrompt ATUAL POR ESTA VERSÃO
+// ==========================================================
+// ===== CONSTRUTOR DE PROMPT MESTRE (v7.2) =================
+// ==========================================================
 const buildMasterPrompt = () => {
+    // Pega o contexto geral do projeto (nome do canal, público, tema, etc.)
     const baseContext = getBasePromptContext({ includeHeavyContext: true }); 
-    const videoDuration = document.getElementById('videoDuration').options[document.getElementById('videoDuration').selectedIndex].text;
+    
+    // --- LÓGICA DE TEMPO E RITMO APRIMORADA ---
+    // Pega a chave da duração selecionada (ex: "short", "medium", "long")
+    const durationKey = document.getElementById('videoDuration').value; 
+    // Pega o texto visível para o usuário (ex: "Curto (~1-3 min)") para clareza no prompt
+    const durationText = document.getElementById('videoDuration').options[document.getElementById('videoDuration').selectedIndex].text;
+    // Pega o texto do ritmo visual (ex: "Dinâmico (3-8s)")
     const visualPacing = document.getElementById('visualPacing').options[document.getElementById('visualPacing').selectedIndex].text;
 
+    // Calcula a contagem de palavras total a partir do nosso mapa de configuração
+    let totalWords = 0;
+    if (wordCountMap[durationKey]) {
+        // Soma todos os valores de palavras para a duração selecionada
+        totalWords = Object.values(wordCountMap[durationKey]).reduce((a, b) => a + b, 0);
+    }
+    
+    // Cria uma instrução clara para a IA sobre a contagem de palavras
+    const wordCountGuidance = totalWords > 0 
+        ? `O roteiro completo deve ter aproximadamente ${totalWords} palavras.` 
+        : "O roteiro deve ter uma duração apropriada para o tempo selecionado.";
+    // --- FIM DA LÓGICA APRIMORADA ---
+
+    // Monta uma seção específica com os detalhes técnicos
     const technicalDetails = `
 ### DETALHES TÉCNICOS E DE RITMO ###
-- **Duração Desejada do Vídeo:** ${videoDuration}
+- **Duração Desejada do Vídeo:** ${durationText}
 - **Ritmo Visual (Guia para a escrita):** ${visualPacing}
+- **META DE TEXTO (Instrução Crítica):** ${wordCountGuidance}
 `;
 
-    // A MÁGICA ACONTECE AQUI
+    // Pega o gênero que foi salvo no estado da aplicação quando as ideias foram geradas
     const genre = AppState.inputs.selectedGenre || 'geral'; 
+    
+    // Usa o PromptManager para buscar o template do especialista correto e montar o prompt final
     const masterPrompt = PromptManager.getScriptPrompt(genre, baseContext, technicalDetails);
     
     return masterPrompt;
@@ -5008,8 +5034,16 @@ const actions = {
     'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
 };
 
-// Adicione esta nova função async ao seu script.js
+
+
+
+// ==========================================================
+// ===== IMPORTADOR DE ROTEIRO (v7.1) =======================
+// ==========================================================
 const processPastedScript = async (button) => {
+    // Limpa o botão "Ir para Finalização" de uma importação anterior, se existir
+    document.getElementById('finalizeBtnContainer')?.remove();
+
     const scriptInputArea = document.getElementById('scriptInputArea');
     const pastedJson = scriptInputArea.value.trim();
 
@@ -5043,23 +5077,29 @@ const processPastedScript = async (button) => {
                 const sectionName = sectionMap[key];
                 const rawText = scriptObject[key];
                 
-                // Processa o texto para o formato HTML que suas ferramentas esperam
                 const paragraphs = rawText.split(/\n\s*\n/).filter(p => p.trim() !== '');
                 const htmlContent = paragraphs.map((p, index) => `<div id="${sectionName}-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
 
-                // Salva no estado
                 AppState.generated.script[sectionName] = { html: htmlContent, text: rawText };
 
-                // Renderiza o acordeão na tela usando sua função existente
                 const sectionElement = generateSectionHtmlContent(sectionName, titles[sectionName], htmlContent);
                 scriptContainer.appendChild(sectionElement);
             }
         }
         
-        // 5. Finaliza o fluxo
-        markStepCompleted('script');
+        // 5. Finaliza o fluxo sem navegar automaticamente
+        markStepCompleted('script', false); // O 'false' impede a navegação automática
         window.showToast("Roteiro importado e processado com sucesso!", "success");
-        goToFinalize(); // Avança automaticamente para a finalização
+        
+        // Adiciona o botão para avançar manualmente ao final do contêiner do painel
+        const mainContentArea = document.getElementById('pane-script');
+        mainContentArea.insertAdjacentHTML('beforeend', `
+            <div class="controls mt-6 justify-center" id="finalizeBtnContainer">
+                <button class="btn btn-primary" data-action="goToFinalize">
+                    <i class="fas fa-flag-checkered mr-2"></i> Revisado! Ir para Finalização
+                </button>
+            </div>
+        `);
 
     } catch (error) {
         console.error("Erro ao processar roteiro importado:", error);
