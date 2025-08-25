@@ -860,47 +860,6 @@ const forceLanguageOnPrompt = (prompt) => {
 
 
 
-const showIdeaPromptDialog = (prompt) => {
-    return new Promise((resolve) => {
-        const overlay = document.getElementById('ideaPromptDialogOverlay');
-        const promptOutput = document.getElementById('ideaMasterPromptOutput');
-        const ideasInput = document.getElementById('ideasInputArea');
-        const btnProcess = document.getElementById('ideaBtnProcess');
-        const btnCancel = document.getElementById('ideaBtnCancel');
-        const btnCopy = overlay.querySelector('[data-action="copyIdeaPrompt"]');
-
-        promptOutput.value = prompt;
-        ideasInput.value = '';
-
-        overlay.style.display = 'flex';
-
-        const closeDialog = (result) => {
-            overlay.style.display = 'none';
-            btnProcess.onclick = null;
-            btnCancel.onclick = null;
-            btnCopy.onclick = null;
-            resolve(result);
-        };
-
-        btnCopy.onclick = () => {
-            window.copyTextToClipboard(promptOutput.value);
-            btnCopy.innerHTML = '<i class="fas fa-check mr-2"></i> Copiado!';
-            setTimeout(() => { btnCopy.innerHTML = '<i class="fas fa-copy mr-2"></i> Copiar Prompt'; }, 2000);
-        };
-
-        btnProcess.onclick = () => {
-            const pastedJson = ideasInput.value.trim();
-            if (!pastedJson) {
-                window.showToast("Cole o array JSON das ideias antes de processar.", 'error');
-                return;
-            }
-            closeDialog(pastedJson);
-        };
-
-        btnCancel.onclick = () => closeDialog(null);
-    });
-};
-
 
 
 
