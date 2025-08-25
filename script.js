@@ -811,14 +811,16 @@ const fixJsonWithAI = async (brokenJsonText) => {
 
 
 
-// PASSO 1.B: A FUNÇÃO "MESTRA" HÍBRIDA
+// SUBSTITUA A SUA FUNÇÃO getRobustJson INTEIRA POR ESTA VERSÃO v7.0
 const getRobustJson = async (text) => {
     if (!text) {
         throw new Error("A IA retornou uma resposta vazia.");
     }
 
+    // Limpa metadados comuns da IA
     const cleanedText = text.replace(/assistant<\|end_header_id\|>|Continuação da resposta:|Aqui está a resposta em JSON:|Aqui está a minha resposta:/gi, '').trim();
 
+    // Encontra o início e o fim do bloco JSON
     const firstBrace = cleanedText.indexOf('{');
     const firstBracket = cleanedText.indexOf('[');
     
@@ -833,14 +835,21 @@ const getRobustJson = async (text) => {
         throw new Error("Não foi possível encontrar o final do bloco JSON na resposta da IA.");
     }
 
-    const jsonString = cleanedText.substring(startIndex, endIndex + 1);
+    let jsonString = cleanedText.substring(startIndex, endIndex + 1);
+
+    // --- NOVA ETAPA DE LIMPEZA ADICIONADA AQUI ---
+    // Corrige barras invertidas solitárias que quebram o JSON.parse()
+    // Isso transforma "C:\user" em "C:\\user", que é um JSON válido.
+    // Usamos uma expressão regular para encontrar barras que NÃO são seguidas por caracteres de escape válidos.
+    jsonString = jsonString.replace(/\\(?!["\\\/bfnrtu])/g, '\\\\');
+    // --- FIM DA NOVA ETAPA ---
 
     try {
-        // TENTATIVA 1: O método rápido
+        // TENTATIVA 1: O método rápido com a string já limpa
         return JSON.parse(jsonString);
     } catch (error) {
-        console.warn("Falha no parse rápido. Tentando conserto com IA...", error.message);
-        // TENTATIVA 2: O resgate com IA
+        console.warn("Falha no parse rápido mesmo após a limpeza. Tentando conserto completo com IA...", error.message);
+        // TENTATIVA 2: O resgate com IA (como último recurso)
         const fixedJson = await fixJsonWithAI(jsonString);
         try {
             return JSON.parse(fixedJson);
@@ -3720,19 +3729,23 @@ window.analyzeSectionRetention = async (button) => {
 
 
 
+// SUBSTITUA A FUNÇÃO INTEIRA NO SEU script.js
 const handleSuggestionMouseOver = (event) => {
     const targetParagraph = event.currentTarget;
     const suggestionGroupText = targetParagraph.dataset.suggestionGroup;
     if (!suggestionGroupText) return;
+
     const contentWrapper = targetParagraph.closest('.generated-content-wrapper');
     if (!contentWrapper) return;
 
-    // --- CORREÇÃO APLICADA AQUI ---
-    // A linha antiga quebrava com quebras de linha. Esta é mais robusta.
-    const safeSuggestionSelector = suggestionGroupText.replace(/"/g, '\\"');
+    // Esta é a forma mais segura de encontrar todos os elementos
+    // que compartilham o mesmo texto de sugestão no atributo data.
+    const allParagraphsWithSuggestion = contentWrapper.querySelectorAll('[data-suggestion-group]');
     
-    contentWrapper.querySelectorAll(`[data-suggestion-group="${safeSuggestionSelector}"]`).forEach(p => {
-        p.classList.add('highlight-group');
+    allParagraphsWithSuggestion.forEach(p => {
+        if (p.dataset.suggestionGroup === suggestionGroupText) {
+            p.classList.add('highlight-group');
+        }
     });
 };
 
