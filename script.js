@@ -2018,10 +2018,9 @@ const selectIdea = (idea) => {
     const genre = getGenreFromIdea(idea);
     
     // ==========================================================
-    // >>>>> CORREÇÃO DO EFEITO COLATERAL APLICADA AQUI <<<<<
-    // Esta linha salva o gênero da ideia selecionada no estado
-    // global. Isso garante que o Prompt Mestre, na próxima
-    // etapa, usará o template do especialista correto.
+    // >>>>> A CORREÇÃO CRUCIAL ESTÁ AQUI <<<<<
+    // Esta linha ATUALIZA a "memória" do app com o gênero
+    // da ideia que você ACABOU de selecionar.
     AppState.inputs.selectedGenre = genre;
     // ==========================================================
 
@@ -2283,6 +2282,9 @@ const buildMasterPrompt = () => {
 
 // SUBSTITUA a sua função suggestStrategy antiga por esta nova versão v7.0
 
+// ==========================================================
+// >>>>> VERSÃO FINAL ANTI-FALHA DE 'suggestStrategy' <<<<<
+// ==========================================================
 const suggestStrategy = async (button) => {
     const theme = document.getElementById('videoTheme')?.value.trim();
     const description = document.getElementById('videoDescription')?.value.trim();
@@ -2290,81 +2292,89 @@ const suggestStrategy = async (button) => {
         window.showToast("Preencha o Tema e a Descrição do Vídeo para receber sugestões.", 'info');
         return;
     }
-    const userConfirmed = await showConfirmationDialog( "Refinar Estratégia com IA?", "Isso usará a IA para redefinir os campos de estratégia e LIMPARÁ qualquer roteiro já gerado no Painel 3. Deseja continuar?");
+    const userConfirmed = await showConfirmationDialog("Refinar Estratégia com IA?", "Isso usará a IA para redefinir os campos de estratégia. Deseja continuar?");
     if (!userConfirmed) return;
     
-    // --- LÓGICA ATUALIZADA PARA A v7.0 ---
-    // Em vez de limpar 'strategicOutline' e 'outlineContent',
-    // limpamos o roteiro e o contêiner dos acordeões.
+    // A limpeza do roteiro continua a mesma
     AppState.generated.script = { intro: {}, development: {}, climax: {}, conclusion: {}, cta: {} };
     document.getElementById('scriptSectionsContainer').innerHTML = '';
-    // --- FIM DA ATUALIZAÇÃO ---
 
     showButtonLoading(button);
-    AppState.ui.isSettingStrategy = true;
     
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
-    const prompt = `Você é uma API de Estratégia de Conteúdo Viral. Sua única função é gerar um objeto JSON com uma estratégia de vídeo COMPLETA E DETALHADA.
+    
+    // ==========================================================
+    // MUDANÇA 1: O PROMPT AGORA PEDE TEXTO ESTRUTURADO, NÃO JSON
+    // ==========================================================
+    const prompt = `Você é uma API de Estratégia de Conteúdo Viral. Sua única função é preencher a seguinte ESTRUTURA DE TEXTO com uma estratégia completa e detalhada para o vídeo.
 
-**REGRAS CRÍTICAS DE SINTAXE JSON (INEGOCIÁVEIS):**
-1.  **JSON PURO:** Responda APENAS com um objeto JSON válido. É PROIBIDO omitir qualquer uma das 10 chaves.
-2.  **ASPAS DUPLAS:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
+**REGRAS CRÍTICAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
+1.  **FORMATO "CHAVE:: VALOR":** Preencha CADA UMA das 10 chaves abaixo. Use o separador '::' entre a chave e o valor.
+2.  **RESPOSTA PURA:** NÃO adicione comentários, introduções ou qualquer texto fora desta estrutura.
 3.  **IDIOMA:** Todos os valores devem estar em **${languageName}**.
 
-**MANUAL DE PREENCHIMENTO (PREENCHIMENTO DE TODAS AS 10 CHAVES É OBRIGATÓRIO):**
--   **"target_audience":** Descreva o espectador ideal de forma específica.
--   **"narrative_goal":** Escolha UM de: 'storytelling', 'storyselling'.
--   **"narrative_structure":** Baseado no "narrative_goal", escolha a estrutura MAIS IMPACTANTE. Se 'storytelling', escolha de: ["documentary", "heroes_journey", "pixar_spine", "mystery_loop", "twist"]. Se 'storyselling', escolha de: ["pas", "bab", "aida", "underdog_victory", "discovery_mentor"].
--   **"narrative_tone":** Escolha UM de: 'inspirador', 'serio', 'emocional'.
--   **"central_question":** Formule a pergunta central que o roteiro irá responder.
--   **"narrative_theme" (A GRANDE IDEIA):** ESSENCIAL. Crie a mensagem central e transformadora do vídeo em uma única frase poderosa. Exemplo: "Como a fé pode florescer nos lugares mais inesperados."
--   **"narrative_voice" (A PERSONALIDADE):** OBRIGATÓRIO. Defina a personalidade do narrador com 2-3 adjetivos impactantes que guiarão o tom da escrita. Ex: "Sábio, porém humilde", "Investigativo e cético", "Apaixonado e urgente".
--   **"emotional_hook" (A CONEXÃO HUMANA):** CRÍTICO PARA RETENÇÃO. Crie uma micro-narrativa ou anedota emocional que sirva como a alma do vídeo. Deve ser algo que gere empatia imediata. Ex: "Imagine um explorador perdido, encontrando não ouro, mas um símbolo de esperança..."
--   **"shocking_ending_hook" (O LOOP ABERTO INICIAL):** Crie a PRIMEIRA frase do roteiro, que deve funcionar como um gancho de mistério que só será resolvido no final. Ex: "No final, a descoberta mais chocante não estava no mapa, mas no coração de quem o desenhou."
--   **"research_data":** Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STRING de texto. Exemplo: "Fonte: Artigo da Nature, 2023; Dado: A temperatura média aumentou 1.2°C; Fato: A descoberta foi feita pelo Dr. Smith."
+**ESTRUTURA A PREENCHER (PREENCHIMENTO DE TODAS AS 10 É OBRIGATÓRIO):**
+TARGET_AUDIENCE:: [Descreva o espectador ideal de forma específica]
+NARRATIVE_GOAL:: [Escolha UM de: 'storytelling' ou 'storyselling']
+NARRATIVE_STRUCTURE:: [Baseado no NARRATIVE_GOAL, escolha a estrutura MAIS IMPACTANTE das listas a seguir. Storytelling: "documentary", "heroes_journey", "pixar_spine", "mystery_loop", "twist". Storyselling: "pas", "bab", "aida", "underdog_victory", "discovery_mentor"]
+NARRATIVE_TONE:: [Escolha UM de: 'inspirador', 'serio' ou 'emocional']
+CENTRAL_QUESTION:: [Formule a pergunta central que o roteiro irá responder]
+NARRATIVE_THEME:: [Crie a mensagem central e transformadora do vídeo em uma única frase poderosa]
+NARRATIVE_VOICE:: [Defina a personalidade do narrador com 2-3 adjetivos impactantes]
+EMOTIONAL_HOOK:: [Crie uma micro-narrativa ou anedota emocional que sirva como a alma do vídeo]
+SHOCKING_ENDING_HOOK:: [Crie a PRIMEIRA frase do roteiro, que funciona como um gancho de mistério]
+RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STRING de texto]
 
 **DADOS DE ENTRADA:**
 - **Tema do Vídeo:** "${theme}"
 - **Descrição:** "${description}"
 
-**AÇÃO FINAL:** Gere AGORA o objeto JSON completo com TODAS AS 10 CHAVES preenchidas. Sua criatividade nestes campos é o que define uma estratégia viral.`;
+**AÇÃO FINAL:** Preencha AGORA a estrutura de texto com as 10 chaves.`;
 
     try {
-        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        const strategy = await getRobustJson(brokenJsonResponse);
+        const strategyResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
 
-        if (!strategy || typeof strategy !== 'object') throw new Error("A IA não retornou uma estratégia em formato JSON válido.");
+        // ==========================================================
+        // MUDANÇA 2: O PARSER DE TEXTO SUBSTITUI O 'getRobustJson'
+        // ==========================================================
+        const strategy = {};
+        const lines = strategyResponse.split('\n');
+        for (const line of lines) {
+            const parts = line.split('::');
+            if (parts.length === 2) {
+                const key = parts[0].trim();
+                const value = parts[1].trim();
+                strategy[key] = value;
+            }
+        }
+
+        if (Object.keys(strategy).length < 8) { // Checagem de segurança
+            throw new Error("A IA não retornou a estratégia no formato de texto esperado.");
+        }
         
         const narrativeGoalSelect = document.getElementById('narrativeGoal');
-        if (narrativeGoalSelect && strategy.narrative_goal) {
-            narrativeGoalSelect.value = strategy.narrative_goal;
+        if (narrativeGoalSelect && strategy.NARRATIVE_GOAL) {
+            narrativeGoalSelect.value = strategy.NARRATIVE_GOAL;
             updateNarrativeStructureOptions();
         }
+
         setTimeout(() => { 
+            // ==========================================================
+            // MUDANÇA 3: O MAPA DE CHAVES FOI ATUALIZADO
+            // ==========================================================
             const keyToElementIdMap = {
-                'target_audience': 'targetAudience', 'narrative_theme': 'narrativeTheme',
-                'narrative_tone': 'narrativeTone', 'narrative_voice': 'narrativeVoice',
-                'central_question': 'centralQuestion', 'emotional_hook': 'emotionalHook',
-                'shocking_ending_hook': 'shockingEndingHook', 'research_data': 'researchData',
-                'narrative_structure': 'narrativeStructure'
+                'TARGET_AUDIENCE': 'targetAudience', 'NARRATIVE_THEME': 'narrativeTheme',
+                'NARRATIVE_TONE': 'narrativeTone', 'NARRATIVE_VOICE': 'narrativeVoice',
+                'CENTRAL_QUESTION': 'centralQuestion', 'EMOTIONAL_HOOK': 'emotionalHook',
+                'SHOCKING_ENDING_HOOK': 'shockingEndingHook', 'RESEARCH_DATA': 'researchData',
+                'NARRATIVE_STRUCTURE': 'narrativeStructure'
             };
+
             for (const key in keyToElementIdMap) {
                 if (strategy[key]) {
                     const element = document.getElementById(keyToElementIdMap[key]);
                     if (element) {
-                        let valueToSet = strategy[key];
-                        if (typeof valueToSet === 'object' && valueToSet !== null) {
-                            console.warn(`A IA retornou um objeto para o campo '${key}':`, valueToSet);
-                            if (Array.isArray(valueToSet)) {
-                                if (valueToSet.length > 0 && typeof valueToSet[0] === 'object') {
-                                     valueToSet = valueToSet.map(obj => Object.values(obj)[0]).join('; ');
-                                } else {
-                                     valueToSet = valueToSet.join('; ');
-                                }
-                            } else {
-                                valueToSet = Object.values(valueToSet).join(', ');
-                            }
-                        }
+                        const valueToSet = strategy[key];
                         if (element.tagName === 'SELECT') {
                             if ([...element.options].some(o => o.value === valueToSet)) {
                                 element.value = valueToSet;
@@ -2384,7 +2394,6 @@ const suggestStrategy = async (button) => {
         console.error("Erro em suggestStrategy:", error);
         window.showToast(`Falha ao sugerir estratégia: ${error.message}`, 'error');
     } finally {
-        AppState.ui.isSettingStrategy = false;
         hideButtonLoading(button);
     }
 };
