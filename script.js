@@ -2284,8 +2284,6 @@ const buildMasterPrompt = () => {
 
 
 
-// SUBSTITUA a sua função suggestStrategy antiga por esta nova versão v7.0
-
 // ==========================================================
 // >>>>> VERSÃO FINAL ANTI-FALHA DE 'suggestStrategy' <<<<<
 // ==========================================================
@@ -2299,7 +2297,6 @@ const suggestStrategy = async (button) => {
     const userConfirmed = await showConfirmationDialog("Refinar Estratégia com IA?", "Isso usará a IA para redefinir os campos de estratégia. Deseja continuar?");
     if (!userConfirmed) return;
     
-    // A limpeza do roteiro continua a mesma
     AppState.generated.script = { intro: {}, development: {}, climax: {}, conclusion: {}, cta: {} };
     document.getElementById('scriptSectionsContainer').innerHTML = '';
 
@@ -2307,9 +2304,6 @@ const suggestStrategy = async (button) => {
     
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
     
-    // ==========================================================
-    // MUDANÇA 1: O PROMPT AGORA PEDE TEXTO ESTRUTURADO, NÃO JSON
-    // ==========================================================
     const prompt = `Você é uma API de Estratégia de Conteúdo Viral. Sua única função é preencher a seguinte ESTRUTURA DE TEXTO com uma estratégia completa e detalhada para o vídeo.
 
 **REGRAS CRÍTICAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
@@ -2337,10 +2331,7 @@ RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STR
 
     try {
         const strategyResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-
-        // ==========================================================
-        // MUDANÇA 2: O PARSER DE TEXTO SUBSTITUI O 'getRobustJson'
-        // ==========================================================
+        
         const strategy = {};
         const lines = strategyResponse.split('\n');
         for (const line of lines) {
@@ -2352,9 +2343,9 @@ RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STR
             }
         }
 
-        if (Object.keys(strategy).length < 8) { // Checagem de segurança
-            throw new Error("A IA não retornou a estratégia no formato de texto esperado.");
-        }
+        // ==========================================================
+        // >>>>> A CHECAGEM DE SEGURANÇA FOI REMOVIDA DAQUI <<<<<
+        // ==========================================================
         
         const narrativeGoalSelect = document.getElementById('narrativeGoal');
         if (narrativeGoalSelect && strategy.NARRATIVE_GOAL) {
@@ -2363,9 +2354,6 @@ RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STR
         }
 
         setTimeout(() => { 
-            // ==========================================================
-            // MUDANÇA 3: O MAPA DE CHAVES FOI ATUALIZADO
-            // ==========================================================
             const keyToElementIdMap = {
                 'TARGET_AUDIENCE': 'targetAudience', 'NARRATIVE_THEME': 'narrativeTheme',
                 'NARRATIVE_TONE': 'narrativeTone', 'NARRATIVE_VOICE': 'narrativeVoice',
