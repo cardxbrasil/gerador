@@ -3909,27 +3909,43 @@ window.addDevelopmentChapter = async (button) => {
     showButtonLoading(button);
 
     try {
-        const suggestionPrompt = `Você é uma API ESPECIALISTA EM ESTRATÉGIA NARRATIVA e um ARQUITETO DA CONTINUIDADE. Sua função ÚNICA E CRÍTICA é analisar o final de um roteiro e propor 3 temas distintos, coerentes e emocionantes para o PRÓXIMO capítulo.
+        // ====================================================================
+        // >>>>> MUDANÇA 1: O PROMPT FOI SIMPLIFICADO <<<<<
+        // Agora pedimos uma lista de texto simples, que é muito mais confiável.
+        // ====================================================================
+        const suggestionPrompt = `Você é um ESTRATEGISTA NARRATIVO. Analise o final do roteiro abaixo e sugira 3 temas distintos e coerentes para o PRÓXIMO capítulo.
 
-**ROTEIRO ATUAL (PARA ANÁLISE DE CONTINUIDADE CRÍTICA):**
+**ROTEIRO ATUAL (PARA ANÁLISE):**
 ---
 ${existingText.slice(-1500)} 
 ---
 
-**TAREFA:** Analise o fluxo narrativo do roteiro acima e gere um array JSON com as 3 sugestões mais fortes, coerentes e cativantes para o tema do próximo capítulo.
+**REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
+1.  Sua resposta deve ser APENAS uma lista numerada com 3 itens (1., 2., 3.).
+2.  Cada item deve ser um tema curto e impactante.
+3.  NÃO adicione nenhum texto introdutório, título ou comentário.
 
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
-1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um array JSON válido.
-2.  **ESTRUTURA DO ARRAY:** O array deve conter EXATAMENTE 3 strings.
-3.  **SINTAXE DAS STRINGS:** Todas as strings DEVEM usar aspas duplas ("").
+**EXEMPLO DE RESPOSTA PERFEITA:**
+1. A Batalha dos Números
+2. O Legado Fora de Campo
+3. Momentos Decisivos
 
-**EXEMPLO DE FORMATO PERFEITO E OBRIGATÓRIO:**
-["A Batalha dos Números", "O Legado Fora de Campo", "Momentos Decisivos"]
+**AÇÃO FINAL:** Gere a lista numerada com 3 temas.`;
+        
+        const suggestionsResponse = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 1000);
 
-**AÇÃO FINAL:** Com base no roteiro fornecido, gere o array JSON. Responda APENAS com o array JSON perfeito.`;
+        // =====================================================================
+        // >>>>> MUDANÇA 2: REMOVEMOS O 'getRobustJson' DAQUI <<<<<
+        // E adicionamos uma lógica inteligente para ler a lista de texto.
+        // =====================================================================
+        const chapterSuggestions = suggestionsResponse
+            .split('\n') // Divide a resposta em linhas
+            .map(line => line.replace(/^\d+\.\s*/, '').trim()) // Remove números como "1. " e espaços
+            .filter(line => line.length > 0); // Remove linhas vazias
 
-        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(suggestionPrompt), 1000);
-        const chapterSuggestions = await getRobustJson(brokenJsonResponse) || [];
+        if (chapterSuggestions.length === 0) {
+            throw new Error("A IA não retornou sugestões de capítulo válidas.");
+        }
         
         hideButtonLoading(button);
 
@@ -3948,6 +3964,8 @@ ${existingText.slice(-1500)}
 
         showButtonLoading(button);
 
+        // O resto da função continua exatamente igual, pois a segunda chamada à IA
+        // já esperava texto e não JSON.
         const basePrompt = getBasePromptContext({ includeHeavyContext: true });
         const continuationPrompt = `${basePrompt}
 
@@ -3996,14 +4014,10 @@ Sua única missão é **AVANÇAR A HISTÓRIA**. Introduza novos fatos, aprofunde
 
         contentWrapper.insertAdjacentHTML('beforeend', chapterTitleHtml + newContentWithDivs);
 
-        // ==========================================================
-        // >>>>> A CORREÇÃO ESTÁ AQUI <<<<<
-        // Salva o conteúdo completo (antigo + novo) de volta no estado central
         if (AppState.generated.script.development) {
             AppState.generated.script.development.text = contentWrapper.textContent;
             AppState.generated.script.development.html = contentWrapper.innerHTML;
         }
-        // ==========================================================
         
         invalidateAndClearPerformance(devSection);
         invalidateAndClearPrompts(devSection);
