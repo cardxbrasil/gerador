@@ -880,6 +880,7 @@ const forceLanguageOnPrompt = (prompt) => {
  * @param {string} prompt - O prompt mestre gerado para as ideias.
  * @returns {Promise<string|null>} - Retorna o JSON colado pelo usuário ou null se cancelar.
  */
+// ADICIONE ESTA FUNÇÃO ao seu script.js, perto das outras funções de diálogo
 const showIdeaPromptDialog = (prompt) => {
     return new Promise((resolve) => {
         const overlay = document.getElementById('ideaPromptDialogOverlay');
@@ -889,16 +890,15 @@ const showIdeaPromptDialog = (prompt) => {
         const btnCancel = document.getElementById('ideaBtnCancel');
         const btnCopy = overlay.querySelector('[data-action="copyIdeaPrompt"]');
 
-        // Pré-validação para garantir que os elementos do modal existem
         if (!overlay || !promptOutput || !ideasInput || !btnProcess || !btnCancel || !btnCopy) {
-            console.error("Elementos essenciais do modal de ideias não encontrados.");
+            console.error("Elementos do modal de ideias não encontrados no DOM.");
             window.showToast("Erro de interface: Não foi possível carregar o modal.", "error");
             resolve(null);
             return;
         }
 
         promptOutput.value = prompt;
-        ideasInput.value = ''; // Limpa o campo de input
+        ideasInput.value = '';
         overlay.style.display = 'flex';
 
         const closeDialog = (result) => {
@@ -1533,12 +1533,12 @@ const renderUniversalIdeaCard = (idea, index, genre) => {
 
 
 
-// SUBSTITUA a função generateIdeasFromReport existente por esta
+// SUBSTITUA A SUA FUNÇÃO generateIdeasFromReport POR ESTA VERSÃO v7.0 COMPLETA
 const generateIdeasFromReport = async (button) => {
     const factCheckOutput = document.getElementById('factCheckOutput');
     const { originalQuery, rawReport } = factCheckOutput.dataset;
     if (!rawReport) {
-        window.showToast("Erro: Relatório da investigação não encontrado.", 'error');
+        window.showToast("Erro: Relatório da investigação não encontrado. Gere o relatório primeiro.", 'error');
         return;
     }
     
@@ -1547,14 +1547,14 @@ const generateIdeasFromReport = async (button) => {
     const outputContainer = document.getElementById('ideasOutput');
     
     showButtonLoading(button);
-    outputContainer.innerHTML = ''; // Limpa a área de ideias
+    outputContainer.innerHTML = '';
 
     try {
         // PASSO 1: Construir o prompt
         const promptContext = { originalQuery, rawReport, languageName };
         const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
         
-        hideButtonLoading(button); // Para o loading antes de mostrar o modal
+        hideButtonLoading(button);
 
         // PASSO 2: Mostrar o modal e esperar a interação do usuário
         const pastedJson = await showIdeaPromptDialog(creativePrompt);
@@ -1566,7 +1566,7 @@ const generateIdeasFromReport = async (button) => {
 
         // PASSO 3: Processar o JSON colado
         outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Processando e renderizando as ideias...</p></div>`;
-        const ideas = await getRobustJson(pastedJson); // Sua função de parse seguro!
+        const ideas = await getRobustJson(pastedJson);
 
         if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
             throw new Error("O texto colado não é um array JSON de ideias válido.");
