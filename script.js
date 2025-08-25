@@ -620,7 +620,7 @@ __RAW_REPORT__
 - **"conclusao" (String):** Recapitule com profundidade. Reforce a mensagem principal com linguagem que ressoe no espectador. Deixe uma impressão duradoura.
 - **"cta" (String):** Convide o espectador a continuar a jornada. Sugira ação: ler mais, refletir, compartilhar, se envolver. O chamado deve ser coerente com o tom e o tema.
 
-**AÇÃO FINAL:** Escreva AGORA o roteiro completo com base no briefing fornecido. Siga rigorosamente todas as regras. Responda APENAS com o objeto JSON perfeito.`
+**AÇÃO FINAL:** Escreva AGORA o roteiro completo com base no briefing fornecido. Siga rigorosamente todas as regras. Responda APENAS com o objeto JSON perfeito.`,
 
 
 
