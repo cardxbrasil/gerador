@@ -571,15 +571,10 @@ ${fullTranscript}
 ]
 
 **AÇÃO FINAL:** Sua resposta deve ser **APENAS e SOMENTE** o array JSON, sem nenhum texto introdutório, explicação ou comentário. Comece com \`[\` e termine com \`]\`. Analise o roteiro e gere agora os 3 prompts de trilha sonora.`;
-}
+},
 
 
 
-
-};
-
-
-// COLE ESTE BLOCO INTEIRO DENTRO DO SEU 'const PromptManager = { ... };'
 
 getScriptPrompt: (genre, baseContext, technicalDetails) => {
     const scriptTemplates = {
@@ -817,8 +812,10 @@ const buildPromptAndContinue = () => {
 
 
 
+// SUBSTITUA A FUNÇÃO resetApplicationState INTEIRA PELA VERSÃO v7.1
+
 const resetApplicationState = () => {
-    // 1. Define o estado inicial limpo
+    // 1. Define o estado inicial limpo (sem mudanças aqui)
     const initialState = {
         inputs: {},
         generated: {
@@ -833,45 +830,43 @@ const resetApplicationState = () => {
         }
     };
 
-    // 2. Reseta o objeto de estado principal
+    // 2. Reseta o objeto de estado principal (sem mudanças aqui)
     Object.assign(AppState, initialState);
-    AppState.ui.completedSteps = new Set(); // Recria o Set
+    AppState.ui.completedSteps = new Set();
 
-    // 3. Limpa todos os campos de input e textareas
+    // 3. Limpa todos os campos de input e textareas (sem mudanças aqui)
     document.querySelectorAll('#appRoot input[type="text"], #appRoot input[type="file"], #appRoot textarea').forEach(el => el.value = '');
     document.querySelectorAll('#appRoot select').forEach(el => el.selectedIndex = 0);
-    // Reseta valores padrão específicos
     document.getElementById('channelName').value = 'The Biblical Unveiling';
     document.getElementById('languageSelect').value = 'en';
 
-    // 4. Limpa todos os painéis de conteúdo gerado
+    // 4. Limpa todos os painéis de conteúdo gerado (COM MUDANÇAS)
     const containersToReset = [
-        'factCheckOutput', 'ideasOutput', 'outlineContent', 'scriptSectionsContainer',
+        'factCheckOutput', 'ideasOutput', 'scriptSectionsContainer', // Removido 'outlineContent'
         'analysisReportContainer', 'hooksReportContainer', 'viralSuggestionsContainer',
         'emotionalMapContent', 'soundtrackContent', 'titlesThumbnailsContent', 'videoDescriptionContent'
     ];
     containersToReset.forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.innerHTML = ''; // Limpa completamente
+        if (el) el.innerHTML = '';
     });
 
-    // Repõe os placeholders nos locais necessários
-    document.getElementById('outlineContent').innerHTML = `<div class="asset-card-placeholder">Clique para gerar o esboço.</div>`;
+    // Repõe os placeholders nos locais necessários (COM MUDANÇAS)
+    // A linha de 'outlineContent' foi removida.
     document.getElementById('emotionalMapContent').innerHTML = `<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>`;
     document.getElementById('soundtrackContent').innerHTML = `<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>`;
     document.getElementById('titlesThumbnailsContent').innerHTML = `<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>`;
     document.getElementById('videoDescriptionContent').innerHTML = `<div class="asset-card-placeholder">Gere o roteiro para habilitar.</div>`;
     document.getElementById('ideaGenerationSection').classList.add('hidden');
 
-
-    // 5. Reseta a interface do Wizard (sidebar e progresso)
+    // 5. Reseta a interface do Wizard (sem mudanças aqui)
     document.querySelectorAll('#sidebar .step').forEach(step => {
         step.classList.remove('completed', 'active');
     });
-    updateProgressBar(); // Isso irá zerar a barra de progresso
-    showPane('investigate'); // Volta para a primeira etapa
+    updateProgressBar();
+    showPane('investigate');
 
-    // 6. Remove o projeto do armazenamento local
+    // 6. Remove o projeto do armazenamento local (sem mudanças aqui)
     const LOCAL_STORAGE_KEY = 'viralScriptGeneratorProject_v6';
     localStorage.removeItem(LOCAL_STORAGE_KEY);
 
