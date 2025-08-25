@@ -4813,7 +4813,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const actions = {
     // --- FLUXO v7.0 ---
     'investigate': (btn) => handleInvestigate(btn),
-    'showIdeaPromptDialog': (btn) => orchestrateIdeaGeneration(btn), // AÇÃO PRINCIPAL DO PAINEL 1
+    'generateIdeasFromReport': (btn) => orchestrateIdeaGeneration(btn),
     'select-idea': (btn) => { const ideaString = btn.dataset.idea; if (ideaString) selectIdea(JSON.parse(ideaString.replace(/&quot;/g, '"'))); },
     'suggestStrategy': (btn) => suggestStrategy(btn),
     'buildPromptAndContinue': (btn) => buildPromptAndContinue(),
