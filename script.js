@@ -1836,26 +1836,29 @@ const getBasePromptContext = (options = {}) => {
 
 // COLE ESTA FUNÇÃO EM script.js (depois de getBasePromptContext é um bom lugar)
 
+// SUBSTITUA A SUA FUNÇÃO buildMasterPrompt INTEIRA PELA VERSÃO v7.1 ABAIXO
+
 const buildMasterPrompt = () => {
-    // Reutilizamos sua função fantástica para pegar todo o contexto!
+    // Pega o contexto básico (já está ótimo)
     const baseContext = getBasePromptContext({ includeHeavyContext: true }); 
-    const videoDuration = document.getElementById('videoDuration').value;
+    
+    // Pega os dados que faltavam
+    const videoDuration = document.getElementById('videoDuration').options[document.getElementById('videoDuration').selectedIndex].text;
+    const visualPacing = document.getElementById('visualPacing').options[document.getElementById('visualPacing').selectedIndex].text;
 
-    // Mapeamento de duração para contagem de palavras (aproximada)
-    const wordTargets = {
-        short: "~300-450 palavras no total",
-        medium: "~750-1050 palavras no total",
-        long: "~1200-1800 palavras no total"
-    };
-    const durationGuidance = wordTargets[videoDuration] || "duração média";
+    // Constrói uma seção de detalhes técnicos mais completa
+    const technicalDetails = `
+### DETALHES TÉCNICOS E DE RITMO ###
+- **Duração Desejada do Vídeo:** ${videoDuration}
+- **Ritmo Visual (Guia para a escrita):** ${visualPacing}
+`;
 
-    // O PROMPT MESTRE! O coração da v7.0
     const masterPrompt = `
 Você é um roteirista sênior para o YouTube, um mestre em Storytelling e especialista em criar narrativas que cativam a audiência do início ao fim. Sua tarefa é escrever um roteiro completo, coeso e impactante, seguindo estritamente o briefing abaixo.
 
-### BRIEFING DO DIRETOR ###
 ${baseContext}
-- **Duração Total Estimada:** O roteiro final deve ter ${durationGuidance}.
+
+${technicalDetails}
 
 ### ESTRUTURA OBRIGATÓRIA DA RESPOSTA ###
 Sua resposta DEVE ser um único objeto JSON. É PROIBIDO responder com qualquer texto fora deste objeto JSON. O objeto deve conter EXATAMENTE as seguintes 5 chaves de primeiro nível: "introducao", "desenvolvimento", "climax", "conclusao", "cta".
@@ -1874,7 +1877,8 @@ Sua resposta DEVE ser um único objeto JSON. É PROIBIDO responder com qualquer 
 
 Gere o objeto JSON com o roteiro completo agora.
 `;
-    return masterPrompt;
+    // Usamos .trim() para remover espaços em branco desnecessários no início e fim.
+    return masterPrompt.trim();
 };
 
 
