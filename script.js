@@ -904,6 +904,127 @@ const showIdeaPromptDialog = (prompt) => {
 
 
 
+
+// =========================================================================
+// >>>>> LÓGICA DO MODAL DE GERAÇÃO DE IDEIAS (v7.0) <<<<<
+// =========================================================================
+
+/**
+ * Exibe o modal para o usuário copiar o prompt de ideias e colar o resultado da IA.
+ * @param {string} prompt - O prompt mestre gerado para as ideias.
+ * @returns {Promise<string|null>} - Retorna o JSON colado pelo usuário ou null se cancelar.
+ */
+const showIdeaPromptDialog = (prompt) => {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('ideaPromptDialogOverlay');
+        const promptOutput = document.getElementById('ideaMasterPromptOutput');
+        const ideasInput = document.getElementById('ideasInputArea');
+        const btnProcess = document.getElementById('ideaBtnProcess');
+        const btnCancel = document.getElementById('ideaBtnCancel');
+        const btnCopy = overlay.querySelector('[data-action="copyIdeaPrompt"]');
+
+        // Pré-validação para garantir que os elementos do modal existem
+        if (!overlay || !promptOutput || !ideasInput || !btnProcess || !btnCancel || !btnCopy) {
+            console.error("Elementos essenciais do modal de ideias não encontrados.");
+            window.showToast("Erro de interface: Não foi possível carregar o modal.", "error");
+            resolve(null);
+            return;
+        }
+
+        promptOutput.value = prompt;
+        ideasInput.value = ''; // Limpa o campo de input
+        overlay.style.display = 'flex';
+
+        const closeDialog = (result) => {
+            overlay.style.display = 'none';
+            btnProcess.onclick = null;
+            btnCancel.onclick = null;
+            btnCopy.onclick = null;
+            resolve(result);
+        };
+
+        btnCopy.onclick = () => {
+            window.copyTextToClipboard(promptOutput.value);
+            btnCopy.innerHTML = '<i class="fas fa-check mr-2"></i> Copiado!';
+            setTimeout(() => { btnCopy.innerHTML = '<i class="fas fa-copy mr-2"></i> Copiar Prompt'; }, 2000);
+        };
+
+        btnProcess.onclick = () => {
+            const pastedJson = ideasInput.value.trim();
+            if (!pastedJson) {
+                window.showToast("Cole o array JSON das ideias antes de processar.", "error");
+                return;
+            }
+            closeDialog(pastedJson);
+        };
+
+        btnCancel.onclick = () => closeDialog(null);
+    });
+};
+
+/**
+ * Nova função orquestradora para o fluxo de geração de ideias v7.0.
+ * Constrói o prompt, mostra o modal e processa o resultado.
+ * @param {HTMLElement} button - O botão que foi clicado.
+ */
+const orchestrateIdeaGeneration = async (button) => {
+    const factCheckOutput = document.getElementById('factCheckOutput');
+    const { originalQuery, rawReport } = factCheckOutput.dataset;
+    if (!rawReport) {
+        window.showToast("Erro: Relatório da investigação não encontrado. Gere o relatório primeiro.", 'error');
+        return;
+    }
+    
+    const genre = document.querySelector('#genreTabs .tab-button.tab-active')?.dataset.genre || 'geral';
+    const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português do Brasil' : 'English';
+    const outputContainer = document.getElementById('ideasOutput');
+    
+    showButtonLoading(button);
+    outputContainer.innerHTML = ''; // Limpa a área de ideias
+
+    try {
+        // PASSO 1: Construir o prompt (usando sua lógica existente)
+        const promptContext = { originalQuery, rawReport, languageName };
+        const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
+        
+        hideButtonLoading(button); // Para o loading antes de mostrar o modal
+
+        // PASSO 2: Mostrar o modal e esperar a interação do usuário
+        const pastedJson = await showIdeaPromptDialog(creativePrompt);
+
+        if (!pastedJson) {
+            window.showToast("Geração de ideias cancelada.", 'info');
+            return;
+        }
+
+        // PASSO 3: Processar o JSON colado
+        outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Processando e renderizando as ideias...</p></div>`;
+        const ideas = await getRobustJson(pastedJson); // Sua função de parse seguro!
+
+        if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
+            throw new Error("O texto colado não é um array JSON de ideias válido.");
+        }
+        
+        // PASSO 4: Renderizar os cards (usando sua lógica existente)
+        AppState.generated.ideas = ideas;
+        const allCardsHtml = ideas.map((idea, index) => renderUniversalIdeaCard(idea, index, genre)).join('');
+        outputContainer.innerHTML = allCardsHtml;
+        
+        markStepCompleted('investigate', false);
+        window.showToast("Ideias importadas e prontas para usar!", "success");
+
+    } catch(err) {
+        console.error("FALHA CRÍTICA na geração de ideias:", err);
+        window.showToast(`Erro ao processar ideias: ${err.message}`, 'error');
+        outputContainer.innerHTML = `<p class="md:col-span-2 text-danger">${err.message}</p>`;
+        hideButtonLoading(button);
+    }
+};
+
+
+
+
+
 // ===============================
 // >>>>> FILTRO JSON ROBUSTO <<<<<
 // ===============================
@@ -4727,22 +4848,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
+// ==========================================================
+// ===== GERENTE DE CLIQUES v7.0 (OBJETO 'actions') =========
+// ==========================================================
 const actions = {
     // --- FLUXO v7.0 ---
     'investigate': (btn) => handleInvestigate(btn),
-    'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn), // (Vamos ajustar a função interna depois)
+    'showIdeaPromptDialog': (btn) => orchestrateIdeaGeneration(btn), // AÇÃO PRINCIPAL DO PAINEL 1
     'select-idea': (btn) => { const ideaString = btn.dataset.idea; if (ideaString) selectIdea(JSON.parse(ideaString.replace(/&quot;/g, '"'))); },
     'suggestStrategy': (btn) => suggestStrategy(btn),
-    'buildPromptAndContinue': (btn) => buildPromptAndContinue(), // NOVA AÇÃO para ir do Painel 2 ao 3
-    'copyMasterPrompt': (btn) => { // Ação de cópia agora está aqui dentro
+    'buildPromptAndContinue': (btn) => buildPromptAndContinue(),
+    'copyMasterPrompt': (btn) => {
         const promptText = document.getElementById('masterPromptOutput').value;
         window.copyTextToClipboard(promptText);
         window.showCopyFeedback(btn);
     },
-    'processPastedScript': (btn) => processPastedScript(btn), // NOVA AÇÃO PRINCIPAL para importar o roteiro
+    'processPastedScript': (btn) => processPastedScript(btn),
     
-    // --- AÇÕES ANTIGAS REMOVIDAS ---
-    // 'generateOutline', 'generateIntro', 'generateDevelopment', etc. foram removidas.
+    // Ação 'copyIdeaPrompt' não é necessária aqui, pois é gerenciada dentro da função showIdeaPromptDialog
 
     // --- AÇÕES DO PAINEL DE FINALIZAÇÃO (Permanecem as mesmas) ---
     'suggestFinalStrategy': (btn) => suggestFinalStrategy(btn),
@@ -4780,7 +4903,6 @@ const actions = {
     'applyHookSuggestion': (btn) => applyHookSuggestion(btn),
     'insertViralSuggestion': (btn) => insertViralSuggestion(btn)
 };
-
 
 // Adicione esta nova função async ao seu script.js
 const processPastedScript = async (button) => {
