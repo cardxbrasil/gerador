@@ -1818,6 +1818,52 @@ const getBasePromptContext = (options = {}) => {
 
 
 
+// COLE ESTA FUNÇÃO EM script.js (depois de getBasePromptContext é um bom lugar)
+
+const buildMasterPrompt = () => {
+    // Reutilizamos sua função fantástica para pegar todo o contexto!
+    const baseContext = getBasePromptContext({ includeHeavyContext: true }); 
+    const videoDuration = document.getElementById('videoDuration').value;
+
+    // Mapeamento de duração para contagem de palavras (aproximada)
+    const wordTargets = {
+        short: "~300-450 palavras no total",
+        medium: "~750-1050 palavras no total",
+        long: "~1200-1800 palavras no total"
+    };
+    const durationGuidance = wordTargets[videoDuration] || "duração média";
+
+    // O PROMPT MESTRE! O coração da v7.0
+    const masterPrompt = `
+Você é um roteirista sênior para o YouTube, um mestre em Storytelling e especialista em criar narrativas que cativam a audiência do início ao fim. Sua tarefa é escrever um roteiro completo, coeso e impactante, seguindo estritamente o briefing abaixo.
+
+### BRIEFING DO DIRETOR ###
+${baseContext}
+- **Duração Total Estimada:** O roteiro final deve ter ${durationGuidance}.
+
+### ESTRUTURA OBRIGATÓRIA DA RESPOSTA ###
+Sua resposta DEVE ser um único objeto JSON. É PROIBIDO responder com qualquer texto fora deste objeto JSON. O objeto deve conter EXATAMENTE as seguintes 5 chaves de primeiro nível: "introducao", "desenvolvimento", "climax", "conclusao", "cta".
+
+### DIRETRIZES PARA CADA SEÇÃO ###
+1.  **"introducao" (String):** Crie um gancho (hook) poderoso nos primeiros 15 segundos. Use a "Pergunta Central" ou o "Gancho de Final Chocante" do briefing como inspiração principal. Apresente o tema e a promessa do vídeo. O texto deve ser um parágrafo único e fluido.
+2.  **"desenvolvimento" (String):** Esta é a maior parte do roteiro. Desenvolva o "Tema Central" de forma lógica e envolvente. Use os "Dados de Pesquisa" e a "História Âncora" do briefing para dar substância e emoção. Construa a narrativa passo a passo, levando ao clímax. O texto deve ser contínuo e fluido, dividido por quebras de linha duplas (\\n\\n) para separar parágrafos.
+3.  **"climax" (String):** O ponto de virada. A grande revelação, a solução para a "Pergunta Central" ou o momento mais emocionante da "História Âncora". Deve ser o ápice da tensão ou emoção construída no desenvolvimento. O texto deve ser um parágrafo único e impactante.
+4.  **"conclusao" (String):** Recapitule a mensagem principal de forma sucinta e poderosa. Reforce a "grande ideia" do roteiro e deixe uma impressão duradoura no espectador. O texto deve ser um parágrafo único.
+5.  **"cta" (String):** A Chamada para Ação. Crie uma transição natural da conclusão para o pedido final, seja para se inscrever, comentar, ou seguir um link. Deve ser persuasivo e alinhado com o tom do vídeo. O texto deve ser um parágrafo único.
+
+### REGRAS FINAIS INEGOCIÁVEIS ###
+- **JSON PURO:** Sua resposta final deve começar com \`{\` e terminar com \`}\`. Sem texto antes ou depois.
+- **CONSISTÊNCIA TOTAL:** Mantenha o mesmo tom, voz e estilo em todas as cinco seções. A narrativa deve ser uma peça única e ininterrupta.
+- **IDIOMA:** Todo o texto deve estar no idioma especificado no briefing.
+
+Gere o objeto JSON com o roteiro completo agora.
+`;
+    return masterPrompt;
+};
+
+
+
+
 
 
 // SUBSTITUA a sua função suggestStrategy antiga por esta nova versão v7.0
