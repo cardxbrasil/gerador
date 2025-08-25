@@ -1096,23 +1096,35 @@ const orchestrateIdeaGeneration = async (button) => {
 
 
 
-// ===============================
-// >>>>> FILTRO JSON ROBUSTO <<<<<
-// ===============================
 
-
+// SUBSTITUA A SUA FUNÇÃO removeMetaComments INTEIRA POR ESTA VERSÃO v7.1
 
 const removeMetaComments = (text) => {
     if (!text) return "";
 
+    // Remove quebras de linha inconsistentes
     let cleanedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // --- NOVAS REGRAS PARA LIMPAR O ROTEIRO DO "MANUS" ---
+    // Remove identificadores de narrador no início da linha, com ou sem colchetes
+    cleanedText = cleanedText.replace(/^(NARRADOR:|\[NARRADOR:\])\s*/gim, '');
+    // Remove anotações de cena entre parênteses
+    cleanedText = cleanedText.replace(/^\(.*\)\s*\n?/gim, '');
+    // Remove anotações de câmera no início da linha
+    cleanedText = cleanedText.replace(/^Câmera foca em.*\n?/gim, '');
+    // Remove números de referência entre colchetes, como [1], [15], etc.
+    cleanedText = cleanedText.replace(/\[\d+\]\s?/g, '');
+    // --- FIM DAS NOVAS REGRAS ---
+    
+    // Remove a primeira linha se ela for um título como "Introdução:"
     const lines = cleanedText.split('\n');
-    if (lines.length > 0 && /^[A-ZÀ-Ú].*:$/.test(lines[0].trim())) {
+    if (lines.length > 0 && /^[A-ZÀ-Ú\s]+:$/.test(lines[0].trim())) {
         lines.shift();
         cleanedText = lines.join('\n');
     }
     
     const patternsToRemove = [
+        // Padrões antigos que continuam úteis
         /Here is the (generated )?script for the "[^"]+" section:\s*/gi,
         /Here is the (refined )?text:\s*/gi,
         /Here is the (final )?version:\s*/gi,
@@ -1134,10 +1146,8 @@ const removeMetaComments = (text) => {
         /^\*\*TEXTO REFINADO:\*\*\s*/im,
         /^\*\*Refined Text:\*\*\s*/im,
         /^\s*\*\*[^*]+\*\*\s*$/gm,
-        // >>>>> EVOLUÇÃO INTEGRADA <<<<<
         /^\s*\*\*IDIOMA:\*\*.*$/gim,
         /^\s*\*\*RESPOSTA LIMPA:\*\*.*$/gim,
-        // >>>>> FIM DA EVOLUÇÃO <<<<<
         /^\s*\((Pausa|Teaser|Corte para|Transição|Música sobe|Efeito sonoro)\)\s*$/gim,
         /^\s*Presenter Notes?:\s*.*$/gim,
         /^\s*Note to Presenter:\s*.*$/gim,
@@ -1189,6 +1199,11 @@ const removeMetaComments = (text) => {
     
     return cleanedText.trim();
 };
+
+
+
+
+
 const getTranscriptOnly = () => {
     let transcript = '';
     const sectionOrder = ['intro', 'development', 'climax', 'conclusion', 'cta'];
