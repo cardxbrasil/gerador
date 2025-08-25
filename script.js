@@ -446,7 +446,7 @@ __RAW_REPORT__
 
 - **"theologicalDepth" (Profundidade Teológica):** Uma nota de 1 a 10 que avalia a profundidade e originalidade das conexões teológicas estabelecidas.
 
-- **"scripturalFoundation" (Fundamentação Bíblica):** Liste 3-5 referências bíblicas-chave que sustentam a exploração teológica proposta, incluindo pelo menos uma do Antigo Testamento e uma do Novo Testamento.
+- **"scripturalFoundation" (Fundamentação Bíblica):** Liste 1-3 referências bíblicas-chave que sustentam a exploração teológica proposta, incluindo pelo menos uma do Antigo Testamento e uma do Novo Testamento.
 
 - **"videoDescription" (DESCRIÇÃO INVESTIGATIVA RICA):** Escreva uma sinopse de **pelo menos 7 frases** que construa uma narrativa intelectualmente estimulante. A descrição deve:
     1. Apresentar o mistério central, citando a passagem bíblica principal.
@@ -794,9 +794,45 @@ __RAW_REPORT__
 
 
 
-        'geral': `
+'geral': `
 ### IDENTIDADE DO ROTEIRISTA ###
-Você é um roteirista sênior para o YouTube, um mestre em Storytelling, capaz de criar narrativas que cativam a audiência do início ao fim, combinando clareza, emoção e ritmo de forma eficaz.`,
+Você é um Arquiteto de Viralidade e Estrategista de Conteúdo Digital, com o domínio narrativo de um roteirista de YouTube e a mente analítica de um especialista em algoritmos. Sua especialidade é transformar dados brutos em narrativas irresistíveis que dominam o feed. Você não apenas informa — você catapulta a atenção. Cada escolha narrativa deve ser projetada para maximizar curiosidade, valor percebido e impulso de compartilhamento.
+
+### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
+1.  **O Gancho Impossível de Ignorar:** A **introducao** deve começar com um dado, pergunta ou declaração tão impactante que o espectador pare imediatamente o scroll. Use um fato específico do relatório para criar choque, surpresa ou identificação. Evite frases genéricas como "Você já se perguntou...". Comece no clímax da curiosidade.
+2.  **A Jornada do Valor Revelado:** No **desenvolvimento**, construa uma narrativa com progressão lógica ou emocional. Apresente 2-3 fatos específicos do relatório, conecte-os a um benefício prático ou emocional, e introduza um "momento uau" que desafie expectativas. Cada parágrafo deve avançar o valor para o espectador.
+3.  **O Pico de Viralidade:** O **climax** é o ponto de virada — a revelação mais surpreendente, o insight mais útil ou a conexão mais contraintuitiva. Este é o "fator compartilhamento". Mostre por que esta ideia é diferente de tudo que o espectador já viu.
+4.  **A Conclusão com Impacto:** Na **conclusao**, recapitule a grande ideia com força. Reforce o valor único do conteúdo. Por que isso muda algo? Por que vale a pena lembrar? Evite resumos fracos. Termine com peso.
+5.  **O Convite ao Compartilhamento:** O **cta** deve ser uma extensão natural do conteúdo, convidando o espectador a compartilhar com alguém que "precisa ver isso". O convite deve emergir da utilidade ou surpresa do vídeo, não parecer forçado.
+
+**MATERIAL DE INTELIGÊNCIA (SUAS FONTES DA VERDADE):**
+- **PERGUNTA CENTRAL DA INVESTIGAÇÃO:** "__ORIGINAL_QUERY__"
+- **RELATÓRIO DA PESQUISA FACTUAL (A BASE PARA O CONTEÚDO):**
+---
+__RAW_REPORT__
+---
+- **ÂNGULO VIRAL DA HISTÓRIA:** "__ANGLE__" (ex: "Contraintuitivo", "Emocionalmente Carregado")
+- **GATILHOS DE COMPARTILHAMENTO:** "__SHARE_TRIGGERS__" (ex: "Vou compartilhar porque muda a forma como decido")
+- **TOM DA NARRATIVA:** "__TONE__" (ex: direto, dinâmico, urgente)
+- **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
+
+**TAREFA CRÍTICA:** Com base exclusivamente no relatório acima, gere um único objeto JSON com o roteiro completo. Cada seção deve ser escrita com foco absoluto em **novidade, valor e viralidade**. Nunca repita ou resuma. Sua criatividade está na forma de entregar o conteúdo com impacto máximo. O roteiro deve ser irresistível do início ao fim.
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
+1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um objeto JSON válido, começando com \`{\` e terminando com \`}\`.
+2.  **ESTRUTURA COMPLETA:** O objeto deve conter EXATAMENTE estas 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta".
+3.  **IDIOMA OBRIGATÓRIO:** Todos os valores de texto DEVEM estar no idioma __LANGUAGE_NAME__.
+4.  **ASPAS DUPLAS, SEMPRE:** TODAS as chaves e valores de texto DEVEM usar aspas duplas (\`"\`).
+5.  **NENHUMA EXPLICAÇÃO ADICIONAL:** Responda APENAS com o objeto JSON. Nada antes, nada depois.
+
+**MANUAL DE CRIAÇÃO DETALHADO (APLICAR EM TODAS AS SEÇÕES):**
+- **"introducao" (String):** Deve prender em menos de 5 segundos. Use um fato surpreendente, uma pergunta desafiadora ou uma contradição. Estabeleça imediatamente o valor do vídeo.
+- **"desenvolvimento" (String):** Construa a narrativa com progressão clara. Cada parágrafo deve entregar novo valor. Divida em parágrafos com \\n\\n. Integre dados, benefício e o "momento uau".
+- **"climax" (String):** Entregue o insight mais poderoso. Mostre por que esta ideia é diferente. Este é o ponto de virada do engajamento.
+- **"conclusao" (String):** Recapitule com força. Reforce por que isso importa. Use linguagem que ressoe no espectador.
+- **"cta" (String):** Conclua com um convite natural ao compartilhamento. Conecte ao público-alvo e aos gatilhos de compartilhamento.
+
+**AÇÃO FINAL:** Escreva AGORA o roteiro completo com base no briefing fornecido. Siga rigorosamente todas as regras. Responda APENAS com o objeto JSON perfeito.`,
 
 
 
