@@ -860,6 +860,50 @@ const forceLanguageOnPrompt = (prompt) => {
 
 
 
+const showIdeaPromptDialog = (prompt) => {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('ideaPromptDialogOverlay');
+        const promptOutput = document.getElementById('ideaMasterPromptOutput');
+        const ideasInput = document.getElementById('ideasInputArea');
+        const btnProcess = document.getElementById('ideaBtnProcess');
+        const btnCancel = document.getElementById('ideaBtnCancel');
+        const btnCopy = overlay.querySelector('[data-action="copyIdeaPrompt"]');
+
+        promptOutput.value = prompt;
+        ideasInput.value = '';
+
+        overlay.style.display = 'flex';
+
+        const closeDialog = (result) => {
+            overlay.style.display = 'none';
+            btnProcess.onclick = null;
+            btnCancel.onclick = null;
+            btnCopy.onclick = null;
+            resolve(result);
+        };
+
+        btnCopy.onclick = () => {
+            window.copyTextToClipboard(promptOutput.value);
+            btnCopy.innerHTML = '<i class="fas fa-check mr-2"></i> Copiado!';
+            setTimeout(() => { btnCopy.innerHTML = '<i class="fas fa-copy mr-2"></i> Copiar Prompt'; }, 2000);
+        };
+
+        btnProcess.onclick = () => {
+            const pastedJson = ideasInput.value.trim();
+            if (!pastedJson) {
+                window.showToast("Cole o array JSON das ideias antes de processar.", 'error');
+                return;
+            }
+            closeDialog(pastedJson);
+        };
+
+        btnCancel.onclick = () => closeDialog(null);
+    });
+};
+
+
+
+
 // ===============================
 // >>>>> FILTRO JSON ROBUSTO <<<<<
 // ===============================
@@ -989,6 +1033,7 @@ const showConfirmationDialog = (title, message) => {
         btnNo.addEventListener('click', () => closeDialog(false), { once: true });
     });
 };
+
 
 const showInputDialog = (title, message, label, placeholder, suggestions = []) => {
     return new Promise(resolve => {
@@ -1401,6 +1446,7 @@ const renderUniversalIdeaCard = (idea, index, genre) => {
 
 
 
+// SUBSTITUA a função generateIdeasFromReport existente por esta
 const generateIdeasFromReport = async (button) => {
     const factCheckOutput = document.getElementById('factCheckOutput');
     const { originalQuery, rawReport } = factCheckOutput.dataset;
@@ -1414,29 +1460,43 @@ const generateIdeasFromReport = async (button) => {
     const outputContainer = document.getElementById('ideasOutput');
     
     showButtonLoading(button);
-    outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Consultando especialista criativo...</p></div>`;
+    outputContainer.innerHTML = ''; // Limpa a área de ideias
 
     try {
+        // PASSO 1: Construir o prompt
         const promptContext = { originalQuery, rawReport, languageName };
         const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
-        const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(creativePrompt), 8000); 
+        
+        hideButtonLoading(button); // Para o loading antes de mostrar o modal
 
-        const ideas = await getRobustJson(brokenJsonResponse);
+        // PASSO 2: Mostrar o modal e esperar a interação do usuário
+        const pastedJson = await showIdeaPromptDialog(creativePrompt);
+
+        if (!pastedJson) {
+            window.showToast("Geração de ideias cancelada.", 'info');
+            return;
+        }
+
+        // PASSO 3: Processar o JSON colado
+        outputContainer.innerHTML = `<div class="md:col-span-2 text-center p-8"><div class="loading-spinner mx-auto mb-4"></div><p class="text-lg font-semibold">Processando e renderizando as ideias...</p></div>`;
+        const ideas = await getRobustJson(pastedJson); // Sua função de parse seguro!
 
         if (!ideas || !Array.isArray(ideas) || ideas.length === 0) {
-            throw new Error("A IA falhou em gerar ou corrigir as ideias.");
+            throw new Error("O texto colado não é um array JSON de ideias válido.");
         }
         
+        // PASSO 4: Renderizar os cards
         AppState.generated.ideas = ideas;
         const allCardsHtml = ideas.map((idea, index) => renderUniversalIdeaCard(idea, index, genre)).join('');
         outputContainer.innerHTML = allCardsHtml;
+        
         markStepCompleted('investigate', false);
+        window.showToast("Ideias importadas e prontas para usar!", "success");
 
     } catch(err) {
-        console.error("FALHA CRÍTICA FINAL:", err);
-        window.showToast(`Erro ao gerar ideias: ${err.message}`, 'error');
-        outputContainer.innerHTML = `<p class="md:col-span-2" style="color: var(--danger);">${err.message}</p>`;
-    } finally {
+        console.error("FALHA CRÍTICA na geração de ideias:", err);
+        window.showToast(`Erro ao processar ideias: ${err.message}`, 'error');
+        outputContainer.innerHTML = `<p class="md:col-span-2 text-danger">${err.message}</p>`;
         hideButtonLoading(button);
     }
 };
