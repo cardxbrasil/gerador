@@ -4825,28 +4825,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    document.addEventListener('selectionchange', () => {
-        const selection = window.getSelection();
-        const selectedText = selection.toString().trim();
-        if (selectedText.length > 10 && selection.anchorNode && selection.anchorNode.parentElement.closest('.generated-content-wrapper')) {
+
+
+
+document.addEventListener('selectionchange', () => {
+    const selection = window.getSelection();
+    const selectedText = selection.toString().trim();
+
+    // ==========================================================
+    // >>>>> A CORREÇÃO ESTÁ NESTA LÓGICA 'IF' <<<<<
+    // ==========================================================
+    if (selectedText.length > 10 && selection.anchorNode) {
+        // Primeiro, encontramos o container do conteúdo
+        const wrapper = selection.anchorNode.parentElement.closest('.generated-content-wrapper');
+        
+        // AGORA, verificamos se esse container está DENTRO do painel de edição '#pane-script'
+        if (wrapper && wrapper.closest('#pane-script')) {
+            // Se as duas condições forem verdadeiras, mostramos o menu
             userSelectionRange = selection.getRangeAt(0).cloneRange();
             const rect = userSelectionRange.getBoundingClientRect();
             editingMenu.style.left = `${rect.left + window.scrollX}px`;
             editingMenu.style.top = `${rect.bottom + window.scrollY + 5}px`;
             editingMenu.classList.add('visible');
-        } else {
-            if (!editingMenu.contains(document.activeElement)) {
-                 editingMenu.classList.remove('visible');
-            }
+            return; // Sai da função para não esconder o menu
         }
-    });
+    }
 
-    editingMenu.addEventListener('click', (event) => {
-        const button = event.target.closest('button[data-action]');
-        if (button) {
-            handleEditingAction(button.dataset.action);
-        }
-    });
+    // Se a condição acima não for atendida, escondemos o menu
+    if (!editingMenu.contains(document.activeElement)) {
+         editingMenu.classList.remove('visible');
+    }
+});
+
+
 
 
 // ==========================================================
