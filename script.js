@@ -600,7 +600,7 @@ Você é um Roteirista-Chefe e Diretor de Documentários Investigativos, com o r
 ---
 __RAW_REPORT__
 ---
-- **ÂNCORA NARRATIVA (HISTÓRIA HUMANA):** "__HUMAN_ANCHOR__"
+- **ÂNCORA NARRATIVA (HISTÓRIA HUMANA):** "__INVESTIGATIVE_APPROACH__"
 - **TOM DA NARRATIVA:** "__TONE__" (ex: urgente, reflexivo, indignado)
 - **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
 
@@ -640,8 +640,7 @@ Você é um Mestre em Storytelling Emocional, uma fusão entre um roteirista da 
 ---
 __RAW_REPORT__
 ---
-- **ÂNCORA NARRATIVA (HISTÓRIA HUMANA):** "__HUMAN_ANCHOR__"
-- **NÚCLEO EMOCIONAL DA HISTÓRIA:** "__EMOTIONAL_CORE__" (ex: "Esperança em Meio ao Desespero")
+- **NÚCLEO EMOCIONAL DA HISTÓRIA (GUIA PRINCIPAL):** "__EMOTIONAL_CORE__" (ex: "Esperança em Meio ao Desespero")
 - **TOM DA NARRATIVA:** "__TONE__" (ex: inspirador, urgente, reflexivo)
 - **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
 
@@ -766,7 +765,7 @@ Você é um "Coletivo Hermenêntico": uma fusão de um Teólogo Investigativo, u
 ---
 __RAW_REPORT__
 ---
-- **DIMENSÃO TEOLÓGICA DA HISTÓRIA:** "__THEOLOGICAL_DIMENSION__" (ex: "Cristologia", "Escatologia")
+- **PROFUNDIDADE TEOLÓGICA (NOTA GUIA):** "Esta análise deve ter uma profundidade teológica de nível __THEOLOGICAL_DEPTH__/10."
 - **FUNDAMENTAÇÃO BÍBLICA:** "__SCRIPTURAL_FOUNDATION__" (ex: "Isaías 53:5; João 2:19; Atos 2:24")
 - **TOM DA NARRATIVA:** "__TONE__" (ex: apaixonado, urgente, reflexivo)
 - **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
@@ -806,14 +805,9 @@ Você é um Arquiteto de Viralidade e Estrategista de Conteúdo Digital, com o d
 5.  **O Convite ao Compartilhamento:** O **cta** deve ser uma extensão natural do conteúdo, convidando o espectador a compartilhar com alguém que "precisa ver isso". O convite deve emergir da utilidade ou surpresa do vídeo, não parecer forçado.
 
 **MATERIAL DE INTELIGÊNCIA (SUAS FONTES DA VERDADE):**
-- **PERGUNTA CENTRAL DA INVESTIGAÇÃO:** "__ORIGINAL_QUERY__"
-- **RELATÓRIO DA PESQUISA FACTUAL (A BASE PARA O CONTEÚDO):**
----
-__RAW_REPORT__
----
-- **ÂNGULO VIRAL DA HISTÓRIA:** "__ANGLE__" (ex: "Contraintuitivo", "Emocionalmente Carregado")
-- **GATILHOS DE COMPARTILHAMENTO:** "__SHARE_TRIGGERS__" (ex: "Vou compartilhar porque muda a forma como decido")
-- **TOM DA NARRATIVA:** "__TONE__" (ex: direto, dinâmico, urgente)
+- **ÂNGULO VIRAL DA HISTÓRIA:** "__ANGLE__"
+- **GATILHOS DE COMPARTILHAMENTO:** "__SHARE_TRIGGERS__"
+- **TOM DA NARRATIVA:** "__TONE__"
 - **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
 
 **TAREFA CRÍTICA:** Com base exclusivamente no relatório acima, gere um único objeto JSON com o roteiro completo. Cada seção deve ser escrita com foco absoluto em **novidade, valor e viralidade**. Nunca repita ou resuma. Sua criatividade está na forma de entregar o conteúdo com impacto máximo. O roteiro deve ser irresistível do início ao fim.
@@ -1914,53 +1908,52 @@ const generateIdeasFromReport = async (button) => {
 
 
 // =========================================================================
-// >>>>> MAPEADOR DE ESTRATÉGIA FINAL E CONFIÁVEL <<<<<
-// Define a configuração de partida ideal para cada especialista.
-// =========================================================================
-// =========================================================================
-// >>>>> MAPEADOR DE ESTRATÉGIA FINAL E COMPLETO (VERSÃO DEFINITIVA) <<<<<
+// >>>>> MAPEADOR DE ESTRATÉGIA FINAL E COMPLETO (VERSÃO CORRIGIDA) <<<<<
 // Define a configuração de partida ideal para cada especialista, incluindo
 // TODOS os dropdowns das abas "Estratégia Narrativa" e "Detalhes Técnicos".
 // =========================================================================
 const strategyMapper = {
     'documentario': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' }, // <<< CORRIGIDO AQUI
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => `O que os fatos sobre "${idea.title}" realmente revelam?`,
         researchData: idea => `Abordagem Investigativa: ${idea.investigativeApproach}`,
         dossier: idea => `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`
     },
     'inspiracional': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'heroes_journey', narrativeTone: 'inspirador', videoObjective: 'emocionar', languageStyle: 'inspirador', speakingPace: 'lento' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'heroes_journey', narrativeTone: 'inspirador', videoObjective: 'emocionar', languageStyle: 'inspirador', speakingPace: 'slow' }, // <<< CORRIGIDO AQUI
         narrativeTheme: idea => idea.angle,
         emotionalHook: idea => `A história deve girar em torno do núcleo emocional de '${idea.emotionalCore}', mostrando a transformação de um desafio em uma lição universal.`,
         dossier: idea => `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`
     },
     'scifi': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' }, // <<< CORRIGIDO AQUI
         centralQuestion: idea => idea.angle,
         narrativeTheme: idea => `Explorar as consequências do dilema de '${idea.coreDilemma}'.`,
         dossier: idea => `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`
     },
     'terror': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'twist', narrativeTone: 'serio', videoObjective: 'emocionar', languageStyle: 'formal', speakingPace: 'lento' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'twist', narrativeTone: 'serio', videoObjective: 'emocionar', languageStyle: 'formal', speakingPace: 'slow' }, // <<< CORRIGIDO AQUI
         narrativeTheme: idea => `Construir a tensão usando o mecanismo de '${idea.horrorMechanism}'.`,
         centralQuestion: idea => idea.angle,
         dossier: idea => `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`
     },
     'enigmas': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' }, // <<< CORRIGIDO AQUI
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => idea.discussionQuestions[0] || '',
         researchData: idea => `Base Bíblica: ${(idea.scripturalFoundation || []).join('; ')}`,
         dossier: idea => `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${(idea.scripturalFoundation || []).join('; ')}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`
     },
     'geral': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'pixar_spine', narrativeTone: 'inspirador', videoObjective: 'informar', languageStyle: 'inspirador', speakingPace: 'moderate' },
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'pixar_spine', narrativeTone: 'inspirador', videoObjective: 'informar', languageStyle: 'inspirador', speakingPace: 'moderate' }, // <<< CORRIGIDO AQUI
         narrativeTheme: idea => idea.angle,
         dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
     }
 };
+
+
+
 
 const getGenreFromIdea = (idea) => {
     if (idea.investigativeApproach) return 'documentario';
@@ -2155,34 +2148,26 @@ const getBasePromptContext = (options = {}) => {
 
 
 // ==========================================================
-// ===== CONSTRUTOR DE PROMPT MESTRE (v7.2) =================
+// ===== CONSTRUTOR DE PROMPT MESTRE (v7.3 - CORRIGIDO) =====
 // ==========================================================
 const buildMasterPrompt = () => {
     // Pega o contexto geral do projeto (nome do canal, público, tema, etc.)
     const baseContext = getBasePromptContext({ includeHeavyContext: true }); 
     
-    // --- LÓGICA DE TEMPO E RITMO APRIMORADA ---
-    // Pega a chave da duração selecionada (ex: "short", "medium", "long")
+    // --- LÓGICA DE TEMPO E RITMO APRIMORADA (Já estava correta) ---
     const durationKey = document.getElementById('videoDuration').value; 
-    // Pega o texto visível para o usuário (ex: "Curto (~1-3 min)") para clareza no prompt
     const durationText = document.getElementById('videoDuration').options[document.getElementById('videoDuration').selectedIndex].text;
-    // Pega o texto do ritmo visual (ex: "Dinâmico (3-8s)")
     const visualPacing = document.getElementById('visualPacing').options[document.getElementById('visualPacing').selectedIndex].text;
 
-    // Calcula a contagem de palavras total a partir do nosso mapa de configuração
     let totalWords = 0;
     if (wordCountMap[durationKey]) {
-        // Soma todos os valores de palavras para a duração selecionada
         totalWords = Object.values(wordCountMap[durationKey]).reduce((a, b) => a + b, 0);
     }
     
-    // Cria uma instrução clara para a IA sobre a contagem de palavras
     const wordCountGuidance = totalWords > 0 
         ? `O roteiro completo deve ter aproximadamente ${totalWords} palavras.` 
         : "O roteiro deve ter uma duração apropriada para o tempo selecionado.";
-    // --- FIM DA LÓGICA APRIMORADA ---
 
-    // Monta uma seção específica com os detalhes técnicos
     const technicalDetails = `
 ### DETALHES TÉCNICOS E DE RITMO ###
 - **Duração Desejada do Vídeo:** ${durationText}
@@ -2190,12 +2175,58 @@ const buildMasterPrompt = () => {
 - **META DE TEXTO (Instrução Crítica):** ${wordCountGuidance}
 `;
 
-    // Pega o gênero que foi salvo no estado da aplicação quando as ideias foram geradas
     const genre = AppState.inputs.selectedGenre || 'geral'; 
     
-    // Usa o PromptManager para buscar o template do especialista correto e montar o prompt final
-    const masterPrompt = PromptManager.getScriptPrompt(genre, baseContext, technicalDetails);
+    // Usa o PromptManager para buscar o template do especialista
+    let masterPrompt = PromptManager.getScriptPrompt(genre, baseContext, technicalDetails);
     
+    // ================================================================
+    // >>>>> AQUI ESTÁ A LÓGICA DE SUBSTITUIÇÃO QUE FALTAVA <<<<<
+    // ================================================================
+    // Encontra a ideia que foi selecionada e está na descrição
+    const videoDescription = document.getElementById('videoDescription').value;
+    const dossierMatch = videoDescription.match(/\*\*DOSSIÊ DA IDEIA\*\*\s*([\s\S]*)/);
+    if (dossierMatch && dossierMatch[1]) {
+        const dossierText = dossierMatch[1];
+        
+        // Função para extrair valor do dossiê (Ex: "- Tese Central: ...")
+        const extractValue = (key) => {
+            const regex = new RegExp(`- ${key}: ([^\n]*)`);
+            const match = dossierText.match(regex);
+            return match ? match[1].trim() : '';
+        };
+
+        // Substitui os placeholders específicos de cada especialista
+        switch (genre) {
+            case 'documentario':
+                masterPrompt = masterPrompt.replace('__INVESTIGATIVE_APPROACH__', extractValue("Abordagem"));
+                break;
+            case 'inspiracional':
+                masterPrompt = masterPrompt.replace('__EMOTIONAL_CORE__', extractValue("Núcleo Emocional"));
+                break;
+            case 'scifi':
+                masterPrompt = masterPrompt.replace('__CORE_DILEMMA__', extractValue("Dilema Central"));
+                break;
+            case 'terror':
+                masterPrompt = masterPrompt.replace('__HORROR_MECHANISM__', extractValue("Mecanismo de Terror"));
+                break;
+            case 'enigmas':
+                 // Para 'enigmas', os dados são mais complexos, extraímos de forma diferente
+                const foundationMatch = dossierText.match(/- Fundamentação Bíblica: (.*)/);
+                const depthMatch = videoDescription.match(/Profundidade Teológica: (\d+)/); // Exemplo, depende de como a info é salva
+                masterPrompt = masterPrompt.replace('__SCRIPTURAL_FOUNDATION__', foundationMatch ? foundationMatch[1].trim() : 'Não especificado');
+                masterPrompt = masterPrompt.replace('__THEOLOGICAL_DEPTH__', depthMatch ? depthMatch[1].trim() : 'N/A');
+                break;
+            case 'geral':
+                masterPrompt = masterPrompt.replace('__ANGLE__', extractValue("Ângulo Único"));
+                masterPrompt = masterPrompt.replace('__SHARE_TRIGGERS__', extractValue("Gatilhos"));
+                break;
+        }
+    }
+    // ================================================================
+    // >>>>> FIM DA LÓGICA DE SUBSTITUIÇÃO <<<<<
+    // ================================================================
+
     return masterPrompt;
 };
 
@@ -2331,124 +2362,6 @@ const suggestStrategy = async (button) => {
 // suggestStrategy
 
 
-// --- ETAPA 3: CRIAR ROTEIRO ---
-const constructScriptPrompt = (sectionName, sectionTitle, outlineDirective = null, contextText = null) => {
-    const baseContext = getBasePromptContext();
-    const videoDuration = document.getElementById('videoDuration').value;
-    const targetWords = wordCountMap[videoDuration]?.[sectionName];
-    let durationInstruction = `A seção deve ter aproximadamente ${targetWords} palavras.`;
-    if (!targetWords) {
-        durationInstruction = "A seção deve ser concisa e impactante.";
-    }
-
-    let prompt = '';
-    let maxTokens = 8000;
-
-    // Lógica evoluída para as seções principais do roteiro (Introdução, Desenvolvimento, Clímax)
-    if (['intro', 'development', 'climax'].includes(sectionName)) {
-        
-const priorKnowledgeContext = contextText 
-    ? `**INFORMAÇÃO CRÍTICA:** O texto abaixo representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É **TERMINANTEMENTE PROIBIDO** repetir, resumir ou parafrasear qualquer conceito já mencionado. Sua missão é **AVANÇAR A HISTÓRIA**.
-    \n\n**ROTEIRO ESCRITO ATÉ AGORA (CONHECIMENTO JÁ ADQUIRIDO):**\n---\n${contextText.slice(-4000)}\n---`
-    : '**INFORMAÇÃO CRÍTICA:** Esta é a primeira seção do vídeo. Crie um gancho poderoso para prender a atenção desde o primeiro segundo.';
-
-prompt = `
-Você é um ROTEIRISTA CONTINUÍSTA DE ELITE. Sua única função é escrever o PRÓXIMO trecho de um roteiro, com foco absoluto em NOVIDADE e PROGRESSÃO NARRATIVA.
-
-**INFORMAÇÃO CRÍTICA PARA O ROTEIRISTA:**
-O texto em "ROTEIRO ESCRITO ATÉ AGORA" representa tudo o que o espectador JÁ ASSISTIU E JÁ SABE. É TERMINANTEMENTE PROIBIDO:
-- Repetir, resumir ou parafrasear qualquer conceito, frase ou dado já mencionado
-- Reafirmar conclusões anteriores como se fossem novas
-- Usar exemplos ou analogias já apresentadas
-Qualquer repetição será considerada uma FALHA GRAVE, pois quebra a imersão e desrespeita o espectador.
-
-**CONTEXTO E DIRETRIZES GERAIS DO PROJETO:**
----
-${baseContext}
----
-
-**ROTEIRO ESCRITO ATÉ AGORA (CONHECIMENTO JÁ ADQUIRIDO PELO PÚBLICO):**
----
-${priorKnowledgeContext}
----
-
-**TAREFA IMEDIATA E FOCALIZADA:**
--   **Seção a ser Escrita:** "${sectionTitle}"
--   **Diretriz Estratégica para esta Seção:** "${outlineDirective || 'Continue a narrativa de forma coesa e impactante.'}"
--   **Duração Estimada:** ${durationInstruction}
-
-**SUA MISSÃO:**
-Sua única missão é AVANÇAR A HISTÓRIA. Para isso, você DEVE:
-1. Introduzir **novos fatos, eventos ou dados** não mencionados antes
-2. Explorar uma **nova camada de consequência, conflito ou revelação**
-3. Ou apresentar uma **perspectiva inédita** que muda o entendimento anterior
-O espectador já sabe o que foi dito. Ele quer saber: **"E agora?"**
-
-**ESTRATÉGIAS DE PROGRESSÃO (ESCOLHA UMA):**
-- **Revelação**: Apresente uma descoberta que muda o jogo
-- **Consequência**: Mostre o impacto de algo já mencionado, mas de forma nova
-- **Expansão**: Leve a história para um novo cenário, personagem ou dimensão
-- **Inversão**: Desafie uma suposição anterior com uma nova evidência
-- **Aprofundamento**: Explore o "porquê" por trás de um fenômeno já citado, sem repeti-lo
-
-**REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
-1.  **RESPOSTA 100% PURA:** Sua resposta deve conter APENAS e SOMENTE o texto que será dito em voz alta.
-2.  **NENHUMA FORMATAÇÃO EXTRA:** É proibido incluir qualquer anotação, rótulo de personagem, descrição de cena ou título na sua resposta.
-3.  **NENHUMA TRANSIÇÃO DO TIPO "Como vimos antes..."**: Evite qualquer frase que remeta ao passado.
-
-**AÇÃO FINAL:** Escreva AGORA o texto para a seção "${sectionTitle}", garantindo que cada frase introduza conteúdo 100% novo para o espectador. Use uma das estratégias de progressão acima. Responda APENAS com o texto a ser narrado.`;
-    
-    } else {
-        // Lógica para os outros tipos de prompts (outline, titles, etc.)
-        // Esta parte permanece exatamente como no seu código original
-        switch (sectionName) {
-            case 'outline':
-                prompt = `Você é um ROTEIRISTA ESTRATÉGICO DE ELITE. Sua única função é criar um objeto JSON com o esboço de um vídeo.
-
-**SUA FONTE DE VERDADE PRIMÁRIA (A REGRA MAIS IMPORTANTE):**
-Abaixo está o "DOSSIÊ DA IDEIA". A história, os fatos e os conceitos principais do seu esboço DEVEM ser baseados EXCLUSIVAMENTE neste dossiê. Os outros campos de contexto servem para refinar o tom e o estilo, mas a SUBSTÂNCIA do roteiro vem do dossiê.
-
----
-${baseContext}
----
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
-1.  **JSON PURO:** Sua resposta deve ser APENAS um objeto JSON válido, sem comentários ou texto extra.
-2.  **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas cinco chaves: "introduction", "development", "climax", "conclusion", e "cta".
-3.  **VALORES DETALHADOS:** O valor para CADA chave DEVE ser uma string de texto detalhada (pelo menos 1-2 frases) que descreva o que acontecerá naquela seção do vídeo, usando os fatos e conceitos do DOSSIÊ.
-
-**AÇÃO FINAL:** Leia o dossiê, entenda a história central e gere o objeto JSON perfeito para o esboço do vídeo.`;
-                maxTokens = 2000;
-                break;
-            case 'titles_thumbnails':
-                prompt = `${baseContext}\n**TAREFA:** Gerar 5 sugestões de títulos e thumbnails.\n**REGRAS:**\n1. **FORMATO:** Responda APENAS com um array JSON.\n2. **ESTRUTURA:** Cada objeto no array deve ter 3 chaves: "suggested_title", "thumbnail_title", e "thumbnail_description".\n3. **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores.`;
-                maxTokens = 2000;
-                break;
-            case 'description':
-                const languageName = new Intl.DisplayNames([document.getElementById('languageSelect').value], { type: 'language' }).of(document.getElementById('languageSelect').value);
-                prompt = `${baseContext}
-**TAREFA:** Gerar uma descrição otimizada para um vídeo do YouTube e uma lista de hashtags relevantes, no idioma ${languageName}.
-
-**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
-1.  **JSON PURO:** Sua resposta deve ser APENAS um objeto JSON válido.
-2.  **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas duas chaves: "description_text" e "hashtags".
-3.  **VALORES:**
-    - "description_text": (String) Um parágrafo único e coeso. Comece com um gancho, detalhe o conteúdo e finalize com um call-to-action sutil.
-    - "hashtags": (Array de Strings) Uma lista com 10 hashtags relevantes, cada uma começando com #.
-
-**EXEMPLO DE FORMATO PERFEITO:**
-{
-  "description_text": "Este é um exemplo de descrição de vídeo. Ela começa com um gancho para prender a atenção e termina com uma chamada para ação.",
-  "hashtags": ["#Exemplo1", "#Exemplo2", "#Exemplo3", "#Exemplo4", "#Exemplo5", "#Exemplo6", "#Exemplo7", "#Exemplo8", "#Exemplo9", "#Exemplo10"]
-}
-
-**AÇÃO FINAL:** Gere o objeto JSON perfeito.`;
-                maxTokens = 2000;
-                break;
-        }
-    }
-    return { prompt, maxTokens };
-};
 
 
 
@@ -2471,61 +2384,6 @@ const createScriptSectionPlaceholder = (sectionId, title, actionName) => {
     `;
 };
 
-
-
-
-const generateStrategicOutline = async (button) => {
-    if (!validateInputs()) return;
-
-    AppState.generated.strategicOutline = null;
-    AppState.generated.script = { intro: {html:null,text:null}, development: {html:null,text:null}, climax: {html:null,text:null}, conclusion: {html:null,text:null}, cta: {html:null,text:null} };
-    document.getElementById('scriptSectionsContainer').innerHTML = '';
-    document.getElementById('conclusionStrategyModule').classList.add('hidden');
-
-    showButtonLoading(button);
-    const outlineContentDiv = document.getElementById('outlineContent');
-    outlineContentDiv.innerHTML = `<div class="asset-card-placeholder"><div class="loading-spinner"></div><span style="margin-left: 1rem;">Criando o esqueleto da sua história...</span></div>`;
-
-    try {
-        const { prompt } = constructScriptPrompt('outline');
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        let strategicOutlineData = await getRobustJson(brokenJson);
-
-        if (Array.isArray(strategicOutlineData) && strategicOutlineData.length > 0) {
-            strategicOutlineData = strategicOutlineData[0];
-        }
-
-        AppState.generated.strategicOutline = strategicOutlineData;
-        
-        const { strategicOutline } = AppState.generated;
-        if (!strategicOutline || typeof strategicOutline !== 'object' || !strategicOutline.introduction) {
-            throw new Error("A IA falhou em gerar um esboço em formato JSON válido.");
-        }
-
-        const titleTranslations = { 'introduction': 'Introdução', 'development': 'Desenvolvimento', 'climax': 'Clímax', 'conclusion': 'Conclusão', 'cta': 'CTA' };
-        let outlineHtml = '<ul class="space-y-4 text-sm" style="list-style-position: inside; padding-left: 1rem;">';
-        for (const key in strategicOutline) {
-            outlineHtml += `<li><div><strong style="color: var(--primary);">${titleTranslations[key] || key}:</strong> <span style="color: var(--text-body);">${DOMPurify.sanitize(strategicOutline[key])}</span></div></li>`;
-        }
-        outlineHtml += '</ul>';
-        outlineContentDiv.innerHTML = outlineHtml;
-        
-        const scriptContainer = document.getElementById('scriptSectionsContainer');
-        if (scriptContainer) {
-            scriptContainer.innerHTML = '';
-            scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('intro', 'Introdução', 'generateIntro'));
-            scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('development', 'Desenvolvimento', 'generateDevelopment'));
-            scriptContainer.insertAdjacentHTML('beforeend', createScriptSectionPlaceholder('climax', 'Clímax', 'generateClimax'));
-        }
-
-    } catch (error) {
-        console.error("Erro em generateStrategicOutline:", error);
-        window.showToast(`Falha ao gerar Esboço: ${error.message}`, 'error');
-        outlineContentDiv.innerHTML = `<div class="asset-card-placeholder" style="color: var(--danger);">${error.message}. Tente novamente.</div>`;
-    } finally {
-        hideButtonLoading(button);
-    }
-};
 
 
 
@@ -2616,96 +2474,109 @@ const generateSectionHtmlContent = (sectionId, title, content) => {
 
 
 
-const handleGenerateSection = async (button, sectionName, sectionTitle, elementId) => {
-    if (!validateInputs()) return;
-    if (!AppState.generated.strategicOutline && sectionName !== 'intro') {
-        window.showToast("Crie o Esboço Estratégico primeiro!", 'info');
+
+
+
+
+
+
+/**
+ * NOVA FUNÇÃO AUXILIAR - Focada apenas em re-gerar uma seção
+ * @param {HTMLElement} button - O botão que foi clicado.
+ * @param {string} sectionKey - A chave da seção (ex: 'intro', 'development').
+ * @param {string} sectionTitle - O título para o prompt (ex: 'Introdução').
+ */
+const regenerateSingleSection = async (button, sectionKey, sectionTitle) => {
+    showButtonLoading(button);
+    const sectionElement = document.getElementById(`${sectionKey}Section`);
+    if (!sectionElement) {
+        hideButtonLoading(button);
         return;
     }
 
-    showButtonLoading(button);
-    const targetSectionElement = document.getElementById(`${elementId}Section`);
-
     try {
-        let contextText = null;
-        const sectionOrder = ['intro', 'development', 'climax'];
-        const currentSectionIndex = sectionOrder.indexOf(elementId);
-        if (currentSectionIndex > 0) {
-            contextText = sectionOrder.slice(0, currentSectionIndex).map(id => {
-                // Garante que o texto exista antes de tentar acessá-lo
-                return AppState.generated.script[id] ? AppState.generated.script[id].text : '';
-            }).join('\n\n---\n\n');
-        }
-
-        const keyMap = { intro: 'introduction', development: 'development', climax: 'climax' };
-        const directive = AppState.generated.strategicOutline ? AppState.generated.strategicOutline[keyMap[sectionName]] : null;
+        const baseContext = getBasePromptContext({ includeHeavyContext: true });
+        const fullTranscript = getTranscriptOnly(); // Pega todo o roteiro para dar contexto
         
-        const { prompt, maxTokens } = constructScriptPrompt(sectionName, sectionTitle, directive, contextText);
+        const prompt = `Você é um EDITOR DE ROTEIRO DE ELITE. Sua tarefa é reescrever uma seção específica de um roteiro existente, mantendo a consistência com o restante da história e seguindo as diretrizes do projeto.
 
-        const rawResult = await callGroqAPI(prompt, maxTokens);
-        // Usa a função `removeMetaComments` para limpar qualquer "lixo" textual que a IA possa ter adicionado
-        const cleanText = removeMetaComments(rawResult);
+**BRIEFING COMPLETO DO PROJETO:**
+---
+${baseContext}
+---
 
-        // Converte o texto puro em um array de parágrafos, dividindo por duas ou mais quebras de linha
-        const paragraphs = cleanText.split(/\n\s*\n/).filter(p => p.trim() !== '');
+**ROTEIRO COMPLETO (PARA CONTEXTO DE CONSISTÊNCIA):**
+---
+${fullTranscript.slice(0, 5000)} 
+---
 
-        if (!paragraphs || paragraphs.length === 0) {
-            throw new Error("A IA não retornou o roteiro no formato de parágrafos esperado.");
+**TAREFA IMEDIATA:**
+Reescreva a seção "${sectionTitle}". A nova versão deve ser impactante, alinhada com o briefing e fluir naturalmente com o resto do roteiro.
+
+**REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
+1.  **RESPOSTA 100% PURA:** Sua resposta deve conter APENAS e SOMENTE o texto que será dito em voz alta para a seção "${sectionTitle}".
+2.  **SEM EXTRAS:** É proibido incluir qualquer anotação, título ou comentário.
+3.  **PARÁGRAFOS:** O texto deve ser dividido em parágrafos usando "\\n\\n".
+
+**AÇÃO FINAL:** Escreva AGORA a nova versão para a seção "${sectionTitle}".`;
+
+        const rawResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
+        const newText = removeMetaComments(rawResult);
+
+        const paragraphs = newText.split(/\n\s*\n/).filter(p => p.trim() !== '');
+        const newHtml = paragraphs.map((p, index) => `<div id="${sectionKey}-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
+
+        // Atualiza o conteúdo na tela e no estado global
+        const contentWrapper = sectionElement.querySelector('.generated-content-wrapper');
+        contentWrapper.innerHTML = newHtml;
+
+        if (AppState.generated.script[sectionKey]) {
+            AppState.generated.script[sectionKey] = { html: newHtml, text: newText };
         }
+        
+        // Invalida análises antigas
+        invalidateAndClearPerformance(sectionElement);
+        invalidateAndClearPrompts(sectionElement);
+        invalidateAndClearEmotionalMap();
+        updateAllReadingTimes();
 
-        const contentWithDivs = paragraphs.map((p, index) => `<div id="${elementId}-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
-        const fullText = paragraphs.join('\n\n');
-
-        AppState.generated.script[sectionName] = { html: contentWithDivs, text: fullText };
-
-        if (targetSectionElement) {
-            const sectionElement = generateSectionHtmlContent(elementId, sectionTitle, contentWithDivs);
-            targetSectionElement.replaceWith(sectionElement);
-        }
-        updateButtonStates();
+        window.showToast(`Seção "${sectionTitle}" re-gerada com sucesso!`, 'success');
 
     } catch (error) {
-        window.showToast(`Falha ao gerar ${sectionTitle}: ${error.message}`, 'error');
-        console.error(`Error generating ${sectionTitle}.`, error);
+        window.showToast(`Falha ao re-gerar ${sectionTitle}: ${error.message}`, 'error');
     } finally {
         hideButtonLoading(button);
-        updateButtonStates();
     }
 };
 
 
-
-
-
+// FUNÇÃO 'regenerateSection' ATUALIZADA E LIMPA
 window.regenerateSection = (fullSectionId) => {
     const sectionName = fullSectionId.replace('Section', '');
     const button = document.querySelector(`[data-action='regenerate'][data-section-id='${fullSectionId}']`);
     if (!button) return;
 
-    // --- NOVA LÓGICA DE DIRECIONAMENTO ---
+    // A nova lógica de direcionamento, agora muito mais limpa
     switch (sectionName) {
         case 'intro':
-            handleGenerateSection(button, 'intro', 'Introdução', 'intro');
+            regenerateSingleSection(button, 'intro', 'Introdução');
             break;
         case 'development':
-            handleGenerateSection(button, 'development', 'Desenvolvimento', 'development');
+            regenerateSingleSection(button, 'development', 'Desenvolvimento');
             break;
         case 'climax':
-            handleGenerateSection(button, 'climax', 'Clímax', 'climax');
+            regenerateSingleSection(button, 'climax', 'Clímax');
             break;
         case 'conclusion':
-            // Chama a função correta para a conclusão
-            generateConclusion(button); 
+            regenerateSingleSection(button, 'conclusion', 'Conclusão');
             break;
         case 'cta':
-            // Chama a função correta para o CTA
-            generateStrategicCta(button); 
+            regenerateSingleSection(button, 'cta', 'Call to Action (CTA)');
             break;
         default:
             console.error("Tentativa de re-gerar uma seção desconhecida:", sectionName);
     }
 };
-
 
 
 
@@ -3522,11 +3393,17 @@ const generateTitlesAndThumbnails = async (button) => {
     showButtonLoading(button);
     const targetContentElement = document.getElementById('titlesThumbnailsContent');
     targetContentElement.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
+    
     try {
-        let { prompt, maxTokens } = constructScriptPrompt('titles_thumbnails');
-        
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
-        const perfectJson = await fixJsonWithAI(brokenJson);
+        const baseContext = getBasePromptContext();
+        const prompt = `${baseContext}
+**TAREFA:** Gerar 5 sugestões de títulos e thumbnails.
+**REGRAS:**
+1. **FORMATO:** Responda APENAS com um array JSON.
+2. **ESTRUTURA:** Cada objeto no array deve ter 3 chaves: "suggested_title", "thumbnail_title", e "thumbnail_description".
+3. **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores.`;
+
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 2000);
         const parsedContent = await getRobustJson(brokenJson);
         
         if (!Array.isArray(parsedContent) || parsedContent.length === 0 || !parsedContent[0].suggested_title) {
@@ -3686,14 +3563,25 @@ const generateVideoDescription = async (button) => {
     if (!validateInputs()) return;
     showButtonLoading(button);
     const targetContentElement = document.getElementById('videoDescriptionContent');
+
     try {
-        let { prompt, maxTokens } = constructScriptPrompt('description');
+        const baseContext = getBasePromptContext();
+        const languageName = new Intl.DisplayNames([document.getElementById('languageSelect').value], { type: 'language' }).of(document.getElementById('languageSelect').value);
+        const prompt = `${baseContext}
+**TAREFA:** Gerar uma descrição otimizada para um vídeo do YouTube e uma lista de hashtags relevantes, no idioma ${languageName}.
+
+**REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
+1.  **JSON PURO:** Sua resposta deve ser APENAS um objeto JSON válido.
+2.  **ESTRUTURA EXATA:** O objeto DEVE conter EXATAMENTE estas duas chaves: "description_text" e "hashtags".
+3.  **VALORES:**
+    - "description_text": (String) Um parágrafo único e coeso. Comece com um gancho, detalhe o conteúdo e finalize com um call-to-action sutil.
+    - "hashtags": (Array de Strings) Uma lista com 10 hashtags relevantes, cada uma começando com #.
+
+**AÇÃO FINAL:** Gere o objeto JSON perfeito.`;
         
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), maxTokens);
-        const perfectJson = await fixJsonWithAI(brokenJson);
+        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 2000);
         let parsedContent = await getRobustJson(brokenJson);
 
-        
         if (Array.isArray(parsedContent) && parsedContent.length > 0) {
             parsedContent = parsedContent[0];
         }
