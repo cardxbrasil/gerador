@@ -4112,7 +4112,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 
 // =========================================================================
-// >>>>> COLE ESTA FUNÇÃO COMPLETA NO LUGAR DA ANTIGA <<<<<
+// >>>>> VERSÃO CORRIGIDA E MAIS INTELIGENTE (v7.1) <<<<<
 // =========================================================================
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
@@ -4129,27 +4129,41 @@ window.generatePromptsForSection = async (button) => {
     promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
 
     try {
-        const allChildren = Array.from(contentWrapper.children);
-        const paragraphsWithContext = [];
-        let currentChapterTitle = "Contexto Geral";
-        allChildren.forEach(child => {
-            if (child.classList.contains('font-bold') && child.textContent.includes('Capítulo:')) {
-                currentChapterTitle = child.textContent.replace('Capítulo:', '').trim();
-            } else if (child.id && child.id.includes('-p-')) {
-                paragraphsWithContext.push({ text: child.textContent.trim().replace(/\[.*?\]/g, ''), chapter: currentChapterTitle });
+        // <<< MUDANÇA 1: ABORDAGEM DE ANÁLISE DE TEXTO >>>
+        // Em vez de ler DIVs, pegamos o texto puro e o dividimos em frases.
+        // Isso é muito mais robusto contra formatação ruim da IA.
+        const fullText = contentWrapper.textContent.trim();
+        
+        // Esta expressão regular divide o texto em frases, mantendo a pontuação.
+        const sentences = fullText.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
+        
+        const chunksToProcess = [];
+        let tempChunk = "";
+
+        // Agrupa frases para não gerar prompts demais para frases muito curtas.
+        sentences.forEach(sentence => {
+            tempChunk += sentence.trim() + " ";
+            // Quando o pedaço atinge um tamanho razoável (aprox. 15 palavras), ele vira uma "cena".
+            if (tempChunk.split(/\s+/).length >= 15) {
+                chunksToProcess.push(tempChunk.trim());
+                tempChunk = "";
             }
         });
+        // Adiciona o que sobrou no final.
+        if (tempChunk.trim().length > 0) {
+            chunksToProcess.push(tempChunk.trim());
+        }
 
-        if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
-
-        // >>> MUDANÇA CRÍTICA 1: ABANDONO COMPLETO DOS 'LOTES' (BATCHING) <<<
-        // Agora, criamos uma promessa de API para CADA parágrafo individualmente.
-        const apiPromises = paragraphsWithContext.map((item, index) => {
+        if (chunksToProcess.length === 0) { throw new Error("Não foram encontradas frases para analisar."); }
+        
+        // <<< MUDANÇA 2: PREPARAÇÃO DOS DADOS PARA A API >>>
+        // Agora, o `item.text` é uma frase ou um pequeno grupo de frases.
+        const apiPromises = chunksToProcess.map((chunkText) => {
             const visualPacing = document.getElementById('visualPacing').value;
             const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
             const durationRange = durationMap[visualPacing] || '3 e 8';
             
-            // Usando 100% do seu prompt original, adaptado para processar um único item
+            // O prompt interno para a IA permanece o mesmo, pois é excelente.
             const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar um parágrafo e transformá-lo em UMA descrição de imagem rica em detalhes.
 
@@ -4193,27 +4207,24 @@ Para o parágrafo, crie uma descrição visual rica respondendo a estas pergunta
 
 ## DADOS PARA ANÁLISE
 ---
-- Título do Capítulo (Guia Temático): "${item.chapter}"
-- Texto do Parágrafo: "${item.text}"
+- Texto do Parágrafo: "${chunkText}"
 ---
 
 ## AÇÃO FINAL
 Com base nestas instruções, gere um único objeto JSON para este parágrafo, seguindo rigorosamente todas as regras de formatação.`;
 
-            // Retorna a chamada da API como uma promessa que resolverá para um objeto JSON
             return callGroqAPI(forceLanguageOnPrompt(prompt), 1000).then(getRobustJson);
         });
 
-        // >>> MUDANÇA CRÍTICA 2: EXECUTAMOS TODAS AS PROMESSAS EM PARALELO <<<
-        // Isso vai esperar que TODAS as chamadas individuais à IA terminem.
+        // O restante da função continua igual, pois a lógica de processar as respostas é sólida.
         const allGeneratedPrompts = await Promise.all(apiPromises);
 
-        if (!Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length < paragraphsWithContext.length) {
-            throw new Error("A IA não retornou um prompt para cada parágrafo. Tente novamente.");
+        if (!Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length === 0) {
+            throw new Error("A IA não retornou prompts válidos. Tente novamente.");
         }
 
         const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
-            scriptPhrase: paragraphsWithContext[index].text,
+            scriptPhrase: chunksToProcess[index], // Usa o "chunk" de texto como referência
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
             estimated_duration: promptData.estimated_duration || 5
         }));
@@ -4231,7 +4242,7 @@ Com base nestas instruções, gere um único objeto JSON para este parágrafo, s
                 <div class="prompt-items-container space-y-4"></div>
             </div>
         `;
-        renderPaginatedPrompts(sectionId); // Renderiza os resultados
+        renderPaginatedPrompts(sectionId);
 
     } catch (error) {
         promptContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">${error.message}</p>`;
