@@ -2271,7 +2271,7 @@ const buildMasterPrompt = () => {
 
 
 // ==========================================================
-// >>>>> VERSÃO FINAL ANTI-FALHA DE 'suggestStrategy' <<<<<
+// >>>>> VERSÃO FINAL E CORRIGIDA DE 'suggestStrategy' <<<<<
 // ==========================================================
 const suggestStrategy = async (button) => {
     const theme = document.getElementById('videoTheme')?.value.trim();
@@ -2330,29 +2330,39 @@ RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STR
         }
 
         // ==========================================================
-        // >>>>> A CHECAGEM DE SEGURANÇA FOI REMOVIDA DAQUI <<<<<
+        // >>>>> AQUI ESTÁ A CORREÇÃO PRINCIPAL <<<<<
         // ==========================================================
-        
+
+        // Mapeamento completo de TODAS as chaves para os IDs dos elementos HTML
+        const keyToElementIdMap = {
+            'TARGET_AUDIENCE': 'targetAudience',
+            'NARRATIVE_THEME': 'narrativeTheme',
+            'NARRATIVE_TONE': 'narrativeTone',
+            'NARRATIVE_VOICE': 'narrativeVoice',
+            'CENTRAL_QUESTION': 'centralQuestion',
+            'EMOTIONAL_HOOK': 'emotionalHook',
+            'SHOCKING_ENDING_HOOK': 'shockingEndingHook',
+            'RESEARCH_DATA': 'researchData',
+            'NARRATIVE_GOAL': 'narrativeGoal', // Chave adicionada
+            'NARRATIVE_STRUCTURE': 'narrativeStructure' // Chave adicionada
+        };
+
+        // 1. Atualiza o dropdown 'Objetivo da Narrativa' primeiro.
         const narrativeGoalSelect = document.getElementById('narrativeGoal');
         if (narrativeGoalSelect && strategy.NARRATIVE_GOAL) {
             narrativeGoalSelect.value = strategy.NARRATIVE_GOAL;
+            // ESSENCIAL: Atualiza as opções do segundo dropdown com base na escolha do primeiro.
             updateNarrativeStructureOptions();
         }
 
+        // 2. Espera um instante para a UI atualizar e então preenche o resto.
         setTimeout(() => { 
-            const keyToElementIdMap = {
-                'TARGET_AUDIENCE': 'targetAudience', 'NARRATIVE_THEME': 'narrativeTheme',
-                'NARRATIVE_TONE': 'narrativeTone', 'NARRATIVE_VOICE': 'narrativeVoice',
-                'CENTRAL_QUESTION': 'centralQuestion', 'EMOTIONAL_HOOK': 'emotionalHook',
-                'SHOCKING_ENDING_HOOK': 'shockingEndingHook', 'RESEARCH_DATA': 'researchData',
-                'NARRATIVE_STRUCTURE': 'narrativeStructure'
-            };
-
             for (const key in keyToElementIdMap) {
                 if (strategy[key]) {
                     const element = document.getElementById(keyToElementIdMap[key]);
                     if (element) {
                         const valueToSet = strategy[key];
+                        // Lógica para preencher SELECTs e TEXTAREAs/INPUTs
                         if (element.tagName === 'SELECT') {
                             if ([...element.options].some(o => o.value === valueToSet)) {
                                 element.value = valueToSet;
@@ -2363,8 +2373,9 @@ RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STR
                     }
                 }
             }
+            // Atualiza os tooltips com as novas informações
             updateMainTooltip();
-        }, 100);
+        }, 100); // 100ms é suficiente para a UI atualizar as opções.
 
         window.showToast("Estratégia refinada pela IA!");
         document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
