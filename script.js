@@ -4867,6 +4867,9 @@ const actions = {
 
 
 
+// ==========================================================
+// >>>>> COLE ESTA FUNÇÃO COMPLETA NO LUGAR DA ANTIGA <<<<<
+// ==========================================================
 const processPastedScript = async (button) => {
     document.getElementById('finalizeBtnContainer')?.remove();
 
@@ -4885,7 +4888,6 @@ const processPastedScript = async (button) => {
     try {
         const scriptObject = await getRobustJson(pastedJson);
 
-        // --- INÍCIO DA CORREÇÃO DE NORMALIZAÇÃO DE CHAVES (JÁ ESTAVA CORRETO) ---
         const normalizedScriptObject = {};
         const keyMap = {
             'introducao': ['introducao', 'introduction', 'intro'],
@@ -4907,7 +4909,6 @@ const processPastedScript = async (button) => {
                 }
             }
         }
-        // --- FIM DA NORMALIZAÇÃO ---
 
         if (!normalizedScriptObject.introducao || !normalizedScriptObject.desenvolvimento || !normalizedScriptObject.climax) {
             throw new Error("O JSON colado não contém as chaves essenciais (introducao, desenvolvimento, climax). Verifique a resposta da IA.");
@@ -4923,17 +4924,21 @@ const processPastedScript = async (button) => {
                 const sectionName = sectionMap[key];
                 let rawText = normalizedScriptObject[key];
                 
-                // ==========================================================
-                // >>>>> A BLINDAGEM FINAL E MAIS IMPORTANTE ESTÁ AQUI <<<<<
-                // Limpa todas as anotações numéricas como [2] ou [11, 24] do texto recebido.
                 const cleanedText = rawText.replace(/\[[\d, ]+\]/g, '').trim();
+
                 // ==========================================================
-
-                const paragraphs = cleanedText.split(/\n\s*\n/).filter(p => p.trim() !== '');
+                // >>>>> AQUI ESTÁ A CORREÇÃO MÁGICA <<<<<
+                // Substituímos .split(/\n\s*\n/) por .split(/\n+/)
+                // O \n+ divide o texto em QUALQUER quebra de linha (simples, dupla, tripla, etc.)
+                // Isso garante que cada linha retornada pela IA se torne um parágrafo.
+                const paragraphs = cleanedText.split(/\n+/).filter(p => p.trim() !== '');
+                // ==========================================================
+                
                 const htmlContent = paragraphs.map((p, index) => `<div id="${sectionName}-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
-
-                // Salva o texto já LIMPO no estado da aplicação
-                AppState.generated.script[sectionName] = { html: htmlContent, text: cleanedText };
+                
+                // Reconstrói o texto limpo a partir dos parágrafos agora corretamente divididos
+                const correctlySpacedText = paragraphs.join('\n\n');
+                AppState.generated.script[sectionName] = { html: htmlContent, text: correctlySpacedText };
 
                 const sectionElement = generateSectionHtmlContent(sectionName, titles[sectionName], htmlContent);
                 scriptContainer.appendChild(sectionElement);
@@ -4960,7 +4965,6 @@ const processPastedScript = async (button) => {
         hideButtonLoading(button);
     }
 };
-
 
 
 
