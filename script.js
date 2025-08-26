@@ -4142,14 +4142,14 @@ window.generatePromptsForSection = async (button) => {
 
         if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
 
-        // >>> MUDANÇA CRÍTICA 1: ABANDONAMOS O BATCHING <<<
+        // >>> MUDANÇA CRÍTICA 1: ABANDONO COMPLETO DOS 'LOTES' (BATCHING) <<<
         // Agora, criamos uma promessa de API para CADA parágrafo individualmente.
         const apiPromises = paragraphsWithContext.map((item, index) => {
             const visualPacing = document.getElementById('visualPacing').value;
             const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
             const durationRange = durationMap[visualPacing] || '3 e 8';
             
-            // Usando 100% do seu prompt original, com adaptações para processar um único item
+            // Usando 100% do seu prompt original, adaptado para processar um único item
             const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar um parágrafo e transformá-lo em UMA descrição de imagem rica em detalhes.
 
