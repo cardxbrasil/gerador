@@ -3510,9 +3510,9 @@ ACTION: Return ONLY the JSON array.`;
 
 
 
-// ==========================================================
-// ===== ANALISE DE RETENÇÃO BLINDADA (COM PROCESSAMENTO EM LOTES) ======
-// ==========================================================
+// =========================================================================
+// >>>>> FUNÇÃO analyzeSectionRetention (VERSÃO BLINDADA COM ID) <<<<<
+// =========================================================================
 window.analyzeSectionRetention = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -3539,22 +3539,17 @@ window.analyzeSectionRetention = async (button) => {
             text: p.textContent.trim()
         }));
 
-        // ETAPA 1: DIVIDIR A LISTA DE PARÁGRAFOS EM LOTES MENORES
         const batches = [];
-        const BATCH_SIZE = 7; // Analisa 7 parágrafos por vez. Um número seguro e eficiente.
+        const BATCH_SIZE = 7;
         for (let i = 0; i < paragraphsWithIndexes.length; i += BATCH_SIZE) {
             batches.push(paragraphsWithIndexes.slice(i, i + BATCH_SIZE));
         }
         
-        console.log(`Análise de retenção dividida em ${batches.length} lotes.`);
-
-        // ETAPA 2: PROCESSAR CADA LOTE EM UM LOOP E AGREGAR OS RESULTADOS
         let fullAnalysis = [];
         const basePromptContext = getBasePromptContext();
 
         for (let i = 0; i < batches.length; i++) {
             const batch = batches[i];
-            // Fornece feedback visual para o usuário
             const progressMessage = document.createElement('p');
             progressMessage.className = 'text-sm text-center my-2';
             progressMessage.innerHTML = `<div class="loading-spinner-small inline-block mr-2"></div> Processando lote de análise ${i + 1} de ${batches.length}...`;
@@ -3588,34 +3583,43 @@ window.analyzeSectionRetention = async (button) => {
                  console.warn(`Lote ${i+1} da análise de retenção retornou um formato inválido e foi ignorado.`);
             }
         }
-
-        // ETAPA 3: RENDERIZAR O RESULTADO COMPLETO
+        
         if (!fullAnalysis || fullAnalysis.length === 0) {
             throw new Error("A análise da IA falhou em todos os lotes ou retornou um formato inválido.");
         }
         
-        outputContainer.innerHTML = ''; // Limpa a mensagem de progresso
+        outputContainer.innerHTML = ''; 
         
         paragraphs.forEach(p => {
             p.className = 'retention-paragraph-live';
             p.innerHTML = p.innerHTML.replace(/<div class="retention-tooltip">.*?<\/div>/g, '');
         });
 
+        // LÓGICA PARA CRIAR IDs ÚNICOS PARA CADA GRUPO
+        const suggestionToIdMap = new Map();
+        let nextGroupId = 0;
+
         fullAnalysis.forEach((item) => {
             if (typeof item.paragraphIndex !== 'number' || item.paragraphIndex >= paragraphs.length) return;
             const p = paragraphs[item.paragraphIndex];
             if (p) {
                 p.classList.add(`retention-${item.retentionScore}`);
-                p.dataset.suggestionGroup = item.suggestion;
+                
+                // AQUI ESTÁ A MÁGICA: Atribuindo o ID do grupo
+                if (item.suggestion && (item.retentionScore === 'yellow' || item.retentionScore === 'red')) {
+                    if (!suggestionToIdMap.has(item.suggestion)) {
+                        suggestionToIdMap.set(item.suggestion, `retention-group-${nextGroupId++}`);
+                    }
+                    const groupId = suggestionToIdMap.get(item.suggestion);
+                    p.dataset.suggestionGroupId = groupId;
 
-                if (item.retentionScore === 'yellow' || item.retentionScore === 'red') {
                     const scoreLabels = { yellow: "PONTO DE ATENÇÃO", red: "PONTO DE RISCO" };
                     const tooltipTitle = scoreLabels[item.retentionScore] || 'ANÁLISE';
                     const suggestionTextEscaped = (item.suggestion || '').replace(/"/g, '&quot;');
                     
                     const buttonsHtml = `
                         <div class="flex gap-2 mt-3">
-                            <button class="flex-1 btn btn-primary btn-small py-1" data-action="optimizeGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-magic mr-2"></i> Otimizar</button>
+                            <button class="flex-1 btn btn-primary btn-small py-1" data-action="optimizeGroup" data-suggestion-group-id="${groupId}" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-magic mr-2"></i> Otimizar</button>
                             <button class="flex-1 btn btn-danger btn-small py-1" data-action="deleteParagraphGroup" data-suggestion-text="${suggestionTextEscaped}"><i class="fas fa-trash-alt mr-2"></i> Deletar</button>
                         </div>`;
                     
@@ -4432,12 +4436,18 @@ window.navigatePrompts = (sectionElementId, direction) => {
 
 
 
-window.optimizeGroup = async (button, suggestionText) => {
-    if (!button || !suggestionText) return;
+// =========================================================================
+// >>>>> FUNÇÃO optimizeGroup (VERSÃO BLINDADA COM ID) <<<<<
+// =========================================================================
+window.optimizeGroup = async (button) => {
+    // A GRANDE MUDANÇA: Usamos o ID do grupo, não mais o texto.
+    const groupId = button.dataset.suggestionGroupId;
+    const suggestionText = button.dataset.suggestionText; // Ainda precisamos do texto para a IA.
+    
+    if (!button || !suggestionText || !groupId) return;
 
-    // --- CORREÇÃO APLICADA AQUI ---
-    const safeSelector = suggestionText.replace(/"/g, '\\"');
-    const paragraphsToOptimize = document.querySelectorAll(`[data-suggestion-group="${safeSelector}"]`);
+    // A busca agora é pelo ID, que é 100% confiável.
+    const paragraphsToOptimize = document.querySelectorAll(`[data-suggestion-group-id="${groupId}"]`);
 
     if (paragraphsToOptimize.length === 0) {
         window.showToast("Erro: parágrafos para otimizar não encontrados.", 'error');
@@ -4492,9 +4502,8 @@ Reescreva o bloco de texto acima, corrigindo o problema. Responda APENAS com o n
         const sectionElement = firstParagraph.closest('.accordion-item');
         
         firstParagraph.innerHTML = DOMPurify.sanitize(newParagraphs[0] || '');
-        firstParagraph.classList.add('highlight-change');
-        firstParagraph.removeAttribute('data-suggestion-group');
-        // Remove os event listeners antigos para evitar duplicação
+        firstParagraph.className = 'retention-paragraph-live highlight-change'; // Limpa classes antigas
+        firstParagraph.removeAttribute('data-suggestion-group-id');
         firstParagraph.removeEventListener('mouseover', handleSuggestionMouseOver);
         firstParagraph.removeEventListener('mouseout', handleSuggestionMouseOut);
 
@@ -4515,6 +4524,7 @@ Reescreva o bloco de texto acima, corrigindo o problema. Responda APENAS com o n
             invalidateAndClearPerformance(sectionElement);
             invalidateAndClearPrompts(sectionElement);
             invalidateAndClearEmotionalMap();
+            updateAllReadingTimes();
         }
 
         window.showToast("Bloco de parágrafos otimizado!", 'success');
@@ -4528,6 +4538,15 @@ Reescreva o bloco de texto acima, corrigindo o problema. Responda APENAS com o n
         if (tooltip) tooltip.remove();
     }
 };
+
+
+
+
+
+
+
+
+
 
 window.deleteParagraphGroup = async (button, suggestionText) => {
     const userConfirmed = await showConfirmationDialog('Confirmar Deleção', 'Tem certeza que deseja deletar este bloco de parágrafos? Esta ação não pode ser desfeita.');
