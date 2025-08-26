@@ -117,31 +117,36 @@ You are generating an image that must be **indistinguishable from a real photogr
     'epic': {
         name: 'Realismo Épico e Natural',
         block: `
-# cinematic film still, shot on Panavision System 65, 70mm film, with a 40mm lens at f/2.8. Photography by Emmanuel Lubezki. Lit only by the raw, low sun of late afternoon, creating deep, soft shadows and preserving highlight detail. Tangible atmosphere, with visible breath in the cold air and dust motes in the light. Ultra-realistic, weathered skin with visible pores, and organic imperfections on all surfaces. A feeling of continuous, fluid movement, with subtle motion blur on the extremities.
+#cinematic film still, shot on Panavision System 65, 70mm film, with a 40mm lens at f/2.8. Photography by Emmanuel Lubezki. Lit only by the raw, low sun of late afternoon, creating deep, soft shadows and preserving highlight detail. Tangible atmosphere, with visible breath in the cold air and dust motes in the light. Ultra-realistic, weathered skin with visible pores, and organic imperfections on all surfaces. A feeling of continuous, fluid movement, with subtle motion blur on the extremities.
+
 --no cgi, 3d render, video game, perfect skin, airbrushed, studio lighting, artificial, clean, polished, flawless, sharp focus everywhere, digital art, cartoon, oversaturated`
     },
     'suspense': {
         name: 'Suspense Sombrio e Controlado',
         block: `
-# cinematic film still, meticulously composed. Cinematography by Roger Deakins. Shot on ARRI Alexa LF with a 35mm Cooke S4 lens. A single, harsh key light source from the side or above carves subjects out of the darkness, creating sharp, dramatic shadows. Desaturated and controlled color palette, focusing on blacks, greys, and a single muted accent color. Immense depth and scale, with a clean, razor-sharp focus on the subject and heavy falloff into shadow.
+#cinematic film still, meticulously composed. Cinematography by Roger Deakins. Shot on ARRI Alexa LF with a 35mm Cooke S4 lens. A single, harsh key light source from the side or above carves subjects out of the darkness, creating sharp, dramatic shadows. Desaturated and controlled color palette, focusing on blacks, greys, and a single muted accent color. Immense depth and scale, with a clean, razor-sharp focus on the subject and heavy falloff into shadow.
+
 --no flat lighting, soft shadows, multiple light sources, cluttered, messy composition, bright colors, oversaturated, friendly, warm, cgi, 3d render, video game, blurry, out of focus`
     },
     'nostalgico': {
         name: 'Sonhador e Nostálgico',
         block: `
 #cinematic film still, shot on 35mm Kodak Vision3 500T film with a vintage anamorphic lens. Dreamy and nostalgic atmosphere. Soft, hazy light filtering through a window or trees, creating prominent, warm lens flare and creamy, oval-shaped bokeh. Extremely shallow depth of field (f/1.4) focusing only on a single emotional detail. Colors are warm, slightly faded, with a gentle, authentic film grain. Feels like a captured, imperfect memory.
+
 --no sharp, crisp, digital, modern, clean, perfect focus, deep depth of field, no grain, realistic, harsh lighting, bright, cgi, 3d render, video game, sterile, cold colors`
     },
     'urbano': {
         name: 'Realismo Urbano e Texturizado',
         block: `
 #cinematic film still, shot on a handheld ARRI Alexa Mini with a vintage anamorphic lens. Cinematography by Greig Fraser. Lit by practical, motivated light sources from the environment (neon signs, streetlights, headlights), casting realistic reflections on wet, gritty surfaces. Ultra-realistic textures showing wear, dust, and moisture. Shallow depth of field with distinct oval bokeh and subtle motion blur, giving a visceral, grounded feeling. Muted but rich color palette.
+
 --no studio lighting, clean, polished, perfect, flawless, static, tripod shot, cgi, 3d render, video game, cartoon, bright, sunny day, sterile, smooth surfaces, no texture`
     },
     'classico': {
         name: 'Clássico e Elegante',
         block: `
 #cinematic film still, reminiscent of a Caravaggio painting. Cinematography by Gordon Willis. Shot on Kodak 5247 film stock from the 1970s. Lit by a single, hard top-light (a "godfather light") that leaves the eyes in deep shadow, creating mystery and power. Rich, dark tones and a warm, golden-brown color palette. Composition is formal, balanced, and heavy with meaning. Visible, pleasant film grain. Avoids any hint of modern digital sharpness.
+
 --no bright, evenly lit, fill light, modern, digital, sharp, cgi, 3d render, video game, lens flare, clean, new, futuristic, blue tones, cool colors, happy, vibrant`
     }
 
