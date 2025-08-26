@@ -279,11 +279,12 @@ __RAW_REPORT__
   * Capacidade de desafiar narrativas estabelecidas ou crenças populares
 
 - **"videoDescription" (O CORAÇÃO DA INVESTIGAÇÃO):** Escreva uma sinopse rica de **pelo menos 5 frases substantivas**. A descrição DEVE:
-  1. Começar com uma cena, pergunta ou dado impactante que imediatamente coloque o espectador no centro da investigação. Evite frases genéricas como 'Este documentário explora...'
-  2. Mencionar explicitamente 2-3 FATOS ESPECÍFICOS e verificáveis retirados do relatório, como datas, porcentagens, nomes ou declarações diretas. Ex: 'em 12 de março de 2023, 87% dos sensores registraram anomalias'
-  3. Apresentar a jornada investigativa, incluindo obstáculos encontrados e fontes consultadas
-  4. Construir o clímax quando as evidências convergem para revelar a verdade oculta
-  5. Terminar com as implicações concretas: mudanças políticas, impacto social, riscos ou exigências éticas. Evite conclusões vagas como 'isso muda tudo'
+  1. **IGNORAR E REMOVER** quaisquer citações numéricas entre colchetes (ex: [16], [25]) que possam aparecer no relatório. A descrição deve ser puramente narrativa e fluida, sem essas interrupções.
+  2. Começar com uma cena, pergunta ou dado impactante que imediatamente coloque o espectador no centro da investigação. Evite frases genéricas como 'Este documentário explora...'
+  3. Mencionar explicitamente 2-3 FATOS ESPECÍFICOS e verificáveis retirados do relatório, como datas, porcentagens, nomes ou declarações diretas. Ex: 'em 12 de março de 2023, 87% dos sensores registraram anomalias'
+  4. Apresentar a jornada investigativa, incluindo obstáculos encontrados e fontes consultadas
+  5. Construir o clímax quando as evidências convergem para revelar a verdade oculta
+  6. Terminar com as implicações concretas: mudanças políticas, impacto social, riscos ou exigências éticas. Evite conclusões vagas como 'isso muda tudo'
 
 - **"investigativeApproach" (Abordagem Investigativa):** Identifique o método jornalístico principal da investigação. Escolha UM dos seguintes e justifique brevemente por que é o mais adequado:
   * "Análise de Dados" - Quando a história emerge de padrões e anomalias em conjuntos de dados
@@ -336,11 +337,12 @@ __RAW_REPORT__
   * Capacidade de conectar com aspirações humanas fundamentais
 
 - **"videoDescription" (DESCRIÇÃO NARRATIVA RICA E EMOCIONAL):** Uma sinopse completa de **pelo menos 5 frases** que deve:
-  1. Estabelecer o ponto de partida emocional do protagonista, usando um detalhe específico do relatório como símbolo de sua dor ou estagnação
-  2. Introduzir o obstáculo ou crise desafiadora que ameaça o status quo, mostrando seu impacto humano real
-  3. Descrever a jornada de descoberta interna e externa, mencionando fatos concretos do relatório como marcos da transformação
-  4. Construir o clímax emocional no momento em que o protagonista faz uma escolha difícil que simboliza sua mudança — não necessariamente uma vitória, mas um compromisso com a ação
-  5. Terminar com a lição universal e o impacto duradouro da jornada, mostrando como a transformação pode ecoar em outras vidas
+  1. **IGNORAR E REMOVER** quaisquer citações numéricas entre colchetes (ex: [16], [25]) que possam aparecer no relatório. A descrição deve ser puramente narrativa e fluida, sem essas interrupções.
+  2. Estabelecer o ponto de partida emocional do protagonista, usando um detalhe específico do relatório como símbolo de sua dor ou estagnação
+  3. Introduzir o obstáculo ou crise desafiadora que ameaça o status quo, mostrando seu impacto humano real
+  4. Descrever a jornada de descoberta interna e externa, mencionando fatos concretos do relatório como marcos da transformação
+  5. Construir o clímax emocional no momento em que o protagonista faz uma escolha difícil que simboliza sua mudança — não necessariamente uma vitória, mas um compromisso com a ação
+  6. Terminar com a lição universal e o impacto duradouro da jornada, mostrando como a transformação pode ecoar em outras vidas
 
 - **"emotionalCore" (Núcleo Emocional):** Identifique o sentimento fundamental que a história busca evocar e transformar. Escolha UM dos seguintes e justifique implicitamente essa escolha no "videoDescription":
   * "Esperança em Meio ao Desespero" - Encontrar luz quando tudo parece escuro
@@ -393,11 +395,12 @@ __RAW_REPORT__
   * Relevância para discussões atuais sobre tecnologia e sociedade
 
 - **"videoDescription" (DESCRIÇÃO RICA E DETALHADA):** Uma sinopse de **pelo menos 5 frases** que deve:
-  1. Estabelecer um mundo futuro plausível onde uma tecnologia mencionada no relatório evoluiu e se tornou onipresente, mostrando como a adoção gradual mudou comportamentos, valores e estruturas sociais
-  2. Apresentar o protagonista e sua relação inicial com essa tecnologia, revelando suas esperanças ou dependências
-  3. Introduzir o conflito central quando a tecnologia revela sua face sombria, forçando uma crise de identidade ou moral
-  4. Explorar as implicações existenciais e sociais quando o paradigma se quebra, mostrando o custo humano da inovação
-  5. Terminar com uma pergunta que emerge organicamente da história, desafiando o espectador a repensar uma crença fundamental sobre si mesmo ou a sociedade
+  1. **IGNORAR E REMOVER** quaisquer citações numéricas entre colchetes (ex: [16], [25]) que possam aparecer no relatório. A descrição deve ser puramente narrativa e fluida, sem essas interrupções.
+  2. Estabelecer um mundo futuro plausível onde uma tecnologia mencionada no relatório evoluiu e se tornou onipresente, mostrando como a adoção gradual mudou comportamentos, valores e estruturas sociais
+  3. Apresentar o protagonista e sua relação inicial com essa tecnologia, revelando suas esperanças ou dependências
+  4. Introduzir o conflito central quando a tecnologia revela sua face sombria, forçando uma crise de identidade ou moral
+  5. Explorar as implicações existenciais e sociais quando o paradigma se quebra, mostrando o custo humano da inovação
+  6. Terminar com uma pergunta que emerge organicamente da história, desafiando o espectador a repensar uma crença fundamental sobre si mesmo ou a sociedade
 
 - **"coreDilemma" (Dilema Central):** Identifique o conflito ético ou existencial fundamental da história. Escolha UM dos seguintes e justifique implicitamente essa escolha no "videoDescription":
   * "Identidade vs Tecnologia" - Quando a tecnologia ameaça ou redefine o que significa ser humano
@@ -450,11 +453,12 @@ __RAW_REPORT__
   * Eficácia em transformar o mundano em ameaçador
 
 - **"videoDescription" (DESCRIÇÃO RICA E ATMOSFÉRICA):** Uma sinopse de **pelo menos 5 frases** que deve:
-  1. Estabelecer uma normalidade detalhada e reconfortante baseada em um dado do relatório
-  2. Introduzir uma pequena anomalia ou inconsistência aparentemente insignificante
-  3. Escalar progressivamente a tensão através de pelo menos três descobertas interligadas, cada uma mais perturbadora que a anterior
-  4. Quebrar completamente a percepção da realidade estabelecida, sem fornecer explicações claras
-  5. Terminar com uma implicação que emerge organicamente da história, sugerindo que a anomalia pode estar presente no mundo do espectador, sem confirmar ou negar
+  1. **IGNORAR E REMOVER** quaisquer citações numéricas entre colchetes (ex: [16], [25]) que possam aparecer no relatório. A descrição deve ser puramente narrativa e fluida, sem essas interrupções.
+  2. Estabelecer uma normalidade detalhada e reconfortante baseada em um dado do relatório
+  3. Introduzir uma pequena anomalia ou inconsistência aparentemente insignificante
+  4. Escalar progressivamente a tensão através de pelo menos três descobertas interligadas, cada uma mais perturbadora que a anterior
+  5. Quebrar completamente a percepção da realidade estabelecida, sem fornecer explicações claras
+  6. Terminar com uma implicação que emerge organicamente da história, sugerindo que a anomalia pode estar presente no mundo do espectador, sem confirmar ou negar
 
 - **"horrorMechanism" (Mecanismo de Terror):** Identifique o elemento psicológico específico que gera o horror. Escolha UM dos seguintes e justifique implicitamente essa escolha no "videoDescription":
   * "Perda da Sanidade" - Quando a personagem (e espectador) começa a questionar sua própria percepção
@@ -511,13 +515,14 @@ __RAW_REPORT__
 - **"scripturalFoundation" (Fundamentação Bíblica):** Liste 1-3 referências bíblicas-chave que sustentam a exploração teológica proposta, incluindo pelo menos uma do Antigo Testamento e uma do Novo Testamento.
 
 - **"videoDescription" (DESCRIÇÃO INVESTIGATIVA RICA):** Escreva uma sinopse de **pelo menos 7 frases** que construa uma narrativa intelectualmente estimulante. A descrição deve:
-    1. Apresentar o mistério central, citando a passagem bíblica principal.
-    2. Contextualizar a descoberta arqueológica/científica relevante.
-    3. Explorar as implicações teológicas preliminares dessa conexão.
-    4. Apresentar uma perspectiva teológica inovadora que desafia entendimentos convencionais.
-    5. Discutir como essa nova compreensão afeta a aplicação prática da fé.
-    6. Sugerir possíveis objeções e como seriam abordadas.
-    7. Terminar com uma pergunta provocativa que incentive tanto a reflexão teológica quanto a discussão prática.
+    1. **IGNORAR E REMOVER** quaisquer citações numéricas entre colchetes (ex: [16], [25]) que possam aparecer no relatório. A descrição deve ser puramente narrativa e fluida, sem essas interrupções.
+    2. Apresentar o mistério central, citando a passagem bíblica principal.
+    3. Contextualizar a descoberta arqueológica/científica relevante.
+    4. Explorar as implicações teológicas preliminares dessa conexão.
+    5. Apresentar uma perspectiva teológica inovadora que desafia entendimentos convencionais.
+    6. Discutir como essa nova compreensão afeta a aplicação prática da fé.
+    7. Sugerir possíveis objeções e como seriam abordadas.
+    8. Terminar com uma pergunta provocativa que incentive tanto a reflexão teológica quanto a discussão prática.
 
 - **"discussionQuestions" (Questões para Diálogo):** Formule 3 perguntas profundas que estimulem o engajamento do espectador, incluindo:
     * Uma questão teológica acadêmica
@@ -581,11 +586,12 @@ __RAW_REPORT__
   * Relevância para momentos atuais ou tendências sociais
 
 - **"videoDescription" (DESCRIÇÃO IRRESISTÍVEL):** Uma sinopse de **pelo menos 5 frases** que deve:
-  1. Começar com um gancho que gere curiosidade imediata
-  2. Apresentar 2-3 fatos específicos e impactantes do relatório
-  3. Construir uma narrativa com progressão lógica ou emocional: contexto, surpresa, consequência
-  4. Incluir pelo menos um "momento uau" baseado em um fato real que desafia expectativas
-  5. Terminar com um call-to-action implícito para compartilhamento
+  1. **IGNORAR E REMOVER** quaisquer citações numéricas entre colchetes (ex: [16], [25]) que possam aparecer no relatório. A descrição deve ser puramente narrativa e fluida, sem essas interrupções.
+  2. Começar com um gancho que gere curiosidade imediata
+  3. Apresentar 2-3 fatos específicos e impactantes do relatório
+  4. Construir uma narrativa com progressão lógica ou emocional: contexto, surpresa, consequência
+  5. Incluir pelo menos um "momento uau" baseado em um fato real que desafia expectativas
+  6. Terminar com um call-to-action implícito para compartilhamento
 
 - **"shareTriggers" (GATILHOS DE COMPARTILHAMENTO):** Liste 2-3 razões específicas, vinculadas diretamente ao ângulo da ideia, que explicam por que o espectador se sentiria compelido a compartilhar com alguém específico. Ex:
   * "Vou compartilhar com meu chefe porque mostra um erro comum em decisões estratégicas"
@@ -1799,7 +1805,7 @@ const renderUniversalIdeaCard = (idea, index, genre) => {
 
 
 
-// SUBSTITUA A SUA FUNÇÃO generateIdeasFromReport POR ESTA VERSÃO v7.0 COMPLETA E CORRIGIDA
+// SUBSTITUA A SUA FUNÇÃO generateIdeasFromReport POR ESTA VERSÃO COMPLETA E CORRIGIDA
 const generateIdeasFromReport = async (button) => {
     const factCheckOutput = document.getElementById('factCheckOutput');
     const { originalQuery, rawReport } = factCheckOutput.dataset;
@@ -1822,7 +1828,8 @@ const generateIdeasFromReport = async (button) => {
         // Limpamos o relatório de todas as citações numéricas como [11] ou [16, 25]
         const cleanedReport = rawReport.replace(/\[[\d, ]+\]/g, ''); 
         
-        // Agora, usamos o `cleanedReport` para criar o contexto para a IA
+        // Agora, usamos o `cleanedReport` para criar o contexto para a IA.
+        // O prompt que o usuário irá copiar já estará limpo.
         const promptContext = { originalQuery, rawReport: cleanedReport, languageName };
         const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
         
@@ -1859,8 +1866,6 @@ const generateIdeasFromReport = async (button) => {
         hideButtonLoading(button);
     }
 };
-
-
 
 
 
