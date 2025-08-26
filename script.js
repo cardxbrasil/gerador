@@ -4099,10 +4099,17 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
     }
 };
 
-// =========================================================================
-// >>>>> VERSÃO OTIMIZADA que NÃO SALVA o styleBlock repetidamente <<<<<
-// =========================================================================
-// SUBSTITUA A SUA FUNÇÃO window.generatePromptsForSection INTEIRA POR ESTA VERSÃO FINAL
+
+
+
+
+
+
+
+
+
+
+
 
 // =========================================================================
 // >>>>> COLE ESTA FUNÇÃO COMPLETA NO LUGAR DA ANTIGA <<<<<
@@ -4135,17 +4142,18 @@ window.generatePromptsForSection = async (button) => {
 
         if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
 
+        // >>> MUDANÇA CRÍTICA 1: ABANDONAMOS O BATCHING <<<
+        // Agora, criamos uma promessa de API para CADA parágrafo individualmente.
         const apiPromises = paragraphsWithContext.map((item, index) => {
             const visualPacing = document.getElementById('visualPacing').value;
             const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
             const durationRange = durationMap[visualPacing] || '3 e 8';
             
-            // Usando 100% do seu prompt original, com adaptações dinâmicas
+            // Usando 100% do seu prompt original, com adaptações para processar um único item
             const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar um parágrafo e transformá-lo em UMA descrição de imagem rica em detalhes.
 
 ## REGRAS DE FORMATAÇÃO (OBRIGATÓRIAS)
-// <<< MUDANÇA 1: Solicitamos um OBJETO JSON, não um array, para maior confiabilidade.
 1. **FORMATO JSON EXCLUSIVO**: Sua resposta deve ser APENAS um objeto JSON válido, começando com { e terminando com }
 2. **ASPAS DUPLAS OBRIGATÓRIAS**: Todas as chaves e valores de texto devem usar aspas duplas (")
 3. **PROIBIÇÃO DE ASPAS INTERNAS**: Nos valores de texto, use apenas aspas simples (') para ênfase
@@ -4153,7 +4161,7 @@ Você é uma especialista em criação de prompts visuais cinematográficos. Sua
 
 ## EXEMPLO DE FORMATAÇÃO CORRETA
 {
-  "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras. O cenário úmido e nevoento intensifica a sensação de isolamento. Profundidade de campo média mostra fundo desfocado com vitrines apagadas. Textura da jaqueta de couro encharcada e poças com reflexos distorcidos aumentam o realismo sensorial.",
+  "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras.",
   "estimated_duration": 6
 }
 
@@ -4190,12 +4198,14 @@ Para o parágrafo, crie uma descrição visual rica respondendo a estas pergunta
 ---
 
 ## AÇÃO FINAL
-// <<< MUDANÇA 2: Ação final focada em um único resultado.
 Com base nestas instruções, gere um único objeto JSON para este parágrafo, seguindo rigorosamente todas as regras de formatação.`;
 
+            // Retorna a chamada da API como uma promessa que resolverá para um objeto JSON
             return callGroqAPI(forceLanguageOnPrompt(prompt), 1000).then(getRobustJson);
         });
 
+        // >>> MUDANÇA CRÍTICA 2: EXECUTAMOS TODAS AS PROMESSAS EM PARALELO <<<
+        // Isso vai esperar que TODAS as chamadas individuais à IA terminem.
         const allGeneratedPrompts = await Promise.all(apiPromises);
 
         if (!Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length < paragraphsWithContext.length) {
@@ -4221,7 +4231,7 @@ Com base nestas instruções, gere um único objeto JSON para este parágrafo, s
                 <div class="prompt-items-container space-y-4"></div>
             </div>
         `;
-        renderPaginatedPrompts(sectionId);
+        renderPaginatedPrompts(sectionId); // Renderiza os resultados
 
     } catch (error) {
         promptContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">${error.message}</p>`;
