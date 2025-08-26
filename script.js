@@ -1917,14 +1917,13 @@ const getGenreFromIdea = (idea) => {
 
 
 
-// FUNÇÃO selectIdea FINAL E 100% CONFIÁVEL (NÃO USA a consultora de IA)
-// SUBSTITUA SUA FUNÇÃO 'selectIdea' INTEIRA POR ESTA VERSÃO CORRIGIDA:
+// SUBSTITUA SUA FUNÇÃO 'selectIdea' INTEIRA POR ESTA VERSÃO À PROVA DE BALAS:
 const selectIdea = (idea) => {
     const genre = getGenreFromIdea(idea);
     AppState.inputs.selectedGenre = genre;
     const mapper = strategyMapper[genre];
 
-    // Preenchimento dos dropdowns
+    // Preenchimento dos dropdowns (sem mudanças)
     if (mapper && mapper.dropdowns) {
         for (const id in mapper.dropdowns) {
             const element = document.getElementById(id);
@@ -1936,20 +1935,17 @@ const selectIdea = (idea) => {
     updateNarrativeStructureOptions();
     updateMainTooltip();
 
-    // 1. Define a estratégia base com valores padrão sólidos.
+    // 1. Define a estratégia base usando concatenação de string (+) para máxima segurança
     let strategy = {
-        narrativeTheme: idea.angle || `Explorar o tema central de "${idea.title}".`,
-        centralQuestion: `Qual é o mistério ou a principal questão por trás de "${idea.title}"?`,
-        // ==========================================================
-        // >>>>> A CORREÇÃO DO ERRO DE SINTAXE ESTÁ AQUI <<<<<
-        emotionalHook: `Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.`,
-        // ==========================================================
+        narrativeTheme: idea.angle || "Explorar o tema central de \"" + idea.title + "\".",
+        centralQuestion: "Qual é o mistério ou a principal questão por trás de \"" + idea.title + "\"?",
+        emotionalHook: "Comece com uma anedota ou uma micro-história que conecte o tema '" + idea.title + "' a uma experiência humana universal.",
         narrativeVoice: 'Confiante e Esclarecedor',
-        shockingEndingHook: ``,
-        researchData: `Buscar 1-2 estatísticas ou citações que reforcem a mensagem principal de "${idea.title}".`
+        shockingEndingHook: "",
+        researchData: "Buscar 1-2 estatísticas ou citações que reforcem a mensagem principal de \"" + idea.title + "\"."
     };
 
-    // 2. Sobrescreve a base APENAS com valores VÁLIDOS do especialista.
+    // 2. Sobrescreve a base APENAS com valores VÁLIDOS do especialista
     if (mapper) {
         for (const key in mapper) {
             if (key !== 'dossier' && key !== 'dropdowns') {
@@ -1961,7 +1957,7 @@ const selectIdea = (idea) => {
         }
     }
 
-    // 3. Aplica a estratégia final na interface.
+    // 3. Aplica a estratégia final na interface
     for (const id in strategy) {
         const element = document.getElementById(id);
         if (element) element.value = strategy[id];
@@ -1969,11 +1965,11 @@ const selectIdea = (idea) => {
     
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
-    const dossierContent = mapper ? mapper.dossier(idea) : `- Ângulo Único: ${idea.angle || 'N/A'}`;
-    const fullDescription = `${idea.videoDescription || ''}\n\n--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n${dossierContent.trim()}`;
+    const dossierContent = mapper ? mapper.dossier(idea) : "- Ângulo Único: " + (idea.angle || 'N/A');
+    const fullDescription = (idea.videoDescription || '') + "\n\n--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n" + dossierContent.trim();
     document.getElementById('videoDescription').value = fullDescription;
     
-    window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
+    window.showToast("Ideia selecionada! Estratégia pré-preenchida.", "success");
     showPane('strategy');
     document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
 };
