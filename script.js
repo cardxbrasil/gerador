@@ -1917,13 +1917,14 @@ const getGenreFromIdea = (idea) => {
 
 
 
-// SUBSTITUA SUA FUNÇÃO 'selectIdea' INTEIRA POR ESTA VERSÃO À PROVA DE FALHAS:
+// FUNÇÃO selectIdea FINAL E 100% CONFIÁVEL (NÃO USA a consultora de IA)
+// SUBSTITUA SUA FUNÇÃO 'selectIdea' INTEIRA POR ESTA VERSÃO CORRIGIDA:
 const selectIdea = (idea) => {
     const genre = getGenreFromIdea(idea);
     AppState.inputs.selectedGenre = genre;
     const mapper = strategyMapper[genre];
 
-    // Preenchimento dos dropdowns (sem mudanças)
+    // Preenchimento dos dropdowns
     if (mapper && mapper.dropdowns) {
         for (const id in mapper.dropdowns) {
             const element = document.getElementById(id);
@@ -1939,7 +1940,10 @@ const selectIdea = (idea) => {
     let strategy = {
         narrativeTheme: idea.angle || `Explorar o tema central de "${idea.title}".`,
         centralQuestion: `Qual é o mistério ou a principal questão por trás de "${idea.title}"?`,
+        // ==========================================================
+        // >>>>> A CORREÇÃO DO ERRO DE SINTAXE ESTÁ AQUI <<<<<
         emotionalHook: `Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.`,
+        // ==========================================================
         narrativeVoice: 'Confiante e Esclarecedor',
         shockingEndingHook: ``,
         researchData: `Buscar 1-2 estatísticas ou citações que reforcem a mensagem principal de "${idea.title}".`
@@ -1950,20 +1954,14 @@ const selectIdea = (idea) => {
         for (const key in mapper) {
             if (key !== 'dossier' && key !== 'dropdowns') {
                 const newValue = mapper[key](idea);
-                
-                // ==========================================================
-                // >>>>> ESTA É A LÓGICA QUE CORRIGE O BUG DE VEZ <<<<<
-                // Só atualizamos o valor se o especialista retornar algo 
-                // que não seja nulo ou indefinido.
                 if (newValue !== undefined && newValue !== null) {
                     strategy[key] = newValue;
                 }
-                // ==========================================================
             }
         }
     }
 
-    // 3. Aplica a estratégia final e já corrigida na interface.
+    // 3. Aplica a estratégia final na interface.
     for (const id in strategy) {
         const element = document.getElementById(id);
         if (element) element.value = strategy[id];
