@@ -2179,88 +2179,79 @@ const getBasePromptContext = (options = {}) => {
 
 
 // ==========================================================
-// ===== CONSTRUTOR DE PROMPT MESTRE (v8.0 - CORREÇÃO SIMPLES E FINAL) =====
+// ===== CONSTRUTOR DE PROMPT MESTRE (v9.1 - RESPEITANDO OS TEMPLATES) =====
 // ==========================================================
 const buildMasterPrompt = () => {
-    // 1. Coleta todas as informações da UI e do estado
+    // 1. Coleta o CONTEXTO GERAL (informações que NÃO estão nos placeholders dos especialistas)
+    // Usamos 'includeHeavyContext: true' para garantir que Dossiê, Âncora Humana, etc., sejam incluídos.
     const baseContext = getBasePromptContext({ includeHeavyContext: true }); 
-    const durationKey = document.getElementById('videoDuration').value; 
+    
+    // 2. Coleta os DETALHES TÉCNICOS (Duração, Ritmo, etc.)
+    const durationKey = document.getElementById('videoDuration').value;
     const durationText = document.getElementById('videoDuration').options[document.getElementById('videoDuration').selectedIndex].text;
     const visualPacing = document.getElementById('visualPacing').options[document.getElementById('visualPacing').selectedIndex].text;
-    const genre = AppState.inputs.selectedGenre || 'geral'; 
-    const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
-    const tone = document.getElementById('narrativeTone')?.value || '';
-
-    // 2. Calcula as contagens de palavras
-    const counts = wordCountMap[durationKey] || {};
-    const totalWords = Object.values(counts).reduce((a, b) => a + b, 0);
-    
-    const wordCountGuidance = totalWords > 0 
-        ? `O roteiro completo deve ter aproximadamente ${totalWords} palavras.` 
-        : "O roteiro deve ter uma duração apropriada para o tempo selecionado.";
+    const totalWords = Object.values(wordCountMap[durationKey] || {}).reduce((a, b) => a + b, 0);
+    const wordCountGuidance = totalWords > 0 ? `O roteiro completo deve ter aproximadamente ${totalWords} palavras.` : "";
 
     const technicalDetails = `
 ### DETALHES TÉCNICOS E DE RITMO ###
-- **Duração Desejada do Vídeo:** ${durationText}
-- **Ritmo Visual (Guia para a escrita):** ${visualPacing}
-- **META DE TEXTO (Instrução Crítica):** ${wordCountGuidance}
+- Duração Desejada do Vídeo: ${durationText}
+- Ritmo Visual (Guia para a escrita): ${visualPacing}
+- META DE TEXTO (Instrução Crítica): ${wordCountGuidance}
 `;
 
-    // 3. Pega o template de texto puro da getScriptPrompt
+    // 3. Pega o template do especialista (COMPLETO E SEM ALTERAÇÕES)
+    const genre = AppState.inputs.selectedGenre || 'geral';
     let masterPrompt = PromptManager.getScriptPrompt(genre, baseContext, technicalDetails, durationKey);
+
+    // ================================================================
+    // >>>>> 4. PREENCHIMENTO PRECISO DOS PLACEHOLDERS <<<<<
+    // ================================================================
+
+    // 4a. Pega os valores diretamente dos campos de input da tela
+    const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
+    const tone = document.getElementById('narrativeTone')?.value || '';
+    const specialistHookData = document.getElementById('specialistHookInput')?.value || ''; // O campo que guarda a info chave
+    const researchData = document.getElementById('researchData')?.value || ''; // O campo de pesquisa
+    const narrativeTheme = document.getElementById('narrativeTheme')?.value || ''; // O tema
     
-    // 4. Inicia o processo de substituição de placeholders
-    
-    // 4a. Substitui placeholders de contagem de palavras
+    // 4b. Substitui os placeholders de contagem de palavras
+    const counts = wordCountMap[durationKey] || {};
     masterPrompt = masterPrompt.replace(/__TOTAL_WORDS__/g, totalWords);
     masterPrompt = masterPrompt.replace(/__INTRO_WORDS__/g, counts.intro || 100);
     masterPrompt = masterPrompt.replace(/__DEV_WORDS__/g, counts.development || 500);
     masterPrompt = masterPrompt.replace(/__CLIMAX_WORDS__/g, counts.climax || 200);
     masterPrompt = masterPrompt.replace(/__CONCLUSION_WORDS__/g, counts.conclusion || 150);
 
-    // 4b. Substitui placeholders globais
+    // 4c. Substitui os placeholders de texto globais
     masterPrompt = masterPrompt.replace(/__LANGUAGE_NAME__/g, languageName);
     masterPrompt = masterPrompt.replace(/__TONE__/g, tone);
-
-    // ================================================================
-    // >>>>> A CORREÇÃO SIMPLES E EFICAZ ESTÁ AQUI <<<<<
-    // ================================================================
     
-    // 4c. Lê os dados dos campos de estratégia existentes
-    const researchData = document.getElementById('researchData')?.value || '';
-    const emotionalHook = document.getElementById('emotionalHook')?.value || '';
-    const narrativeTheme = document.getElementById('narrativeTheme')?.value || '';
-    
-    // 4d. Substitui os placeholders específicos de cada especialista com os dados lidos
+    // 4d. Substitui os placeholders específicos de cada especialista
+    // A lógica agora é direta: o placeholder recebe o valor do campo correspondente.
     switch (genre) {
         case 'documentario':
-            // O 'investigativeApproach' é colocado no campo 'researchData' pelo strategyMapper
-            masterPrompt = masterPrompt.replace(/__INVESTIGATIVE_APPROACH__/g, researchData);
+            masterPrompt = masterPrompt.replace(/__INVESTIGATIVE_APPROACH__/g, specialistHookData);
             break;
         case 'inspiracional':
-            // O 'emotionalCore' inspira o campo 'emotionalHook'
-            masterPrompt = masterPrompt.replace(/__EMOTIONAL_CORE__/g, emotionalHook);
+            masterPrompt = masterPrompt.replace(/__EMOTIONAL_CORE__/g, specialistHookData);
             break;
         case 'scifi':
-            // O 'coreDilemma' inspira o campo 'narrativeTheme'
-            masterPrompt = masterPrompt.replace(/__CORE_DILEMMA__/g, narrativeTheme);
+            masterPrompt = masterPrompt.replace(/__CORE_DILEMMA__/g, specialistHookData);
             break;
         case 'terror':
-            // O 'horrorMechanism' inspira o campo 'narrativeTheme'
-            masterPrompt = masterPrompt.replace(/__HORROR_MECHANISM__/g, narrativeTheme);
+            masterPrompt = masterPrompt.replace(/__HORROR_MECHANISM__/g, specialistHookData);
             break;
         case 'enigmas':
-            // A 'scripturalFoundation' é colocada no campo 'researchData'
-            masterPrompt = masterPrompt.replace(/__SCRIPTURAL_FOUNDATION__/g, researchData);
-            // 'theologicalDepth' é uma nota, não um texto, então não tem um placeholder direto no prompt do roteiro.
-            // O valor já está no dossiê, que faz parte do baseContext.
+            masterPrompt = masterPrompt.replace(/__SCRIPTURAL_FOUNDATION__/g, specialistHookData);
+            // 'theologicalDepth' não tem um campo de input, então ele não tem um placeholder aqui.
+            // A informação dele vive no Dossiê, que já está no `baseContext`.
+            masterPrompt = masterPrompt.replace(/__THEOLOGICAL_DEPTH__/g, 'N/A'); // Preenche para não deixar o placeholder vazio
             break;
         case 'geral':
-            // O 'angle' é colocado no campo 'narrativeTheme'
-            masterPrompt = masterPrompt.replace(/__ANGLE__/g, narrativeTheme);
-            // Para 'shareTriggers', precisaríamos de um campo dedicado ou extrair do Dossiê.
-            // Por simplicidade, vamos deixar vazio por enquanto se não estiver em um campo.
-            masterPrompt = masterPrompt.replace(/__SHARE_TRIGGERS__/g, '');
+            masterPrompt = masterPrompt.replace(/__ANGLE__/g, specialistHookData);
+            // O 'shareTriggers' não tem um campo dedicado. Poderíamos usar o 'narrativeTheme' como fallback.
+            masterPrompt = masterPrompt.replace(/__SHARE_TRIGGERS__/g, narrativeTheme);
             break;
     }
 
