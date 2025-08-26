@@ -4104,6 +4104,9 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 // =========================================================================
 // SUBSTITUA A SUA FUNÇÃO window.generatePromptsForSection INTEIRA POR ESTA VERSÃO FINAL
 
+// =========================================================================
+// >>>>> COLE ESTA FUNÇÃO COMPLETA NO LUGAR DA ANTIGA <<<<<
+// =========================================================================
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -4132,88 +4135,67 @@ window.generatePromptsForSection = async (button) => {
 
         if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
 
-        // >>> MUDANÇA CRÍTICA 1: ABANDONAMOS O BATCHING <<<
-        // Agora, criamos uma promessa de API para CADA parágrafo.
         const apiPromises = paragraphsWithContext.map((item, index) => {
             const visualPacing = document.getElementById('visualPacing').value;
             const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
             const durationRange = durationMap[visualPacing] || '3 e 8';
             
+            // Usando 100% do seu prompt original, com adaptações dinâmicas
             const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
-
-Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar parágrafos e transformá-los em descrições de imagem ricas em detalhes.
+Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar um parágrafo e transformá-lo em UMA descrição de imagem rica em detalhes.
 
 ## REGRAS DE FORMATAÇÃO (OBRIGATÓRIAS)
-
-1. **FORMATO JSON EXCLUSIVO**: Sua resposta deve ser APENAS um array JSON válido, começando com [ e terminando com ]
+// <<< MUDANÇA 1: Solicitamos um OBJETO JSON, não um array, para maior confiabilidade.
+1. **FORMATO JSON EXCLUSIVO**: Sua resposta deve ser APENAS um objeto JSON válido, começando com { e terminando com }
 2. **ASPAS DUPLAS OBRIGATÓRIAS**: Todas as chaves e valores de texto devem usar aspas duplas (")
 3. **PROIBIÇÃO DE ASPAS INTERNAS**: Nos valores de texto, use apenas aspas simples (') para ênfase
-4. **ESTRUTURA PADRÃO**: Cada objeto deve ter exatamente duas chaves:
-   - "imageDescription" (string): descrição visual detalhada
-   - "estimated_duration" (número inteiro): duração estimada em segundos
+4. **ESTRUTURA PADRÃO**: O objeto deve ter exatamente duas chaves: "imageDescription" (string) e "estimated_duration" (número inteiro).
 
 ## EXEMPLO DE FORMATAÇÃO CORRETA
-
-[
-  {
-    "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras. O cenário úmido e nevoento intensifica a sensação de isolamento. Profundidade de campo média mostra fundo desfocado com vitrines apagadas. Textura da jaqueta de couro encharcada e poças com reflexos distorcidos aumentam o realismo sensorial.",
-    "estimated_duration": 6
-  },
-  {
-    "imageDescription": "Close-up em mãos trêmulas segurando uma carta antiga. A luz da manhã entra pela janela, destacando a textura do papel amarelado e a caligrafia tremida. Foco shallow com fundo suavizado revela uma cadeira vazia e um retrato emoldurado caído no chão. Estilo cinematográfico realista com paleta quente em sépia e dourado. A posição ligeiramente contrapicada da câmera enfatiza a vulnerabilidade do personagem. Gotas de chuva deslizam pelo vidro, refletindo memórias distantes.",
-    "estimated_duration": 5
-  }
-]
+{
+  "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras. O cenário úmido e nevoento intensifica a sensação de isolamento. Profundidade de campo média mostra fundo desfocado com vitrines apagadas. Textura da jaqueta de couro encharcada e poças com reflexos distorcidos aumentam o realismo sensorial.",
+  "estimated_duration": 6
+}
 
 ## CHECKLIST PARA CRIAÇÃO DA DESCRIÇÃO VISUAL
-
-Para cada parágrafo, crie uma descrição visual rica respondendo a estas perguntas:
-
+Para o parágrafo, crie uma descrição visual rica respondendo a estas perguntas:
 ### Elementos Visuais Principais
-- **Cenário e Ambiente**: Onde a cena acontece? Descreva o local, arquitetura, objetos e atmosfera sensorial (umidade, temperatura, silêncio)
-- **Composição Visual**: Quais elementos principais estão no quadro? Use regra dos terços, simetria ou desequilíbrio intencional
+- **Cenário e Ambiente**: Onde a cena acontece? Descreva o local, arquitetura, objetos e atmosfera sensorial.
+- **Composição Visual**: Quais elementos principais estão no quadro? Use regra dos terços, simetria ou desequilíbrio.
 - **Iluminação**: Qual a qualidade (dura, difusa), direção (contraluz, lateral) e fonte (natural, artificial) da luz?
-- **Paleta de Cores**: Quais cores dominam? Como elas refletem o estado emocional (ex: azul para tristeza, vermelho para tensão)?
-
+- **Paleta de Cores**: Quais cores dominam? Como elas refletem o estado emocional?
 ### Técnicas Cinematográficas
-- **Ângulo da Câmera**: Plano geral, médio, close, contrapicado, picado, drone, steadycam?
-- **Estilo Visual**: Estética clara (realista, vintage, anime, distópico, documental)?
-- **Foco e Profundidade**: Profundidade de campo rasa (shallow) ou ampla? O que está nítido e o que está desfocado?
-- **Movimento e Ação**: Há movimento de câmera (dolly, pan, zoom)? Há ação dos personagens ou elementos do ambiente?
-
+- **Ângulo da Câmera**: Plano geral, médio, close, contrapicado, picado, drone?
+- **Estilo Visual**: Estética clara (realista, vintage, distópico, documental)?
+- **Foco e Profundidade**: Profundidade de campo rasa (shallow) ou ampla?
+- **Movimento e Ação**: Há movimento de câmera ou de personagens?
 ### Elementos Emocionais e Narrativos
 - **Elementos Emocionais**: Quais aspectos visuais evocam emoção (solidão, tensão, esperança)?
 - **Expressões Faciais**: Como os olhos, boca e postura transmitem o estado interno?
-- **Símbolos Chave**: Objetos com significado narrativo (fotos, relógios, cartas, armas)?
-- **Texturas e Materiais**: Tecidos, metal, pele, poeira, água — como aumentam o realismo e a imersão?
-
+- **Símbolos Chave**: Objetos com significado narrativo (fotos, relógios, cartas)?
+- **Texturas e Materiais**: Tecidos, metal, pele, poeira, água — como aumentam a imersão?
 ### Contexto e Atmosfera
-- **Profundidade e Escala**: Camadas de profundidade (primeiro plano, fundo)? Sensação de vazio, aglomeração ou claustrofobia?
-- **Elementos Temporais ou Climáticos**: Hora do dia, estação, clima (chuva, neblina, vento)? Como afetam a cena?
+- **Profundidade e Escala**: Camadas de profundidade? Sensação de vazio, aglomeração ou claustrofobia?
+- **Elementos Temporais ou Climáticos**: Hora do dia, estação, clima (chuva, neblina, vento)?
 
 ## DIRETRIZES ADICIONAIS
-
-- Priorize elementos visuais que melhor representem a essência emocional e narrativa do parágrafo
-- Mantenha consistência de estilo entre prompts consecutivos (ex: mesma paleta, iluminação, estética)
-- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade da cena:
-  - Simples (close, poucos elementos): 2–4s
-  - Média (plano médio, ação leve): 5–7s
-  - Complexa (plano geral, múltiplos elementos): 8–10s
-- Se o texto for ambíguo, faça escolhas criativas coerentes com o tom geral (dramático, nostálgico, tenso)
+- Priorize elementos visuais que melhor representem a essência emocional e narrativa do parágrafo.
+- Para "estimated_duration", use um valor inteiro entre ${durationRange} segundos.
+- Se o texto for ambíguo, faça escolhas criativas coerentes com o tom geral (dramático, nostálgico, tenso).
 
 ## DADOS PARA ANÁLISE
 ---
 - Título do Capítulo (Guia Temático): "${item.chapter}"
 - Texto do Parágrafo: "${item.text}"
 ---
+
 ## AÇÃO FINAL
-Gere um único objeto JSON para este parágrafo, seguindo rigorosamente todas as regras.`;
-            
-// Retorna a chamada da API como uma promessa
+// <<< MUDANÇA 2: Ação final focada em um único resultado.
+Com base nestas instruções, gere um único objeto JSON para este parágrafo, seguindo rigorosamente todas as regras de formatação.`;
+
             return callGroqAPI(forceLanguageOnPrompt(prompt), 1000).then(getRobustJson);
         });
 
-        // >>> MUDANÇA CRÍTICA 2: EXECUTAMOS TODAS AS PROMESSAS EM PARALELO <<<
         const allGeneratedPrompts = await Promise.all(apiPromises);
 
         if (!Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length < paragraphsWithContext.length) {
@@ -4239,7 +4221,7 @@ Gere um único objeto JSON para este parágrafo, seguindo rigorosamente todas as
                 <div class="prompt-items-container space-y-4"></div>
             </div>
         `;
-        renderPaginatedPrompts(sectionId); // Chama a renderização com os dados prontos
+        renderPaginatedPrompts(sectionId);
 
     } catch (error) {
         promptContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">${error.message}</p>`;
@@ -4247,6 +4229,7 @@ Gere um único objeto JSON para este parágrafo, seguindo rigorosamente todas as
         hideButtonLoading(button);
     }
 };
+
 
 
 
