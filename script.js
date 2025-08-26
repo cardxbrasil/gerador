@@ -1917,20 +1917,13 @@ const getGenreFromIdea = (idea) => {
 
 
 
-// FUNÇÃO selectIdea FINAL E 100% CONFIÁVEL (NÃO USA a consultora de IA)
+// SUBSTITUA SUA FUNÇÃO 'selectIdea' INTEIRA POR ESTA VERSÃO À PROVA DE FALHAS:
 const selectIdea = (idea) => {
     const genre = getGenreFromIdea(idea);
-    
-    // ==========================================================
-    // >>>>> A CORREÇÃO CRUCIAL ESTÁ AQUI <<<<<
-    // Esta linha ATUALIZA a "memória" do app com o gênero
-    // da ideia que você ACABOU de selecionar.
     AppState.inputs.selectedGenre = genre;
-    // ==========================================================
-
     const mapper = strategyMapper[genre];
 
-    // 1. PREENCHIMENTO DOS DROPDOWNS DE FORMA DETERMINÍSTICA E RÁPIDA
+    // Preenchimento dos dropdowns (sem mudanças)
     if (mapper && mapper.dropdowns) {
         for (const id in mapper.dropdowns) {
             const element = document.getElementById(id);
@@ -1942,42 +1935,49 @@ const selectIdea = (idea) => {
     updateNarrativeStructureOptions();
     updateMainTooltip();
 
-    // 2. ESTRATÉGIA BASE (para garantir que nada fique em branco)
+    // 1. Define a estratégia base com valores padrão sólidos.
     let strategy = {
         narrativeTheme: idea.angle || `Explorar o tema central de "${idea.title}".`,
         centralQuestion: `Qual é o mistério ou a principal questão por trás de "${idea.title}"?`,
         emotionalHook: `Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.`,
         narrativeVoice: 'Confiante e Esclarecedor',
-        shockingEndingHook: `Crie uma frase de abertura enigmática que só fará sentido no final, como: "A resposta nunca esteve no futuro, mas enterrada no passado."`,
+        shockingEndingHook: ``,
         researchData: `Buscar 1-2 estatísticas ou citações que reforcem a mensagem principal de "${idea.title}".`
     };
 
-    // 3. ESPECIALIZAÇÃO (sobrescreve a base com dados de texto específicos)
+    // 2. Sobrescreve a base APENAS com valores VÁLIDOS do especialista.
     if (mapper) {
         for (const key in mapper) {
             if (key !== 'dossier' && key !== 'dropdowns') {
-                strategy[key] = mapper[key](idea);
+                const newValue = mapper[key](idea);
+                
+                // ==========================================================
+                // >>>>> ESTA É A LÓGICA QUE CORRIGE O BUG DE VEZ <<<<<
+                // Só atualizamos o valor se o especialista retornar algo 
+                // que não seja nulo ou indefinido.
+                if (newValue !== undefined && newValue !== null) {
+                    strategy[key] = newValue;
+                }
+                // ==========================================================
             }
         }
     }
 
-    // 4. APLICA A ESTRATÉGIA DE TEXTO
+    // 3. Aplica a estratégia final e já corrigida na interface.
     for (const id in strategy) {
         const element = document.getElementById(id);
         if (element) element.value = strategy[id];
     }
     
-    // 5. PREENCHE O RESTO E MONTA O DOSSIÊ
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
     const dossierContent = mapper ? mapper.dossier(idea) : `- Ângulo Único: ${idea.angle || 'N/A'}`;
     const fullDescription = `${idea.videoDescription || ''}\n\n--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n${dossierContent.trim()}`;
     document.getElementById('videoDescription').value = fullDescription;
     
-    // 6. FEEDBACK E NAVEGAÇÃO
     window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
     showPane('strategy');
-    document.querySelector('[data-tab="input-tab-basico"]')?.click();
+    document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
 };
 
 
