@@ -2123,6 +2123,9 @@ if (includeHeavyContext) {
     if (heavyInputs.researchData) context += `\n\n${labels.research}\n${heavyInputs.researchData}`;
 }
 
+    return context;
+};
+
 
 
 
