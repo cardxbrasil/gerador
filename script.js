@@ -117,6 +117,7 @@ You are generating an image that must be **indistinguishable from a real photogr
     'epic': {
         name: 'Realismo Épico e Natural',
         block: `
+
 #cinematic film still, shot on Panavision System 65, 70mm film, with a 40mm lens at f/2.8. Photography by Emmanuel Lubezki. Lit only by the raw, low sun of late afternoon, creating deep, soft shadows and preserving highlight detail. Tangible atmosphere, with visible breath in the cold air and dust motes in the light. Ultra-realistic, weathered skin with visible pores, and organic imperfections on all surfaces. A feeling of continuous, fluid movement, with subtle motion blur on the extremities.
 
 --no cgi, 3d render, video game, perfect skin, airbrushed, studio lighting, artificial, clean, polished, flawless, sharp focus everywhere, digital art, cartoon, oversaturated`
@@ -124,6 +125,7 @@ You are generating an image that must be **indistinguishable from a real photogr
     'suspense': {
         name: 'Suspense Sombrio e Controlado',
         block: `
+
 #cinematic film still, meticulously composed. Cinematography by Roger Deakins. Shot on ARRI Alexa LF with a 35mm Cooke S4 lens. A single, harsh key light source from the side or above carves subjects out of the darkness, creating sharp, dramatic shadows. Desaturated and controlled color palette, focusing on blacks, greys, and a single muted accent color. Immense depth and scale, with a clean, razor-sharp focus on the subject and heavy falloff into shadow.
 
 --no flat lighting, soft shadows, multiple light sources, cluttered, messy composition, bright colors, oversaturated, friendly, warm, cgi, 3d render, video game, blurry, out of focus`
@@ -131,6 +133,7 @@ You are generating an image that must be **indistinguishable from a real photogr
     'nostalgico': {
         name: 'Sonhador e Nostálgico',
         block: `
+
 #cinematic film still, shot on 35mm Kodak Vision3 500T film with a vintage anamorphic lens. Dreamy and nostalgic atmosphere. Soft, hazy light filtering through a window or trees, creating prominent, warm lens flare and creamy, oval-shaped bokeh. Extremely shallow depth of field (f/1.4) focusing only on a single emotional detail. Colors are warm, slightly faded, with a gentle, authentic film grain. Feels like a captured, imperfect memory.
 
 --no sharp, crisp, digital, modern, clean, perfect focus, deep depth of field, no grain, realistic, harsh lighting, bright, cgi, 3d render, video game, sterile, cold colors`
@@ -138,6 +141,7 @@ You are generating an image that must be **indistinguishable from a real photogr
     'urbano': {
         name: 'Realismo Urbano e Texturizado',
         block: `
+
 #cinematic film still, shot on a handheld ARRI Alexa Mini with a vintage anamorphic lens. Cinematography by Greig Fraser. Lit by practical, motivated light sources from the environment (neon signs, streetlights, headlights), casting realistic reflections on wet, gritty surfaces. Ultra-realistic textures showing wear, dust, and moisture. Shallow depth of field with distinct oval bokeh and subtle motion blur, giving a visceral, grounded feeling. Muted but rich color palette.
 
 --no studio lighting, clean, polished, perfect, flawless, static, tripod shot, cgi, 3d render, video game, cartoon, bright, sunny day, sterile, smooth surfaces, no texture`
@@ -145,6 +149,7 @@ You are generating an image that must be **indistinguishable from a real photogr
     'classico': {
         name: 'Clássico e Elegante',
         block: `
+
 #cinematic film still, reminiscent of a Caravaggio painting. Cinematography by Gordon Willis. Shot on Kodak 5247 film stock from the 1970s. Lit by a single, hard top-light (a "godfather light") that leaves the eyes in deep shadow, creating mystery and power. Rich, dark tones and a warm, golden-brown color palette. Composition is formal, balanced, and heavy with meaning. Visible, pleasant film grain. Avoids any hint of modern digital sharpness.
 
 --no bright, evenly lit, fill light, modern, digital, sharp, cgi, 3d render, video game, lens flare, clean, new, futuristic, blue tones, cool colors, happy, vibrant`
@@ -4199,9 +4204,9 @@ window.generatePromptsForSection = async (button) => {
 
 
 const prompt = `
-# INSTRUÇÕES PARA GERAÇÃO DE DESCRIÇÕES VISUAIS CINEMATOGRÁFICAS
+# INSTRUÇÕES PARA GERAÇÃO DE ROTEIROS VISUAIS (NÍVEL MESTRE)
 
-Você é um especialista em roteirização visual e direção de fotografia. Sua única função é transformar parágrafos narrativos em descrições visuais cinematográficas detalhadas, formatadas em JSON, capturando a essência emocional e sensorial da cena.
+Você é um "Tradutor de Subtexto", um especialista em converter a alma de uma narrativa em roteiros visuais de altíssima densidade emocional e simbólica. Sua função é dissecar um parágrafo e gerar um JSON que não apenas descreve a cena, mas revela seu significado oculto através de escolhas cinematográficas deliberadas.
 
 ## REGRAS ABSOLUTAS DE FORMATO
 
@@ -4212,52 +4217,36 @@ Você é um especialista em roteirização visual e direção de fotografia. Sua
    - "imageDescription": string descritiva, rica em detalhes visuais
    - "estimated_duration": número inteiro (2 a 10)
 
-## FORMATO DE SAÍDA CORRETO (EXEMPLO)
+## PROCEDIMENTO DE ANÁLISE CINEMATOGRÁFICA (CHECKLIST DE SUBTEXTO)
 
-[
-  {
-    "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras. O cenário úmido e nevoento intensifica a sensação de isolamento. Profundidade de campo média mostra fundo desfocado com vitrines apagadas. Textura da jaqueta de couro encharcada e poças com reflexos distorcidos aumentam o realismo sensorial.",
-    "estimated_duration": 6
-  },
-  {
-    "imageDescription": "Close-up em mãos trêmulas segurando uma carta antiga. A luz da manhã entra pela janela, destacando a textura do papel amarelado e a caligrafia tremida. Foco shallow com fundo suavizado revela uma cadeira vazia e um retrato emoldurado caído no chão. Estilo cinematográfico realista com paleta quente em sépia e dourado. A posição ligeiramente contrapicada da câmera enfatiza a vulnerabilidade do personagem. Gotas de chuva deslizam pelo vidro, refletindo memórias distantes.",
-    "estimated_duration": 5
-  }
-]
+Para cada parágrafo, construa a "imageDescription" respondendo a estas questões em uma prosa fluida e integrada:
 
-## PROCEDIMENTO DE ANÁLISE VISUAL (CHECKLIST EXECUTIVO APROFUNDADO)
+### 1. O SUBTEXTO: QUAL É A VERDADE NÃO DITA?
+- **Identifique a Emoção Subjacente**: Vá além do óbvio. Se o texto diz 'raiva', a emoção subjacente pode ser 'medo' ou 'impotência'. Declare essa verdade.
+- **Traduza o Subtexto em Símbolo**: Qual objeto, cor ou elemento na cena pode representar essa verdade oculta? (Ex: "um relógio parado simbolizando um futuro interrompido", "uma única planta verde em um quarto decadente representando uma esperança teimosa").
+- **Atmosfera Psicológica**: Descreva o ambiente como uma manifestação externa do estado interno do personagem. (Ex: "o quarto não está apenas bagunçado, ele é um reflexo do caos mental do personagem", "o silêncio opressor da neve lá fora espelha seu isolamento interior").
 
-Para cada parágrafo, gere uma cena visual respondendo com precisão a:
+### 2. A COMPOSIÇÃO COMO NARRATIVA: PODER E RELACIONAMENTO
+- **Geometria do Poder**: Como a composição define o status dos personagens? (Ex: "câmera em contrapicado para engrandecer sua dominância", "personagem espremido no canto inferior do quadro para enfatizar sua insignificância", "uso de espaço negativo vasto para destacar sua solidão").
+- **Coreografia Visual**: Descreva a cena como uma dança. Onde o olhar do espectador começa, para onde ele se move e onde ele repousa? (Ex: "o olhar é guiado pela linha da estrada, passando pelo carro batido e terminando no rosto chocado do sobrevivente").
+- **Mundo em Camadas**: Construa a profundidade com intenção. (Ex: "Primeiro plano: uma mão trêmula e desfocada. Plano principal: o rosto determinado do personagem. Fundo: a tempestade se aproximando, um presságio do conflito iminente").
 
-### 1. O CORAÇÃO DA CENA: EMOÇÃO E ATMOSFERA
-- **Qual é o sentimento central?**: Defina a emoção primária (ex: melancolia, tensão, admiração, alívio) e como o ambiente a reflete.
-- **Atmosfera Sensorial**: Vá além do visual. Descreva o que se pode **sentir**: o frio úmido que penetra nas roupas, o calor seco do deserto, o silêncio pesado de uma sala vazia, o cheiro de ozônio após a chuva.
-- **Paleta Emocional**: Que cores dominam a cena e o que elas comunicam? (ex: "tons de azul-aço e cinza para transmitir frieza e isolamento", "luz dourada e quente para evocar nostalgia e conforto").
+### 3. A LUZ COMO PINCEL: REVELANDO E OCULTANDO
+- **A Intenção da Sombra**: O que as sombras escondem e por quê? (Ex: "uma sombra estratégica sobre os olhos para ocultar suas verdadeiras intenções", "sombras longas e distorcidas que transformam um ambiente familiar em algo ameaçador").
+- **A Textura da Luz**: Dê personalidade à luz. É uma "luz fria e cirúrgica que não oferece conforto", uma "luz dourada e nostálgica que banha a cena em uma memória idealizada", ou "feixes de luz fragmentados que representam uma clareza parcial e confusa"?
+- **Cor como Comentário**: A paleta de cores não apenas define o humor, ela comenta a ação. (Ex: "o vermelho vibrante de um vestido se destaca contra o fundo monocromático, simbolizando sua rebeldia e vitalidade", "a transição de tons quentes para frios conforme a esperança se esvai").
 
-### 2. O PALCO: CENÁRIO E COMPOSIÇÃO
-- **Narrativa do Ambiente**: O que o cenário conta sobre quem o habita? Descreva o estado das coisas: "móveis cobertos por lençóis brancos em uma casa abandonada", "ferramentas gastas e organizadas em uma oficina ativa", "desordem caótica de uma luta recente".
-- **Composição Focada**: Como os elementos são arranjados para guiar o olhar? Use termos como "personagem isolado no terço esquerdo do quadro", "linhas convergentes da arquitetura que levam ao ponto de fuga", "uma composição claustrofóbica com o teto baixo pressionando o personagem".
-- **Profundidade e Camadas**: Descreva o que está em cada plano para criar um mundo tridimensional. Primeiro plano (ex: "folhas desfocadas roçando a lente"), plano intermediário (o sujeito principal), fundo (ex: "montanhas distantes envoltas em névoa").
-
-### 3. A LUZ COMO PERSONAGEM: ILUMINAÇÃO
-- **Qualidade e Textura da Luz**: A luz é "afiada como uma faca", "suave como seda", "trêmula e incerta como a chama de uma vela"?
-- **Direção e Intenção**: De onde vem a luz e por quê? "Contraluz que transforma o personagem em uma silhueta misteriosa", "luz lateral que revela impiedosamente a textura e as imperfeições do rosto", "luz que vaza por uma fresta, simbolizando uma esperança frágil".
-- **Fonte Explícita**: Nomeie a fonte para dar autenticidade. "Luz do sol poeirenta entrando por uma janela de celeiro", "brilho frio e clínico de uma lâmpada fluorescente", "reflexos de um fogo crepitante dançando nas paredes".
-
-### 4. O FOCO DA HISTÓRIA: SUJEITO E DETALHES
-- **Linguagem Corporal**: Traduza a emoção em postura. "Ombros curvados sob o peso da derrota", "mãos cerradas em punhos de raiva contida", "um olhar perdido, fixo em um ponto além do horizonte".
-- **O Detalhe Revelador (O "Punctum")**: Qual é o único detalhe que conta a história inteira? "Uma única lágrima traçando um caminho limpo em um rosto sujo", "uma aliança de casamento sendo girada nervosamente no dedo", "as chaves do carro ainda balançando na ignição".
-- **Texturas que se Sentem**: Descreva as superfícies de uma forma que o espectador quase possa tocá-las. "A lã grossa e arranhada de um casaco velho", "o metal frio e liso de uma arma", "a pele enrugada e macia de um pêssego maduro".
+### 4. O MICROCOSMO DO DETALHE: O UNIVERSO EM UM GRÃO DE AREIA
+- **O Gesto Definitivo**: Isole o menor gesto que carrega o maior peso. (Ex: "o leve apertar dos lábios, traindo a dor que suas palavras negam", "o jeito como seus dedos alisam uma dobra no tecido, buscando um conforto que não existe").
+- **A História dos Objetos**: Dê uma biografia aos objetos-chave. (Ex: "a xícara de café não está apenas na mesa, ela tem uma pequena rachadura, assim como a relação deles", "o couro do volante está gasto e liso apenas onde suas mãos sempre repousam").
+- **Sinestesia Sensorial**: Descreva a cena de forma que outros sentidos sejam ativados. (Ex: "o ar é tão frio que o silêncio parece ter um som cristalino", "a poeira no ar é tão densa que se pode quase sentir seu gosto seco na boca", "o chiado baixo da madeira na lareira é o único som no quarto tenso").
 
 ## DIRETRIZES DE EXECUÇÃO
 
-- **Traduza, não invente**: Extraia a essência emocional e visual do parágrafo original e a amplifique.
-- **Mantenha consistência estética** entre cenas consecutivas (mesma paleta, iluminação, tom).
-- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade e no peso emocional da cena:
-  - 2–4s: Cenas focadas em um detalhe ou expressão (close-up, inserção).
-  - 5–7s: Cenas de interação ou movimento moderado (plano médio).
-  - 8–10s: Cenas que estabelecem um ambiente ou ação complexa (plano geral).
-- **Em caso de ambiguidade, decida com coerência emocional**: priorize o tom (drama, tensão, nostalgia).
+- **Seja um autor, não um observador**: Sua descrição deve ter um ponto de vista e uma intenção clara.
+- **Mantenha consistência simbólica** entre as cenas.
+- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na densidade simbólica e na complexidade emocional.
+- **Em caso de ambiguidade, escolha a opção que adiciona mais camadas de significado**.
 
 ## ENTRADA DE DADOS
 
@@ -4267,8 +4256,8 @@ ${batchText}
 
 ## INSTRUÇÃO FINAL
 
-Analise cada parágrafo, aplique o checklist aprofundado com rigor cinematográfico, e gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration".  
-**Nada além do array JSON deve ser retornado. Nenhum texto explicativo, nenhum comentário, nenhum acréscimo.**`;
+Disseque cada parágrafo com a precisão de um mestre cineasta e a alma de um poeta. Gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration". A descrição deve ser uma peça literária visual, rica em subtexto e poder emocional.  
+**Nada além do array JSON deve ser retornado.**`;
 
 
 
