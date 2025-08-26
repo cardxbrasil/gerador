@@ -114,35 +114,35 @@ You are generating an image that must be **indistinguishable from a real photogr
 
 
     },
-    'blade': {
-        name: 'Blade Runner 2049',
+    'epic': {
+        name: 'Realismo Épico e Natural',
         block: `
-# SUSPENSE SOMBRIO E CONTROLADO
-cinematic film still, meticulously composed. cinematography by Roger Deakins. dramatic, high-contrast lighting from a single key source, sculpting shapes out of darkness. controlled and desaturated color palette. shot on ARRI Alexa, pristine clarity in focus, with heavy falloff into soft shadows. immense depth and scale, with a clean, sharp, and intentional look. no digital artifacts, no cgi look.`
+# cinematic film still, shot on Panavision System 65, 70mm film, with a 40mm lens at f/2.8. Photography by Emmanuel Lubezki. Lit only by the raw, low sun of late afternoon, creating deep, soft shadows and preserving highlight detail. Tangible atmosphere, with visible breath in the cold air and dust motes in the light. Ultra-realistic, weathered skin with visible pores, and organic imperfections on all surfaces. A feeling of continuous, fluid movement, with subtle motion blur on the extremities.
+--no cgi, 3d render, video game, perfect skin, airbrushed, studio lighting, artificial, clean, polished, flawless, sharp focus everywhere, digital art, cartoon, oversaturated`
     },
-    'regresso': {
-        name: 'O Regresso',
+    'suspense': {
+        name: 'Suspense Sombrio e Controlado',
         block: `
-# REALISMO ÉPICO E NATURAL
-cinematic film still, shot on large format film for immense detail. photography by Emmanuel Lubezki. lit only by natural, raw light, creating deep, soft shadows. tangible atmosphere, with visible breath in the cold air and dust motes in the light. ultra-realistic textures, weathered skin, and organic imperfections. shallow depth of field, slight lens breathing, and a feeling of continuous movement.`
+# cinematic film still, meticulously composed. Cinematography by Roger Deakins. Shot on ARRI Alexa LF with a 35mm Cooke S4 lens. A single, harsh key light source from the side or above carves subjects out of the darkness, creating sharp, dramatic shadows. Desaturated and controlled color palette, focusing on blacks, greys, and a single muted accent color. Immense depth and scale, with a clean, razor-sharp focus on the subject and heavy falloff into shadow.
+--no flat lighting, soft shadows, multiple light sources, cluttered, messy composition, bright colors, oversaturated, friendly, warm, cgi, 3d render, video game, blurry, out of focus`
     },
-    'translation': {
-        name: 'Lost in Translation',
+    'nostalgico': {
+        name: 'Sonhador e Nostálgico',
         block: `
-# SONHADOR E NOSTALGICO
-cinematic film still, shot on 35mm Kodak Vision3 film. dreamy and nostalgic atmosphere. soft, diffused lighting, with prominent lens flare and bokeh. shallow depth of field focusing on emotional detail. colors are warm and slightly faded, with a gentle film grain. feels like a captured memory, imperfect and beautiful. photography by Hoyte van Hoytema.`
+#cinematic film still, shot on 35mm Kodak Vision3 500T film with a vintage anamorphic lens. Dreamy and nostalgic atmosphere. Soft, hazy light filtering through a window or trees, creating prominent, warm lens flare and creamy, oval-shaped bokeh. Extremely shallow depth of field (f/1.4) focusing only on a single emotional detail. Colors are warm, slightly faded, with a gentle, authentic film grain. Feels like a captured, imperfect memory.
+--no sharp, crisp, digital, modern, clean, perfect focus, deep depth of field, no grain, realistic, harsh lighting, bright, cgi, 3d render, video game, sterile, cold colors`
     },
-    'batman': {
-        name: 'The Batman ou Dune',
+    'urbano': {
+        name: 'Realismo Urbano e Texturizado',
         block: `
-# REALISMO URBANO E TEXTURIZADO
-cinematic film still, shot on anamorphic lens. cinematography by Greig Fraser. practical, motivated lighting that feels grounded in the environment. ultra-realistic and gritty textures, showing wear, dust, and moisture. shallow depth of field with distinct oval bokeh. subtle motion blur on movement. heavy, tangible atmosphere. colors are muted but rich. feels visceral and real.`
+#cinematic film still, shot on a handheld ARRI Alexa Mini with a vintage anamorphic lens. Cinematography by Greig Fraser. Lit by practical, motivated light sources from the environment (neon signs, streetlights, headlights), casting realistic reflections on wet, gritty surfaces. Ultra-realistic textures showing wear, dust, and moisture. Shallow depth of field with distinct oval bokeh and subtle motion blur, giving a visceral, grounded feeling. Muted but rich color palette.
+--no studio lighting, clean, polished, perfect, flawless, static, tripod shot, cgi, 3d render, video game, cartoon, bright, sunny day, sterile, smooth surfaces, no texture`
     },
-    'chefao': {
-        name: 'O Poderoso Chefão',
+    'classico': {
+        name: 'Clássico e Elegante',
         block: `
-# CLASSICO E ELEGANTE
-cinematic film still, reminiscent of a classic painting. cinematography by Gordon Willis. top-down lighting that often leaves eyes in shadow, creating mystery and power. rich, dark tones and a warm, golden color palette. shot on vintage 35mm film, with visible but pleasant film grain. composition is formal and balanced. every frame feels deliberate and heavy with meaning. avoids modern digital sharpness.`
+#cinematic film still, reminiscent of a Caravaggio painting. Cinematography by Gordon Willis. Shot on Kodak 5247 film stock from the 1970s. Lit by a single, hard top-light (a "godfather light") that leaves the eyes in deep shadow, creating mystery and power. Rich, dark tones and a warm, golden-brown color palette. Composition is formal, balanced, and heavy with meaning. Visible, pleasant film grain. Avoids any hint of modern digital sharpness.
+--no bright, evenly lit, fill light, modern, digital, sharp, cgi, 3d render, video game, lens flare, clean, new, futuristic, blue tones, cool colors, happy, vibrant`
     }
 
 
