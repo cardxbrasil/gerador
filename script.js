@@ -2179,10 +2179,10 @@ const getBasePromptContext = (options = {}) => {
 
 
 // ==========================================================
-// ===== CONSTRUTOR DE PROMPT MESTRE (v7.7 - CORREÇÃO FINAL) =====
+// ===== CONSTRUTOR DE PROMPT MESTRE (v7.8 - BUSCA INTELIGENTE) =====
 // ==========================================================
 const buildMasterPrompt = () => {
-    // 1. Coleta todas as informações da UI e do estado
+    // 1. Coleta todas as informações da UI e do estado (sem mudanças)
     const baseContext = getBasePromptContext({ includeHeavyContext: true }); 
     const durationKey = document.getElementById('videoDuration').value; 
     const durationText = document.getElementById('videoDuration').options[document.getElementById('videoDuration').selectedIndex].text;
@@ -2191,7 +2191,7 @@ const buildMasterPrompt = () => {
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
     const tone = document.getElementById('narrativeTone')?.value || '';
 
-    // 2. Calcula as contagens de palavras
+    // 2. Calcula as contagens de palavras (sem mudanças)
     const counts = wordCountMap[durationKey] || {};
     const totalWords = Object.values(counts).reduce((a, b) => a + b, 0);
     
@@ -2206,36 +2206,40 @@ const buildMasterPrompt = () => {
 - **META DE TEXTO (Instrução Crítica):** ${wordCountGuidance}
 `;
 
-    // 3. Pega o template de texto puro da getScriptPrompt
+    // 3. Pega o template de texto puro (sem mudanças)
     let masterPrompt = PromptManager.getScriptPrompt(genre, baseContext, technicalDetails);
     
-    // ==========================================================
-    // >>>>> 4. PROCESSO DE SUBSTITUIÇÃO CORRIGIDO <<<<<
-    // ==========================================================
+    // 4. Inicia o processo de substituição de placeholders
     
-    // 4a. Substitui placeholders de contagem de palavras
+    // 4a. Substitui placeholders de contagem de palavras (sem mudanças)
     masterPrompt = masterPrompt.replace(/__TOTAL_WORDS__/g, totalWords);
     masterPrompt = masterPrompt.replace(/__INTRO_WORDS__/g, counts.intro || 100);
     masterPrompt = masterPrompt.replace(/__DEV_WORDS__/g, counts.development || 500);
     masterPrompt = masterPrompt.replace(/__CLIMAX_WORDS__/g, counts.climax || 200);
     masterPrompt = masterPrompt.replace(/__CONCLUSION_WORDS__/g, counts.conclusion || 150);
 
-    // 4b. Substitui placeholders globais
+    // 4b. Substitui placeholders globais (sem mudanças)
     masterPrompt = masterPrompt.replace(/__LANGUAGE_NAME__/g, languageName);
     masterPrompt = masterPrompt.replace(/__TONE__/g, tone);
 
-    // 4c. Substitui placeholders específicos do especialista, lendo do "Dossiê"
+    // ================================================================
+    // >>>>> A CORREÇÃO ESTÁ AQUI, NA LÓGICA DE EXTRAÇÃO <<<<<
+    // ================================================================
     const videoDescription = document.getElementById('videoDescription').value;
-    const dossierMatch = videoDescription.match(/\*\*DOSSIÊ DA IDEIA\*\*[\s\S]*-([\s\S]*)/);
-    if (dossierMatch && dossierMatch[1]) {
-        const dossierText = dossierMatch[1];
+    const dossierMatch = videoDescription.match(/\*\*DOSSIÊ DA IDEIA\*\*[\s\S]*/); // Busca pelo início do dossiê
+    if (dossierMatch && dossierMatch[0]) {
+        const dossierText = dossierMatch[0];
         
+        // NOVA FUNÇÃO 'extractValue' - Mais inteligente e flexível
         const extractValue = (key) => {
-            const regex = new RegExp(`${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}: ([^\n]*)`);
+            // Esta expressão regular ignora hifens, asteriscos e espaços antes da chave.
+            // Ela captura tudo que vem depois de "Chave:" até o final da linha.
+            const regex = new RegExp(`^\\s*[-*]*\\s*${key.trim()}:\\s*(.+)`, "im");
             const match = dossierText.match(regex);
             return match ? match[1].trim() : '';
         };
 
+        // A lógica de substituição agora funcionará corretamente
         switch (genre) {
             case 'documentario':
                 masterPrompt = masterPrompt.replace(/__INVESTIGATIVE_APPROACH__/g, extractValue("Abordagem Investigativa"));
