@@ -4117,6 +4117,10 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 // =========================================================================
 // >>>>> VERSÃO FINAL (v10.0) - ARQUITETURA HÍBRIDA: LOTES DE PARÁGRAFOS <<<<<
 // =========================================================================
+// =========================================================================
+// >>>>> VERSÃO DEFINITIVA - COM SEU PROMPT ORIGINAL INTACTO <<<<<
+//       Substitua a sua função generatePromptsForSection por esta.
+// =========================================================================
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -4129,45 +4133,52 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando texto em lotes de parágrafos...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Dividindo roteiro em unidades visuais...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
         
-        // <<< ETAPA 1: Dividir o texto em parágrafos visuais >>>
-        const paragraphs = fullText.split(/\n\s*\n/).filter(p => p.trim());
+        // ETAPA 1: DIVISÃO POR FRASES PARA ALTA GRANULARIDADE
+        const phrases = fullText.replace(/([.?!])\s*(?=[A-ZÀ-Ú])/g, "$1|").split("|").filter(p => p.trim());
+        if (phrases.length === 0) { throw new Error("Não foram encontradas frases para analisar."); }
 
-        if (paragraphs.length === 0) { throw new Error("Não foram encontrados parágrafos para analisar."); }
-
-        // <<< ETAPA 2: Agrupar parágrafos em lotes gerenciáveis >>>
+        // ETAPA 2: AGRUPAMENTO DE FRASES EM LOTES PARA EVITAR TIMEOUT
         const batches = [];
-        const MAX_WORDS_PER_BATCH = 120; // Um limite seguro para o texto de entrada por chamada
+        const MAX_WORDS_PER_BATCH = 200;
         let currentBatch = [];
         let currentWordCount = 0;
 
-        for (const p of paragraphs) {
-            const wordCount = p.split(/\s+/).length;
+        for (const phrase of phrases) {
+            const wordCount = phrase.split(/\s+/).length;
             if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatch.length > 0) {
-                batches.push(currentBatch.join('\n\n'));
-                currentBatch = [p];
+                batches.push(currentBatch.join(' '));
+                currentBatch = [phrase];
                 currentWordCount = wordCount;
             } else {
-                currentBatch.push(p);
+                currentBatch.push(phrase);
                 currentWordCount += wordCount;
             }
         }
         if (currentBatch.length > 0) {
-            batches.push(currentBatch.join('\n\n'));
+            batches.push(currentBatch.join(' '));
         }
+        
+        console.log(`Roteiro dividido em ${phrases.length} frases, agrupadas em ${batches.length} lotes.`);
 
-        // <<< ETAPA 3: Processar cada lote com o prompt mestre detalhado >>>
+        // ETAPA 3: PROCESSAR CADA LOTE COM O SEU PROMPT MESTRE
         let allGeneratedPrompts = [];
-        for (const batchText of batches) {
+        
+        for (let i = 0; i < batches.length; i++) {
+            const batchText = batches[i];
+            promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
+
             const visualPacing = document.getElementById('visualPacing').value;
             const durationMap = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' };
             const durationRange = durationMap[visualPacing] || '8 a 15';
 
-
+            // ===========================================================
+            // >>>>> SEU PROMPT ORIGINAL, A ALMA DA FERRAMENTA, ESTÁ AQUI <<<<<
+            // ===========================================================
             const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 
 Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar parágrafos e transformá-los em descrições de imagem ricas em detalhes.
@@ -4239,23 +4250,20 @@ ${batchText}
 ## AÇÃO FINAL
 Analise o lote de roteiro, aplique o checklist para criar cenas ricas e detalhadas, e retorne **APENAS o array JSON único**, seguindo rigorosamente todas as regras.`;
 
-
-
-
             const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+            
             if (Array.isArray(jsonResponse)) {
-                // Adiciona os prompts deste lote ao resultado final
                 allGeneratedPrompts = allGeneratedPrompts.concat(jsonResponse);
             }
         }
         
         if (allGeneratedPrompts.length === 0) {
-            throw new Error("A IA não retornou nenhum prompt válido. O texto pode ser muito curto ou a resposta da API falhou.");
+            throw new Error("A IA não retornou nenhum prompt válido. O texto pode ser muito curto ou a resposta da API falhou em todos os lotes.");
         }
         
-        // O resto do código para renderizar a paginação permanece o mesmo
-        const curatedPrompts = allGeneratedPrompts.map(promptData => ({
-            scriptPhrase: promptData.script_phrase || "Trecho do roteiro",
+        // ETAPA 4: RENDERIZAR O RESULTADO COMPLETO
+        const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
+            scriptPhrase: phrases[index] || "Trecho do roteiro",
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
             estimated_duration: promptData.estimated_duration || 5
         }));
@@ -4276,6 +4284,7 @@ Analise o lote de roteiro, aplique o checklist para criar cenas ricas e detalhad
         renderPaginatedPrompts(sectionId);
 
     } catch (error) {
+        console.error("Erro detalhado na geração de prompts em lote por frases:", error);
         promptContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
