@@ -2112,13 +2112,22 @@ if (includeHeavyContext) {
         emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
     };
 
-    // A mágica está aqui: construímos o dossiê completo antes de adicioná-lo
-    let dossierContent = heavyInputs.videoDescription;
+    let fullDescriptionText = heavyInputs.videoDescription;
+    
+    // 1. Encontra e remove o dossiê antigo que foi colado na descrição.
+    const dossierSeparatorIndex = fullDescriptionText.indexOf('**DOSSIÊ DA IDEIA**');
+    if (dossierSeparatorIndex !== -1) {
+        fullDescriptionText = fullDescriptionText.substring(0, dossierSeparatorIndex).trim();
+    }
+    
+    // 2. Constrói um novo dossiê apenas com a descrição limpa e a Pergunta Central ATUAL.
+    let freshDossierContent = fullDescriptionText;
     if (heavyInputs.centralQuestion) {
-        dossierContent += `\n- ${labels.centralQuestion}: "${heavyInputs.centralQuestion}"`;
+        freshDossierContent += `\n- ${labels.centralQuestion}: "${heavyInputs.centralQuestion}"`;
     }
 
-    if (dossierContent) context += `\n\n${labels.dossier}\n${dossierContent}`;
+    // 3. Adiciona as seções ao prompt com os dados corretos e atualizados.
+    if (freshDossierContent) context += `\n\n${labels.dossier}\n${freshDossierContent}`;
     if (heavyInputs.emotionalHook) context += `\n\n${labels.emotionalAnchor}\n- ${labels.anchorStory}: "${heavyInputs.emotionalHook}"`;
     if (heavyInputs.researchData) context += `\n\n${labels.research}\n${heavyInputs.researchData}`;
 }
