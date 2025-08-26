@@ -4132,19 +4132,12 @@ window.generatePromptsForSection = async (button) => {
 
         if (paragraphsWithContext.length === 0) { throw new Error("Não foram encontrados parágrafos estruturados para análise."); }
 
-        const batchSize = 3;
-        const apiPromises = [];
-        const visualPacing = document.getElementById('visualPacing').value;
-        const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
-        const durationRange = durationMap[visualPacing] || '3 e 8';
-
-        for (let i = 0; i < paragraphsWithContext.length; i += batchSize) {
-            const batch = paragraphsWithContext.slice(i, i + batchSize);
-            let promptContextForAI = '';
-            batch.forEach((item, indexInBatch) => {
-                const globalIndex = i + indexInBatch;
-                promptContextForAI += `\nParágrafo ${globalIndex}:\n- Título do Capítulo (Guia Temático): "${item.chapter}"\n- Texto do Parágrafo: "${item.text}"`;
-            });
+        // >>> MUDANÇA CRÍTICA 1: ABANDONAMOS O BATCHING <<<
+        // Agora, criamos uma promessa de API para CADA parágrafo.
+        const apiPromises = paragraphsWithContext.map((item, index) => {
+            const visualPacing = document.getElementById('visualPacing').value;
+            const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
+            const durationRange = durationMap[visualPacing] || '3 e 8';
             
             const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 
@@ -4209,29 +4202,25 @@ Para cada parágrafo, crie uma descrição visual rica respondendo a estas pergu
 - Se o texto for ambíguo, faça escolhas criativas coerentes com o tom geral (dramático, nostálgico, tenso)
 
 ## DADOS PARA ANÁLISE
-
 ---
-${promptContextForAI}
+- Título do Capítulo (Guia Temático): "${item.chapter}"
+- Texto do Parágrafo: "${item.text}"
 ---
-
 ## AÇÃO FINAL
-
-Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no formato especificado, seguindo rigorosamente todas as regras de formatação.`;
+Gere um único objeto JSON para este parágrafo, seguindo rigorosamente todas as regras.`;
             
-            // >>>>> A CORREÇÃO ESTÁ AQUI <<<<<
-            const promise = callGroqAPI(forceLanguageOnPrompt(prompt), 4000)
-                .then(brokenJsonResponse => getRobustJson(brokenJsonResponse));
+// Retorna a chamada da API como uma promessa
+            return callGroqAPI(forceLanguageOnPrompt(prompt), 1000).then(getRobustJson);
+        });
 
-            apiPromises.push(promise);
-        }
+        // >>> MUDANÇA CRÍTICA 2: EXECUTAMOS TODAS AS PROMESSAS EM PARALELO <<<
+        const allGeneratedPrompts = await Promise.all(apiPromises);
 
-        const allBatchResults = await Promise.all(apiPromises);
-        let allGeneratedPrompts = allBatchResults.flat();
         if (!Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length < paragraphsWithContext.length) {
-            throw new Error("A IA não retornou um prompt para cada parágrafo.");
+            throw new Error("A IA não retornou um prompt para cada parágrafo. Tente novamente.");
         }
 
-        const curatedPrompts = allGeneratedPrompts.slice(0, paragraphsWithContext.length).map((promptData, index) => ({
+        const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
             scriptPhrase: paragraphsWithContext[index].text,
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
             estimated_duration: promptData.estimated_duration || 5
@@ -4239,7 +4228,7 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
 
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({
-            ...p, selectedStyle: defaultStyleKey // Agora salvamos a chave do estilo
+            ...p, selectedStyle: defaultStyleKey
         }));
         
         AppState.ui.promptPaginationState[sectionId] = 0;
@@ -4250,7 +4239,7 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
                 <div class="prompt-items-container space-y-4"></div>
             </div>
         `;
-        renderPaginatedPrompts(sectionId);
+        renderPaginatedPrompts(sectionId); // Chama a renderização com os dados prontos
 
     } catch (error) {
         promptContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">${error.message}</p>`;
@@ -4268,7 +4257,9 @@ Com base nestas instruções, gere exatamente ${batch.length} objetos JSON no fo
 
 
 
-
+// =========================================================================
+// >>>>> COLE ESTA FUNÇÃO COMPLETA NO LUGAR DA ANTIGA <<<<<
+// =========================================================================
 const renderPaginatedPrompts = (sectionElementId) => {
     const sectionElement = document.getElementById(sectionElementId);
     if (!sectionElement) return;
@@ -4285,19 +4276,29 @@ const renderPaginatedPrompts = (sectionElementId) => {
     if (!promptItemsContainer || !navContainer) return;
     promptItemsContainer.innerHTML = '';
     
+    // >>> MUDANÇA CRÍTICA: LÓGICA DE CÁLCULO DE OFFSET REFORÇADA <<<
     let cumulativeSeconds = 0;
     let globalSceneCounter = 1;
     const sectionOrder = ['introSection', 'developmentSection', 'climaxSection', 'conclusionSection', 'ctaSection'];
     const currentSectionIndex = sectionOrder.indexOf(sectionElementId);
 
+    // Itera por TODAS as seções ANTERIORES à atual
     for (let i = 0; i < currentSectionIndex; i++) {
-        const prevPrompts = AppState.generated.imagePrompts[sectionOrder[i]] || [];
-        prevPrompts.forEach(p => { cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0; });
+        const previousSectionId = sectionOrder[i];
+        const prevPrompts = AppState.generated.imagePrompts[previousSectionId] || [];
+        
+        // Acumula a duração e o número de cenas das seções passadas
+        prevPrompts.forEach(p => {
+            cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
+        });
         globalSceneCounter += prevPrompts.length;
     }
+    // >>> FIM DA MUDANÇA CRÍTICA <<<
     
     const startIndex = currentPage * itemsPerPage;
+    // Acumula o tempo das páginas anteriores DENTRO da seção atual
     prompts.slice(0, startIndex).forEach(p => { cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0; });
+    // Ajusta o contador de cena para o início da página atual
     globalSceneCounter += startIndex;
 
     const promptsToShow = prompts.slice(startIndex, startIndex + itemsPerPage);
@@ -4309,7 +4310,6 @@ const renderPaginatedPrompts = (sectionElementId) => {
         const timestamp = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         const sanitizedDescription = DOMPurify.sanitize(promptData.imageDescription);
 
-        // CRIA O DROPDOWN DE ESTILOS DINAMICAMENTE
         let styleOptionsHtml = '';
         for (const key in imageStyleLibrary) {
             const isSelected = key === promptData.selectedStyle ? 'selected' : '';
@@ -4321,8 +4321,6 @@ const renderPaginatedPrompts = (sectionElementId) => {
                 <div class="prompt-header" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
                     <span class="tag tag-scene"><i class="fas fa-film mr-2"></i>Cena ${String(sceneNumber).padStart(2, '0')}</span>
                     <span class="tag tag-time"><i class="fas fa-clock mr-2"></i>${timestamp}</span>
-                    
-                    <!-- CRIA O NOVO BOTÃO DE COPIAR INTELIGENTE -->
                     <button class="btn btn-ghost btn-small ml-auto" 
                             onclick="window.copyPromptWithStyle(${sceneNumber}, \`${sanitizedDescription.replace(/`/g, '\\`')}\`)" 
                             title="Copiar Prompt Completo com Estilo">
@@ -4331,8 +4329,6 @@ const renderPaginatedPrompts = (sectionElementId) => {
                 </div>
                 <p class="paragraph-preview" style="font-size: 0.85rem; font-style: italic; color: var(--text-muted); margin-bottom: 0.5rem;">"${DOMPurify.sanitize(promptData.scriptPhrase.substring(0, 100))}..."</p>
                 <p>${sanitizedDescription}</p>
-                
-                <!-- O NOVO SELETOR DE ESTILO -->
                 <div class="mt-3">
                     <select id="style-select-${sceneNumber}" class="input input-small w-full">
                         ${styleOptionsHtml}
@@ -4341,10 +4337,10 @@ const renderPaginatedPrompts = (sectionElementId) => {
             </div>
         `;
         promptItemsContainer.innerHTML += promptHtml;
+        // Acumula o tempo para a PRÓXIMA cena na mesma página
         cumulativeSeconds += parseInt(promptData.estimated_duration, 10) || 0;
     });
     
-    // O resto da lógica de paginação continua igual...
     if (totalPages > 1) {
         navContainer.innerHTML = `
             <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', -1)" ${currentPage === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
