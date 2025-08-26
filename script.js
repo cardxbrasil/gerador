@@ -656,7 +656,7 @@ Você é um Roteirista-Chefe e Diretor de Documentários Investigativos, com o r
 - **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
 
 **TAREFA CRÍTICA (FOCO NO TAMANHO):**
-Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente ${totalWords} palavras, distribuídas conforme o manual abaixo. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
+Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente __TOTAL_WORDS__ palavras, distribuídas conforme o manual abaixo. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
 
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
 1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um objeto JSON válido, começando com \`{\` e terminando com \`}\`.
@@ -666,13 +666,13 @@ Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadament
 5.  **NENHUMA EXPLICAÇÃO ADICIONAL:** Responda APENAS com o objeto JSON. Nada antes, nada depois.
 
 **MANUAL DE CRIAÇÃO DETALHADO (COM METAS DE PALAVRAS):**
-- **"introducao" (String, ~${counts.intro || 100} palavras):** Deve prender o espectador desde a primeira frase. Use um fato impactante, uma pergunta provocadora ou uma cena vívida. Estabeleça o tema, a urgência e a promessa do vídeo.
-- **"desenvolvimento" (String, ~${counts.development || 500} palavras):** Esta é a coluna vertebral do roteiro. Construa a narrativa com progressão lógica, integrando dados do relatório, contexto histórico e a âncora narrativa. Divida em parágrafos com \\n\\n. Cada parágrafo deve avançar a história.
-- **"climax" (String, ~${counts.climax || 200} palavras):** Entregue a revelação central com força. Mostre como os dados convergem para uma verdade oculta. Este momento deve ser o ponto de virada emocional e intelectual.
-- **"conclusao" (String, ~${counts.conclusion || 150} palavras):** Recapitule com profundidade. Reforce a mensagem principal com linguagem que ressoe no espectador. Deixe uma impressão duradoura.
+- **"introducao" (String, ~__INTRO_WORDS__ palavras):** Deve prender o espectador desde a primeira frase. Use um fato impactante, uma pergunta provocadora ou uma cena vívida. Estabeleça o tema, a urgência e a promessa do vídeo.
+- **"desenvolvimento" (String, ~__DEV_WORDS__ palavras):** Esta é a coluna vertebral do roteiro. Construa a narrativa com progressão lógica, integrando dados do relatório, contexto histórico e a âncora narrativa. Divida em parágrafos com \\n\\n. Cada parágrafo deve avançar a história.
+- **"climax" (String, ~__CLIMAX_WORDS__ palavras):** Entregue a revelação central com força. Mostre como os dados convergem para uma verdade oculta. Este momento deve ser o ponto de virada emocional e intelectual.
+- **"conclusao" (String, ~__CONCLUSION_WORDS__ palavras):** Recapitule com profundidade. Reforce a mensagem principal com linguagem que ressoe no espectador. Deixe uma impressão duradoura.
 - **"cta" (String, ~50 palavras):** Convide o espectador a continuar a jornada. Sugira ação: ler mais, refletir, compartilhar, se envolver. O chamado deve ser coerente com o tom e o tema.
 
-**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de ${totalWords} palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
+**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de __TOTAL_WORDS__ palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
 
 
 
@@ -693,7 +693,7 @@ Você é um Mestre em Storytelling Emocional, uma fusão entre um roteirista da 
 - **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
 
 **TAREFA CRÍTICA (FOCO NO TAMANHO):**
-Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente ${totalWords} palavras, distribuídas conforme o manual abaixo. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
+Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente __TOTAL_WORDS__ palavras, distribuídas conforme o manual abaixo. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
 
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
 1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um objeto JSON válido, começando com \`{\` e terminando com \`}\`.
@@ -703,13 +703,13 @@ Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadament
 5.  **NENHUMA EXPLICAÇÃO ADICIONAL:** Responda APENAS com o objeto JSON. Nada antes, nada depois.
 
 **MANUAL DE CRIAÇÃO DETALHADO (COM METAS DE PALAVRAS):**
-- **"introducao" (String, ~${counts.intro || 100} palavras):** Deve prender o espectador desde a primeira frase. Use uma cena vívida, um dado simbólico ou uma emoção crua. Estabeleça o tema, a dor inicial e a promessa de transformação.
-- **"desenvolvimento" (String, ~${counts.development || 500} palavras):** Esta é a coluna vertebral do roteiro. Construa a narrativa com progressão emocional, integrando dados do relatório, obstáculos reais e a âncora narrativa. Divida em parágrafos com \\n\\n. Cada parágrafo deve avançar a jornada.
-- **"climax" (String, ~${counts.climax || 200} palavras):** Entregue o momento de virada com força. Mostre como o protagonista confronta seu limite e escolhe mudar. Este momento deve ser o ponto de inflexão emocional.
-- **"conclusao" (String, ~${counts.conclusion || 150} palavras):** Recapitule com profundidade. Reforce a lição universal com linguagem que ressoe no espectador. Deixe uma impressão duradoura.
+- **"introducao" (String, ~__INTRO_WORDS__ palavras):** Deve prender o espectador desde a primeira frase. Use uma cena vívida, um dado simbólico ou uma emoção crua. Estabeleça o tema, a dor inicial e a promessa de transformação.
+- **"desenvolvimento" (String, ~__DEV_WORDS__ palavras):** Esta é a coluna vertebral do roteiro. Construa a narrativa com progressão emocional, integrando dados do relatório, obstáculos reais e a âncora narrativa. Divida em parágrafos com \\n\\n. Cada parágrafo deve avançar a jornada.
+- **"climax" (String, ~__CLIMAX_WORDS__ palavras):** Entregue o momento de virada com força. Mostre como o protagonista confronta seu limite e escolhe mudar. Este momento deve ser o ponto de inflexão emocional.
+- **"conclusao" (String, ~__CONCLUSION_WORDS__ palavras):** Recapitule com profundidade. Reforce a lição universal com linguagem que ressoe no espectador. Deixe uma impressão duradoura.
 - **"cta" (String, ~50 palavras):** Convide o espectador a viver a transformação. Sugira ação: refletir, compartilhar, tentar. O chamado deve ser coerente com o tom e o núcleo emocional.
 
-**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de ${totalWords} palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
+**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de __TOTAL_WORDS__ palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
 
 
 'scifi': `
@@ -729,7 +729,7 @@ Você é um futurista especulativo e roteirista-chefe da série "Black Mirror". 
 - **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
 
 **TAREFA CRÍTICA (FOCO NO TAMANHO):**
-Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente ${totalWords} palavras, distribuídas conforme o manual abaixo. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
+Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente __TOTAL_WORDS__ palavras, distribuídas conforme o manual abaixo. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
 
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
 1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um objeto JSON válido, começando com \`{\` e terminando com \`}\`.
@@ -739,13 +739,13 @@ Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadament
 5.  **NENHUMA EXPLICAÇÃO ADICIONAL:** Responda APENAS com o objeto JSON. Nada antes, nada depois.
 
 **MANUAL DE CRIAÇÃO DETALHADO (COM METAS DE PALAVRAS):**
-- **"introducao" (String, ~${counts.intro || 100} palavras):** Deve prender o espectador com uma cena cotidiana que esconde o perigo. Estabeleça o mundo, a tecnologia e a falsa sensação de segurança. Use um detalhe do relatório como semente.
-- **"desenvolvimento" (String, ~${counts.development || 500} palavras):** Construa a narrativa com tensão crescente. Cada parágrafo deve revelar uma nova camada de desumanização. Divida em parágrafos com \\n\\n. Integre a âncora narrativa e o dilema central.
-- **"climax" (String, ~${counts.climax || 200} palavras):** Entregue a revelação com força. Mostre como a tecnologia redefine o que é humano. Este momento deve ser silencioso, mas devastador.
-- **"conclusao" (String, ~${counts.conclusion || 150} palavras):** Mostre o custo da verdade. O protagonista não vence — ele sobrevive. Reforce o tom sombrio com linguagem crua.
+- **"introducao" (String, ~__INTRO_WORDS__ palavras):** Deve prender o espectador com uma cena cotidiana que esconde o perigo. Estabeleça o mundo, a tecnologia e a falsa sensação de segurança. Use um detalhe do relatório como semente.
+- **"desenvolvimento" (String, ~__DEV_WORDS__ palavras):** Construa a narrativa com tensão crescente. Cada parágrafo deve revelar uma nova camada de desumanização. Divida em parágrafos com \\n\\n. Integre a âncora narrativa e o dilema central.
+- **"climax" (String, ~__CLIMAX_WORDS__ palavras):** Entregue a revelação com força. Mostre como a tecnologia redefine o que é humano. Este momento deve ser silencioso, mas devastador.
+- **"conclusao" (String, ~__CONCLUSION_WORDS__ palavras):** Mostre o custo da verdade. O protagonista não vence — ele sobrevive. Reforce o tom sombrio com linguagem crua.
 - **"cta" (String, ~50 palavras):** Conclua com uma pergunta que ecoe. Deixe o espectador em silêncio. O chamado não é à ação, mas à reflexão.
 
-**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de ${totalWords} palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
+**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de __TOTAL_WORDS__ palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
 
 
 
@@ -766,7 +766,7 @@ Você é um autor de horror psicológico e cósmico, herdeiro de H.P. Lovecraft 
 - **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
 
 **TAREFA CRÍTICA (FOCO NO TAMANHO):**
-Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente ${totalWords} palavras, distribuídas conforme o manual abaixo. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
+Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente __TOTAL_WORDS__ palavras, distribuídas conforme o manual abaixo. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
 
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (ABSOLUTAMENTE INEGOCIÁVEIS):**
 1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um objeto JSON válido, começando com \`{\` e terminando com \`}\`.
@@ -776,13 +776,13 @@ Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadament
 5.  **NENHUMA EXPLICAÇÃO ADICIONAL:** Responda APENAS com o objeto JSON. Nada antes, nada depois.
 
 **MANUAL DE CRIAÇÃO DETALHADO (COM METAS DE PALAVRAS):**
-- **"introducao" (String, ~${counts.intro || 100} palavras):** Deve prender com uma cena cotidiana que contém uma fissura. Estabeleça o normal, mas com um detalhe que não fecha. Use um dado do relatório como semente.
-- **"desenvolvimento" (String, ~${counts.development || 500} palavras):** Construa a narrativa com tensão silenciosa. Cada parágrafo deve revelar uma nova camada de irrealidade. Divida em parágrafos com \\n\\n. Evite explicações. Apenas mostre.
-- **"climax" (String, ~${counts.climax || 200} palavras):** Entregue a revelação com minimalismo. O protagonista não grita — ele entende. E nesse entendimento, perde algo essencial.
-- **"conclusao" (String, ~${counts.conclusion || 150} palavras):** Mostre o vazio. O mundo continua, mas nada é mais seguro. Reforce o tom com linguagem fria, objetiva.
+- **"introducao" (String, ~__INTRO_WORDS__ palavras):** Deve prender com uma cena cotidiana que contém uma fissura. Estabeleça o normal, mas com um detalhe que não fecha. Use um dado do relatório como semente.
+- **"desenvolvimento" (String, ~__DEV_WORDS__ palavras):** Construa a narrativa com tensão silenciosa. Cada parágrafo deve revelar uma nova camada de irrealidade. Divida em parágrafos com \\n\\n. Evite explicações. Apenas mostre.
+- **"climax" (String, ~__CLIMAX_WORDS__ palavras):** Entregue a revelação com minimalismo. O protagonista não grita — ele entende. E nesse entendimento, perde algo essencial.
+- **"conclusao" (String, ~__CONCLUSION_WORDS__ palavras):** Mostre o vazio. O mundo continua, mas nada é mais seguro. Reforce o tom com linguagem fria, objetiva.
 - **"cta" (String, ~50 palavras):** Conclua com uma frase ou imagem que ecoe. Deixe o espectador olhando para a própria sombra por alguns segundos a mais.
 
-**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de ${totalWords} palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
+**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de __TOTAL_WORDS__ palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
 
 
 
@@ -807,7 +807,7 @@ Você é um "Coletivo Hermenêntico": uma fusão de um Teólogo Investigativo, u
 - **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
 
 **TAREFA CRÍTICA (FOCO NO TAMANHO):**
-Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente ${totalWords} palavras, distribuídas conforme o manual abaixo. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
+Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente __TOTAL_WORDS__ palavras, distribuídas conforme o manual abaixo. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
 
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
 1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um objeto JSON válido, começando com \`{\` e terminando com \`}\`.
@@ -817,13 +817,13 @@ Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadament
 5.  **NENHUMA EXPLICAÇÃO ADICIONAL:** Responda APENAS com o objeto JSON. Nada antes, nada depois.
 
 **MANUAL DE CRIAÇÃO DETALHADO (COM METAS DE PALAVRAS):**
-- **"introducao" (String, ~${counts.intro || 100} palavras):** Deve prender com uma pergunta ou dado que desafia o senso comum. Estabeleça o mistério bíblico com autoridade e curiosidade.
-- **"desenvolvimento" (String, ~${counts.development || 500} palavras):** Construa a narrativa com progressão lógica. Cada parágrafo deve avançar a investigação. Divida em parágrafos com \\n\\n. Integre arqueologia, história e exegese.
-- **"climax" (String, ~${counts.climax || 200} palavras):** Entregue a revelação com força. Mostre como os dados e a Escritura se encontram em um novo entendimento. Este é o ponto de virada intelectual.
-- **"conclusao" (String, ~${counts.conclusion || 150} palavras):** Discuta a implicação teológica com profundidade. Como isso muda nossa fé? Reforce a grande ideia com linguagem transformadora.
+- **"introducao" (String, ~__INTRO_WORDS__ palavras):** Deve prender com uma pergunta ou dado que desafia o senso comum. Estabeleça o mistério bíblico com autoridade e curiosidade.
+- **"desenvolvimento" (String, ~__DEV_WORDS__ palavras):** Construa a narrativa com progressão lógica. Cada parágrafo deve avançar a investigação. Divida em parágrafos com \\n\\n. Integre arqueologia, história e exegese.
+- **"climax" (String, ~__CLIMAX_WORDS__ palavras):** Entregue a revelação com força. Mostre como os dados e a Escritura se encontram em um novo entendimento. Este é o ponto de virada intelectual.
+- **"conclusao" (String, ~__CONCLUSION_WORDS__ palavras):** Discuta a implicação teológica com profundidade. Como isso muda nossa fé? Reforce a grande ideia com linguagem transformadora.
 - **"cta" (String, ~50 palavras):** Conclua com um convite que inspire ação: estudar, refletir, compartilhar. O chamado deve ser coerente com o tom e a dimensão teológica.
 
-**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de ${totalWords} palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
+**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de __TOTAL_WORDS__ palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
 
 
 
@@ -845,7 +845,7 @@ Você é um Arquiteto de Viralidade e Estrategista de Conteúdo Digital, com o d
 - **IDIOMA OBRIGATÓRIO:** Todas as respostas DEVEM estar em __LANGUAGE_NAME__.
 
 **TAREFA CRÍTICA (FOCO NO TAMANHO):**
-Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente ${totalWords} palavras, distribuídas conforme o manual abaixo. Cada seção deve ser escrita com foco absoluto em **novidade, valor e viralidade**. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
+Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadamente __TOTAL_WORDS__ palavras, distribuídas conforme o manual abaixo. Cada seção deve ser escrita com foco absoluto em **novidade, valor e viralidade**. A aderência à contagem de palavras é tão importante quanto o conteúdo. Um roteiro curto ou resumido será considerado uma falha na tarefa.
 
 **REGRAS CRÍTICAS DE SINTAXE E ESTRUTURA JSON (INEGOCIÁVEIS):**
 1.  **JSON PURO E PERFEITO:** Sua resposta deve ser APENAS um objeto JSON válido, começando com \`{\` e terminando com \`}\`.
@@ -855,13 +855,13 @@ Sua missão principal é gerar um roteiro EXTENSO E DETALHADO com aproximadament
 5.  **NENHUMA EXPLICAÇÃO ADICIONAL:** Responda APENAS com o objeto JSON. Nada antes, nada depois.
 
 **MANUAL DE CRIAÇÃO DETALHADO (COM METAS DE PALAVRAS):**
-- **"introducao" (String, ~${counts.intro || 100} palavras):** Deve prender em menos de 5 segundos. Use um fato surpreendente, uma pergunta desafiadora ou uma contradição. Estabeleça imediatamente o valor do vídeo.
-- **"desenvolvimento" (String, ~${counts.development || 500} palavras):** Construa a narrativa com progressão clara. Cada parágrafo deve entregar novo valor. Divida em parágrafos com \\n\\n. Integre dados, benefício e o "momento uau".
-- **"climax" (String, ~${counts.climax || 200} palavras):** Entregue o insight mais poderoso. Mostre por que esta ideia é diferente. Este é o ponto de virada do engajamento.
-- **"conclusao" (String, ~${counts.conclusion || 150} palavras):** Recapitule com força. Reforce por que isso importa. Use linguagem que ressoe no espectador.
+- **"introducao" (String, ~__INTRO_WORDS__ palavras):** Deve prender em menos de 5 segundos. Use um fato surpreendente, uma pergunta desafiadora ou uma contradição. Estabeleça imediatamente o valor do vídeo.
+- **"desenvolvimento" (String, ~__DEV_WORDS__ palavras):** Construa a narrativa com progressão clara. Cada parágrafo deve entregar novo valor. Divida em parágrafos com \\n\\n. Integre dados, benefício e o "momento uau".
+- **"climax" (String, ~__CLIMAX_WORDS__ palavras):** Entregue o insight mais poderoso. Mostre por que esta ideia é diferente. Este é o ponto de virada do engajamento.
+- **"conclusao" (String, ~__CONCLUSION_WORDS__ palavras):** Recapitule com força. Reforce por que isso importa. Use linguagem que ressoe no espectador.
 - **"cta" (String, ~50 palavras):** Conclua com um convite natural ao compartilhamento. Conecte ao público-alvo e aos gatilhos de compartilhamento.
 
-**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de ${totalWords} palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
+**AÇÃO FINAL:** Escreva AGORA o roteiro completo. Lembre-se, a aderência à meta de __TOTAL_WORDS__ palavras é o critério mais importante para o sucesso desta tarefa. Entregue um trabalho completo e detalhado. Responda APENAS com o objeto JSON perfeito.`,
 
 
 
@@ -2179,7 +2179,7 @@ const getBasePromptContext = (options = {}) => {
 
 
 // ==========================================================
-// ===== CONSTRUTOR DE PROMPT MESTRE (v7.6 - SEM SIMPLIFICAÇÃO) =====
+// ===== CONSTRUTOR DE PROMPT MESTRE (v7.7 - CORREÇÃO FINAL) =====
 // ==========================================================
 const buildMasterPrompt = () => {
     // 1. Coleta todas as informações da UI e do estado
@@ -2209,16 +2209,16 @@ const buildMasterPrompt = () => {
     // 3. Pega o template de texto puro da getScriptPrompt
     let masterPrompt = PromptManager.getScriptPrompt(genre, baseContext, technicalDetails);
     
-    // 4. Inicia o processo de substituição de placeholders
+    // ==========================================================
+    // >>>>> 4. PROCESSO DE SUBSTITUIÇÃO CORRIGIDO <<<<<
+    // ==========================================================
     
     // 4a. Substitui placeholders de contagem de palavras
-    masterPrompt = masterPrompt.replace(/\$\{totalWords\}/g, totalWords);
-    masterPrompt = masterPrompt.replace(/\$\{counts\.intro \|\| 100\}/g, counts.intro || 100);
-    masterPrompt = masterPrompt.replace(/\$\{counts\.development \|\| 500\}/g, counts.development || 500);
-    masterPrompt = masterPrompt.replace(/\$\{counts\.climax \|\| 200\}/g, counts.climax || 200);
-    masterPrompt = masterPrompt.replace(/\$\{counts\.conclusion \|\| 150\}/g, counts.conclusion || 150);
-    // Adicionamos uma verificação para a CTA, que não tem contagem em alguns casos
-    masterPrompt = masterPrompt.replace(/\$\{counts\.cta \|\| 50\}/g, counts.cta || 50);
+    masterPrompt = masterPrompt.replace(/__TOTAL_WORDS__/g, totalWords);
+    masterPrompt = masterPrompt.replace(/__INTRO_WORDS__/g, counts.intro || 100);
+    masterPrompt = masterPrompt.replace(/__DEV_WORDS__/g, counts.development || 500);
+    masterPrompt = masterPrompt.replace(/__CLIMAX_WORDS__/g, counts.climax || 200);
+    masterPrompt = masterPrompt.replace(/__CONCLUSION_WORDS__/g, counts.conclusion || 150);
 
     // 4b. Substitui placeholders globais
     masterPrompt = masterPrompt.replace(/__LANGUAGE_NAME__/g, languageName);
