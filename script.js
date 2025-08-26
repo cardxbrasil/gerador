@@ -4135,7 +4135,7 @@ window.generatePromptsForSection = async (button) => {
         const paragraphs = fullText.split(/\n\s*\n/).filter(p => p.trim());
 
         const batches = [];
-        const MAX_WORDS_PER_BATCH = 300;
+        const MAX_WORDS_PER_BATCH = 120;
         let currentBatch = [];
         let currentWordCount = 0;
 
