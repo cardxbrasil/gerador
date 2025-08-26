@@ -2013,13 +2013,14 @@ const applyStrategy = () => {
 
 
 
-// SUBSTITUA A SUA FUNÇÃO getBasePromptContext INTEIRA POR ESTA VERSÃO FINAL
-
+// ==========================================================
+// >>>>> COLE ESTA FUNÇÃO COMPLETA NO LUGAR DA ANTIGA <<<<<
+// ==========================================================
 const getBasePromptContext = (options = {}) => {
     const { includeHeavyContext = false } = options;
     const lang = document.getElementById('languageSelect').value || "en";
 
-    // Define as etiquetas com base no idioma
+    // Define as etiquetas com base no idioma (sem alterações aqui)
     const labels = {
         role: lang === 'pt-br' ? 'Você é um ROTEIRISTA ESPECIALISTA' : 'You are an EXPERT SCREENWRITER',
         channel: lang === 'pt-br' ? 'para o canal' : 'for the channel',
@@ -2030,7 +2031,6 @@ const getBasePromptContext = (options = {}) => {
         objective: lang === 'pt-br' ? 'Objetivo do Vídeo' : 'Video Objective',
         narrativeStyle: lang === 'pt-br' ? '**Instruções de Narrativa & Estilo:**' : '**Narrative & Style Instructions:**',
         structure: lang === 'pt-br' ? 'Estrutura Narrativa a usar' : 'Narrative Structure to use',
-        // <<< MUDANÇA 1: NOVOS RÓTULOS PARA AS DEFINIÇÕES >>>
         goalDefinition: lang === 'pt-br' ? 'Definição do Objetivo' : 'Objective Definition',
         structureDefinition: lang === 'pt-br' ? 'Definição da Estrutura' : 'Structure Definition',
         pace: lang === 'pt-br' ? 'Ritmo da Fala' : 'Speaking Pace',
@@ -2039,11 +2039,13 @@ const getBasePromptContext = (options = {}) => {
         tone: lang === 'pt-br' ? 'Tom da Narrativa (O Sentimento)' : 'Narrative Tone (The Feeling)',
         voice: lang === 'pt-br' ? 'Voz do Narrador (A Personalidade)' : 'Narrator\'s Voice (The Personality)',
         hook: lang === 'pt-br' ? 'Gancho de Final Chocante a usar' : 'Shocking Ending Hook to use',
-        dossier: lang === 'pt-br' ? '**DOSSIÊ CRÍTICO DA IDEIA (Fonte Primária):**' : '**CRITICAL IDEA DOSSIER (Primary Source of Truth):**',
-        centralQuestion: lang === 'pt-br' ? 'Questão Central para guiar o roteiro' : 'Central Question to guide the entire script',
+        // --- ETIQUETAS CORRIGIDAS E NOVAS PARA CLAREZA ---
+        primarySource: lang === 'pt-br' ? '**DOSSIÊ CRÍTICO DA IDEIA (Fonte Primária):**' : '**CRITICAL IDEA DOSSIER (Primary Source):**',
+        primarySourceDesc: lang === 'pt-br' ? 'Descrição Original da Ideia' : 'Original Idea Description',
+        centralQuestion: lang === 'pt-br' ? '**PERGUNTA CENTRAL CRÍTICA:** Você DEVE usar esta pergunta como o fio condutor de todo o roteiro.' : '**CRITICAL CENTRAL QUESTION:** You MUST use this question as the guiding thread for the entire script.',
         emotionalAnchor: lang === 'pt-br' ? '**ÂNCORA NARRATIVA CRÍTICA:** Você DEVE usar a seguinte história pessoal como núcleo emocional.' : '**CRITICAL NARRATIVE ANCHOR:** You MUST use the following personal story as the emotional core.',
         anchorStory: lang === 'pt-br' ? 'História Âncora' : 'Emotional Anchor Story',
-        research: lang === 'pt-br' ? '**DADOS DE PESQUISA CRÍTICOS:** Você DEVE incorporar os seguintes fatos:' : '**CRITICAL RESEARCH DATA & CONTEXT:** You MUST incorporate the following facts:',
+        research: lang === 'pt-br' ? '**DADOS DE PESQUISA CRÍTICOS:** Você DEVE incorporar os seguintes fatos:' : '**CRITICAL RESEARCH DATA:** You MUST incorporate the following facts:',
     };
 
     const inputs = {
@@ -2062,6 +2064,7 @@ const getBasePromptContext = (options = {}) => {
         shockingEndingHook: document.getElementById('shockingEndingHook')?.value.trim() || "",
     };
 
+    // A construção do contexto base continua igual
     let context = `${labels.role} ${labels.channel} "${inputs.channelName}".
 ${labels.coreDetails}
 - ${labels.topic}: "${inputs.videoTheme}"
@@ -2070,27 +2073,19 @@ ${labels.coreDetails}
 - ${labels.objective}: "${inputs.videoObjective}"
 ${labels.narrativeStyle}`;
 
-    // <<< MUDANÇA 2: INJEÇÃO INTELIGENTE DAS DEFINIÇÕES >>>
     if (inputs.narrativeStructure) {
         const goalSelect = document.getElementById('narrativeGoal');
         const structureSelect = document.getElementById('narrativeStructure');
-        
         const goalText = goalSelect.options[goalSelect.selectedIndex].text;
         const structureText = structureSelect.options[structureSelect.selectedIndex].text;
-        
         const goalDescription = narrativeGoalTooltips[inputs.narrativeGoal]?.description || '';
         const structureDescription = narrativeTooltips[inputs.narrativeStructure] || '';
-
         context += `
 - ${labels.structure}: "${structureText}"`;
-        if (goalDescription) {
-            context += `
+        if (goalDescription) context += `
   - ${labels.goalDefinition} ("${goalText}"): "${goalDescription}"`;
-        }
-        if (structureDescription) {
-            context += `
+        if (structureDescription) context += `
   - ${labels.structureDefinition} ("${structureText}"): "${structureDescription}"`;
-        }
     }
     
     context += `
@@ -2102,38 +2097,34 @@ ${labels.narrativeStyle}`;
     if (inputs.narrativeVoice) context += `\n- ${labels.voice}: "${inputs.narrativeVoice}"`;
     if (inputs.shockingEndingHook) context += `\n- ${labels.hook}: "${inputs.shockingEndingHook}"`;
 
-if (includeHeavyContext) {
-    const heavyInputs = {
-        videoDescription: document.getElementById('videoDescription')?.value.trim() || "",
-        centralQuestion: document.getElementById('centralQuestion')?.value.trim() || "",
-        researchData: document.getElementById('researchData')?.value.trim() || "",
-        emotionalHook: document.getElementById('emotionalHook')?.value.trim() || "",
-    };
+    // ==========================================================
+    // >>>>> AQUI ESTÁ A LÓGICA CORRIGIDA E SIMPLIFICADA <<<<<
+    // ==========================================================
+    if (includeHeavyContext) {
+        const heavyInputs = {
+            videoDescription: document.getElementById('videoDescription')?.value.trim() || "",
+            centralQuestion: document.getElementById('centralQuestion')?.value.trim() || "",
+            researchData: document.getElementById('researchData')?.value.trim() || "",
+            emotionalHook: document.getElementById('emotionalHook')?.value.trim() || "",
+        };
 
-    // 1. Pega a descrição completa do campo de texto.
-    let descriptionText = heavyInputs.videoDescription;
-
-    // 2. Encontra o separador do dossiê antigo e remove TUDO que vem depois.
-    // Isso nos dá a descrição "limpa", sem a pergunta central antiga.
-    const dossierSeparator = "**DOSSIÊ DA IDEIA**";
-    const separatorIndex = descriptionText.indexOf(dossierSeparator);
-    if (separatorIndex !== -1) {
-        descriptionText = descriptionText.substring(0, separatorIndex).trim();
+        // Adiciona cada campo de forma independente e com a etiqueta correta
+        if (heavyInputs.videoDescription) {
+            context += `\n\n${labels.primarySource}\n- ${labels.primarySourceDesc}: "${heavyInputs.videoDescription}"`;
+        }
+        if (heavyInputs.centralQuestion) {
+            context += `\n\n${labels.centralQuestion}\n- "${heavyInputs.centralQuestion}"`;
+        }
+        if (heavyInputs.emotionalHook) {
+            context += `\n\n${labels.emotionalAnchor}\n- ${labels.anchorStory}: "${heavyInputs.emotionalHook}"`;
+        }
+        if (heavyInputs.researchData) {
+            context += `\n\n${labels.research}\n${heavyInputs.researchData}`;
+        }
     }
-
-    // 3. Monta o Dossiê para o prompt, começando com a descrição limpa.
-    let dossierForPrompt = descriptionText;
-
-    // 4. AGORA, adiciona a Pergunta Central ATUAL, que você editou no campo correto.
-    if (heavyInputs.centralQuestion) {
-        dossierForPrompt += `\n- ${labels.centralQuestion}: "${heavyInputs.centralQuestion}"`;
-    }
-
-    // 5. Adiciona as seções ao prompt com os dados 100% corretos.
-    if (dossierForPrompt) context += `\n\n${labels.dossier}\n${dossierForPrompt}`;
-    if (heavyInputs.emotionalHook) context += `\n\n${labels.emotionalAnchor}\n- ${labels.anchorStory}: "${heavyInputs.emotionalHook}"`;
-    if (heavyInputs.researchData) context += `\n\n${labels.research}\n${heavyInputs.researchData}`;
-}
+    // ==========================================================
+    // >>>>> FIM DA CORREÇÃO <<<<<
+    // ==========================================================
 
     return context;
 };
