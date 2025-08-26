@@ -2038,8 +2038,11 @@ const getBasePromptContext = (options = {}) => {
         objective: lang === 'pt-br' ? 'Objetivo do Vídeo' : 'Video Objective',
         narrativeStyle: lang === 'pt-br' ? '**Instruções de Narrativa & Estilo:**' : '**Narrative & Style Instructions:**',
         structure: lang === 'pt-br' ? 'Estrutura Narrativa a usar' : 'Narrative Structure to use',
+        // <<< MUDANÇA 1: NOVOS RÓTULOS PARA AS DEFINIÇÕES >>>
+        goalDefinition: lang === 'pt-br' ? 'Definição do Objetivo' : 'Objective Definition',
+        structureDefinition: lang === 'pt-br' ? 'Definição da Estrutura' : 'Structure Definition',
         pace: lang === 'pt-br' ? 'Ritmo da Fala' : 'Speaking Pace',
-        langStyle: lang === 'pt-br' ? 'Estilo de Linguagem' : 'Language Style', // <<< NOVO
+        langStyle: lang === 'pt-br' ? 'Estilo de Linguagem' : 'Language Style',
         theme: lang === 'pt-br' ? 'Tema Central (A Grande Ideia)' : 'Core Theme (The Big Idea)',
         tone: lang === 'pt-br' ? 'Tom da Narrativa (O Sentimento)' : 'Narrative Tone (The Feeling)',
         voice: lang === 'pt-br' ? 'Voz do Narrador (A Personalidade)' : 'Narrator\'s Voice (The Personality)',
@@ -2058,7 +2061,8 @@ const getBasePromptContext = (options = {}) => {
         language: lang === 'pt-br' ? 'Português (Brasil)' : 'English',
         videoObjective: document.getElementById('videoObjective')?.value || "",
         speakingPace: document.getElementById('speakingPace')?.value || "",
-        languageStyle: document.getElementById('languageStyle')?.value || "", // <<< NOVO
+        languageStyle: document.getElementById('languageStyle')?.value || "",
+        narrativeGoal: document.getElementById('narrativeGoal')?.value || "",
         narrativeStructure: document.getElementById('narrativeStructure')?.value || "",
         narrativeTheme: document.getElementById('narrativeTheme')?.value.trim() || "",
         narrativeTone: document.getElementById('narrativeTone')?.value || "",
@@ -2072,10 +2076,35 @@ ${labels.coreDetails}
 - ${labels.audience}: "${inputs.targetAudience}"
 - ${labels.language}: "${inputs.language}"
 - ${labels.objective}: "${inputs.videoObjective}"
-${labels.narrativeStyle}
-- ${labels.structure}: "${inputs.narrativeStructure}"
+${labels.narrativeStyle}`;
+
+    // <<< MUDANÇA 2: INJEÇÃO INTELIGENTE DAS DEFINIÇÕES >>>
+    if (inputs.narrativeStructure) {
+        const goalSelect = document.getElementById('narrativeGoal');
+        const structureSelect = document.getElementById('narrativeStructure');
+        
+        const goalText = goalSelect.options[goalSelect.selectedIndex].text;
+        const structureText = structureSelect.options[structureSelect.selectedIndex].text;
+        
+        const goalDescription = narrativeGoalTooltips[inputs.narrativeGoal]?.description || '';
+        const structureDescription = narrativeTooltips[inputs.narrativeStructure] || '';
+
+        context += `
+- ${labels.structure}: "${structureText}"`;
+        if (goalDescription) {
+            context += `
+  - ${labels.goalDefinition} ("${goalText}"): "${goalDescription}"`;
+        }
+        if (structureDescription) {
+            context += `
+  - ${labels.structureDefinition} ("${structureText}"): "${structureDescription}"`;
+        }
+    }
+    
+    context += `
 - ${labels.pace}: "${inputs.speakingPace}"
-- ${labels.langStyle}: "${inputs.languageStyle}"`; // <<< NOVO
+- ${labels.langStyle}: "${inputs.languageStyle}"`;
+
     if (inputs.narrativeTheme) context += `\n- ${labels.theme}: "${inputs.narrativeTheme}"`;
     if (inputs.narrativeTone) context += `\n- ${labels.tone}: "${inputs.narrativeTone}"`;
     if (inputs.narrativeVoice) context += `\n- ${labels.voice}: "${inputs.voice}"`;
@@ -2096,6 +2125,13 @@ ${labels.narrativeStyle}
 
     return context;
 };
+
+
+
+
+
+
+
 
 
 // ==========================================================
@@ -2194,40 +2230,32 @@ RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STR
             }
         }
 
-        // ==========================================================
-        // >>>>> AQUI ESTÁ A CORREÇÃO PRINCIPAL <<<<<
-        // ==========================================================
-
-        // Mapeamento completo de TODAS as chaves para os IDs dos elementos HTML
         const keyToElementIdMap = {
-            'TARGET_AUDIENCE': 'targetAudience',
-            'NARRATIVE_THEME': 'narrativeTheme',
-            'NARRATIVE_TONE': 'narrativeTone',
-            'NARRATIVE_VOICE': 'narrativeVoice',
-            'CENTRAL_QUESTION': 'centralQuestion',
-            'EMOTIONAL_HOOK': 'emotionalHook',
-            'SHOCKING_ENDING_HOOK': 'shockingEndingHook',
-            'RESEARCH_DATA': 'researchData',
-            'NARRATIVE_GOAL': 'narrativeGoal', // Chave adicionada
-            'NARRATIVE_STRUCTURE': 'narrativeStructure' // Chave adicionada
+            'TARGET_AUDIENCE': 'targetAudience', 'NARRATIVE_THEME': 'narrativeTheme',
+            'NARRATIVE_TONE': 'narrativeTone', 'NARRATIVE_VOICE': 'narrativeVoice',
+            'CENTRAL_QUESTION': 'centralQuestion', 'EMOTIONAL_HOOK': 'emotionalHook',
+            'SHOCKING_ENDING_HOOK': 'shockingEndingHook', 'RESEARCH_DATA': 'researchData',
+            'NARRATIVE_GOAL': 'narrativeGoal', 'NARRATIVE_STRUCTURE': 'narrativeStructure'
         };
 
-        // 1. Atualiza o dropdown 'Objetivo da Narrativa' primeiro.
         const narrativeGoalSelect = document.getElementById('narrativeGoal');
         if (narrativeGoalSelect && strategy.NARRATIVE_GOAL) {
             narrativeGoalSelect.value = strategy.NARRATIVE_GOAL;
-            // ESSENCIAL: Atualiza as opções do segundo dropdown com base na escolha do primeiro.
             updateNarrativeStructureOptions();
         }
 
-        // 2. Espera um instante para a UI atualizar e então preenche o resto.
         setTimeout(() => { 
             for (const key in keyToElementIdMap) {
-                if (strategy[key]) {
+                if (strategy.hasOwnProperty(key)) {
                     const element = document.getElementById(keyToElementIdMap[key]);
                     if (element) {
-                        const valueToSet = strategy[key];
-                        // Lógica para preencher SELECTs e TEXTAREAs/INPUTs
+                        // ===============================================
+                        // >>>>> A CORREÇÃO DO BUG ESTÁ AQUI <<<<<
+                        // Garante que o valor a ser definido seja uma string,
+                        // mesmo que a IA não retorne a chave.
+                        const valueToSet = strategy[key] || '';
+                        // ===============================================
+                        
                         if (element.tagName === 'SELECT') {
                             if ([...element.options].some(o => o.value === valueToSet)) {
                                 element.value = valueToSet;
@@ -2238,9 +2266,8 @@ RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STR
                     }
                 }
             }
-            // Atualiza os tooltips com as novas informações
             updateMainTooltip();
-        }, 100); // 100ms é suficiente para a UI atualizar as opções.
+        }, 100);
 
         window.showToast("Estratégia refinada pela IA!");
         document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
@@ -2251,7 +2278,6 @@ RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STR
         hideButtonLoading(button);
     }
 };
-
 
 
 
