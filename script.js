@@ -1917,12 +1917,20 @@ const getGenreFromIdea = (idea) => {
 
 
 
+// FUNÇÃO selectIdea FINAL E 100% CONFIÁVEL (NÃO USA a consultora de IA)
 const selectIdea = (idea) => {
     const genre = getGenreFromIdea(idea);
+    
+    // ==========================================================
+    // >>>>> A CORREÇÃO CRUCIAL ESTÁ AQUI <<<<<
+    // Esta linha ATUALIZA a "memória" do app com o gênero
+    // da ideia que você ACABOU de selecionar.
     AppState.inputs.selectedGenre = genre;
+    // ==========================================================
+
     const mapper = strategyMapper[genre];
 
-    // Preenchimento dos dropdowns (sem mudanças)
+    // 1. PREENCHIMENTO DOS DROPDOWNS DE FORMA DETERMINÍSTICA E RÁPIDA
     if (mapper && mapper.dropdowns) {
         for (const id in mapper.dropdowns) {
             const element = document.getElementById(id);
@@ -1934,49 +1942,42 @@ const selectIdea = (idea) => {
     updateNarrativeStructureOptions();
     updateMainTooltip();
 
-    // 1. Define a estratégia base com valores padrão sólidos.
+    // 2. ESTRATÉGIA BASE (para garantir que nada fique em branco)
     let strategy = {
         narrativeTheme: idea.angle || `Explorar o tema central de "${idea.title}".`,
         centralQuestion: `Qual é o mistério ou a principal questão por trás de "${idea.title}"?`,
         emotionalHook: `Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.`,
         narrativeVoice: 'Confiante e Esclarecedor',
-        shockingEndingHook: ``,
+        shockingEndingHook: `Crie uma frase de abertura enigmática que só fará sentido no final, como: "A resposta nunca esteve no futuro, mas enterrada no passado."`,
         researchData: `Buscar 1-2 estatísticas ou citações que reforcem a mensagem principal de "${idea.title}".`
     };
 
-    // 2. Sobrescreve a base APENAS com valores VÁLIDOS do especialista.
+    // 3. ESPECIALIZAÇÃO (sobrescreve a base com dados de texto específicos)
     if (mapper) {
         for (const key in mapper) {
             if (key !== 'dossier' && key !== 'dropdowns') {
-                const newValue = mapper[key](idea);
-                
-                // ==========================================================
-                // >>>>> A CORREÇÃO FINAL E DEFINITIVA ESTÁ AQUI <<<<<
-                // Só atualizamos o valor se o especialista retornar algo 
-                // que não seja nulo ou indefinido.
-                if (newValue !== undefined && newValue !== null) {
-                    strategy[key] = newValue;
-                }
-                // ==========================================================
+                strategy[key] = mapper[key](idea);
             }
         }
     }
 
-    // 3. Aplica a estratégia final e já corrigida na interface.
+    // 4. APLICA A ESTRATÉGIA DE TEXTO
     for (const id in strategy) {
         const element = document.getElementById(id);
         if (element) element.value = strategy[id];
     }
     
+    // 5. PREENCHE O RESTO E MONTA O DOSSIÊ
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
     const dossierContent = mapper ? mapper.dossier(idea) : `- Ângulo Único: ${idea.angle || 'N/A'}`;
     const fullDescription = `${idea.videoDescription || ''}\n\n--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n${dossierContent.trim()}`;
     document.getElementById('videoDescription').value = fullDescription;
     
+    // 6. FEEDBACK E NAVEGAÇÃO
     window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
     showPane('strategy');
-    document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
+    document.querySelector('[data-tab="input-tab-basico"]')?.click();
 };
 
 
@@ -2187,30 +2188,45 @@ const suggestStrategy = async (button) => {
     
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
     
-    const prompt = `Você é uma API de Estratégia de Conteúdo Viral. Sua única função é preencher a seguinte ESTRUTURA DE TEXTO com uma estratégia completa e detalhada para o vídeo.
+    // ==========================================================
+    // >>>>> O PROMPT FOI MELHORADO E REFORÇADO AQUI <<<<<
+    // ==========================================================
+    const prompt = `Você é uma API de Estratégia de Conteúdo Viral. Sua única função é preencher uma estrutura de texto.
 
-**REGRAS CRÍTICAS DE FORMATAÇÃO (INEGOCIÁVEIS):**
-1.  **FORMATO "CHAVE:: VALOR":** Preencha CADA UMA das 10 chaves abaixo. Use o separador '::' entre a chave e o valor.
-2.  **RESPOSTA PURA:** NÃO adicione comentários, introduções ou qualquer texto fora desta estrutura.
-3.  **IDIOMA:** Todos os valores devem estar em **${languageName}**.
+**REGRAS CRÍTICAS E INEGOCIÁVEIS:**
+1.  **FORMATO "CHAVE:: VALOR":** Você DEVE preencher CADA UMA das 10 chaves abaixo. Use o separador de dois pontos duplos ('::') entre a chave e o valor.
+2.  **RESPOSTA PURA:** Sua resposta deve conter APENAS as 10 linhas no formato CHAVE:: VALOR. NÃO inclua introduções, comentários ou qualquer texto fora desta estrutura.
+3.  **IDIOMA:** Todos os valores DEVEM estar em **${languageName}**.
 
-**ESTRUTURA A PREENCHER (PREENCHIMENTO DE TODAS AS 10 É OBRIGATÓRIO):**
-TARGET_AUDIENCE:: [Descreva o espectador ideal de forma específica]
-NARRATIVE_GOAL:: [Escolha UM de: 'storytelling' ou 'storyselling']
-NARRATIVE_STRUCTURE:: [Baseado no NARRATIVE_GOAL, escolha a estrutura MAIS IMPACTANTE das listas a seguir. Storytelling: "documentary", "heroes_journey", "pixar_spine", "mystery_loop", "twist". Storyselling: "pas", "bab", "aida", "underdog_victory", "discovery_mentor"]
-NARRATIVE_TONE:: [Escolha UM de: 'inspirador', 'serio' ou 'emocional']
-CENTRAL_QUESTION:: [Formule a pergunta central que o roteiro irá responder]
-NARRATIVE_THEME:: [Crie a mensagem central e transformadora do vídeo em uma única frase poderosa]
-NARRATIVE_VOICE:: [Defina a personalidade do narrador com 2-3 adjetivos impactantes]
-EMOTIONAL_HOOK:: [Crie uma micro-narrativa ou anedota emocional que sirva como a alma do vídeo]
-SHOCKING_ENDING_HOOK:: [Crie a PRIMEIRA frase do roteiro, que funciona como um gancho de mistério]
-RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STRING de texto]
+### EXEMPLO DE RESPOSTA PERFEITA ###
+TARGET_AUDIENCE:: Pessoas interessadas em história e mistérios não resolvidos.
+NARRATIVE_GOAL:: storytelling
+NARRATIVE_STRUCTURE:: mystery_loop
+NARRATIVE_TONE:: serio
+CENTRAL_QUESTION:: O que realmente aconteceu com a Arca da Aliança segundo os textos antigos?
+NARRATIVE_THEME:: A busca por artefatos sagrados revela mais sobre a fé humana do que sobre os próprios objetos.
+NARRATIVE_VOICE:: Investigativo, respeitoso e com um toque de mistério.
+EMOTIONAL_HOOK:: A história de um arqueólogo que dedicou sua vida a uma busca que o consumiu, representando a obsessão humana pelo divino.
+SHOCKING_ENDING_HOOK:: No final, a maior revelação não foi onde a Arca estava, mas por que ela nunca deveria ser encontrada.
+RESEARCH_DATA:: Citar o Livro de Êxodo (capítulo 25) e as teorias do arqueólogo Tudor Parfitt.
+
+### ESTRUTURA A PREENCHER (PREENCHIMENTO DE TODAS AS 10 É OBRIGATÓRIO) ###
+TARGET_AUDIENCE::
+NARRATIVE_GOAL::
+NARRATIVE_STRUCTURE::
+NARRATIVE_TONE::
+CENTRAL_QUESTION::
+NARRATIVE_THEME::
+NARRATIVE_VOICE::
+EMOTIONAL_HOOK::
+SHOCKING_ENDING_HOOK::
+RESEARCH_DATA::
 
 **DADOS DE ENTRADA:**
 - **Tema do Vídeo:** "${theme}"
 - **Descrição:** "${description}"
 
-**AÇÃO FINAL:** Preencha AGORA a estrutura de texto com as 10 chaves.`;
+**AÇÃO FINAL:** Preencha AGORA a estrutura de texto com as 10 chaves. Sua resposta DEVE SEGUIR ESTRITAMENTE o formato CHAVE:: VALOR como no exemplo.`;
 
     try {
         const strategyResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
@@ -2219,9 +2235,9 @@ RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STR
         const lines = strategyResponse.split('\n');
         for (const line of lines) {
             const parts = line.split('::');
-            if (parts.length === 2) {
+            if (parts.length >= 2) { // Alterado para >= 2 para mais flexibilidade
                 const key = parts[0].trim();
-                const value = parts[1].trim();
+                const value = parts.slice(1).join('::').trim(); // Junta o resto caso o valor tenha '::'
                 strategy[key] = value;
             }
         }
@@ -2244,11 +2260,7 @@ RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STR
             for (const key in keyToElementIdMap) {
                 const element = document.getElementById(keyToElementIdMap[key]);
                 if (element) {
-                    // ===============================================
-                    // >>>>> A CORREÇÃO DO BUG ESTÁ NESTA LINHA <<<<<
-                    const valueToSet = strategy[key] || ''; // Se strategy[key] for undefined, usa uma string vazia ''
-                    // ===============================================
-                    
+                    const valueToSet = strategy[key] || '';
                     if (element.tagName === 'SELECT') {
                         if ([...element.options].some(o => o.value === valueToSet)) {
                             element.value = valueToSet;
