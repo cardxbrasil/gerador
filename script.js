@@ -2104,21 +2104,24 @@ ${labels.narrativeStyle}`;
     if (inputs.narrativeVoice) context += `\n- ${labels.voice}: "${inputs.narrativeVoice}"`;
     if (inputs.shockingEndingHook) context += `\n- ${labels.hook}: "${inputs.shockingEndingHook}"`;
 
-    if (includeHeavyContext) {
-        const heavyInputs = {
-            videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
-            centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
-            researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
-            emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
-        };
-        if (heavyInputs.videoDescription) context += `\n\n${labels.dossier}\n${heavyInputs.videoDescription}`;
-        if (heavyInputs.centralQuestion) context += `\n- ${labels.centralQuestion}: "${heavyInputs.centralQuestion}"`;
-        if (heavyInputs.emotionalHook) context += `\n\n${labels.emotionalAnchor}\n- ${labels.anchorStory}: "${heavyInputs.emotionalHook}"`;
-        if (heavyInputs.researchData) context += `\n\n${labels.research}\n${heavyInputs.researchData}`;
+if (includeHeavyContext) {
+    const heavyInputs = {
+        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
+        centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
+        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
+        emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
+    };
+
+    // A mágica está aqui: construímos o dossiê completo antes de adicioná-lo
+    let dossierContent = heavyInputs.videoDescription;
+    if (heavyInputs.centralQuestion) {
+        dossierContent += `\n- ${labels.centralQuestion}: "${heavyInputs.centralQuestion}"`;
     }
 
-    return context;
-};
+    if (dossierContent) context += `\n\n${labels.dossier}\n${dossierContent}`;
+    if (heavyInputs.emotionalHook) context += `\n\n${labels.emotionalAnchor}\n- ${labels.anchorStory}: "${heavyInputs.emotionalHook}"`;
+    if (heavyInputs.researchData) context += `\n\n${labels.research}\n${heavyInputs.researchData}`;
+}
 
 
 
