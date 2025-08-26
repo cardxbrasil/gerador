@@ -2179,21 +2179,21 @@ const getBasePromptContext = (options = {}) => {
 
 
 // ==========================================================
-// ===== CONSTRUTOR DE PROMPT MESTRE (v7.3 - CORRIGIDO) =====
+// ===== CONSTRUTOR DE PROMPT MESTRE (v7.6 - SEM SIMPLIFICAÇÃO) =====
 // ==========================================================
 const buildMasterPrompt = () => {
-    // Pega o contexto geral do projeto (nome do canal, público, tema, etc.)
+    // 1. Coleta todas as informações da UI e do estado
     const baseContext = getBasePromptContext({ includeHeavyContext: true }); 
-    
-    // --- LÓGICA DE TEMPO E RITMO APRIMORADA (Já estava correta) ---
     const durationKey = document.getElementById('videoDuration').value; 
     const durationText = document.getElementById('videoDuration').options[document.getElementById('videoDuration').selectedIndex].text;
     const visualPacing = document.getElementById('visualPacing').options[document.getElementById('visualPacing').selectedIndex].text;
+    const genre = AppState.inputs.selectedGenre || 'geral'; 
+    const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
+    const tone = document.getElementById('narrativeTone')?.value || '';
 
-    let totalWords = 0;
-    if (wordCountMap[durationKey]) {
-        totalWords = Object.values(wordCountMap[durationKey]).reduce((a, b) => a + b, 0);
-    }
+    // 2. Calcula as contagens de palavras
+    const counts = wordCountMap[durationKey] || {};
+    const totalWords = Object.values(counts).reduce((a, b) => a + b, 0);
     
     const wordCountGuidance = totalWords > 0 
         ? `O roteiro completo deve ter aproximadamente ${totalWords} palavras.` 
@@ -2206,57 +2206,61 @@ const buildMasterPrompt = () => {
 - **META DE TEXTO (Instrução Crítica):** ${wordCountGuidance}
 `;
 
-    const genre = AppState.inputs.selectedGenre || 'geral'; 
-    
-    // Usa o PromptManager para buscar o template do especialista
+    // 3. Pega o template de texto puro da getScriptPrompt
     let masterPrompt = PromptManager.getScriptPrompt(genre, baseContext, technicalDetails);
     
-    // ================================================================
-    // >>>>> AQUI ESTÁ A LÓGICA DE SUBSTITUIÇÃO QUE FALTAVA <<<<<
-    // ================================================================
-    // Encontra a ideia que foi selecionada e está na descrição
+    // 4. Inicia o processo de substituição de placeholders
+    
+    // 4a. Substitui placeholders de contagem de palavras
+    masterPrompt = masterPrompt.replace(/\$\{totalWords\}/g, totalWords);
+    masterPrompt = masterPrompt.replace(/\$\{counts\.intro \|\| 100\}/g, counts.intro || 100);
+    masterPrompt = masterPrompt.replace(/\$\{counts\.development \|\| 500\}/g, counts.development || 500);
+    masterPrompt = masterPrompt.replace(/\$\{counts\.climax \|\| 200\}/g, counts.climax || 200);
+    masterPrompt = masterPrompt.replace(/\$\{counts\.conclusion \|\| 150\}/g, counts.conclusion || 150);
+    // Adicionamos uma verificação para a CTA, que não tem contagem em alguns casos
+    masterPrompt = masterPrompt.replace(/\$\{counts\.cta \|\| 50\}/g, counts.cta || 50);
+
+    // 4b. Substitui placeholders globais
+    masterPrompt = masterPrompt.replace(/__LANGUAGE_NAME__/g, languageName);
+    masterPrompt = masterPrompt.replace(/__TONE__/g, tone);
+
+    // 4c. Substitui placeholders específicos do especialista, lendo do "Dossiê"
     const videoDescription = document.getElementById('videoDescription').value;
-    const dossierMatch = videoDescription.match(/\*\*DOSSIÊ DA IDEIA\*\*\s*([\s\S]*)/);
+    const dossierMatch = videoDescription.match(/\*\*DOSSIÊ DA IDEIA\*\*[\s\S]*-([\s\S]*)/);
     if (dossierMatch && dossierMatch[1]) {
         const dossierText = dossierMatch[1];
         
-        // Função para extrair valor do dossiê (Ex: "- Tese Central: ...")
         const extractValue = (key) => {
-            const regex = new RegExp(`- ${key}: ([^\n]*)`);
+            const regex = new RegExp(`${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}: ([^\n]*)`);
             const match = dossierText.match(regex);
             return match ? match[1].trim() : '';
         };
 
-        // Substitui os placeholders específicos de cada especialista
         switch (genre) {
             case 'documentario':
-                masterPrompt = masterPrompt.replace('__INVESTIGATIVE_APPROACH__', extractValue("Abordagem"));
+                masterPrompt = masterPrompt.replace(/__INVESTIGATIVE_APPROACH__/g, extractValue("Abordagem Investigativa"));
                 break;
             case 'inspiracional':
-                masterPrompt = masterPrompt.replace('__EMOTIONAL_CORE__', extractValue("Núcleo Emocional"));
+                masterPrompt = masterPrompt.replace(/__EMOTIONAL_CORE__/g, extractValue("Núcleo Emocional"));
                 break;
             case 'scifi':
-                masterPrompt = masterPrompt.replace('__CORE_DILEMMA__', extractValue("Dilema Central"));
+                masterPrompt = masterPrompt.replace(/__CORE_DILEMMA__/g, extractValue("Dilema Central"));
                 break;
             case 'terror':
-                masterPrompt = masterPrompt.replace('__HORROR_MECHANISM__', extractValue("Mecanismo de Terror"));
+                masterPrompt = masterPrompt.replace(/__HORROR_MECHANISM__/g, extractValue("Mecanismo de Terror"));
                 break;
             case 'enigmas':
-                 // Para 'enigmas', os dados são mais complexos, extraímos de forma diferente
-                const foundationMatch = dossierText.match(/- Fundamentação Bíblica: (.*)/);
-                const depthMatch = videoDescription.match(/Profundidade Teológica: (\d+)/); // Exemplo, depende de como a info é salva
-                masterPrompt = masterPrompt.replace('__SCRIPTURAL_FOUNDATION__', foundationMatch ? foundationMatch[1].trim() : 'Não especificado');
-                masterPrompt = masterPrompt.replace('__THEOLOGICAL_DEPTH__', depthMatch ? depthMatch[1].trim() : 'N/A');
+                const foundationMatch = dossierText.match(/Fundamentação Bíblica: (.*)/);
+                const depthMatch = dossierText.match(/Profundidade Teológica: (\d+)/);
+                masterPrompt = masterPrompt.replace(/__SCRIPTURAL_FOUNDATION__/g, foundationMatch ? foundationMatch[1].trim() : '');
+                masterPrompt = masterPrompt.replace(/__THEOLOGICAL_DEPTH__/g, depthMatch ? depthMatch[1].trim() : 'N/A');
                 break;
             case 'geral':
-                masterPrompt = masterPrompt.replace('__ANGLE__', extractValue("Ângulo Único"));
-                masterPrompt = masterPrompt.replace('__SHARE_TRIGGERS__', extractValue("Gatilhos"));
+                masterPrompt = masterPrompt.replace(/__ANGLE__/g, extractValue("Ângulo Único"));
+                masterPrompt = masterPrompt.replace(/__SHARE_TRIGGERS__/g, extractValue("Gatilhos de Compartilhamento"));
                 break;
         }
     }
-    // ================================================================
-    // >>>>> FIM DA LÓGICA DE SUBSTITUIÇÃO <<<<<
-    // ================================================================
 
     return masterPrompt;
 };
