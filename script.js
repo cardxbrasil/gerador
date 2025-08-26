@@ -2106,28 +2106,33 @@ ${labels.narrativeStyle}`;
 
 if (includeHeavyContext) {
     const heavyInputs = {
-        videoDescription: (document.getElementById('videoDescription')?.value.trim() || "").slice(0, 1000),
-        centralQuestion: (document.getElementById('centralQuestion')?.value.trim() || "").slice(0, 500),
-        researchData: (document.getElementById('researchData')?.value.trim() || "").slice(0, 1500),
-        emotionalHook: (document.getElementById('emotionalHook')?.value.trim() || "").slice(0, 1000),
+        videoDescription: document.getElementById('videoDescription')?.value.trim() || "",
+        centralQuestion: document.getElementById('centralQuestion')?.value.trim() || "",
+        researchData: document.getElementById('researchData')?.value.trim() || "",
+        emotionalHook: document.getElementById('emotionalHook')?.value.trim() || "",
     };
 
-    let fullDescriptionText = heavyInputs.videoDescription;
-    
-    // 1. Encontra e remove o dossiê antigo que foi colado na descrição.
-    const dossierSeparatorIndex = fullDescriptionText.indexOf('**DOSSIÊ DA IDEIA**');
-    if (dossierSeparatorIndex !== -1) {
-        fullDescriptionText = fullDescriptionText.substring(0, dossierSeparatorIndex).trim();
-    }
-    
-    // 2. Constrói um novo dossiê apenas com a descrição limpa e a Pergunta Central ATUAL.
-    let freshDossierContent = fullDescriptionText;
-    if (heavyInputs.centralQuestion) {
-        freshDossierContent += `\n- ${labels.centralQuestion}: "${heavyInputs.centralQuestion}"`;
+    // 1. Pega a descrição completa do campo de texto.
+    let descriptionText = heavyInputs.videoDescription;
+
+    // 2. Encontra o separador do dossiê antigo e remove TUDO que vem depois.
+    // Isso nos dá a descrição "limpa", sem a pergunta central antiga.
+    const dossierSeparator = "**DOSSIÊ DA IDEIA**";
+    const separatorIndex = descriptionText.indexOf(dossierSeparator);
+    if (separatorIndex !== -1) {
+        descriptionText = descriptionText.substring(0, separatorIndex).trim();
     }
 
-    // 3. Adiciona as seções ao prompt com os dados corretos e atualizados.
-    if (freshDossierContent) context += `\n\n${labels.dossier}\n${freshDossierContent}`;
+    // 3. Monta o Dossiê para o prompt, começando com a descrição limpa.
+    let dossierForPrompt = descriptionText;
+
+    // 4. AGORA, adiciona a Pergunta Central ATUAL, que você editou no campo correto.
+    if (heavyInputs.centralQuestion) {
+        dossierForPrompt += `\n- ${labels.centralQuestion}: "${heavyInputs.centralQuestion}"`;
+    }
+
+    // 5. Adiciona as seções ao prompt com os dados 100% corretos.
+    if (dossierForPrompt) context += `\n\n${labels.dossier}\n${dossierForPrompt}`;
     if (heavyInputs.emotionalHook) context += `\n\n${labels.emotionalAnchor}\n- ${labels.anchorStory}: "${heavyInputs.emotionalHook}"`;
     if (heavyInputs.researchData) context += `\n\n${labels.research}\n${heavyInputs.researchData}`;
 }
