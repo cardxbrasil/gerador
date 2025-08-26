@@ -4203,11 +4203,10 @@ window.generatePromptsForSection = async (button) => {
 
 
 
-
 const prompt = `
-# INSTRUÇÕES PARA GERAÇÃO DE DESCRIÇÕES VISUAIS CINEMATOGRÁFICAS
+# INSTRUÇÕES PARA GERAÇÃO DE DESCRIÇÕES VISUAIS CINEMATOGRÁFICAS (VERSÃO 2.0)
 
-Você é um especialista em roteirização visual e direção de fotografia. Sua única função é transformar parágrafos narrativos em descrições visuais cinematográficas detalhadas, formatadas em JSON, capturando a essência emocional e sensorial da cena.
+Você é um especialista em roteirização visual e direção de fotografia com um olhar obsessivo por detalhes. Sua única função é transformar parágrafos narrativos em descrições visuais cinematográficas hiperdetalhadas, formatadas em JSON, capturando a essência emocional, sensorial e física da cena.
 
 ## REGRAS ABSOLUTAS DE FORMATO
 
@@ -4231,38 +4230,38 @@ Você é um especialista em roteirização visual e direção de fotografia. Sua
   }
 ]
 
-## PROCEDIMENTO DE ANÁLISE VISUAL (CHECKLIST EXECUTIVO APROFUNDADO)
+## PROCEDIMENTO DE ANÁLISE VISUAL (CHECKLIST DE DETALHE EXTREMO)
 
 Para cada parágrafo, gere uma cena visual respondendo com precisão a:
 
 ### 1. O CORAÇÃO DA CENA: EMOÇÃO E ATMOSFERA
-- **Qual é o sentimento central?**: Defina a emoção primária (ex: melancolia, tensão, admiração, alívio) e como o ambiente a reflete.
-- **Atmosfera Sensorial**: Vá além do visual. Descreva o que se pode **sentir**: o frio úmido que penetra nas roupas, o calor seco do deserto, o silêncio pesado de uma sala vazia, o cheiro de ozônio após a chuva.
-- **Paleta Emocional**: Que cores dominam a cena e o que elas comunicam? (ex: "tons de azul-aço e cinza para transmitir frieza e isolamento", "luz dourada e quente para evocar nostalgia e conforto").
+- **Sentimento Central**: Defina a emoção primária (ex: melancolia, tensão, admiração).
+- **Atmosfera Sensorial**: Descreva o que se pode **sentir, cheirar e ouvir**: o frio úmido que penetra nas roupas, o cheiro de terra molhada, o silêncio pesado que zune nos ouvidos.
+- **Paleta Emocional e Estilo Visual**: Defina as cores dominantes e, crucialmente, **atribua um estilo visual claro** (ex: 'Estilo film noir com alto contraste', 'Estilo documental com cores dessaturadas', 'Realismo mágico com tons pastéis vibrantes').
 
 ### 2. O PALCO: CENÁRIO E COMPOSIÇÃO
-- **Narrativa do Ambiente**: O que o cenário conta sobre quem o habita? Descreva o estado das coisas: "móveis cobertos por lençóis brancos em uma casa abandonada", "ferramentas gastas e organizadas em uma oficina ativa", "desordem caótica de uma luta recente".
-- **Composição Focada**: Como os elementos são arranjados para guiar o olhar? Use termos como "personagem isolado no terço esquerdo do quadro", "linhas convergentes da arquitetura que levam ao ponto de fuga", "uma composição claustrofóbica com o teto baixo pressionando o personagem".
-- **Profundidade e Camadas**: Descreva o que está em cada plano para criar um mundo tridimensional. Primeiro plano (ex: "folhas desfocadas roçando a lente"), plano intermediário (o sujeito principal), fundo (ex: "montanhas distantes envoltas em névoa").
+- **Narrativa do Ambiente**: O que o cenário conta? Descreva o estado das coisas (ex: "móveis cobertos por lençóis brancos").
+- **Composição Focada**: Como os elementos são arranjados? (ex: "personagem isolado no terço esquerdo").
+- **Profundidade e Camadas**: Descreva o primeiro plano, plano intermediário e fundo.
+- **✅ Micro-geografia do Cenário**: Adicione **detalhes específicos que contam uma história**: 'marcas de copos na mesa de madeira', 'fios de teia de aranha nos cantos do teto', 'pequenas ervas daninhas crescendo nas rachaduras da calçada'.
 
 ### 3. A LUZ COMO PERSONAGEM: ILUMINAÇÃO
-- **Qualidade e Textura da Luz**: A luz é "afiada como uma faca", "suave como seda", "trêmula e incerta como a chama de uma vela"?
-- **Direção e Intenção**: De onde vem a luz e por quê? "Contraluz que transforma o personagem em uma silhueta misteriosa", "luz lateral que revela impiedosamente a textura e as imperfeições do rosto", "luz que vaza por uma fresta, simbolizando uma esperança frágil".
-- **Fonte Explícita**: Nomeie a fonte para dar autenticidade. "Luz do sol poeirenta entrando por uma janela de celeiro", "brilho frio e clínico de uma lâmpada fluorescente", "reflexos de um fogo crepitante dançando nas paredes".
+- **Qualidade e Textura da Luz**: A luz é "afiada", "suave", "trêmula"?
+- **Direção e Intenção**: De onde vem a luz e por quê? (ex: "contraluz que transforma o personagem em silhueta").
+- **Fonte Explícita**: Nomeie a fonte (ex: "luz do sol poeirenta", "brilho de uma tela de TV").
+- **✅ Física da Luz e Sombra**: Descreva **como a luz interage com as superfícies**: 'brilho especular em metal molhado', 'luz translúcida passando por um tecido fino', 'sombras de contorno suaves em um rosto', 'cáusticos da luz refletida pela água dançando na parede'.
 
 ### 4. O FOCO DA HISTÓRIA: SUJEITO E DETALHES
-- **Linguagem Corporal**: Traduza a emoção em postura. "Ombros curvados sob o peso da derrota", "mãos cerradas em punhos de raiva contida", "um olhar perdido, fixo em um ponto além do horizonte".
-- **O Detalhe Revelador (O "Punctum")**: Qual é o único detalhe que conta a história inteira? "Uma única lágrima traçando um caminho limpo em um rosto sujo", "uma aliança de casamento sendo girada nervosamente no dedo", "as chaves do carro ainda balançando na ignição".
-- **Texturas que se Sentem**: Descreva as superfícies de uma forma que o espectador quase possa tocá-las. "A lã grossa e arranhada de um casaco velho", "o metal frio e liso de uma arma", "a pele enrugada e macia de um pêssego maduro".
+- **Linguagem Corporal**: Traduza a emoção em postura (ex: "ombros curvados").
+- **Texturas que se Sentem**: Descreva as superfícies de forma tátil (ex: "a lã grossa e arranhada").
+- **O Detalhe Revelador (Punctum)**: Qual é o detalhe que conta a história? (ex: "uma única lágrima").
+- **✅ Especificidade Técnica da Câmera**: Adicione **uma frase que descreva a lente e o foco**: 'Foco seletivo (shallow focus) com uma lente de 85mm, isolando o personagem do fundo caótico', 'Grande profundidade de campo (deep focus) com uma lente grande angular, mostrando a vastidão opressora do cenário'.
 
 ## DIRETRIZES DE EXECUÇÃO
 
-- **Traduza, não invente**: Extraia a essência emocional e visual do parágrafo original e a amplifique.
+- **Traduza, não invente**: Extraia a essência emocional e visual do parágrafo original e a amplifique com detalhes ricos.
 - **Mantenha consistência estética** entre cenas consecutivas (mesma paleta, iluminação, tom).
-- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade e no peso emocional da cena:
-  - 2–4s: Cenas focadas em um detalhe ou expressão (close-up, inserção).
-  - 5–7s: Cenas de interação ou movimento moderado (plano médio).
-  - 8–10s: Cenas que estabelecem um ambiente ou ação complexa (plano geral).
+- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade e no peso emocional da cena.
 - **Em caso de ambiguidade, decida com coerência emocional**: priorize o tom (drama, tensão, nostalgia).
 
 ## ENTRADA DE DADOS
@@ -4273,9 +4272,8 @@ ${batchText}
 
 ## INSTRUÇÃO FINAL
 
-Analise cada parágrafo, aplique o checklist aprofundado com rigor cinematográfico, e gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration".  
+Analise cada parágrafo, aplique o checklist de detalhe extremo com rigor cinematográfico, e gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration". A descrição deve ser uma tapeçaria rica de detalhes visuais, sensoriais e técnicos.  
 **Nada além do array JSON deve ser retornado. Nenhum texto explicativo, nenhum comentário, nenhum acréscimo.**`;
-
 
 
 
