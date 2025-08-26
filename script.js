@@ -2184,9 +2184,6 @@ const suggestStrategy = async (button) => {
     const userConfirmed = await showConfirmationDialog("Refinar Estratégia com IA?", "Isso usará a IA para redefinir os campos de estratégia. Deseja continuar?");
     if (!userConfirmed) return;
     
-    AppState.generated.script = { intro: {}, development: {}, climax: {}, conclusion: {}, cta: {} };
-    document.getElementById('scriptSectionsContainer').innerHTML = '';
-
     showButtonLoading(button);
     
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
@@ -2246,23 +2243,19 @@ RESEARCH_DATA:: [Sugira 2 a 3 pontos de pesquisa, formatados como UMA ÚNICA STR
 
         setTimeout(() => { 
             for (const key in keyToElementIdMap) {
-                if (strategy.hasOwnProperty(key)) {
-                    const element = document.getElementById(keyToElementIdMap[key]);
-                    if (element) {
-                        // ===============================================
-                        // >>>>> A CORREÇÃO DO BUG ESTÁ AQUI <<<<<
-                        // Garante que o valor a ser definido seja uma string,
-                        // mesmo que a IA não retorne a chave.
-                        const valueToSet = strategy[key] || '';
-                        // ===============================================
-                        
-                        if (element.tagName === 'SELECT') {
-                            if ([...element.options].some(o => o.value === valueToSet)) {
-                                element.value = valueToSet;
-                            }
-                        } else {
+                const element = document.getElementById(keyToElementIdMap[key]);
+                if (element) {
+                    // ===============================================
+                    // >>>>> A CORREÇÃO DO BUG ESTÁ NESTA LINHA <<<<<
+                    const valueToSet = strategy[key] || ''; // Se strategy[key] for undefined, usa uma string vazia ''
+                    // ===============================================
+                    
+                    if (element.tagName === 'SELECT') {
+                        if ([...element.options].some(o => o.value === valueToSet)) {
                             element.value = valueToSet;
                         }
+                    } else {
+                        element.value = valueToSet;
                     }
                 }
             }
