@@ -4112,7 +4112,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 
 // =========================================================================
-// >>>>> VERSÃO DEFINITIVA (v7.6) - PROMPT COMPLETO + LOTES FIXOS <<<<<
+// >>>>> VERSÃO DEFINITIVA (v7.8) - DIVISÃO POR FRASES + LOTES FIXOS <<<<<
 // =========================================================================
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
@@ -4132,26 +4132,29 @@ window.generatePromptsForSection = async (button) => {
 
     try {
         const fullText = contentWrapper.textContent.trim();
-        const paragraphs = fullText.split(/\n\s*\n/).filter(p => p.trim());
+        
+        // <<< MUDANÇA CRUCIAL AQUI: DIVIDIMOS POR FRASES, NÃO POR PARÁGRAFOS >>>
+        // Esta é a correção que resolve o problema do "bloco único de texto".
+        const sentences = fullText.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
 
         const batches = [];
-        const MAX_WORDS_PER_BATCH = 120;
-        let currentBatch = [];
+        const MAX_WORDS_PER_BATCH = 120; // Mantemos o lote pequeno para forçar mais viagens.
+        let currentBatch = "";
         let currentWordCount = 0;
 
-        for (const p of paragraphs) {
-            const wordCount = p.split(/\s+/).length;
-            if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatch.length > 0) {
-                batches.push(currentBatch.join('\n\n'));
-                currentBatch = [p];
-                currentWordCount = wordCount;
+        for (const sentence of sentences) {
+            const sentenceWordCount = sentence.split(/\s+/).length;
+            if (currentWordCount + sentenceWordCount > MAX_WORDS_PER_BATCH && currentBatch.length > 0) {
+                batches.push(currentBatch.trim());
+                currentBatch = sentence + " ";
+                currentWordCount = sentenceWordCount;
             } else {
-                currentBatch.push(p);
-                currentWordCount += wordCount;
+                currentBatch += sentence + " ";
+                currentWordCount += sentenceWordCount;
             }
         }
         if (currentBatch.length > 0) {
-            batches.push(currentBatch.join('\n\n'));
+            batches.push(currentBatch.trim());
         }
 
         if (batches.length === 0) { throw new Error("Não foram encontrados parágrafos para analisar."); }
@@ -4162,7 +4165,6 @@ window.generatePromptsForSection = async (button) => {
             const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
             const durationRange = durationMap[visualPacing] || '3 e 8';
             
-            // <<< SEU PROMPT ORIGINAL E COMPLETO, RESTAURADO E ADAPTADO PARA LOTES FIXOS >>>
             const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS EM LOTE
 Você é uma especialista em transformar blocos de texto em uma série de cenas visuais cinematográficas.
 
