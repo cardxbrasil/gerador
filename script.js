@@ -4112,7 +4112,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 
 // =========================================================================
-// >>>>> VERSÃO DEFINITIVA (v7.6) - PROMPT COMPLETO + LOTES FIXOS <<<<<
+// >>>>> VERSÃO FINAL (v7.3) - ALTA QUALIDADE + ESTABILIDADE <<<<<
 // =========================================================================
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
@@ -4125,58 +4125,51 @@ window.generatePromptsForSection = async (button) => {
         return;
     }
 
-    const PROMPTS_PER_BATCH = 4;
-
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Gerando ${PROMPTS_PER_BATCH} imagens por lote com alta qualidade...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
-        const paragraphs = fullText.split(/\n\s*\n/).filter(p => p.trim());
-
-        const batches = [];
-        const MAX_WORDS_PER_BATCH = 300;
-        let currentBatch = [];
-        let currentWordCount = 0;
-
-        for (const p of paragraphs) {
-            const wordCount = p.split(/\s+/).length;
-            if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatch.length > 0) {
-                batches.push(currentBatch.join('\n\n'));
-                currentBatch = [p];
-                currentWordCount = wordCount;
-            } else {
-                currentBatch.push(p);
-                currentWordCount += wordCount;
+        const sentences = fullText.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
+        
+        const chunksToProcess = [];
+        let tempChunk = "";
+        sentences.forEach(sentence => {
+            tempChunk += sentence.trim() + " ";
+            if (tempChunk.split(/\s+/).length >= 15) {
+                chunksToProcess.push(tempChunk.trim());
+                tempChunk = "";
             }
-        }
-        if (currentBatch.length > 0) {
-            batches.push(currentBatch.join('\n\n'));
-        }
+        });
+        if (tempChunk.trim().length > 0) chunksToProcess.push(tempChunk.trim());
 
-        if (batches.length === 0) { throw new Error("Não foram encontrados parágrafos para analisar."); }
+        if (chunksToProcess.length === 0) { throw new Error("Não foram encontradas frases para analisar."); }
 
-        let allGeneratedPrompts = [];
-        for (const batchText of batches) {
+        // <<< APLICADO: O PROCESSAMENTO SEQUENCIAL PARA EVITAR ERRO 429 >>>
+        const allGeneratedPrompts = [];
+        for (const chunkText of chunksToProcess) {
             const visualPacing = document.getElementById('visualPacing').value;
             const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
             const durationRange = durationMap[visualPacing] || '3 e 8';
             
-            // <<< SEU PROMPT ORIGINAL E COMPLETO, RESTAURADO E ADAPTADO PARA LOTES FIXOS >>>
-            const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS EM LOTE
-Você é uma especialista em transformar blocos de texto em uma série de cenas visuais cinematográficas.
+            // <<< MANTIDO: O SEU PROMPT DE ALTA QUALIDADE >>>
+            const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
+Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar um parágrafo e transformá-lo em UMA descrição de imagem rica em detalhes.
 
-## TAREFA PRINCIPAL
-Sua tarefa é extrair os **${PROMPTS_PER_BATCH} MOMENTOS VISUAIS MAIS IMPORTANTES** do 'BLOCO DE TEXTO' abaixo e transformá-los em **EXATAMENTE ${PROMPTS_PER_BATCH} prompts** de imagem, usando o checklist detalhado.
+## REGRAS DE FORMATAÇÃO (OBRIGATÓRIAS)
+1. **FORMATO JSON EXCLUSIVO**: Sua resposta deve ser APENAS um objeto JSON válido, começando com { e terminando com }
+2. **ASPAS DUPLAS OBRIGATÓRIAS**: Todas as chaves e valores de texto devem usar aspas duplas (")
+3. **PROIBIÇÃO DE ASPAS INTERNAS**: Nos valores de texto, use apenas aspas simples (') para ênfase
+4. **ESTRUTURA PADRÃO**: O objeto deve ter exatamente duas chaves: "imageDescription" (string) e "estimated_duration" (número inteiro).
 
-## REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS)
-1. **TAMANHO DO ARRAY**: O array DEVE conter **EXATAMENTE ${PROMPTS_PER_BATCH} objetos**. Nem mais, nem menos.
-2. **FORMATO JSON EXCLUSIVO**: Sua resposta deve ser APENAS um ARRAY JSON válido, começando com [ e terminando com ].
-3. **ESTRUTURA DOS OBJETOS**: Cada objeto dentro do array deve ter exatamente três chaves: "script_phrase", "imageDescription", e "estimated_duration".
-4. **ASPAS DUPLAS**: Todas as chaves e valores de texto DEVEM usar aspas duplas (").
+## EXEMPLO DE FORMATAÇÃO CORRETA
+{
+  "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras.",
+  "estimated_duration": 6
+}
 
-## CHECKLIST PARA CRIAÇÃO DE CADA DESCRIÇÃO VISUAL
-Para cada prompt, crie uma descrição rica respondendo a estas perguntas:
+## CHECKLIST PARA CRIAÇÃO DA DESCRIÇÃO VISUAL
+Para o parágrafo, crie uma descrição visual rica respondendo a estas perguntas:
 ### Elementos Visuais Principais
 - **Cenário e Ambiente**: Onde a cena acontece? Descreva o local, arquitetura, objetos e atmosfera sensorial.
 - **Composição Visual**: Quais elementos principais estão no quadro? Use regra dos terços, simetria ou desequilíbrio.
@@ -4197,29 +4190,29 @@ Para cada prompt, crie uma descrição rica respondendo a estas perguntas:
 - **Elementos Temporais ou Climáticos**: Hora do dia, estação, clima (chuva, neblina, vento)?
 
 ## DIRETRIZES ADICIONAIS
+- Priorize elementos visuais que melhor representem a essência emocional e narrativa do parágrafo.
 - Para "estimated_duration", use um valor inteiro entre ${durationRange} segundos.
-- Para "script_phrase", copie a frase ou trecho do texto original que melhor inspira a cena visual.
+- Se o texto for ambíguo, faça escolhas criativas coerentes com o tom geral (dramático, nostálgico, tenso).
 
-## BLOCO DE TEXTO PARA ANÁLISE
+## DADOS PARA ANÁLISE
 ---
-${batchText}
+- Texto do Parágrafo: "${chunkText}"
 ---
 
 ## AÇÃO FINAL
-Analise o bloco de texto, crie exatamente ${PROMPTS_PER_BATCH} cenas e retorne APENAS o array JSON, seguindo rigorosamente todas as regras.`;
+Com base nestas instruções, gere um único objeto JSON para este parágrafo, seguindo rigorosamente todas as regras de formatação.`;
 
-            const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
-            if (Array.isArray(jsonResponse)) {
-                allGeneratedPrompts = allGeneratedPrompts.concat(jsonResponse);
-            }
+            // A chamada acontece uma de cada vez, com calma.
+            const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 1000).then(getRobustJson);
+            allGeneratedPrompts.push(jsonResponse);
         }
-        
-        if (allGeneratedPrompts.length === 0) {
-            throw new Error("A IA não retornou nenhum prompt válido. O texto pode ser muito curto ou a resposta da API falhou.");
+
+        if (!Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length < chunksToProcess.length) {
+            throw new Error("A IA não retornou um prompt para cada frase. Tente novamente.");
         }
-        
-        const curatedPrompts = allGeneratedPrompts.map(promptData => ({
-            scriptPhrase: promptData.script_phrase || "Trecho do roteiro",
+
+        const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
+            scriptPhrase: chunksToProcess[index],
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
             estimated_duration: promptData.estimated_duration || 5
         }));
@@ -4245,6 +4238,7 @@ Analise o bloco de texto, crie exatamente ${PROMPTS_PER_BATCH} cenas e retorne A
         hideButtonLoading(button);
     }
 };
+
 
 
 
