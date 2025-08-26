@@ -825,3 +825,17 @@ textarea.input { min-height: 84px; resize: vertical; }
 /* 3. Identidade: Elementos Virais (Sugestão) */
 .analysis-card--viral { border-left-color: var(--blue); }
 .text-blue-500 { color: var(--blue) !important; }
+
+
+/* ================================================================= */
+/* ============= ESTILO PARA PAGINAÇÃO DE PROMPTS (NOVO) ============ */
+/* ================================================================= */
+
+.pagination-summary p {
+    text-align: center;
+    font-size: 0.875rem; /* 14px */
+    color: var(--text-muted);
+    padding: 0.5rem;
+    background-color: color-mix(in srgb, var(--border) 20%, transparent);
+    border-radius: 6px;
+}
