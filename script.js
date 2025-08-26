@@ -4112,7 +4112,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 
 // =========================================================================
-// >>>>> VERSÃO DEFINITIVA (v7.8) - DIVISÃO POR FRASES + LOTES FIXOS <<<<<
+// >>>>> VERSÃO DEFINITIVA (v7.6) - PROMPT COMPLETO + LOTES FIXOS <<<<<
 // =========================================================================
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
@@ -4132,29 +4132,26 @@ window.generatePromptsForSection = async (button) => {
 
     try {
         const fullText = contentWrapper.textContent.trim();
-        
-        // <<< MUDANÇA CRUCIAL AQUI: DIVIDIMOS POR FRASES, NÃO POR PARÁGRAFOS >>>
-        // Esta é a correção que resolve o problema do "bloco único de texto".
-        const sentences = fullText.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
+        const paragraphs = fullText.split(/\n\s*\n/).filter(p => p.trim());
 
         const batches = [];
-        const MAX_WORDS_PER_BATCH = 120; // Mantemos o lote pequeno para forçar mais viagens.
-        let currentBatch = "";
+        const MAX_WORDS_PER_BATCH = 300;
+        let currentBatch = [];
         let currentWordCount = 0;
 
-        for (const sentence of sentences) {
-            const sentenceWordCount = sentence.split(/\s+/).length;
-            if (currentWordCount + sentenceWordCount > MAX_WORDS_PER_BATCH && currentBatch.length > 0) {
-                batches.push(currentBatch.trim());
-                currentBatch = sentence + " ";
-                currentWordCount = sentenceWordCount;
+        for (const p of paragraphs) {
+            const wordCount = p.split(/\s+/).length;
+            if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatch.length > 0) {
+                batches.push(currentBatch.join('\n\n'));
+                currentBatch = [p];
+                currentWordCount = wordCount;
             } else {
-                currentBatch += sentence + " ";
-                currentWordCount += sentenceWordCount;
+                currentBatch.push(p);
+                currentWordCount += wordCount;
             }
         }
         if (currentBatch.length > 0) {
-            batches.push(currentBatch.trim());
+            batches.push(currentBatch.join('\n\n'));
         }
 
         if (batches.length === 0) { throw new Error("Não foram encontrados parágrafos para analisar."); }
@@ -4165,6 +4162,7 @@ window.generatePromptsForSection = async (button) => {
             const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
             const durationRange = durationMap[visualPacing] || '3 e 8';
             
+            // <<< SEU PROMPT ORIGINAL E COMPLETO, RESTAURADO E ADAPTADO PARA LOTES FIXOS >>>
             const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS EM LOTE
 Você é uma especialista em transformar blocos de texto em uma série de cenas visuais cinematográficas.
 
@@ -4258,7 +4256,7 @@ Analise o bloco de texto, crie exatamente ${PROMPTS_PER_BATCH} cenas e retorne A
 
 
 // =========================================================================
-// >>>>> VERSÃO MELHORADA (v7.7) - COM INTERFACE DE PAGINAÇÃO CLARA <<<<<
+// >>>>> COLE ESTA FUNÇÃO COMPLETA NO LUGAR DA ANTIGA <<<<<
 // =========================================================================
 const renderPaginatedPrompts = (sectionElementId) => {
     const sectionElement = document.getElementById(sectionElementId);
@@ -4276,23 +4274,29 @@ const renderPaginatedPrompts = (sectionElementId) => {
     if (!promptItemsContainer || !navContainer) return;
     promptItemsContainer.innerHTML = '';
     
+    // >>> MUDANÇA CRÍTICA: LÓGICA DE CÁLCULO DE OFFSET REFORÇADA <<<
     let cumulativeSeconds = 0;
     let globalSceneCounter = 1;
     const sectionOrder = ['introSection', 'developmentSection', 'climaxSection', 'conclusionSection', 'ctaSection'];
     const currentSectionIndex = sectionOrder.indexOf(sectionElementId);
 
+    // Itera por TODAS as seções ANTERIORES à atual
     for (let i = 0; i < currentSectionIndex; i++) {
         const previousSectionId = sectionOrder[i];
         const prevPrompts = AppState.generated.imagePrompts[previousSectionId] || [];
         
+        // Acumula a duração e o número de cenas das seções passadas
         prevPrompts.forEach(p => {
             cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
         });
         globalSceneCounter += prevPrompts.length;
     }
+    // >>> FIM DA MUDANÇA CRÍTICA <<<
     
     const startIndex = currentPage * itemsPerPage;
+    // Acumula o tempo das páginas anteriores DENTRO da seção atual
     prompts.slice(0, startIndex).forEach(p => { cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0; });
+    // Ajusta o contador de cena para o início da página atual
     globalSceneCounter += startIndex;
 
     const promptsToShow = prompts.slice(startIndex, startIndex + itemsPerPage);
@@ -4331,27 +4335,18 @@ const renderPaginatedPrompts = (sectionElementId) => {
             </div>
         `;
         promptItemsContainer.innerHTML += promptHtml;
+        // Acumula o tempo para a PRÓXIMA cena na mesma página
         cumulativeSeconds += parseInt(promptData.estimated_duration, 10) || 0;
     });
     
-    // <<< AQUI ESTÁ A MUDANÇA PRINCIPAL >>>
-    // Adicionamos um sumário e melhoramos a estrutura da navegação.
     if (totalPages > 1) {
-        const startItem = startIndex + 1;
-        const endItem = Math.min(startIndex + itemsPerPage, prompts.length);
-        
         navContainer.innerHTML = `
-            <div class="pagination-summary">
-                <p>Exibindo Cenas ${startItem} - ${endItem} de <strong>${prompts.length}</strong> geradas</p>
-            </div>
-            <div class="flex items-center justify-center gap-4 mt-2">
-                <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', -1)" ${currentPage === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i> Anterior</button>
-                <span class="text-sm font-medium">Página ${currentPage + 1} de ${totalPages}</span>
-                <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', 1)" ${currentPage + 1 >= totalPages ? 'disabled' : ''}>Próxima <i class="fas fa-chevron-right"></i></button>
-            </div>
+            <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', -1)" ${currentPage === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
+            <span class="text-sm font-medium">Página ${currentPage + 1} de ${totalPages}</span>
+            <button class="btn btn-secondary btn-small" onclick="window.navigatePrompts('${sectionElementId}', 1)" ${currentPage + 1 >= totalPages ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
         `;
     } else {
-        navContainer.innerHTML = ''; // Se só tem uma página, não mostra nada.
+        navContainer.innerHTML = '';
     }
 };
 
