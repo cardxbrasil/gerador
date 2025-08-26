@@ -1917,13 +1917,13 @@ const getGenreFromIdea = (idea) => {
 
 
 
-// SUBSTITUA SUA FUNÇÃO 'selectIdea' INTEIRA POR ESTA VERSÃO À PROVA DE BALAS:
+// SUBSTITUA SUA FUNÇÃO 'selectIdea' INTEIRA POR ESTA VERSÃO FINAL:
 const selectIdea = (idea) => {
     const genre = getGenreFromIdea(idea);
     AppState.inputs.selectedGenre = genre;
     const mapper = strategyMapper[genre];
 
-    // Preenchimento dos dropdowns (sem mudanças)
+    // Preenchimento dos dropdowns
     if (mapper && mapper.dropdowns) {
         for (const id in mapper.dropdowns) {
             const element = document.getElementById(id);
@@ -1935,14 +1935,14 @@ const selectIdea = (idea) => {
     updateNarrativeStructureOptions();
     updateMainTooltip();
 
-    // 1. Define a estratégia base usando concatenação de string (+) para máxima segurança
+    // 1. Define a estratégia base com valores padrão sólidos
     let strategy = {
-        narrativeTheme: idea.angle || "Explorar o tema central de \"" + idea.title + "\".",
-        centralQuestion: "Qual é o mistério ou a principal questão por trás de \"" + idea.title + "\"?",
-        emotionalHook: "Comece com uma anedota ou uma micro-história que conecte o tema '" + idea.title + "' a uma experiência humana universal.",
+        narrativeTheme: idea.angle || `Explorar o tema central de "${idea.title}".`,
+        centralQuestion: `Qual é o mistério ou a principal questão por trás de "${idea.title}"?`,
+        emotionalHook: `Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.`,
         narrativeVoice: 'Confiante e Esclarecedor',
-        shockingEndingHook: "",
-        researchData: "Buscar 1-2 estatísticas ou citações que reforcem a mensagem principal de \"" + idea.title + "\"."
+        shockingEndingHook: ``,
+        researchData: `Buscar 1-2 estatísticas ou citações que reforcem a mensagem principal de "${idea.title}".`
     };
 
     // 2. Sobrescreve a base APENAS com valores VÁLIDOS do especialista
@@ -1965,11 +1965,11 @@ const selectIdea = (idea) => {
     
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('targetAudience').value = idea.targetAudience || '';
-    const dossierContent = mapper ? mapper.dossier(idea) : "- Ângulo Único: " + (idea.angle || 'N/A');
-    const fullDescription = (idea.videoDescription || '') + "\n\n--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n" + dossierContent.trim();
+    const dossierContent = mapper ? mapper.dossier(idea) : `- Ângulo Único: ${idea.angle || 'N/A'}`;
+    const fullDescription = `${idea.videoDescription || ''}\n\n--------------------\n**DOSSIÊ DA IDEIA**\n--------------------\n${dossierContent.trim()}`;
     document.getElementById('videoDescription').value = fullDescription;
     
-    window.showToast("Ideia selecionada! Estratégia pré-preenchida.", "success");
+    window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
     showPane('strategy');
     document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
 };
