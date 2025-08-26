@@ -4877,7 +4877,6 @@ const actions = {
 
 
 
-// SUBSTITUA A FUNÇÃO processPastedScript INTEIRA PELA VERSÃO v7.2
 const processPastedScript = async (button) => {
     document.getElementById('finalizeBtnContainer')?.remove();
 
@@ -4896,26 +4895,32 @@ const processPastedScript = async (button) => {
     try {
         const scriptObject = await getRobustJson(pastedJson);
 
-        // --- INÍCIO DA CORREÇÃO ---
-        // Normaliza as chaves do objeto recebido da IA para garantir consistência
+        // --- INÍCIO DA CORREÇÃO DE NORMALIZAÇÃO DE CHAVES (JÁ ESTAVA CORRETO) ---
         const normalizedScriptObject = {};
-        for (const key in scriptObject) {
-            let normalizedKey = key.toLowerCase();
-            if (normalizedKey === 'conclusao' || normalizedKey === 'conclusion') {
-                normalizedKey = 'conclusao'; // Padroniza para 'conclusao'
+        const keyMap = {
+            'introducao': ['introducao', 'introduction', 'intro'],
+            'desenvolvimento': ['desenvolvimento', 'development', 'dev'],
+            'climax': ['climax'],
+            'conclusao': ['conclusao', 'conclusion'],
+            'cta': ['cta', 'call_to_action']
+        };
+        for (const standardKey in keyMap) {
+            for (const possibleKey of keyMap[standardKey]) {
+                if (scriptObject[possibleKey] !== undefined) {
+                    normalizedScriptObject[standardKey] = scriptObject[possibleKey];
+                    break; 
+                }
+                const lowerPossibleKey = possibleKey.toLowerCase();
+                 if (scriptObject[lowerPossibleKey] !== undefined) {
+                    normalizedScriptObject[standardKey] = scriptObject[lowerPossibleKey];
+                    break;
+                }
             }
-            if (normalizedKey === 'introducao' || normalizedKey === 'introduction') {
-                normalizedKey = 'introducao'; // Padroniza para 'introducao'
-            }
-             if (normalizedKey === 'desenvolvimento' || normalizedKey === 'development') {
-                normalizedKey = 'desenvolvimento'; // Padroniza para 'desenvolvimento'
-            }
-            normalizedScriptObject[normalizedKey] = scriptObject[key];
         }
-        // --- FIM DA CORREÇÃO ---
+        // --- FIM DA NORMALIZAÇÃO ---
 
         if (!normalizedScriptObject.introducao || !normalizedScriptObject.desenvolvimento || !normalizedScriptObject.climax) {
-            throw new Error("O JSON colado não contém as chaves esperadas (introducao, desenvolvimento, climax, etc). Verifique a resposta da IA.");
+            throw new Error("O JSON colado não contém as chaves essenciais (introducao, desenvolvimento, climax). Verifique a resposta da IA.");
         }
 
         const sectionMap = { introducao: 'intro', desenvolvimento: 'development', climax: 'climax', conclusao: 'conclusion', cta: 'cta' };
@@ -4924,15 +4929,21 @@ const processPastedScript = async (button) => {
         scriptContainer.innerHTML = '';
 
         for (const key in sectionMap) {
-            // Agora usamos o objeto normalizado
             if (normalizedScriptObject[key]) {
                 const sectionName = sectionMap[key];
-                const rawText = normalizedScriptObject[key];
+                let rawText = normalizedScriptObject[key];
                 
-                const paragraphs = rawText.split(/\n\s*\n/).filter(p => p.trim() !== '');
+                // ==========================================================
+                // >>>>> A BLINDAGEM FINAL E MAIS IMPORTANTE ESTÁ AQUI <<<<<
+                // Limpa todas as anotações numéricas como [2] ou [11, 24] do texto recebido.
+                const cleanedText = rawText.replace(/\[[\d, ]+\]/g, '').trim();
+                // ==========================================================
+
+                const paragraphs = cleanedText.split(/\n\s*\n/).filter(p => p.trim() !== '');
                 const htmlContent = paragraphs.map((p, index) => `<div id="${sectionName}-p-${index}">${DOMPurify.sanitize(p)}</div>`).join('');
 
-                AppState.generated.script[sectionName] = { html: htmlContent, text: rawText };
+                // Salva o texto já LIMPO no estado da aplicação
+                AppState.generated.script[sectionName] = { html: htmlContent, text: cleanedText };
 
                 const sectionElement = generateSectionHtmlContent(sectionName, titles[sectionName], htmlContent);
                 scriptContainer.appendChild(sectionElement);
@@ -4959,6 +4970,11 @@ const processPastedScript = async (button) => {
         hideButtonLoading(button);
     }
 };
+
+
+
+
+
 
 
 
