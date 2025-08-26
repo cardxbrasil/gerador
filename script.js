@@ -1799,8 +1799,7 @@ const renderUniversalIdeaCard = (idea, index, genre) => {
 
 
 
-
-// SUBSTITUA A SUA FUNÇÃO generateIdeasFromReport POR ESTA VERSÃO v7.0 COMPLETA
+// SUBSTITUA A SUA FUNÇÃO generateIdeasFromReport POR ESTA VERSÃO v7.0 COMPLETA E CORRIGIDA
 const generateIdeasFromReport = async (button) => {
     const factCheckOutput = document.getElementById('factCheckOutput');
     const { originalQuery, rawReport } = factCheckOutput.dataset;
@@ -1808,7 +1807,7 @@ const generateIdeasFromReport = async (button) => {
         window.showToast("Erro: Relatório da investigação não encontrado. Gere o relatório primeiro.", 'error');
         return;
     }
-    
+
     const genre = document.querySelector('#genreTabs .tab-button.tab-active')?.dataset.genre || 'geral';
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português do Brasil' : 'English';
     const outputContainer = document.getElementById('ideasOutput');
@@ -1818,7 +1817,13 @@ const generateIdeasFromReport = async (button) => {
 
     try {
         // PASSO 1: Construir o prompt
-        const promptContext = { originalQuery, rawReport, languageName };
+        
+        // >>>>> A CORREÇÃO ESTÁ AQUI <<<<<
+        // Limpamos o relatório de todas as citações numéricas como [11] ou [16, 25]
+        const cleanedReport = rawReport.replace(/\[[\d, ]+\]/g, ''); 
+        
+        // Agora, usamos o `cleanedReport` para criar o contexto para a IA
+        const promptContext = { originalQuery, rawReport: cleanedReport, languageName };
         const creativePrompt = PromptManager.getIdeasPrompt(genre, promptContext);
         
         hideButtonLoading(button);
