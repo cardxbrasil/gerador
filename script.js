@@ -2179,10 +2179,10 @@ const getBasePromptContext = (options = {}) => {
 
 
 // ==========================================================
-// ===== CONSTRUTOR DE PROMPT MESTRE (v7.9 - BUSCA FINAL) =====
+// ===== CONSTRUTOR DE PROMPT MESTRE (v8.0 - CORREÇÃO SIMPLES E FINAL) =====
 // ==========================================================
 const buildMasterPrompt = () => {
-    // 1. Coleta todas as informações da UI e do estado (sem mudanças)
+    // 1. Coleta todas as informações da UI e do estado
     const baseContext = getBasePromptContext({ includeHeavyContext: true }); 
     const durationKey = document.getElementById('videoDuration').value; 
     const durationText = document.getElementById('videoDuration').options[document.getElementById('videoDuration').selectedIndex].text;
@@ -2191,7 +2191,7 @@ const buildMasterPrompt = () => {
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
     const tone = document.getElementById('narrativeTone')?.value || '';
 
-    // 2. Calcula as contagens de palavras (sem mudanças)
+    // 2. Calcula as contagens de palavras
     const counts = wordCountMap[durationKey] || {};
     const totalWords = Object.values(counts).reduce((a, b) => a + b, 0);
     
@@ -2206,63 +2206,62 @@ const buildMasterPrompt = () => {
 - **META DE TEXTO (Instrução Crítica):** ${wordCountGuidance}
 `;
 
-    // 3. Pega o template de texto puro (sem mudanças)
-    let masterPrompt = PromptManager.getScriptPrompt(genre, baseContext, technicalDetails);
+    // 3. Pega o template de texto puro da getScriptPrompt
+    let masterPrompt = PromptManager.getScriptPrompt(genre, baseContext, technicalDetails, durationKey);
     
     // 4. Inicia o processo de substituição de placeholders
     
-    // 4a. Substitui placeholders de contagem de palavras (sem mudanças)
+    // 4a. Substitui placeholders de contagem de palavras
     masterPrompt = masterPrompt.replace(/__TOTAL_WORDS__/g, totalWords);
     masterPrompt = masterPrompt.replace(/__INTRO_WORDS__/g, counts.intro || 100);
     masterPrompt = masterPrompt.replace(/__DEV_WORDS__/g, counts.development || 500);
     masterPrompt = masterPrompt.replace(/__CLIMAX_WORDS__/g, counts.climax || 200);
     masterPrompt = masterPrompt.replace(/__CONCLUSION_WORDS__/g, counts.conclusion || 150);
 
-    // 4b. Substitui placeholders globais (sem mudanças)
+    // 4b. Substitui placeholders globais
     masterPrompt = masterPrompt.replace(/__LANGUAGE_NAME__/g, languageName);
     masterPrompt = masterPrompt.replace(/__TONE__/g, tone);
 
     // ================================================================
-    // >>>>> CORREÇÃO FINAL E DEFINITIVA NA LÓGICA DE EXTRAÇÃO <<<<<
+    // >>>>> A CORREÇÃO SIMPLES E EFICAZ ESTÁ AQUI <<<<<
     // ================================================================
-    const videoDescription = document.getElementById('videoDescription').value;
-    const dossierMatch = videoDescription.match(/\*\*DOSSIÊ DA IDEIA\*\*[\s\S]*/);
-    if (dossierMatch && dossierMatch[0]) {
-        const dossierText = dossierMatch[0];
-        
-        // NOVA E MELHOR FUNÇÃO 'extractValue'
-        const extractValue = (key) => {
-            // Esta nova regex procura a chave, ignora um separador opcional (:) e captura o resto da linha.
-            // É muito mais flexível.
-            const regex = new RegExp(`^\\s*[-*]*\\s*${key.trim()}:?\\s*(.+)`, "im");
-            const match = dossierText.match(regex);
-            return match ? match[1].trim() : '';
-        };
-
-        switch (genre) {
-            case 'documentario':
-                masterPrompt = masterPrompt.replace(/__INVESTIGATIVE_APPROACH__/g, extractValue("Abordagem Investigativa"));
-                break;
-            case 'inspiracional':
-                masterPrompt = masterPrompt.replace(/__EMOTIONAL_CORE__/g, extractValue("Núcleo Emocional"));
-                break;
-            case 'scifi':
-                masterPrompt = masterPrompt.replace(/__CORE_DILEMMA__/g, extractValue("Dilema Central"));
-                break;
-            case 'terror':
-                masterPrompt = masterPrompt.replace(/__HORROR_MECHANISM__/g, extractValue("Mecanismo de Terror"));
-                break;
-            case 'enigmas':
-                const foundationMatch = dossierText.match(/Fundamentação Bíblica: (.*)/);
-                const depthMatch = dossierText.match(/Profundidade Teológica: (\d+)/);
-                masterPrompt = masterPrompt.replace(/__SCRIPTURAL_FOUNDATION__/g, foundationMatch ? foundationMatch[1].trim() : '');
-                masterPrompt = masterPrompt.replace(/__THEOLOGICAL_DEPTH__/g, depthMatch ? depthMatch[1].trim() : 'N/A');
-                break;
-            case 'geral':
-                masterPrompt = masterPrompt.replace(/__ANGLE__/g, extractValue("Ângulo Único"));
-                masterPrompt = masterPrompt.replace(/__SHARE_TRIGGERS__/g, extractValue("Gatilhos de Compartilhamento"));
-                break;
-        }
+    
+    // 4c. Lê os dados dos campos de estratégia existentes
+    const researchData = document.getElementById('researchData')?.value || '';
+    const emotionalHook = document.getElementById('emotionalHook')?.value || '';
+    const narrativeTheme = document.getElementById('narrativeTheme')?.value || '';
+    
+    // 4d. Substitui os placeholders específicos de cada especialista com os dados lidos
+    switch (genre) {
+        case 'documentario':
+            // O 'investigativeApproach' é colocado no campo 'researchData' pelo strategyMapper
+            masterPrompt = masterPrompt.replace(/__INVESTIGATIVE_APPROACH__/g, researchData);
+            break;
+        case 'inspiracional':
+            // O 'emotionalCore' inspira o campo 'emotionalHook'
+            masterPrompt = masterPrompt.replace(/__EMOTIONAL_CORE__/g, emotionalHook);
+            break;
+        case 'scifi':
+            // O 'coreDilemma' inspira o campo 'narrativeTheme'
+            masterPrompt = masterPrompt.replace(/__CORE_DILEMMA__/g, narrativeTheme);
+            break;
+        case 'terror':
+            // O 'horrorMechanism' inspira o campo 'narrativeTheme'
+            masterPrompt = masterPrompt.replace(/__HORROR_MECHANISM__/g, narrativeTheme);
+            break;
+        case 'enigmas':
+            // A 'scripturalFoundation' é colocada no campo 'researchData'
+            masterPrompt = masterPrompt.replace(/__SCRIPTURAL_FOUNDATION__/g, researchData);
+            // 'theologicalDepth' é uma nota, não um texto, então não tem um placeholder direto no prompt do roteiro.
+            // O valor já está no dossiê, que faz parte do baseContext.
+            break;
+        case 'geral':
+            // O 'angle' é colocado no campo 'narrativeTheme'
+            masterPrompt = masterPrompt.replace(/__ANGLE__/g, narrativeTheme);
+            // Para 'shareTriggers', precisaríamos de um campo dedicado ou extrair do Dossiê.
+            // Por simplicidade, vamos deixar vazio por enquanto se não estiver em um campo.
+            masterPrompt = masterPrompt.replace(/__SHARE_TRIGGERS__/g, '');
+            break;
     }
 
     return masterPrompt;
