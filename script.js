@@ -4112,7 +4112,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 
 // =========================================================================
-// >>>>> VERSÃO FINAL (v7.3) - ALTA QUALIDADE + ESTABILIDADE <<<<<
+// >>>>> VERSÃO FINAL (v9.0) - PROMPT MESTRE DETALHADO + CHAMADA ÚNICA <<<<<
 // =========================================================================
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
@@ -4126,50 +4126,29 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando o texto completo e gerando todas as cenas com alta qualidade...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
-        const sentences = fullText.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
-        
-        const chunksToProcess = [];
-        let tempChunk = "";
-        sentences.forEach(sentence => {
-            tempChunk += sentence.trim() + " ";
-            if (tempChunk.split(/\s+/).length >= 15) {
-                chunksToProcess.push(tempChunk.trim());
-                tempChunk = "";
-            }
-        });
-        if (tempChunk.trim().length > 0) chunksToProcess.push(tempChunk.trim());
+        if (fullText.length === 0) { throw new Error("Não há texto para analisar."); }
 
-        if (chunksToProcess.length === 0) { throw new Error("Não foram encontradas frases para analisar."); }
+        const visualPacing = document.getElementById('visualPacing').value;
+        const durationMap = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' };
+        const durationRange = durationMap[visualPacing] || '8 a 15';
 
-        // <<< APLICADO: O PROCESSAMENTO SEQUENCIAL PARA EVITAR ERRO 429 >>>
-        const allGeneratedPrompts = [];
-        for (const chunkText of chunksToProcess) {
-            const visualPacing = document.getElementById('visualPacing').value;
-            const durationMap = { 'dinamico': '3 e 8', 'normal': '8 e 15', 'contemplativo': '15 e 25' };
-            const durationRange = durationMap[visualPacing] || '3 e 8';
-            
-            // <<< MANTIDO: O SEU PROMPT DE ALTA QUALIDADE >>>
-            const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
-Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar um parágrafo e transformá-lo em UMA descrição de imagem rica em detalhes.
+        // <<< AQUI ESTÁ A MÁGICA: SEU PROMPT DETALHADO DENTRO DA ESTRUTURA DE CHAMADA ÚNICA >>>
+        const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE STORYBOARD COMPLETO E DETALHADO
+Você é uma Diretora de Fotografia de elite, especialista em traduzir roteiros em cenas visuais ricas e cinematográficas.
 
-## REGRAS DE FORMATAÇÃO (OBRIGATÓRIAS)
-1. **FORMATO JSON EXCLUSIVO**: Sua resposta deve ser APENAS um objeto JSON válido, começando com { e terminando com }
-2. **ASPAS DUPLAS OBRIGATÓRIAS**: Todas as chaves e valores de texto devem usar aspas duplas (")
-3. **PROIBIÇÃO DE ASPAS INTERNAS**: Nos valores de texto, use apenas aspas simples (') para ênfase
-4. **ESTRUTURA PADRÃO**: O objeto deve ter exatamente duas chaves: "imageDescription" (string) e "estimated_duration" (número inteiro).
+## TAREFA PRINCIPAL
+Sua tarefa é ler o "ROTEIRO COMPLETO DA SEÇÃO" abaixo. Para cada momento visualmente importante, crie um prompt de imagem usando o "CHECKLIST DE CRIAÇÃO" como guia. Sua resposta final deve ser **UM ÚNICO ARRAY JSON** contendo todos os prompts que você criar.
 
-## EXEMPLO DE FORMATAÇÃO CORRETA
-{
-  "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras.",
-  "estimated_duration": 6
-}
+## REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS)
+1. **FORMATO JSON EXCLUSIVO**: Sua resposta deve ser APENAS um ARRAY JSON válido, começando com [ e terminando com ].
+2. **ESTRUTURA DOS OBJETOS**: Cada objeto dentro do array deve ter exatamente três chaves: "script_phrase", "imageDescription", e "estimated_duration".
+3. **ASPAS DUPLAS**: Todas as chaves e valores de texto DEVEM usar aspas duplas (").
 
-## CHECKLIST PARA CRIAÇÃO DA DESCRIÇÃO VISUAL
-Para o parágrafo, crie uma descrição visual rica respondendo a estas perguntas:
+## CHECKLIST DE CRIAÇÃO (USE PARA CADA PROMPT GERADO)
 ### Elementos Visuais Principais
 - **Cenário e Ambiente**: Onde a cena acontece? Descreva o local, arquitetura, objetos e atmosfera sensorial.
 - **Composição Visual**: Quais elementos principais estão no quadro? Use regra dos terços, simetria ou desequilíbrio.
@@ -4190,29 +4169,26 @@ Para o parágrafo, crie uma descrição visual rica respondendo a estas pergunta
 - **Elementos Temporais ou Climáticos**: Hora do dia, estação, clima (chuva, neblina, vento)?
 
 ## DIRETRIZES ADICIONAIS
-- Priorize elementos visuais que melhor representem a essência emocional e narrativa do parágrafo.
-- Para "estimated_duration", use um valor inteiro entre ${durationRange} segundos.
-- Se o texto for ambíguo, faça escolhas criativas coerentes com o tom geral (dramático, nostálgico, tenso).
+- **"script_phrase"**: Copie a frase exata do roteiro que inspira a cena.
+- **"estimated_duration"**: Use um valor inteiro entre ${durationRange} segundos.
 
-## DADOS PARA ANÁLISE
+## ROTEIRO COMPLETO DA SEÇÃO
 ---
-- Texto do Parágrafo: "${chunkText}"
+${fullText}
 ---
 
 ## AÇÃO FINAL
-Com base nestas instruções, gere um único objeto JSON para este parágrafo, seguindo rigorosamente todas as regras de formatação.`;
+Analise o roteiro, aplique o checklist para criar cenas ricas e detalhadas, e retorne **APENAS o array JSON único**, seguindo rigorosamente todas as regras.`;
 
-            // A chamada acontece uma de cada vez, com calma.
-            const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 1000).then(getRobustJson);
-            allGeneratedPrompts.push(jsonResponse);
+        // UMA ÚNICA CHAMADA À API com timeout generoso.
+        const allGeneratedPrompts = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+        
+        if (!allGeneratedPrompts || !Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length === 0) {
+            throw new Error("A IA não retornou um array de prompts válido. Tente novamente.");
         }
-
-        if (!Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length < chunksToProcess.length) {
-            throw new Error("A IA não retornou um prompt para cada frase. Tente novamente.");
-        }
-
-        const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
-            scriptPhrase: chunksToProcess[index],
+        
+        const curatedPrompts = allGeneratedPrompts.map(promptData => ({
+            scriptPhrase: promptData.script_phrase || "Trecho do roteiro",
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
             estimated_duration: promptData.estimated_duration || 5
         }));
