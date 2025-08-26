@@ -2179,7 +2179,7 @@ const getBasePromptContext = (options = {}) => {
 
 
 // ==========================================================
-// ===== CONSTRUTOR DE PROMPT MESTRE (v7.8 - BUSCA INTELIGENTE) =====
+// ===== CONSTRUTOR DE PROMPT MESTRE (v7.9 - BUSCA FINAL) =====
 // ==========================================================
 const buildMasterPrompt = () => {
     // 1. Coleta todas as informações da UI e do estado (sem mudanças)
@@ -2223,23 +2223,22 @@ const buildMasterPrompt = () => {
     masterPrompt = masterPrompt.replace(/__TONE__/g, tone);
 
     // ================================================================
-    // >>>>> A CORREÇÃO ESTÁ AQUI, NA LÓGICA DE EXTRAÇÃO <<<<<
+    // >>>>> CORREÇÃO FINAL E DEFINITIVA NA LÓGICA DE EXTRAÇÃO <<<<<
     // ================================================================
     const videoDescription = document.getElementById('videoDescription').value;
-    const dossierMatch = videoDescription.match(/\*\*DOSSIÊ DA IDEIA\*\*[\s\S]*/); // Busca pelo início do dossiê
+    const dossierMatch = videoDescription.match(/\*\*DOSSIÊ DA IDEIA\*\*[\s\S]*/);
     if (dossierMatch && dossierMatch[0]) {
         const dossierText = dossierMatch[0];
         
-        // NOVA FUNÇÃO 'extractValue' - Mais inteligente e flexível
+        // NOVA E MELHOR FUNÇÃO 'extractValue'
         const extractValue = (key) => {
-            // Esta expressão regular ignora hifens, asteriscos e espaços antes da chave.
-            // Ela captura tudo que vem depois de "Chave:" até o final da linha.
-            const regex = new RegExp(`^\\s*[-*]*\\s*${key.trim()}:\\s*(.+)`, "im");
+            // Esta nova regex procura a chave, ignora um separador opcional (:) e captura o resto da linha.
+            // É muito mais flexível.
+            const regex = new RegExp(`^\\s*[-*]*\\s*${key.trim()}:?\\s*(.+)`, "im");
             const match = dossierText.match(regex);
             return match ? match[1].trim() : '';
         };
 
-        // A lógica de substituição agora funcionará corretamente
         switch (genre) {
             case 'documentario':
                 masterPrompt = masterPrompt.replace(/__INVESTIGATIVE_APPROACH__/g, extractValue("Abordagem Investigativa"));
