@@ -2102,23 +2102,28 @@ ${labels.narrativeStyle}
 // ===== CONSTRUTOR DE PROMPT MESTRE (v9.1 - RESPEITANDO OS TEMPLATES) =====
 // ==========================================================
 const buildMasterPrompt = () => {
-    // 1. Coleta TODOS os dados da UI da Etapa 2
+    // 1. Coleta TODOS os dados da UI da Etapa 2 (sem mudanças aqui)
     const genre = AppState.inputs.selectedGenre || 'geral';
     const durationKey = document.getElementById('videoDuration').value;
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
     const visualPacingText = document.getElementById('visualPacing').options[document.getElementById('visualPacing').selectedIndex].text;
 
-    // 2. Monta o `baseContext` que será injetado no placeholder __BASE_CONTEXT__
-    // Usamos a função que já existe para isso, garantindo que pegamos tudo.
-    const baseContext = getBasePromptContext({ includeHeavyContext: true });
+    // 2. Monta o `baseContext` que será injetado no placeholder
+    let baseContext = getBasePromptContext({ includeHeavyContext: true });
     
-    // Adiciona o Ritmo Visual ao contexto, pois é uma instrução importante
+    // ==========================================================
+    // >>>>> A CORREÇÃO MÁGICA ESTÁ AQUI <<<<<
+    // Remove anotações numéricas como [1], [5], [15] do contexto
+    // para evitar que a IA as copie para o roteiro final.
+    baseContext = baseContext.replace(/\[\d+\]/g, ''); 
+    // ==========================================================
+    
     const fullContextForAI = `${baseContext}\n- Ritmo Visual (Guia para a escrita): ${visualPacingText}`;
     
-    // 3. Pega o template bruto, que já tem as contagens de palavras
+    // 3. Pega o template bruto (sem mudanças aqui)
     let masterPrompt = PromptManager.getScriptPrompt(genre, durationKey);
 
-    // 4. Substitui os placeholders restantes com os dados coletados
+    // 4. Substitui os placeholders (sem mudanças aqui)
     masterPrompt = masterPrompt.replace(/__BASE_CONTEXT__/g, fullContextForAI);
     masterPrompt = masterPrompt.replace(/__LANGUAGE_NAME__/g, languageName);
 
