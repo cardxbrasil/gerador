@@ -836,7 +836,7 @@ ${technicalDetails}
 ### AÇÃO FINAL ###
 Com base no briefing e seguindo RIGOROSAMENTE todas as regras acima, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.
 `.trim();
-}
+
 
 
 
