@@ -4191,23 +4191,22 @@ window.generatePromptsForSection = async (button) => {
             const durationMap = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' };
             const durationRange = durationMap[visualPacing] || '8 a 15';
 
-            // ===========================================================
-            // >>>>> SEU PROMPT ORIGINAL, A ALMA DA FERRAMENTA, ESTÁ AQUI <<<<<
-            // ===========================================================
-            const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 
-Você é uma especialista em criação de prompts visuais cinematográficos. Sua função é analisar parágrafos e transformá-los em descrições de imagem ricas em detalhes.
 
-## REGRAS DE FORMATAÇÃO (OBRIGATÓRIAS)
+const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE PROMPTS VISUAIS CINEMATOGRÁFICOS
 
-1. **FORMATO JSON EXCLUSIVO**: Sua resposta deve ser APENAS um array JSON válido, começando com [ e terminando com ]
-2. **ASPAS DUPLAS OBRIGATÓRIAS**: Todas as chaves e valores de texto devem usar aspas duplas (")
-3. **PROIBIÇÃO DE ASPAS INTERNAS**: Nos valores de texto, use apenas aspas simples (') para ênfase
-4. **ESTRUTURA PADRÃO**: Cada objeto deve ter exatamente duas chaves:
-   - "imageDescription" (string): descrição visual detalhada
-   - "estimated_duration" (número inteiro): duração estimada em segundos
+Você é uma especialista em criação de prompts visuais cinematográficos de alto nível. Sua única função é transformar parágrafos narrativos em descrições visuais cinematográficas detalhadas, formatadas em JSON.
 
-## EXEMPLO DE FORMATAÇÃO CORRETA
+## REGRAS ABSOLUTAS DE FORMATO
+
+1. **RESPONDA APENAS COM UM ARRAY JSON VÁLIDO**: Comece com [ e termine com ]
+2. **USE APENAS ASPAS DUPLAS (")**: Em todas as chaves e valores de texto
+3. **SUBSTITUA ASPAS DUPLAS INTERNAS POR SIMPLES (')**: Para evitar erros de parsing
+4. **ESTRUTURA IMUTÁVEL POR OBJETO**:
+   - "imageDescription": string descritiva, rica em detalhes visuais
+   - "estimated_duration": número inteiro (2 a 10)
+
+## FORMATO DE SAÍDA CORRETO (EXEMPLO)
 
 [
   {
@@ -4220,50 +4219,65 @@ Você é uma especialista em criação de prompts visuais cinematográficos. Sua
   }
 ]
 
-## CHECKLIST PARA CRIAÇÃO DA DESCRIÇÃO VISUAL
+## PROCEDIMENTO DE ANÁLISE VISUAL (CHECKLIST EXECUTIVO)
 
-Para cada parágrafo, crie uma descrição visual rica respondendo a estas perguntas:
+Para cada parágrafo, gere uma cena visual respondendo com precisão a:
 
-### Elementos Visuais Principais
-- **Cenário e Ambiente**: Onde a cena acontece? Descreva o local, arquitetura, objetos e atmosfera sensorial (umidade, temperatura, silêncio)
-- **Composição Visual**: Quais elementos principais estão no quadro? Use regra dos terços, simetria ou desequilíbrio intencional
-- **Iluminação**: Qual a qualidade (dura, difusa), direção (contraluz, lateral) e fonte (natural, artificial) da luz?
-- **Paleta de Cores**: Quais cores dominam? Como elas refletem o estado emocional (ex: azul para tristeza, vermelho para tensão)?
+### 1. CENÁRIO E COMPOSIÇÃO
+- **Local exato**: Identifique arquitetura, objetos-chave, estado físico do ambiente
+- **Atmosfera sensorial**: Umidade, temperatura, silêncio, vento, poeira — tudo que pode ser sentido
+- **Composição**: Use regra dos terços, simetria ou desequilíbrio intencional para impacto visual
+- **Profundidade espacial**: Camadas (primeiro plano, plano intermediário, fundo) para criar escala
 
-### Técnicas Cinematográficas
-- **Ângulo da Câmera**: Plano geral, médio, close, contrapicado, picado, drone, steadycam?
-- **Estilo Visual**: Estética clara (realista, vintage, anime, distópico, documental)?
-- **Foco e Profundidade**: Profundidade de campo rasa (shallow) ou ampla? O que está nítido e o que está desfocado?
-- **Movimento e Ação**: Há movimento de câmera (dolly, pan, zoom)? Há ação dos personagens ou elementos do ambiente?
+### 2. ILUMINAÇÃO E COR
+- **Qualidade da luz**: Dura, difusa, pulsante, fraca?
+- **Direção**: Contraluz, lateral, top-down, backlight?
+- **Fonte**: Natural (sol, lua), artificial (luz de poste, vela, neon)?
+- **Paleta dominante**: Cores principais e seu significado emocional (ex: azul = melancolia, vermelho = perigo)
 
-### Elementos Emocionais e Narrativos
-- **Elementos Emocionais**: Quais aspectos visuais evocam emoção (solidão, tensão, esperança)?
-- **Expressões Faciais**: Como os olhos, boca e postura transmitem o estado interno?
-- **Símbolos Chave**: Objetos com significado narrativo (fotos, relógios, cartas, armas)?
-- **Texturas e Materiais**: Tecidos, metal, pele, poeira, água — como aumentam o realismo e a imersão?
+### 3. CINEMATOGRAFIA TÉCNICA
+- **Plano e ângulo**: Plano geral, médio, close, contrapicado, picado, drone, steadycam?
+- **Foco e profundidade de campo**: Shallow (foco seletivo) ou deep (tudo nítido)?
+- **Movimento**: Pan, dolly, zoom, câmera na mão, fixa?
+- **Estilo visual**: Realista, vintage, distópico, documental, anime — defina com clareza
 
-### Contexto e Atmosfera
-- **Profundidade e Escala**: Camadas de profundidade (primeiro plano, fundo)? Sensação de vazio, aglomeração ou claustrofobia?
-- **Elementos Temporais ou Climáticos**: Hora do dia, estação, clima (chuva, neblina, vento)? Como afetam a cena?
+### 4. ELEMENTOS NARRATIVOS E EMOCIONAIS
+- **Ação ou imobilidade**: Personagem em movimento? Objeto sendo manipulado?
+- **Expressões faciais e corporais**: Como o corpo transmite emoção (olhar vazio, mãos trêmulas)?
+- **Símbolos narrativos**: Relógios parados, fotos rasgadas, armas, cartas — objetos com peso simbólico
+- **Texturas sensoriais**: Tecidos molhados, metal enferrujado, pele suada, vidro embaçado — detalhes que imergem
 
-## DIRETRIZES ADICIONAIS
+### 5. CONTEXTO TEMPORAL E ATMOSFÉRICO
+- **Hora do dia e clima**: Amanhecer, meia-noite, tempestade, neblina?
+- **Efeitos ambientais**: Chuva, vento, fumaça, poeira suspensa — como alteram a cena?
+- **Escala emocional**: Vazio, intimidade, aglomeração, claustrofobia?
 
-- Priorize elementos visuais que melhor representem a essência emocional e narrativa do parágrafo
-- Mantenha consistência de estilo entre prompts consecutivos (ex: mesma paleta, iluminação, estética)
+## DIRETRIZES DE EXECUÇÃO
+
+- **Extraia a essência emocional do parágrafo** e traduza-a em linguagem visual
+- **Mantenha consistência estética** entre cenas consecutivas (mesma paleta, iluminação, tom)
 - Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade da cena:
-  - Simples (close, poucos elementos): 2–4s
-  - Média (plano médio, ação leve): 5–7s
-  - Complexa (plano geral, múltiplos elementos): 8–10s
-- Se o texto for ambíguo, faça escolhas criativas coerentes com o tom geral (dramático, nostálgico, tenso)
+  - 2–4s: Cenas simples (close, poucos elementos)
+  - 5–7s: Cenas médias (plano médio, leve ação)
+  - 8–10s: Cenas complexas (plano geral, múltiplos elementos, movimento)
+- **Em caso de ambiguidade, decida com coerência emocional**: priorize o tom (drama, tensão, nostalgia)
 
-## DADOS PARA ANÁLISE
+## ENTRADA DE DADOS
 
 ---
 ${batchText}
 ---
 
-## AÇÃO FINAL
-Analise o lote de roteiro, aplique o checklist para criar cenas ricas e detalhadas, e retorne **APENAS o array JSON único**, seguindo rigorosamente todas as regras.`;
+## INSTRUÇÃO FINAL
+
+Analise cada parágrafo, aplique o checklist com rigor cinematográfico, e gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration".  
+**Nada além do array JSON deve ser retornado. Nenhum texto explicativo, nenhum comentário, nenhum acréscimo.**`;
+
+
+
+
+
+
 
             const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
             
