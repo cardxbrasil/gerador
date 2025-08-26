@@ -692,7 +692,7 @@ __BASE_CONTEXT__
 
 ### AÇÃO FINAL ###
 Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
-        // ... (Mantenha os outros templates de gênero aqui, eles seguirão a mesma lógica)
+       
         'scifi': `
 ### IDENTIDADE DO ROTEIRISTA ###
 Você é um futurista especulativo e roteirista-chefe da série "Black Mirror". Você escreve sobre as consequências existenciais de uma ideia tecnológica levada ao seu limite.
@@ -813,8 +813,6 @@ Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro
         .replace(/__CLIMAX_WORDS__/g, counts.climax || 200)
         .replace(/__CONCLUSION_WORDS__/g, counts.conclusion || 150);
 },
-
-
 
 
 };
@@ -3508,13 +3506,12 @@ ACTION: Return ONLY the JSON array.`;
 };
 
 
-// ==========================================================
-// ===== ANALISE DE RETENÇÃO ======
-// ==========================================================
-// SUBSTITUA TODA A SUA FUNÇÃO window.analyzeSectionRetention POR ESTA VERSÃO
+
+
+
 
 // ==========================================================
-// ===== ANALISE DE RETENÇÃO (VERSÃO FINAL E CORRIGIDA) ======
+// ===== ANALISE DE RETENÇÃO BLINDADA (COM PROCESSAMENTO EM LOTES) ======
 // ==========================================================
 window.analyzeSectionRetention = async (button) => {
     const sectionId = button.dataset.sectionId;
@@ -3541,40 +3538,70 @@ window.analyzeSectionRetention = async (button) => {
             index: index,
             text: p.textContent.trim()
         }));
-        
-        const basePromptContext = getBasePromptContext();
-        const prompt = `Você é uma API de análise de roteiro que retorna JSON.
-        **CONTEXTO ESTRATÉGICO:**
-        ---
-        ${basePromptContext}
-        ---
-        **REGRAS DE RESPOSTA (JSON ESTRITO):**
-        1.  **JSON PURO:** Responda APENAS com o array JSON.
-        2.  **ESTRUTURA COMPLETA:** Cada objeto DEVE conter "paragraphIndex" (número), "retentionScore" ("green", "yellow", ou "red"), e "suggestion" (string).
-        3.  **SUGESTÕES ESTRATÉGICAS:** A "suggestion" DEVE ser um CONSELHO ACIONÁVEL sobre COMO melhorar, NÃO a reescrita do texto.
-        4.  **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores string.
-        **MANUAL DE PONTUAÇÃO:**
-        - **green:** Excelente. Prende a atenção. Sugestão: "Excelente fluidez.".
-        - **yellow:** Ponto de Atenção. Funcional, mas pode ser mais impactante.
-        - **red:** Ponto de Risco. Confuso, repetitivo ou quebra o engajamento.
-        **DADOS PARA ANÁLISE:**
-        ${JSON.stringify(paragraphsWithIndexes, null, 2)}
-        **AÇÃO:** Analise CADA parágrafo. Retorne APENAS o array JSON perfeito.`;
 
-        const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
-        const analysis = await getRobustJson(brokenJson);
-
-        if (!analysis || !Array.isArray(analysis)) {
-            throw new Error("A análise da IA retornou um formato inválido.");
+        // ETAPA 1: DIVIDIR A LISTA DE PARÁGRAFOS EM LOTES MENORES
+        const batches = [];
+        const BATCH_SIZE = 7; // Analisa 7 parágrafos por vez. Um número seguro e eficiente.
+        for (let i = 0; i < paragraphsWithIndexes.length; i += BATCH_SIZE) {
+            batches.push(paragraphsWithIndexes.slice(i, i + BATCH_SIZE));
         }
         
-        // Limpa os parágrafos de tooltips antigos antes de adicionar novos
+        console.log(`Análise de retenção dividida em ${batches.length} lotes.`);
+
+        // ETAPA 2: PROCESSAR CADA LOTE EM UM LOOP E AGREGAR OS RESULTADOS
+        let fullAnalysis = [];
+        const basePromptContext = getBasePromptContext();
+
+        for (let i = 0; i < batches.length; i++) {
+            const batch = batches[i];
+            // Fornece feedback visual para o usuário
+            const progressMessage = document.createElement('p');
+            progressMessage.className = 'text-sm text-center my-2';
+            progressMessage.innerHTML = `<div class="loading-spinner-small inline-block mr-2"></div> Processando lote de análise ${i + 1} de ${batches.length}...`;
+            outputContainer.innerHTML = '';
+            outputContainer.appendChild(progressMessage);
+            
+            const prompt = `Você é uma API de análise de roteiro que retorna JSON.
+            **CONTEXTO ESTRATÉGICO:**
+            ---
+            ${basePromptContext}
+            ---
+            **REGRAS DE RESPOSTA (JSON ESTRITO):**
+            1.  **JSON PURO:** Responda APENAS com o array JSON.
+            2.  **ESTRUTURA COMPLETA:** Cada objeto DEVE conter "paragraphIndex" (número), "retentionScore" ("green", "yellow", ou "red"), e "suggestion" (string).
+            3.  **SUGESTÕES ESTRATÉGICAS:** A "suggestion" DEVE ser um CONSELHO ACIONÁVEL sobre COMO melhorar, NÃO a reescrita do texto.
+            4.  **SINTAXE:** Use aspas duplas ("") para todas as chaves e valores string.
+            **MANUAL DE PONTUAÇÃO:**
+            - **green:** Excelente. Prende a atenção. Sugestão: "Excelente fluidez.".
+            - **yellow:** Ponto de Atenção. Funcional, mas pode ser mais impactante.
+            - **red:** Ponto de Risco. Confuso, repetitivo ou quebra o engajamento.
+            **DADOS PARA ANÁLISE (ESTE LOTE):**
+            ${JSON.stringify(batch, null, 2)}
+            **AÇÃO:** Analise CADA parágrafo do lote. Retorne APENAS o array JSON perfeito.`;
+
+            const brokenJson = await callGroqAPI(forceLanguageOnPrompt(prompt), 4000);
+            const batchAnalysis = await getRobustJson(brokenJson);
+
+            if (Array.isArray(batchAnalysis)) {
+                fullAnalysis = fullAnalysis.concat(batchAnalysis);
+            } else {
+                 console.warn(`Lote ${i+1} da análise de retenção retornou um formato inválido e foi ignorado.`);
+            }
+        }
+
+        // ETAPA 3: RENDERIZAR O RESULTADO COMPLETO
+        if (!fullAnalysis || fullAnalysis.length === 0) {
+            throw new Error("A análise da IA falhou em todos os lotes ou retornou um formato inválido.");
+        }
+        
+        outputContainer.innerHTML = ''; // Limpa a mensagem de progresso
+        
         paragraphs.forEach(p => {
-            p.className = 'retention-paragraph-live'; // Reseta as classes
+            p.className = 'retention-paragraph-live';
             p.innerHTML = p.innerHTML.replace(/<div class="retention-tooltip">.*?<\/div>/g, '');
         });
 
-        analysis.forEach((item) => {
+        fullAnalysis.forEach((item) => {
             if (typeof item.paragraphIndex !== 'number' || item.paragraphIndex >= paragraphs.length) return;
             const p = paragraphs[item.paragraphIndex];
             if (p) {
@@ -3597,46 +3624,30 @@ window.analyzeSectionRetention = async (button) => {
                     tooltipElement.innerHTML = `<strong>${tooltipTitle}:</strong> ${DOMPurify.sanitize(item.suggestion)}${buttonsHtml}`;
                     p.appendChild(tooltipElement);
 
-                    // ===============================================
-                    // >>>>> NOVA LÓGICA DE HOVER INTELIGENTE <<<<<
-                    // ===============================================
                     let hideTimer;
-                    const showTooltip = () => {
-                        clearTimeout(hideTimer);
-                        tooltipElement.style.opacity = '1';
-                        tooltipElement.style.visibility = 'visible';
-                        tooltipElement.style.transform = 'translateY(-5px)';
-                        tooltipElement.style.pointerEvents = 'auto';
-                    };
-                    const startHideTimer = () => {
-                        hideTimer = setTimeout(() => {
-                            tooltipElement.style.opacity = '0';
-                            tooltipElement.style.visibility = 'hidden';
-                            tooltipElement.style.transform = 'translateY(0)';
-                            tooltipElement.style.pointerEvents = 'none';
-                        }, 200); // Espera 200ms antes de esconder
-                    };
-
-                    p.addEventListener('mouseenter', showTooltip);
-                    p.addEventListener('mouseleave', startHideTimer);
-                    tooltipElement.addEventListener('mouseenter', showTooltip);
-                    tooltipElement.addEventListener('mouseleave', startHideTimer);
-                    // ===============================================
+                    const showTooltip = () => { clearTimeout(hideTimer); tooltipElement.style.opacity = '1'; tooltipElement.style.visibility = 'visible'; tooltipElement.style.transform = 'translateY(-5px)'; tooltipElement.style.pointerEvents = 'auto'; };
+                    const startHideTimer = () => { hideTimer = setTimeout(() => { tooltipElement.style.opacity = '0'; tooltipElement.style.visibility = 'hidden'; tooltipElement.style.transform = 'translateY(0)'; tooltipElement.style.pointerEvents = 'none'; }, 200); };
+                    p.addEventListener('mouseenter', showTooltip); p.addEventListener('mouseleave', startHideTimer);
+                    tooltipElement.addEventListener('mouseenter', showTooltip); tooltipElement.addEventListener('mouseleave', startHideTimer);
                 }
                  p.addEventListener('mouseover', handleSuggestionMouseOver);
                  p.addEventListener('mouseout', handleSuggestionMouseOut);
             }
         });
 
-        window.showToast("Análise de retenção concluída!", 'success');
+        window.showToast("Análise de retenção concluída com sucesso!", 'success');
 
     } catch (error) {
         console.error("Erro detalhado em analyzeSectionRetention:", error);
         window.showToast(`Falha na análise: ${error.message}`, 'error');
+        outputContainer.innerHTML = `<p class="text-sm text-red-500">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
     }
 };
+
+
+
 
 
 
