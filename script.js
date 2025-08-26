@@ -4141,7 +4141,7 @@ window.generatePromptsForSection = async (button) => {
 
         // <<< ETAPA 2: Agrupar parágrafos em lotes gerenciáveis >>>
         const batches = [];
-        const MAX_WORDS_PER_BATCH = 400; // Um limite seguro para o texto de entrada por chamada
+        const MAX_WORDS_PER_BATCH = 120; // Um limite seguro para o texto de entrada por chamada
         let currentBatch = [];
         let currentWordCount = 0;
 
