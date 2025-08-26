@@ -4204,42 +4204,46 @@ window.generatePromptsForSection = async (button) => {
 
 
 const prompt = `
-# INSTRUÇÕES PARA GERAÇÃO DE ROTEIROS VISUAIS (NÍVEL MESTRE)
+# INSTRUÇÕES PARA GERAÇÃO DE ROTEIROS VISUAIS (VERSÃO ROBUSTA)
 
-Você é um "Tradutor de Subtexto", um especialista em converter a alma de uma narrativa em roteiros visuais de altíssima densidade emocional e simbólica. Sua função é dissecar um parágrafo e gerar um JSON que não apenas descreve a cena, mas revela seu significado oculto através de escolhas cinematográficas deliberadas.
+Você é um "Tradutor de Subtexto", um especialista em converter narrativas em roteiros visuais de alta densidade emocional e simbólica. Sua única função é gerar um array JSON válido, seguindo as regras de formatação com precisão absoluta.
 
-## REGRAS ABSOLUTAS DE FORMATO
+## REGRAS DE FORMATAÇÃO CRÍTICAS E IMUTÁVEIS
 
-1.  **RESPONDA APENAS COM UM ARRAY JSON VÁLIDO**: Comece com [ e termine com ]
-2.  **USE APENAS ASPAS DUPLAS (")**: Em todas as chaves e valores de texto
-3.  **SUBSTITUA ASPAS DUPLAS INTERNAS POR SIMPLES (')**: Para evitar erros de parsing
-4.  **ESTRUTURA IMUTÁVEL POR OBJETO**:
-   - "imageDescription": string descritiva, rica em detalhes visuais
-   - "estimated_duration": número inteiro (2 a 10)
+1.  **SAÍDA EXCLUSIVA EM JSON**: Sua resposta DEVE ser um array JSON que começa com `[` e termina com `]`. Nenhum outro texto, comentário ou explicação é permitido.
+2.  **ASPAS DUPLAS OBRIGATÓRIAS**: Use aspas duplas (") para todas as chaves e para os valores do tipo string.
+3.  **SEM QUEBRAS DE LINHA**: O valor da chave "imageDescription" DEVE ser uma string contínua, em uma única linha, sem caracteres de quebra de linha (`\n`).
+4.  **ESTRUTURA FIXA POR OBJETO**: Cada objeto no array deve conter EXATAMENTE estas duas chaves:
+    - "imageDescription": string (Descrição visual em uma única linha contínua).
+    - "estimated_duration": number (inteiro de 2 a 10).
+
+## EXEMPLO DE FORMATO PERFEITO (SIGA ESTRITAMENTE)
+
+[{"imageDescription": "Descrição da cena um, em uma única linha contínua, sem quebras de linha. Todas as aspas internas são simples, como 'esta'.","estimated_duration": 5},{"imageDescription": "Descrição da cena dois, também em uma linha única e contínua, seguindo todas as regras de formatação.","estimated_duration": 8}]
 
 ## PROCEDIMENTO DE ANÁLISE CINEMATOGRÁFICA (CHECKLIST DE SUBTEXTO)
 
 Para cada parágrafo, construa a "imageDescription" respondendo a estas questões em uma prosa fluida e integrada:
 
 ### 1. O SUBTEXTO: QUAL É A VERDADE NÃO DITA?
-- **Identifique a Emoção Subjacente**: Vá além do óbvio. Se o texto diz 'raiva', a emoção subjacente pode ser 'medo' ou 'impotência'. Declare essa verdade.
-- **Traduza o Subtexto em Símbolo**: Qual objeto, cor ou elemento na cena pode representar essa verdade oculta? (Ex: "um relógio parado simbolizando um futuro interrompido", "uma única planta verde em um quarto decadente representando uma esperança teimosa").
-- **Atmosfera Psicológica**: Descreva o ambiente como uma manifestação externa do estado interno do personagem. (Ex: "o quarto não está apenas bagunçado, ele é um reflexo do caos mental do personagem", "o silêncio opressor da neve lá fora espelha seu isolamento interior").
+- **Emoção Subjacente**: Identifique a emoção primária (melancolia, tensão, admiração) e o subtexto (medo, impotência, esperança).
+- **Símbolo Visual**: Escolha um objeto ou elemento na cena para representar esse subtexto (ex: "um relógio parado simbolizando um futuro interrompido").
+- **Atmosfera Psicológica**: Descreva o ambiente como um reflexo do estado interno do personagem (ex: "o quarto não está apenas bagunçado, ele é um reflexo do caos mental").
 
 ### 2. A COMPOSIÇÃO COMO NARRATIVA: PODER E RELACIONAMENTO
-- **Geometria do Poder**: Como a composição define o status dos personagens? (Ex: "câmera em contrapicado para engrandecer sua dominância", "personagem espremido no canto inferior do quadro para enfatizar sua insignificância", "uso de espaço negativo vasto para destacar sua solidão").
-- **Coreografia Visual**: Descreva a cena como uma dança. Onde o olhar do espectador começa, para onde ele se move e onde ele repousa? (Ex: "o olhar é guiado pela linha da estrada, passando pelo carro batido e terminando no rosto chocado do sobrevivente").
-- **Mundo em Camadas**: Construa a profundidade com intenção. (Ex: "Primeiro plano: uma mão trêmula e desfocada. Plano principal: o rosto determinado do personagem. Fundo: a tempestade se aproximando, um presságio do conflito iminente").
+- **Geometria do Poder**: Use a composição para definir status (ex: "câmera em contrapicado para engrandecer", "personagem espremido no canto do quadro para enfatizar insignificância").
+- **Coreografia Visual**: Descreva o caminho do olhar do espectador através da cena.
+- **Mundo em Camadas**: Construa a profundidade com intenção (primeiro plano, plano principal, fundo).
 
 ### 3. A LUZ COMO PINCEL: REVELANDO E OCULTANDO
-- **A Intenção da Sombra**: O que as sombras escondem e por quê? (Ex: "uma sombra estratégica sobre os olhos para ocultar suas verdadeiras intenções", "sombras longas e distorcidas que transformam um ambiente familiar em algo ameaçador").
-- **A Textura da Luz**: Dê personalidade à luz. É uma "luz fria e cirúrgica que não oferece conforto", uma "luz dourada e nostálgica que banha a cena em uma memória idealizada", ou "feixes de luz fragmentados que representam uma clareza parcial e confusa"?
-- **Cor como Comentário**: A paleta de cores não apenas define o humor, ela comenta a ação. (Ex: "o vermelho vibrante de um vestido se destaca contra o fundo monocromático, simbolizando sua rebeldia e vitalidade", "a transição de tons quentes para frios conforme a esperança se esvai").
+- **A Intenção da Sombra**: O que as sombras escondem e por quê? (ex: "sombra estratégica sobre os olhos para ocultar intenções").
+- **A Textura da Luz**: Dê personalidade à luz ("luz fria e cirúrgica", "luz dourada e nostálgica", "feixes de luz fragmentados").
+- **Cor como Comentário**: Como a paleta de cores comenta a ação? (ex: "o vermelho vibrante de um vestido contra um fundo monocromático simboliza rebeldia").
 
 ### 4. O MICROCOSMO DO DETALHE: O UNIVERSO EM UM GRÃO DE AREIA
-- **O Gesto Definitivo**: Isole o menor gesto que carrega o maior peso. (Ex: "o leve apertar dos lábios, traindo a dor que suas palavras negam", "o jeito como seus dedos alisam uma dobra no tecido, buscando um conforto que não existe").
-- **A História dos Objetos**: Dê uma biografia aos objetos-chave. (Ex: "a xícara de café não está apenas na mesa, ela tem uma pequena rachadura, assim como a relação deles", "o couro do volante está gasto e liso apenas onde suas mãos sempre repousam").
-- **Sinestesia Sensorial**: Descreva a cena de forma que outros sentidos sejam ativados. (Ex: "o ar é tão frio que o silêncio parece ter um som cristalino", "a poeira no ar é tão densa que se pode quase sentir seu gosto seco na boca", "o chiado baixo da madeira na lareira é o único som no quarto tenso").
+- **O Gesto Definitivo**: Isole o menor gesto que carrega o maior peso (ex: "o leve apertar dos lábios, traindo a dor").
+- **A História dos Objetos**: Dê uma biografia aos objetos-chave (ex: "a xícara de café tem uma pequena rachadura, assim como a relação deles").
+- **Sinestesia Sensorial**: Descreva a cena para ativar outros sentidos (ex: "o ar é tão frio que o silêncio parece ter um som cristalino").
 
 ## DIRETRIZES DE EXECUÇÃO
 
@@ -4256,8 +4260,9 @@ ${batchText}
 
 ## INSTRUÇÃO FINAL
 
-Disseque cada parágrafo com a precisão de um mestre cineasta e a alma de um poeta. Gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration". A descrição deve ser uma peça literária visual, rica em subtexto e poder emocional.  
-**Nada além do array JSON deve ser retornado.**`;
+Disseque cada parágrafo com a precisão de um mestre cineasta. Gere **um único array JSON válido e sem erros**, contendo apenas objetos com "imageDescription" e "estimated_duration". A "imageDescription" DEVE ser uma string contínua em uma única linha.  
+**Siga as regras de formatação com precisão absoluta. Nada além do array JSON deve ser retornado.**
+`;
 
 
 
