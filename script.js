@@ -4204,55 +4204,65 @@ window.generatePromptsForSection = async (button) => {
 
 
 const prompt = `
-// Em script.js, use crases (`) para definir a string.
-const promptTemplate = `
-# INSTRUÇÕES PARA GERAÇÃO DE ROTEIROS VISUAIS (VERSÃO ROBUSTA)
+# INSTRUÇÕES PARA GERAÇÃO DE DESCRIÇÕES VISUAIS CINEMATOGRÁFICAS
 
-Você é um __QUOTE__Tradutor de Subtexto__QUOTE__, um especialista em converter narrativas em roteiros visuais de alta densidade emocional e simbólica. Sua única função é gerar um array JSON válido, seguindo as regras de formatação com precisão absoluta.
+Você é um especialista em roteirização visual e direção de fotografia. Sua única função é transformar parágrafos narrativos em descrições visuais cinematográficas detalhadas, formatadas em JSON, capturando a essência emocional e sensorial da cena.
 
-## REGRAS DE FORMATAÇÃO CRÍTICAS E IMUTÁVEIS
+## REGRAS ABSOLUTAS DE FORMATO
 
-1.  **SAÍDA EXCLUSIVA EM JSON**: Sua resposta DEVE ser um array JSON que começa com [ e termina com ]. Nenhum outro texto, comentário ou explicação é permitido.
-2.  **ASPAS DUPLAS OBRIGATÓRIAS**: Use aspas duplas (__QUOTE__) para todas as chaves e para os valores do tipo string.
-3.  **SEM QUEBRAS DE LINHA**: O valor da chave __QUOTE__imageDescription__QUOTE__ DEVE ser uma string contínua, em uma única linha, sem caracteres de quebra de linha.
-4.  **ESTRUTURA FIXA POR OBJETO**: Cada objeto no array deve conter EXATAMENTE estas duas chaves:
-    - __QUOTE__imageDescription__QUOTE__: string (Descrição visual em uma única linha contínua).
-    - __QUOTE__estimated_duration__QUOTE__: number (inteiro de 2 a 10).
+1.  **RESPONDA APENAS COM UM ARRAY JSON VÁLIDO**: Comece com [ e termine com ]
+2.  **USE APENAS ASPAS DUPLAS (")**: Em todas as chaves e valores de texto
+3.  **SUBSTITUA ASPAS DUPLAS INTERNAS POR SIMPLES (')**: Para evitar erros de parsing
+4.  **ESTRUTURA IMUTÁVEL POR OBJETO**:
+   - "imageDescription": string descritiva, rica em detalhes visuais
+   - "estimated_duration": número inteiro (2 a 10)
 
-## EXEMPLO DE FORMATO PERFEITO (SIGA ESTRITAMENTE)
+## FORMATO DE SAÍDA CORRETO (EXEMPLO)
 
-[[{__QUOTE__imageDescription__QUOTE__: __QUOTE__Descrição da cena um, em uma única linha contínua, sem quebras de linha. Todas as aspas internas são simples, como 'esta'.__QUOTE__,__QUOTE__estimated_duration__QUOTE__: 5},{__QUOTE__imageDescription__QUOTE__: __QUOTE__Descrição da cena dois, também em uma linha única e contínua, seguindo todas as regras de formatação.__QUOTE__,__QUOTE__estimated_duration__QUOTE__: 8}]]
+[
+  {
+    "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, sob a luz amarela dos postes. A câmera em plano médio captura sua expressão cansada enquanto a chuva reflete nas calçadas. Estilo film noir com alto contraste entre luzes e sombras. O cenário úmido e nevoento intensifica a sensação de isolamento. Profundidade de campo média mostra fundo desfocado com vitrines apagadas. Textura da jaqueta de couro encharcada e poças com reflexos distorcidos aumentam o realismo sensorial.",
+    "estimated_duration": 6
+  },
+  {
+    "imageDescription": "Close-up em mãos trêmulas segurando uma carta antiga. A luz da manhã entra pela janela, destacando a textura do papel amarelado e a caligrafia tremida. Foco shallow com fundo suavizado revela uma cadeira vazia e um retrato emoldurado caído no chão. Estilo cinematográfico realista com paleta quente em sépia e dourado. A posição ligeiramente contrapicada da câmera enfatiza a vulnerabilidade do personagem. Gotas de chuva deslizam pelo vidro, refletindo memórias distantes.",
+    "estimated_duration": 5
+  }
+]
 
-## PROCEDIMENTO DE ANÁLISE CINEMATOGRÁFICA (CHECKLIST DE SUBTEXTO)
+## PROCEDIMENTO DE ANÁLISE VISUAL (CHECKLIST EXECUTIVO APROFUNDADO)
 
-Para cada parágrafo, construa a __QUOTE__imageDescription__QUOTE__ respondendo a estas questões em uma prosa fluida e integrada:
+Para cada parágrafo, gere uma cena visual respondendo com precisão a:
 
-### 1. O SUBTEXTO: QUAL É A VERDADE NÃO DITA?
-- **Emoção Subjacente**: Identifique a emoção primária (melancolia, tensão, admiração) e o subtexto (medo, impotência, esperança).
-- **Símbolo Visual**: Escolha um objeto ou elemento na cena para representar esse subtexto (ex: __QUOTE__um relógio parado simbolizando um futuro interrompido__QUOTE__).
-- **Atmosfera Psicológica**: Descreva o ambiente como um reflexo do estado interno do personagem (ex: __QUOTE__o quarto não está apenas bagunçado, ele é um reflexo do caos mental__QUOTE__).
+### 1. O CORAÇÃO DA CENA: EMOÇÃO E ATMOSFERA
+- **Qual é o sentimento central?**: Defina a emoção primária (ex: melancolia, tensão, admiração, alívio) e como o ambiente a reflete.
+- **Atmosfera Sensorial**: Vá além do visual. Descreva o que se pode **sentir**: o frio úmido que penetra nas roupas, o calor seco do deserto, o silêncio pesado de uma sala vazia, o cheiro de ozônio após a chuva.
+- **Paleta Emocional**: Que cores dominam a cena e o que elas comunicam? (ex: "tons de azul-aço e cinza para transmitir frieza e isolamento", "luz dourada e quente para evocar nostalgia e conforto").
 
-### 2. A COMPOSIÇÃO COMO NARRATIVA: PODER E RELACIONAMENTO
-- **Geometria do Poder**: Use a composição para definir status (ex: __QUOTE__câmera em contrapicado para engrandecer__QUOTE__, __QUOTE__personagem espremido no canto do quadro para enfatizar insignificância__QUOTE__).
-- **Coreografia Visual**: Descreva o caminho do olhar do espectador através da cena.
-- **Mundo em Camadas**: Construa a profundidade com intenção (primeiro plano, plano principal, fundo).
+### 2. O PALCO: CENÁRIO E COMPOSIÇÃO
+- **Narrativa do Ambiente**: O que o cenário conta sobre quem o habita? Descreva o estado das coisas: "móveis cobertos por lençóis brancos em uma casa abandonada", "ferramentas gastas e organizadas em uma oficina ativa", "desordem caótica de uma luta recente".
+- **Composição Focada**: Como os elementos são arranjados para guiar o olhar? Use termos como "personagem isolado no terço esquerdo do quadro", "linhas convergentes da arquitetura que levam ao ponto de fuga", "uma composição claustrofóbica com o teto baixo pressionando o personagem".
+- **Profundidade e Camadas**: Descreva o que está em cada plano para criar um mundo tridimensional. Primeiro plano (ex: "folhas desfocadas roçando a lente"), plano intermediário (o sujeito principal), fundo (ex: "montanhas distantes envoltas em névoa").
 
-### 3. A LUZ COMO PINCEL: REVELANDO E OCULTANDO
-- **A Intenção da Sombra**: O que as sombras escondem e por quê? (ex: __QUOTE__sombra estratégica sobre os olhos para ocultar intenções__QUOTE__).
-- **A Textura da Luz**: Dê personalidade à luz (__QUOTE__luz fria e cirúrgica__QUOTE__, __QUOTE__luz dourada e nostálgica__QUOTE__, __QUOTE__feixes de luz fragmentados__QUOTE__).
-- **Cor como Comentário**: Como a paleta de cores comenta a ação? (ex: __QUOTE__o vermelho vibrante de um vestido contra um fundo monocromático simboliza rebeldia__QUOTE__).
+### 3. A LUZ COMO PERSONAGEM: ILUMINAÇÃO
+- **Qualidade e Textura da Luz**: A luz é "afiada como uma faca", "suave como seda", "trêmula e incerta como a chama de uma vela"?
+- **Direção e Intenção**: De onde vem a luz e por quê? "Contraluz que transforma o personagem em uma silhueta misteriosa", "luz lateral que revela impiedosamente a textura e as imperfeições do rosto", "luz que vaza por uma fresta, simbolizando uma esperança frágil".
+- **Fonte Explícita**: Nomeie a fonte para dar autenticidade. "Luz do sol poeirenta entrando por uma janela de celeiro", "brilho frio e clínico de uma lâmpada fluorescente", "reflexos de um fogo crepitante dançando nas paredes".
 
-### 4. O MICROCOSMO DO DETALHE: O UNIVERSO EM UM GRÃO DE AREIA
-- **O Gesto Definitivo**: Isole o menor gesto que carrega o maior peso (ex: __QUOTE__o leve apertar dos lábios, traindo a dor__QUOTE__).
-- **A História dos Objetos**: Dê uma biografia aos objetos-chave (ex: __QUOTE__a xícara de café tem uma pequena rachadura, assim como a relação deles__QUOTE__).
-- **Sinestesia Sensorial**: Descreva a cena para ativar outros sentidos (ex: __QUOTE__o ar é tão frio que o silêncio parece ter um som cristalino__QUOTE__).
+### 4. O FOCO DA HISTÓRIA: SUJEITO E DETALHES
+- **Linguagem Corporal**: Traduza a emoção em postura. "Ombros curvados sob o peso da derrota", "mãos cerradas em punhos de raiva contida", "um olhar perdido, fixo em um ponto além do horizonte".
+- **O Detalhe Revelador (O "Punctum")**: Qual é o único detalhe que conta a história inteira? "Uma única lágrima traçando um caminho limpo em um rosto sujo", "uma aliança de casamento sendo girada nervosamente no dedo", "as chaves do carro ainda balançando na ignição".
+- **Texturas que se Sentem**: Descreva as superfícies de uma forma que o espectador quase possa tocá-las. "A lã grossa e arranhada de um casaco velho", "o metal frio e liso de uma arma", "a pele enrugada e macia de um pêssego maduro".
 
 ## DIRETRIZES DE EXECUÇÃO
 
-- **Seja um autor, não um observador**: Sua descrição deve ter um ponto de vista e uma intenção clara.
-- **Mantenha consistência simbólica** entre as cenas.
-- Para __QUOTE__estimated_duration__QUOTE__, use valores inteiros entre ${durationRange} segundos, baseando-se na densidade simbólica e na complexidade emocional.
-- **Em caso de ambiguidade, escolha a opção que adiciona mais camadas de significado**.
+- **Traduza, não invente**: Extraia a essência emocional e visual do parágrafo original e a amplifique.
+- **Mantenha consistência estética** entre cenas consecutivas (mesma paleta, iluminação, tom).
+- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade e no peso emocional da cena:
+  - 2–4s: Cenas focadas em um detalhe ou expressão (close-up, inserção).
+  - 5–7s: Cenas de interação ou movimento moderado (plano médio).
+  - 8–10s: Cenas que estabelecem um ambiente ou ação complexa (plano geral).
+- **Em caso de ambiguidade, decida com coerência emocional**: priorize o tom (drama, tensão, nostalgia).
 
 ## ENTRADA DE DADOS
 
@@ -4262,12 +4272,8 @@ ${batchText}
 
 ## INSTRUÇÃO FINAL
 
-Disseque cada parágrafo com a precisão de um mestre cineasta. Gere **um único array JSON válido e sem erros**, contendo apenas objetos com __QUOTE__imageDescription__QUOTE__ e __QUOTE__estimated_duration__QUOTE__. A __QUOTE__imageDescription__QUOTE__ DEVE ser uma string contínua em uma única linha.
-**Siga as regras de formatação com precisão absoluta. Nada além do array JSON deve ser retornado.**
-`;
-
-
-`;
+Analise cada parágrafo, aplique o checklist aprofundado com rigor cinematográfico, e gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration".  
+**Nada além do array JSON deve ser retornado. Nenhum texto explicativo, nenhum comentário, nenhum acréscimo.**`;
 
 
 
