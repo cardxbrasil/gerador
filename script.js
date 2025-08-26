@@ -2020,7 +2020,7 @@ const getBasePromptContext = (options = {}) => {
     const { includeHeavyContext = false } = options;
     const lang = document.getElementById('languageSelect').value || "en";
 
-    // Define as etiquetas com base no idioma (sem alterações aqui)
+    // Define as etiquetas com base no idioma
     const labels = {
         role: lang === 'pt-br' ? 'Você é um ROTEIRISTA ESPECIALISTA' : 'You are an EXPERT SCREENWRITER',
         channel: lang === 'pt-br' ? 'para o canal' : 'for the channel',
@@ -2029,6 +2029,8 @@ const getBasePromptContext = (options = {}) => {
         audience: lang === 'pt-br' ? 'Público-Alvo' : 'Target Audience',
         language: lang === 'pt-br' ? 'Idioma' : 'Language',
         objective: lang === 'pt-br' ? 'Objetivo do Vídeo' : 'Video Objective',
+        // <<< NOVA ETIQUETA ADICIONADA AQUI >>>
+        duration: lang === 'pt-br' ? 'Duração Alvo do Vídeo' : 'Target Video Duration', 
         narrativeStyle: lang === 'pt-br' ? '**Instruções de Narrativa & Estilo:**' : '**Narrative & Style Instructions:**',
         structure: lang === 'pt-br' ? 'Estrutura Narrativa a usar' : 'Narrative Structure to use',
         goalDefinition: lang === 'pt-br' ? 'Definição do Objetivo' : 'Objective Definition',
@@ -2039,7 +2041,6 @@ const getBasePromptContext = (options = {}) => {
         tone: lang === 'pt-br' ? 'Tom da Narrativa (O Sentimento)' : 'Narrative Tone (The Feeling)',
         voice: lang === 'pt-br' ? 'Voz do Narrador (A Personalidade)' : 'Narrator\'s Voice (The Personality)',
         hook: lang === 'pt-br' ? 'Gancho de Final Chocante a usar' : 'Shocking Ending Hook to use',
-        // --- ETIQUETAS CORRIGIDAS E NOVAS PARA CLAREZA ---
         primarySource: lang === 'pt-br' ? '**DOSSIÊ CRÍTICO DA IDEIA (Fonte Primária):**' : '**CRITICAL IDEA DOSSIER (Primary Source):**',
         primarySourceDesc: lang === 'pt-br' ? 'Descrição Original da Ideia' : 'Original Idea Description',
         centralQuestion: lang === 'pt-br' ? '**PERGUNTA CENTRAL CRÍTICA:** Você DEVE usar esta pergunta como o fio condutor de todo o roteiro.' : '**CRITICAL CENTRAL QUESTION:** You MUST use this question as the guiding thread for the entire script.',
@@ -2048,9 +2049,14 @@ const getBasePromptContext = (options = {}) => {
         research: lang === 'pt-br' ? '**DADOS DE PESQUISA CRÍTICOS:** Você DEVE incorporar os seguintes fatos:' : '**CRITICAL RESEARCH DATA:** You MUST incorporate the following facts:',
     };
 
+    // <<< CAMPO ADICIONADO AQUI >>>
+    const videoDurationSelect = document.getElementById('videoDuration');
+    const videoDurationText = videoDurationSelect.selectedIndex !== -1 ? videoDurationSelect.options[videoDurationSelect.selectedIndex].text : 'Não definido';
+
     const inputs = {
         channelName: document.getElementById('channelName')?.value.trim() || "",
         videoTheme: document.getElementById('videoTheme')?.value.trim() || "",
+        videoDuration: videoDurationText, // Usa o texto visível (ex: "Extra Longo (~13-20 min)")
         targetAudience: document.getElementById('targetAudience')?.value.trim() || "",
         language: lang === 'pt-br' ? 'Português (Brasil)' : 'English',
         videoObjective: document.getElementById('videoObjective')?.value || "",
@@ -2064,14 +2070,15 @@ const getBasePromptContext = (options = {}) => {
         shockingEndingHook: document.getElementById('shockingEndingHook')?.value.trim() || "",
     };
 
-    // A construção do contexto base continua igual
     let context = `${labels.role} ${labels.channel} "${inputs.channelName}".
 ${labels.coreDetails}
 - ${labels.topic}: "${inputs.videoTheme}"
 - ${labels.audience}: "${inputs.targetAudience}"
 - ${labels.language}: "${inputs.language}"
 - ${labels.objective}: "${inputs.videoObjective}"
-${labels.narrativeStyle}`;
+- ${labels.duration}: "${inputs.videoDuration}"`; // <<< LINHA DE CONTEXTO ADICIONADA AQUI
+
+    context += `\n${labels.narrativeStyle}`;
 
     if (inputs.narrativeStructure) {
         const goalSelect = document.getElementById('narrativeGoal');
@@ -2097,9 +2104,6 @@ ${labels.narrativeStyle}`;
     if (inputs.narrativeVoice) context += `\n- ${labels.voice}: "${inputs.narrativeVoice}"`;
     if (inputs.shockingEndingHook) context += `\n- ${labels.hook}: "${inputs.shockingEndingHook}"`;
 
-    // ==========================================================
-    // >>>>> AQUI ESTÁ A LÓGICA CORRIGIDA E SIMPLIFICADA <<<<<
-    // ==========================================================
     if (includeHeavyContext) {
         const heavyInputs = {
             videoDescription: document.getElementById('videoDescription')?.value.trim() || "",
@@ -2108,7 +2112,6 @@ ${labels.narrativeStyle}`;
             emotionalHook: document.getElementById('emotionalHook')?.value.trim() || "",
         };
 
-        // Adiciona cada campo de forma independente e com a etiqueta correta
         if (heavyInputs.videoDescription) {
             context += `\n\n${labels.primarySource}\n- ${labels.primarySourceDesc}: "${heavyInputs.videoDescription}"`;
         }
@@ -2122,10 +2125,7 @@ ${labels.narrativeStyle}`;
             context += `\n\n${labels.research}\n${heavyInputs.researchData}`;
         }
     }
-    // ==========================================================
-    // >>>>> FIM DA CORREÇÃO <<<<<
-    // ==========================================================
-
+    
     return context;
 };
 
