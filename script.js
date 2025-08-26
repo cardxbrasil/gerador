@@ -4114,6 +4114,9 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 // =========================================================================
 // >>>>> VERSÃO FINAL (v9.0) - PROMPT MESTRE DETALHADO + CHAMADA ÚNICA <<<<<
 // =========================================================================
+// =========================================================================
+// >>>>> VERSÃO FINAL (v10.0) - ARQUITETURA HÍBRIDA: LOTES DE PARÁGRAFOS <<<<<
+// =========================================================================
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -4126,22 +4129,49 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando o texto completo e gerando todas as cenas com alta qualidade...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando texto em lotes de parágrafos...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
-        if (fullText.length === 0) { throw new Error("Não há texto para analisar."); }
+        
+        // <<< ETAPA 1: Dividir o texto em parágrafos visuais >>>
+        const paragraphs = fullText.split(/\n\s*\n/).filter(p => p.trim());
 
-        const visualPacing = document.getElementById('visualPacing').value;
-        const durationMap = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' };
-        const durationRange = durationMap[visualPacing] || '8 a 15';
+        if (paragraphs.length === 0) { throw new Error("Não foram encontrados parágrafos para analisar."); }
 
-        // <<< AQUI ESTÁ A MÁGICA: SEU PROMPT DETALHADO DENTRO DA ESTRUTURA DE CHAMADA ÚNICA >>>
-        const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE STORYBOARD COMPLETO E DETALHADO
+        // <<< ETAPA 2: Agrupar parágrafos em lotes gerenciáveis >>>
+        const batches = [];
+        const MAX_WORDS_PER_BATCH = 400; // Um limite seguro para o texto de entrada por chamada
+        let currentBatch = [];
+        let currentWordCount = 0;
+
+        for (const p of paragraphs) {
+            const wordCount = p.split(/\s+/).length;
+            if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatch.length > 0) {
+                batches.push(currentBatch.join('\n\n'));
+                currentBatch = [p];
+                currentWordCount = wordCount;
+            } else {
+                currentBatch.push(p);
+                currentWordCount += wordCount;
+            }
+        }
+        if (currentBatch.length > 0) {
+            batches.push(currentBatch.join('\n\n'));
+        }
+
+        // <<< ETAPA 3: Processar cada lote com o prompt mestre detalhado >>>
+        let allGeneratedPrompts = [];
+        for (const batchText of batches) {
+            const visualPacing = document.getElementById('visualPacing').value;
+            const durationMap = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' };
+            const durationRange = durationMap[visualPacing] || '8 a 15';
+
+            const prompt = `# INSTRUÇÕES PARA GERAÇÃO DE STORYBOARD COMPLETO E DETALHADO
 Você é uma Diretora de Fotografia de elite, especialista em traduzir roteiros em cenas visuais ricas e cinematográficas.
 
 ## TAREFA PRINCIPAL
-Sua tarefa é ler o "ROTEIRO COMPLETO DA SEÇÃO" abaixo. Para cada momento visualmente importante, crie um prompt de imagem usando o "CHECKLIST DE CRIAÇÃO" como guia. Sua resposta final deve ser **UM ÚNICO ARRAY JSON** contendo todos os prompts que você criar.
+Sua tarefa é ler o "LOTE DE ROTEIRO" abaixo. Para cada momento visualmente importante neste lote, crie um prompt de imagem usando o "CHECKLIST DE CRIAÇÃO" como guia. Sua resposta final deve ser **UM ÚNICO ARRAY JSON** contendo todos os prompts que você criar para este lote.
 
 ## REGRAS DE FORMATAÇÃO (INEGOCIÁVEIS)
 1. **FORMATO JSON EXCLUSIVO**: Sua resposta deve ser APENAS um ARRAY JSON válido, começando com [ e terminando com ].
@@ -4172,21 +4202,26 @@ Sua tarefa é ler o "ROTEIRO COMPLETO DA SEÇÃO" abaixo. Para cada momento visu
 - **"script_phrase"**: Copie a frase exata do roteiro que inspira a cena.
 - **"estimated_duration"**: Use um valor inteiro entre ${durationRange} segundos.
 
-## ROTEIRO COMPLETO DA SEÇÃO
+## LOTE DE ROTEIRO PARA ANÁLISE
 ---
-${fullText}
+${batchText}
 ---
 
 ## AÇÃO FINAL
-Analise o roteiro, aplique o checklist para criar cenas ricas e detalhadas, e retorne **APENAS o array JSON único**, seguindo rigorosamente todas as regras.`;
+Analise o lote de roteiro, aplique o checklist para criar cenas ricas e detalhadas, e retorne **APENAS o array JSON único**, seguindo rigorosamente todas as regras.`;
 
-        // UMA ÚNICA CHAMADA À API com timeout generoso.
-        const allGeneratedPrompts = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
-        
-        if (!allGeneratedPrompts || !Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length === 0) {
-            throw new Error("A IA não retornou um array de prompts válido. Tente novamente.");
+            const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+            if (Array.isArray(jsonResponse)) {
+                // Adiciona os prompts deste lote ao resultado final
+                allGeneratedPrompts = allGeneratedPrompts.concat(jsonResponse);
+            }
         }
         
+        if (allGeneratedPrompts.length === 0) {
+            throw new Error("A IA não retornou nenhum prompt válido. O texto pode ser muito curto ou a resposta da API falhou.");
+        }
+        
+        // O resto do código para renderizar a paginação permanece o mesmo
         const curatedPrompts = allGeneratedPrompts.map(promptData => ({
             scriptPhrase: promptData.script_phrase || "Trecho do roteiro",
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
@@ -4214,7 +4249,6 @@ Analise o roteiro, aplique o checklist para criar cenas ricas e detalhadas, e re
         hideButtonLoading(button);
     }
 };
-
 
 
 
