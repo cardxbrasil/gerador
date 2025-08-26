@@ -987,7 +987,7 @@ const resetApplicationState = () => {
     document.querySelectorAll('#appRoot input[type="text"], #appRoot input[type="file"], #appRoot textarea').forEach(el => el.value = '');
     document.querySelectorAll('#appRoot select').forEach(el => el.selectedIndex = 0);
     document.getElementById('channelName').value = 'The Biblical Unveiling';
-    document.getElementById('languageSelect').value = 'en';
+    document.getElementById('languageSelect').value = 'pt-br'; // <<< ALTERADO AQUI
 
     // 4. Limpa todos os painéis de conteúdo gerado (COM MUDANÇAS)
     const containersToReset = [
