@@ -1931,13 +1931,26 @@ const getGenreFromIdea = (idea) => {
 
 
 
-// SUBSTITUA SUA FUNÇÃO 'selectIdea' INTEIRA POR ESTA VERSÃO FINAL:
+
+
+
+// =========================================================================
+// >>>>> SUBSTITUA SUA FUNÇÃO 'selectIdea' INTEIRA POR ESTA VERSÃO FINAL <<<<<
+// =========================================================================
 const selectIdea = (idea) => {
+    // Identifica o gênero/especialista para buscar as regras de mapeamento corretas.
     const genre = getGenreFromIdea(idea);
     AppState.inputs.selectedGenre = genre;
     const mapper = strategyMapper[genre];
 
-    // Preenchimento dos dropdowns
+    // --- ETAPA 1: MAPEAMENTO DIRETO E GARANTIDO (O que já funcionava) ---
+    // Mapeia os campos que têm o mesmo nome na ideia e no formulário.
+    document.getElementById('videoTheme').value = idea.title || '';
+    document.getElementById('videoDescription').value = idea.videoDescription || '';
+    document.getElementById('targetAudience').value = idea.targetAudience || '';
+
+    // --- ETAPA 2: PREENCHIMENTO DOS MENUS DE SELEÇÃO (DROPDOWNS) ---
+    // Usa o 'strategyMapper' para definir os valores corretos nos dropdowns.
     if (mapper && mapper.dropdowns) {
         for (const id in mapper.dropdowns) {
             const element = document.getElementById(id);
@@ -1946,43 +1959,37 @@ const selectIdea = (idea) => {
             }
         }
     }
+    // Dispara as funções para atualizar a UI dos dropdowns após a seleção.
     updateNarrativeStructureOptions();
     updateMainTooltip();
 
-    // 1. Define a estratégia base com valores padrão sólidos
-    let strategy = {
-        narrativeTheme: idea.angle || `Explorar o tema central de "${idea.title}".`,
-        centralQuestion: `Qual é o mistério ou a principal questão por trás de "${idea.title}"?`,
-        emotionalHook: `Comece com uma anedota ou uma micro-história que conecte o tema '${idea.title}' a uma experiência humana universal.`,
-        narrativeVoice: 'Confiante e Esclarecedor',
-        shockingEndingHook: ``,
-        researchData: `Buscar 1-2 estatísticas ou citações que reforcem a mensagem principal de "${idea.title}".`
-    };
-
-    // 2. Sobrescreve a base APENAS com valores VÁLIDOS do especialista
-    if (mapper) {
-        for (const key in mapper) {
-            if (key !== 'dossier' && key !== 'dropdowns') {
-                const newValue = mapper[key](idea);
-                if (newValue !== undefined && newValue !== null) {
-                    strategy[key] = newValue;
-                }
-            }
-        }
+    // --- ETAPA 3: MAPEAMENTO COMPLEXO E CORRIGIDO (AQUI ESTÁ A SOLUÇÃO) ---
+    // Mapeia os campos da ideia para os campos do formulário que têm nomes diferentes.
+    // Esta lógica agora é explícita para garantir que os dados sejam transferidos.
+    
+    // Para o especialista 'enigmas' (e outros que tiverem esses campos)
+    if (idea.angle) {
+        document.getElementById('narrativeTheme').value = idea.angle;
     }
-
-    // 3. Aplica a estratégia final na interface
-    for (const id in strategy) {
-        const element = document.getElementById(id);
-        if (element) element.value = strategy[id];
+    if (idea.discussionQuestions && idea.discussionQuestions.length > 0) {
+        // Pega a PRIMEIRA pergunta de diálogo e a usa como Pergunta Central.
+        document.getElementById('centralQuestion').value = idea.discussionQuestions[0];
+    }
+    if (idea.scripturalFoundation && idea.scripturalFoundation.length > 0) {
+        // Pega as referências bíblicas, junta-as e coloca no campo de Fontes.
+        document.getElementById('researchData').value = `Citar as seguintes passagens: ${idea.scripturalFoundation.join('; ')}.`;
     }
     
-    document.getElementById('videoTheme').value = idea.title || '';
-    document.getElementById('targetAudience').value = idea.targetAudience || '';
-    document.getElementById('videoDescription').value = idea.videoDescription || '';
-    
+    // Limpa campos que não são preenchidos pela ideia para evitar confusão.
+    document.getElementById('emotionalHook').value = '';
+    document.getElementById('shockingEndingHook').value = '';
+
+
+    // --- ETAPA 4: FINALIZAÇÃO ---
     window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
-    showPane('strategy');
+    showPane('strategy'); // Muda para a tela de estratégia
+    
+    // Clica na aba "Estratégia Narrativa" para que o usuário veja os campos mais importantes.
     document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
 };
 
