@@ -812,34 +812,7 @@ Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro
         .replace(/__DEV_WORDS__/g, counts.development || 500)
         .replace(/__CLIMAX_WORDS__/g, counts.climax || 200)
         .replace(/__CONCLUSION_WORDS__/g, counts.conclusion || 150);
-}
-
-
-
-
-    const specialistFramework = scriptTemplates[genre] || scriptTemplates['geral'];
-
-    return `
-${specialistFramework}
-
-### BRIEFING DO PROJETO ###
-${baseContext}
-${technicalDetails}
-
-### REGRAS DE SAÍDA E FORMATAÇÃO (ABSOLUTAMENTE INEGOCIÁVEIS) ###
-1.  **FOCO 100% NO TEXTO:** Sua única tarefa é escrever o texto que será narrado.
-2.  **PROIBIÇÃO DE ELEMENTOS VISUAIS:** É **TERMINANTEMENTE PROIBIDO** incluir qualquer anotação, comentário ou descrição visual. Não escreva nada entre parênteses ou colchetes, como "(CENA: ...)", "[IMAGEM: ...]", "(Close-up na mão...)", etc. Sua resposta deve ser apenas a narração pura.
-3.  **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON, começando com \`{\` e terminando com \`}\`.
-4.  **ESTRUTURA JSON OBRIGATÓRIA:** O objeto DEVE conter EXATAMENTE as seguintes 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". O valor de cada chave deve ser o texto do roteiro para aquela seção.
-5.  **PARÁGRAFOS:** Dentro de cada valor de string (como "desenvolvimento"), use "\\n\\n" para separar os parágrafos.
-
-### AÇÃO FINAL ###
-Com base no briefing e seguindo RIGOROSAMENTE todas as regras acima, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.
-`.trim();
-}
-
-
-
+},
 
 
 
