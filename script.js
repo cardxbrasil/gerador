@@ -2101,7 +2101,7 @@ ${labels.narrativeStyle}`;
 
     if (inputs.narrativeTheme) context += `\n- ${labels.theme}: "${inputs.narrativeTheme}"`;
     if (inputs.narrativeTone) context += `\n- ${labels.tone}: "${inputs.narrativeTone}"`;
-    if (inputs.narrativeVoice) context += `\n- ${labels.voice}: "${inputs.voice}"`;
+    if (inputs.narrativeVoice) context += `\n- ${labels.voice}: "${inputs.narrativeVoice}"`;
     if (inputs.shockingEndingHook) context += `\n- ${labels.hook}: "${inputs.shockingEndingHook}"`;
 
     if (includeHeavyContext) {
@@ -2136,7 +2136,7 @@ const buildMasterPrompt = () => {
     const genre = AppState.inputs.selectedGenre || 'geral';
     const durationKey = document.getElementById('videoDuration').value;
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
-    const visualPacingText = document.getElementById('visualPacing').options[document.getElementById('visualPacing').selectedIndex].text;
+    
 
     // 2. Monta o `baseContext` que será injetado no placeholder
     let baseContext = getBasePromptContext({ includeHeavyContext: true });
@@ -2148,7 +2148,7 @@ const buildMasterPrompt = () => {
     baseContext = baseContext.replace(/\[\d+\]/g, ''); 
     // ==========================================================
     
-    const fullContextForAI = `${baseContext}\n- Ritmo Visual (Guia para a escrita): ${visualPacingText}`;
+    const fullContextForAI = `${baseContext}`;
     
     // 3. Pega o template bruto (sem mudanças aqui)
     let masterPrompt = PromptManager.getScriptPrompt(genre, durationKey);
