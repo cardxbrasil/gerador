@@ -234,6 +234,58 @@ const updateProgressBar = () => {
 // ==========================================================
 // =================== GERENCIADOR DE PROMPTS (Cérebro da v5.0) =================
 // ==========================================================
+
+// =================== RENDER IDEAS AS CARDS ===================
+function renderIdeas(ideas) {
+    const container = document.getElementById("ideasCards");
+    if (!Array.isArray(ideas) || ideas.length === 0) {
+        container.innerHTML = '<div class="asset-card-placeholder">Nenhuma ideia gerada ainda.</div>';
+        return;
+    }
+
+    container.innerHTML = ideas.map((item, idx) => {
+        const title = item.title || "Sem título";
+        const angle = item.angle || "";
+        const ta = item.targetAudience || "";
+        const score = item.viralityScore ?? "—";
+        const desc = item.videoDescription || "";
+        const extra = item.investigativeApproach || item.emotionalCore || item.coreDilemma || "";
+
+        return `
+        <article class="card" data-index="${idx}">
+            <span class="badge">${score}/10</span>
+            <div class="header">
+                <div class="title">${title}</div>
+                ${angle ? `<div class="angle">${angle}</div>` : ""}
+            </div>
+            <div class="tags">
+                ${ta ? `<span class="tag">👥 ${ta}</span>` : ""}
+                ${extra ? `<span class="tag">🧭 ${extra}</span>` : ""}
+            </div>
+            <div class="body">
+                <p class="desc">${desc}</p>
+            </div>
+            <div class="footer">
+                <button class="link" data-action="toggle">Ler mais</button>
+                <button class="ghost" data-action="adopt">➕ Adotar esta ideia</button>
+            </div>
+        </article>`;
+    }).join("");
+
+    container.querySelectorAll('.link').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const card = e.target.closest('.card');
+            const p = card.querySelector('.desc');
+            p.classList.toggle('expanded');
+            e.target.textContent = p.classList.contains('expanded') ? 'Mostrar menos' : 'Ler mais';
+        });
+    });
+    container.querySelectorAll('.ghost').forEach(btn => {
+        btn.addEventListener('click', () => alert('Ideia adicionada ao projeto ✅'));
+    });
+}
+
+
 const PromptManager = {
     getIdeasPrompt: (genre, context) => {
         const templates = {
