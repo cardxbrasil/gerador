@@ -1980,36 +1980,54 @@ const getGenreFromIdea = (idea) => {
 
 
 
+
 // =========================================================================
-// >>>>> VERSÃO FINAL E SIMPLIFICADA DA FUNÇÃO 'selectIdea' <<<<<
+// >>>>> VERSÃO FINAL E INTELIGENTE DA FUNÇÃO 'selectIdea' <<<<<
+//       Com aviso de inconsistência de especialista.
 // =========================================================================
-const selectIdea = (idea) => {
-    // >>>>> A CORREÇÃO CRÍTICA ESTÁ AQUI <<<<<
-    // Em vez de auto-detectar o gênero do JSON, nós lemos qual aba está
-    // ativa na interface. Esta é agora a nossa ÚNICA fonte da verdade.
-    const genre = document.querySelector('#genreTabs .tab-button.tab-active')?.dataset.genre || 'geral';
+const selectIdea = async (idea) => { // A função agora é assíncrona para esperar o pop-up
+    // --- ETAPA 1: DETECÇÃO E VALIDAÇÃO ---
+    // 1a. Qual especialista o USUÁRIO selecionou na interface?
+    const selectedGenre = document.querySelector('#genreTabs .tab-button.tab-active')?.dataset.genre || 'geral';
     
-    // Salvamos a escolha do usuário no estado da aplicação para ser usada depois.
+    // 1b. Qual especialista nossa ferramenta ACHA que a ideia é?
+    const detectedGenre = getGenreFromIdea(idea);
+
+    // 1c. Verificamos se há uma inconsistência.
+    if (selectedGenre !== detectedGenre) {
+        // Se houver, mostramos o aviso e esperamos a decisão do usuário.
+        const userConfirmed = await showConfirmationDialog(
+            "Aviso de Inconsistência",
+            `Esta ideia parece ser do especialista '${detectedGenre}', mas você selecionou '${selectedGenre}'. Deseja continuar mesmo assim e aplicar as regras de '${selectedGenre}' a esta ideia?`
+        );
+
+        // Se o usuário cancelar, interrompemos a operação.
+        if (!userConfirmed) {
+            window.showToast("Operação cancelada.", 'info');
+            return;
+        }
+    }
+    
+    // --- Se não houver inconsistência ou o usuário confirmar, o fluxo continua ---
+    const genre = selectedGenre; // A fonte da verdade é sempre a escolha do usuário.
     AppState.inputs.selectedGenre = genre;
-    
-    // O resto da função continua, mas agora usando o 'genre' que o USUÁRIO escolheu.
     const mapper = strategyMapper[genre];
 
-    // --- ETAPA 1: LIMPEZA INICIAL ---
+    // --- ETAPA 2: LIMPEZA INICIAL ---
     const fieldsToClear = ['targetAudience', 'narrativeTheme', 'centralQuestion', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook', 'researchData'];
     fieldsToClear.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
 
-    // --- ETAPA 2: MAPEAMENTO BÁSICO E HIGIENIZAÇÃO ---
+    // --- ETAPA 3: MAPEAMENTO BÁSICO E HIGIENIZAÇÃO ---
     document.getElementById('videoTheme').value = idea.title || '';
     const cleanedDescription = (idea.videoDescription || '').replace(/\[[\d, ]+\]/g, '');
     document.getElementById('videoDescription').value = cleanedDescription;
 
-    // --- ETAPA 3: PREENCHIMENTO COMPLETO USANDO O MAPPER ---
+    // --- ETAPA 4: PREENCHIMENTO COMPLETO USANDO O MAPPER ---
     if (mapper) {
-        // 3a. Lógica de preenchimento dos dropdowns (controlando a ordem)
+        // 4a. Lógica de preenchimento dos dropdowns (controlando a ordem)
         if (mapper.dropdowns) {
             if (mapper.dropdowns.narrativeGoal) {
                 document.getElementById('narrativeGoal').value = mapper.dropdowns.narrativeGoal;
@@ -2022,14 +2040,20 @@ const selectIdea = (idea) => {
             }
         }
         
-        // 3b. Preenche TODOS os campos de texto com as regras do mapper
+        // 4b. Preenche TODOS os campos de texto com as regras do mapper
         for (const key in mapper) {
             if (key === 'dropdowns' || key === 'dossier') continue;
             const element = document.getElementById(key);
             if (element) {
-                const valueToSet = mapper[key](idea);
-                if (valueToSet) {
-                    element.value = valueToSet;
+                // Usamos um try-catch aqui para evitar erros caso uma regra tente
+                // acessar um campo que não existe no JSON de outro especialista.
+                try {
+                    const valueToSet = mapper[key](idea);
+                    if (valueToSet) {
+                        element.value = valueToSet;
+                    }
+                } catch(e) {
+                    console.warn(`Não foi possível mapear o campo '${key}' pois a propriedade não existe na ideia do tipo '${detectedGenre}'. Campo deixado em branco.`);
                 }
             }
         }
@@ -2037,7 +2061,7 @@ const selectIdea = (idea) => {
     
     updateMainTooltip();
 
-    // --- ETAPA 4: FINALIZAÇÃO ---
+    // --- ETAPA 5: FINALIZAÇÃO ---
     window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
     showPane('strategy');
     document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
