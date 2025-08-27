@@ -20,6 +20,119 @@ const AppState = {
 };
 
 let userSelectionRange = null;
+// ========== UX V2: Toasts, Sidebar Toggle, Import Feedback, Validation ==========
+
+function showToast(message, type='info', duration=3000){
+    const container = document.getElementById('toastContainer');
+    if(!container) return;
+    const div = document.createElement('div');
+    div.className = 'toast-item';
+    div.textContent = message;
+    container.appendChild(div);
+    // force reflow for animation
+    requestAnimationFrame(()=> div.classList.add('show'));
+    setTimeout(()=>{ div.classList.remove('show'); setTimeout(()=> div.remove(),250); }, duration);
+}
+
+// Sidebar toggle for mobile
+function toggleSidebar(open){
+    const sb = document.getElementById('sidebar');
+    if(!sb) return;
+    if(open) sb.classList.add('open'); else sb.classList.remove('open');
+}
+
+// event delegation for hamburger and close
+document.addEventListener('click', function(e){
+    if(e.target && (e.target.id === 'hamburgerBtn' || e.target.closest && e.target.closest('#hamburgerBtn'))) toggleSidebar(true);
+    if(e.target && (e.target.id === 'mobileCloseSidebar' || e.target.closest and e.target.closest('#mobileCloseSidebar'))) toggleSidebar(false);
+});
+
+// File import feedback wiring
+document.addEventListener('DOMContentLoaded', function(){
+    const importInputEl = document.getElementById('importFileInput');
+    if(importInputEl){
+        importInputEl.addEventListener('change', async function(ev){
+            const file = ev.target.files && ev.target.files[0];
+            if(!file){ showToast('Nenhum arquivo selecionado', 'error'); return; }
+            try{
+                const txt = await file.text();
+                const data = JSON.parse(txt);
+                // store basic project state
+                AppState.inputs = data.inputs || AppState.inputs;
+                AppState.generated = data.generated || AppState.generated;
+                showToast('Projeto importado com sucesso! ✅');
+                // optional: re-render ideas if present
+                if(Array.isArray(AppState.generated.ideas) && AppState.generated.ideas.length>0){
+                    renderIdeas(AppState.generated.ideas);
+                }
+            }catch(err){
+                console.error(err);
+                showToast('Erro ao importar: JSON inválido', 'error');
+            }
+            // reset input to allow re-upload of same file later
+            ev.target.value = '';
+        });
+    }
+
+    // wire Export button(s)
+    document.querySelectorAll('[data-action="exportProject"]').forEach(btn => btn.addEventListener('click', function(){
+        const payload = JSON.stringify({ inputs: AppState.inputs, generated: AppState.generated }, null, 2);
+        const blob = new Blob([payload], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'project_export.json'; document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Projeto exportado com sucesso! 💾');
+    }));
+
+    // Reset project
+    document.querySelectorAll('[data-action="resetProject"]').forEach(btn => btn.addEventListener('click', ()=>{
+        if(confirm('Confirmar reset do projeto? Isso apagará o progresso atual.')){
+            AppState.inputs = {}; AppState.generated = { ideas: [] };
+            AppState.ui.completedSteps = new Set();
+            const ideasContainer = document.getElementById('ideasCards'); if(ideasContainer) ideasContainer.innerHTML = '<div class="asset-card-placeholder">Projeto resetado.</div>';
+            showToast('Projeto resetado.');
+        }
+    }));
+});
+
+// Simple input validation helpers
+function validateRequiredFields(){
+    const required = document.querySelectorAll('[data-required="true"]');
+    let ok = true;
+    required.forEach(el => {
+        const val = (el.value || '').toString().trim();
+        // remove any existing error message
+        const next = el.nextElementSibling;
+        if(next && next.classList && next.classList.contains('field-error')) next.remove();
+        el.classList.remove('input-error');
+        if(!val){
+            el.classList.add('input-error');
+            const span = document.createElement('span');
+            span.className = 'field-error';
+            span.textContent = '⚠️ Este campo é obrigatório.';
+            el.insertAdjacentElement('afterend', span);
+            ok = false;
+        }
+    });
+    return ok;
+}
+
+// Attach basic validation on blur
+document.addEventListener('blur', function(e){
+    const t = e.target;
+    if(t && t.dataset && t.dataset.required === 'true'){
+        const val = (t.value||'').toString().trim();
+        if(!val){ t.classList.add('input-error');
+            const next = t.nextElementSibling; if(!(next && next.classList && next.classList.contains('field-error'))){
+                const span = document.createElement('span'); span.className='field-error'; span.textContent='⚠️ Este campo é obrigatório.'; t.insertAdjacentElement('afterend', span);
+            }
+        } else {
+            t.classList.remove('input-error'); const next = t.nextElementSibling; if(next && next.classList && next.classList.contains('field-error')) next.remove();
+        }
+    }
+}, true);
+
 
 window.criterionMap = {
     'Introdução (Hook)': 'introSection',
@@ -5269,4 +5382,75 @@ if (button && actions[button.dataset.action]) {
     
     // 3. SÓ AGORA, mostra o painel correto, que já foi preenchido
     showPane(AppState.ui.currentPane || 'investigate');
+});
+
+
+// =================== RENDER IDEAS AS CARDS ===================
+function renderIdeas(ideas) {
+    const container = document.getElementById("ideasCards");
+    if (!container) return;
+    if (!Array.isArray(ideas) || ideas.length === 0) {
+        container.innerHTML = '<div class="asset-card-placeholder">Nenhuma ideia gerada ainda.</div>';
+        return;
+    }
+
+    container.innerHTML = ideas.map((item, idx) => {
+        const title = item.title || "Sem título";
+        const angle = item.angle || "";
+        const ta = item.targetAudience || "";
+        const score = item.viralityScore ?? "—";
+        const desc = item.videoDescription || "";
+        const extra = item.investigativeApproach || item.emotionalCore || item.coreDilemma || "";
+
+        return `
+        <article class="card" data-index="${idx}">
+            <span class="badge">${score}/10</span>
+            <div class="header">
+                <div class="title">${title}</div>
+                ${angle ? `<div class="angle">${angle}</div>` : ""}
+            </div>
+            <div class="tags">
+                ${ta ? `<span class="tag">👥 ${ta}</span>` : ""}
+                ${extra ? `<span class="tag">🧭 ${extra}</span>` : ""}
+            </div>
+            <div class="body">
+                <p class="desc">${desc}</p>
+            </div>
+            <div class="footer">
+                <button class="link" data-action="toggle">Ler mais</button>
+                <button class="ghost" data-action="adopt">➕ Adotar esta ideia</button>
+            </div>
+        </article>`;
+    }).join("");
+
+    container.querySelectorAll('.link').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const card = e.target.closest('.card');
+            const p = card.querySelector('.desc');
+            p.classList.toggle('expanded');
+            e.target.textContent = p.classList.contains('expanded') ? 'Mostrar menos' : 'Ler mais';
+        });
+    });
+    container.querySelectorAll('.ghost').forEach(btn => {
+        btn.addEventListener('click', () => showToast('Ideia adicionada ao projeto ✅'));
+    });
+}
+
+
+
+// Generate ideas button handler: validate inputs then render ideas
+document.addEventListener('DOMContentLoaded', function(){
+    const genBtn = document.getElementById('generateIdeasBtn');
+    if(genBtn){
+        genBtn.addEventListener('click', function(){
+            const ok = validateRequiredFields();
+            if(!ok){ showToast('Preencha os campos obrigatórios antes de gerar ideias.','error'); return; }
+            if(AppState.generated && Array.isArray(AppState.generated.ideas) && AppState.generated.ideas.length>0){
+                renderIdeas(AppState.generated.ideas);
+                showToast('Ideias carregadas.');
+            } else {
+                showToast('Nenhuma ideia disponível. Execute a investigação primeiro.','error');
+            }
+        });
+    }
 });

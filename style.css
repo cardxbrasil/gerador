@@ -833,3 +833,41 @@ textarea.input { min-height: 84px; resize: vertical; }
 .tab-button .fas {
     font-weight: 900; /* Força o peso correto para ícones sólidos (fas) */
 }
+
+/* ========== UX V2 ADDITIONS ========== */
+/* utility for mobile-only items */
+.mobile-only { display:none; }
+/* show mobile-only under 900px */
+@media (max-width: 900px) {
+  .mobile-only { display:inline-flex !important; }
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: fixed; left: -320px; top: 0; height: 100vh; width: 280px; z-index: 9998; transition: left .28s ease; box-shadow: 0 20px 60px rgba(2,6,23,0.45); }
+  .sidebar.open { left: 0; }
+  .content { margin-left: 0; }
+  /* compact header */
+  .header { padding: 12px; }
+}
+/* Toast */
+.toast-item {
+  pointer-events: auto;
+  min-width: 220px;
+  max-width: 360px;
+  margin-top: 8px;
+  background: var(--text-header);
+  color: var(--surface);
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: .25s ease;
+}
+.toast-item.show { opacity: 1; transform: translateY(0); }
+/* input error */
+.input-error { border-color: var(--danger) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 12%, transparent); }
+/* error message */
+.field-error { color: var(--danger); font-size: 12px; margin-top:6px; display:block; }
+/* small adjustments for cards on mobile */
+@media (max-width: 720px) {
+  .card .desc { -webkit-line-clamp: 4; }
+}
