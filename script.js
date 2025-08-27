@@ -1872,7 +1872,7 @@ const generateIdeasFromReport = async (button) => {
 
 
 // =========================================================================
-// >>>>> 'strategyMapper' COMPLETO E INTELIGENTE (VERSÃO FINAL) <<<<<
+// >>>>> 'strategyMapper' FINAL E COMPLETO - COM HOOKS INTELIGENTES <<<<<
 //       Substitua o seu objeto inteiro por este bloco de código.
 // =========================================================================
 const strategyMapper = {
@@ -1883,6 +1883,7 @@ const strategyMapper = {
         centralQuestion: idea => `O que as evidências sobre "${idea.title}" realmente revelam e qual o seu verdadeiro impacto?`,
         researchData: idea => `Focar na abordagem investigativa de "${idea.investigativeApproach}". Consultar fontes primárias mencionadas no relatório de pesquisa inicial.`,
         narrativeVoice: () => "Investigativo, factual e com autoridade no assunto.",
+        shockingEndingHook: idea => `...e a parte mais chocante é que as evidências para "${idea.title}" sempre estiveram lá, esperando para serem conectadas.`,
         dossier: idea => `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`
     },
     'inspiracional': {
@@ -1893,6 +1894,7 @@ const strategyMapper = {
         emotionalHook: idea => `A história começa com uma pessoa vivenciando o silêncio e a dor descritos na narrativa. O ponto de virada é a descoberta que a leva a encontrar sua voz. O núcleo emocional é a jornada de '${idea.emotionalCore}'.`,
         researchData: () => `Buscar dados, estatísticas ou testemunhos que reforcem o contexto social do problema abordado na história.`,
         narrativeVoice: () => "Empática, encorajadora e com uma voz que inspira resiliência.",
+        shockingEndingHook: idea => `...e no final, a maior lição não foi aprender a falar, mas descobrir o poder que existe em finalmente ser ouvido.`,
         dossier: idea => `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`
     },
     'scifi': {
@@ -1901,6 +1903,7 @@ const strategyMapper = {
         centralQuestion: idea => idea.angle,
         narrativeTheme: idea => `Explorar as consequências éticas e humanas do dilema central de '${idea.coreDilemma}'.`,
         narrativeVoice: () => "Intrigante, cerebral e levemente distópico.",
+        shockingEndingHook: () => `...percebendo tarde demais que a tecnologia não era uma ferramenta, mas um espelho que refletia o pior de nós.`,
         dossier: idea => `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`
     },
     'terror': {
@@ -1909,6 +1912,7 @@ const strategyMapper = {
         narrativeTheme: idea => `A quebra da normalidade e a descida à loucura, usando o mecanismo de '${idea.horrorMechanism}'.`,
         centralQuestion: idea => idea.angle,
         narrativeVoice: () => "Sussurrado, opressivo e que instiga paranoia.",
+        shockingEndingHook: () => `...e o verdadeiro horror não era a escuridão lá fora, mas a que ele descobriu dentro de si mesmo.`,
         dossier: idea => `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`
     },
     'enigmas': {
@@ -1918,6 +1922,7 @@ const strategyMapper = {
         centralQuestion: idea => (idea.discussionQuestions && idea.discussionQuestions.length > 0) ? idea.discussionQuestions[0] : `Qual é a verdade teológica oculta por trás de "${idea.title}"?`,
         researchData: idea => `A investigação deve se basear nestas passagens bíblicas: ${(idea.scripturalFoundation || []).join('; ')}.`,
         narrativeVoice: () => "Acadêmico, reverente e investigativo.",
+        shockingEndingHook: () => `...revelando que a resposta para o enigma não estava no que foi escrito, mas no silêncio entre as palavras.`,
         dossier: idea => `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${(idea.scripturalFoundation || []).join('; ')}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`
     },
     'geral': {
@@ -1926,6 +1931,7 @@ const strategyMapper = {
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => `Qual é a revelação surpreendente por trás do tema "${idea.title}"?`,
         narrativeVoice: () => "Dinâmico, claro e entusiasmado.",
+        shockingEndingHook: () => `...e foi assim que uma simples pergunta mudou completamente a forma como vemos o mundo.`,
         dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
     }
 };
@@ -2000,7 +2006,6 @@ const selectIdea = (idea) => {
     showPane('strategy');
     document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
 };
-
 
 
 
