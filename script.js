@@ -190,7 +190,7 @@ You are generating an image that must be **indistinguishable from a real photogr
 --no photorealistic, realistic, smooth, fluid animation, high frame rate, conventional, boring, dull colors, simple, classic, disney, pixar, elegant, quiet, calm`
 
     }
-    'comic': {
+    'laika': {
         name: 'Fantasia Sombria e Elegante (Estilo "Guillermo del Toro / Laika Studios")',
         block: `
 
@@ -199,8 +199,6 @@ You are generating an image that must be **indistinguishable from a real photogr
 --no bright, happy, colorful, cute, pixar, disney, realistic, photorealistic, cgi, smooth, clean, modern, minimalist, simple, funny`
 
     }
-
-
 
 
 };
