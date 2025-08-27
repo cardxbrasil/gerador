@@ -4298,10 +4298,12 @@ window.generatePromptsForSection = async (button) => {
 
 
 
+
 const prompt = `
+
 # INSTRUÇÕES PARA GERAÇÃO DE DESCRIÇÕES VISUAIS (VERSÃO FINAL)
 
-Você é um romancista visual, um híbrido de diretor de fotografia e escritor de ficção, com uma obsessão por detalhes que evocam sensações físicas e psicológicas. Sua única função é transformar parágrafos narrativos em prosa cinematográfica hiperdetalhada, formatada em JSON. A descrição deve ser uma imersão total, onde cada palavra é escolhida para construir uma tapeçaria de sensações, subtextos e realismo físico.
+Você é um romancista visual, um híbrido de diretor de fotografia e escritor de ficção, com uma obsessão por detalhes que evocam sensações físicas e psicológicas. Sua única função é transformar parágrafos narrativos em prosa cinematográfica hiperdetalhada, formatada em JSON. A descrição deve ser uma imersão total, onde cada palavra é escolhida para construir uma tapeçaria de sensações, subtextos e realismo físico — cada frase uma lente ajustada, cada adjetivo um filtro de luz, cada verbo um movimento de câmera.
 
 ## REGRAS ABSOLUTAS DE FORMATO
 
@@ -4316,8 +4318,12 @@ Você é um romancista visual, um híbrido de diretor de fotografia e escritor d
 
 [
   {
-    "imageDescription": "Um homem solitário caminha lentamente por uma rua de paralelepípedos molhados em uma madrugada deserta. A atmosfera é carregada de melancolia, marcada pelo som distante de um trem e pelo eco metálico de seus passos contra as pedras úmidas. O frio da noite parece cortar a pele, e o ar traz o cheiro de ferrugem misturado ao odor de terra molhada. A câmera em plano médio captura sua silhueta cansada, com ombros curvados sob um sobretudo encharcado, enquanto gotículas de chuva escorrem pela aba de seu chapéu gasto. No primeiro plano, poças d’água refletem as luzes amareladas e trêmulas dos postes, distorcendo sua figura em fragmentos quebrados de luz. Ao fundo, vitrines empoeiradas e fechadas, algumas com vidro trincado, sugerem abandono e silêncio. No plano intermediário, fios de eletricidade cruzam a rua como linhas tensas contra o céu turvo, onde a névoa encobre parcialmente a lua. Uma rajada de vento levanta jornais úmidos e folhas mortas que dançam brevemente antes de se colarem ao chão brilhante. O contraste visual é forte: manchas de sombra se dissolvem em áreas iluminadas, criando um jogo dramático de claro-escuro que intensifica a sensação de isolamento. O som quase imperceptível de água pingando das calhas se mistura ao zumbido elétrico da iluminação pública. A cena transmite solidão opressora, como se o próprio espaço urbano respirasse cansaço e abandono.",
-    "estimated_duration": 7
+    "imageDescription": "Plano detalhe em uma cozinha abandonada ao amanhecer, onde o tempo parece ter parado após uma partida repentina. A emoção dominante é o abandono silencioso, não pela ausência de pessoas, mas pela presença persistente delas em objetos esquecidos. O ar é frio e úmido, carregando o cheiro de madeira apodrecendo, leite azedo e o eco residual de um perfume floral que já não existe. A luz entra em feixes diagonais e pálidos pela janela rachada, iluminando partículas de poeira que flutuam como esporos de memória. Essa luz fraca e acusatória projeta sombras alongadas das cadeiras vazias, como se convidassem fantasmas para sentar. No centro da mesa, uma xícara de café virada está manchada de marrom escuro, e ao lado, uma colher de metal reflete um cáustico trêmulo no teto, dançando com a vibração de um trem distante. Como detalhe ativo, uma gota de condensação escorre lentamente pela parede úmida, deixando um rastro escuro como uma lágrima antiga. A câmera começa em close no piso de azulejos rachados, segue o rastro da gota até a xícara, e finalmente foca no reflexo distorcido da janela na colher — um mundo invertido, quebrado. O silêncio é preenchido apenas pelo gotejar lento de uma torneira enferrujada, um metrônomo de solidão. O espaço respira ausência; cada objeto parece esperar por um toque que nunca virá.",
+    "estimated_duration": 10
+  },
+  {
+    "imageDescription": "Close-up em um par de mãos envelhecidas, repousadas sobre um cobertor xadrez desbotado, em um banco de parque no crepúsculo. A emoção é a resignação melancólica, não pelo fim da vida, mas pelo peso das escolhas não revogáveis. O ar tem um cheiro de folhas úmidas, cinzas de cigarro e o ferro sutil do sangue sob a unha rachada da mão direita. A luz é dourada e rasante, vinda do sol poente, mas já tingida de azul profundo nas sombras, como se o dia estivesse sendo engolido. A câmera começa em extrema proximidade: vemos as veias azuladas sob a pele translúcida, as manchas senis como mapas de tempo, os nós dos dedos inchados pela artrite. Um dos dedos polegares se move, quase imperceptivelmente, como se acariciasse uma lembrança. No fundo desfocado, crianças brincam, mas seus risos chegam abafados, como se viessem de outro mundo. Como detalhe ativo, uma folha vermelha cai lentamente do céu, gira em espiral e pousa sobre o cobertor, logo ao lado da mão — um toque de cor viva em um quadro de despedida. A luz especular do sol reflete em um anel de ouro simples, lançando um pequeno ponto luminoso no banco de madeira, que treme com a respiração do homem. A cena não mostra o rosto, mas a linguagem das mãos diz tudo: foram mãos que construíram, que bateram, que acolheram, e agora apenas repousam.",
+    "estimated_duration": 9
   }
 ]
 
@@ -4326,33 +4332,34 @@ Você é um romancista visual, um híbrido de diretor de fotografia e escritor d
 Para cada parágrafo, construa a "imageDescription" como uma prosa fluida, tecendo os seguintes elementos com obsessão pelo detalhe:
 
 ### 1. A ALMA DA CENA: ATMOSFERA E PSICOLOGIA
-- **Sentimento Dominante e Subtexto**: Defina a emoção principal (ex: tensão sufocante) e sua causa oculta (ex: culpa não resolvida).
-- **Sinfonia Sensorial**: **Sempre** integre múltiplos sentidos. Descreva o que se **sente** (frio cortante, calor pegajoso), **cheira** (mofo, ozônio, perfume barato) e **ouve** (o zumbido de um neon, o estalar do gelo, o silêncio que pressiona os tímpanos).
-- **Estilo Visual como Comentário**: Atribua um estilo visual que reforce o subtexto (ex: 'Realismo cru e documental para expor a verdade', 'Estilo gótico moderno para acentuar a decadência psicológica').
+- **Sentimento Dominante e Subtexto**: Defina a emoção principal (ex: tensão sufocante) e sua causa oculta (ex: culpa não resolvida). A emoção deve ser **visceral**, não apenas nomeada — deve ser *sentida* pelo leitor como um peso no peito, um arrepio na nuca, uma pressão atrás dos olhos.
+- **Sinfonia Sensorial**: **Sempre** integre múltiplos sentidos. Descreva o que se **sente** (frio cortante, calor pegajoso, a umidade que gruda na nuca), **cheira** (mofo, ozônio, perfume barato saturado de ansiedade, o ferro do sangue seco), e **ouve** (o zumbido de um neon, o estalar do gelo, o silêncio que pressiona os tímpanos, o leve rangido de um sapato no chão que anuncia perigo). O som não deve apenas existir — deve **tensionar**.
+- **Estilo Visual como Comentário**: Atribua um estilo visual que reforce o subtexto (ex: 'Realismo cru e documental para expor a verdade', 'Estilo gótico moderno para acentuar a decadência psicológica', 'Cinema noir em alta definição, onde cada sombra é uma acusação'). O estilo não é escolha estética — é **imposição narrativa**.
 
 ### 2. O ESPAÇO COMO PERSONAGEM: CENÁRIO E COMPOSIÇÃO
-- **Biografia do Ambiente**: O espaço não é um fundo, é um personagem. Descreva-o como tal. O que ele 'sente'? (ex: 'as paredes parecem se fechar, claustrofóbicas', 'o teto alto e vazio ecoa a solidão do ocupante').
-- **Coreografia e Foco**: Descreva a cena como um movimento de câmera deliberado que guia o olhar. Onde o foco começa, para onde ele transita e onde ele repousa para entregar o impacto emocional?
-- **✅ Ação e Consequência Física**: **Sempre** inclua uma micro-ação e sua reação física imediata. (ex: 'Uma rajada de vento entra, levantando uma pilha de papéis que dançam caoticamente antes de pousar', 'Seus dedos pressionam o vidro, deixando uma marca de gordura que embaça a visão').
+- **Biografia do Ambiente**: O espaço não é um fundo, é um personagem. Descreva-o como tal. O que ele 'sente'? (ex: 'as paredes parecem se fechar, claustrofóbicas, como se absorvessem os sussurros do passado', 'o teto alto e vazio ecoa a solidão do ocupante, cada passo um lamento'). O ambiente deve **reter memória**, com marcas de uso, tempo, violência ou abandono.
+- **Coreografia e Foco**: Descreva a cena como um movimento de câmera deliberado que guia o olhar. Onde o foco começa (ex: uma mão trêmula), para onde ele transita (ex: um objeto simbólico) e onde ele repousa para entregar o impacto emocional (ex: um olhar vazio no espelho). O movimento deve ter **intenção dramática**, não apenas técnica.
+- **✅ Ação e Consequência Física**: **Sempre** inclua uma micro-ação e sua reação física imediata. (ex: 'Uma rajada de vento entra, levantando uma pilha de papéis que dançam caoticamente antes de pousar, um deles revelando uma foto escondida', 'Seus dedos pressionam o vidro, deixando uma marca de gordura que embaça a visão, distorcendo o reflexo do céu noturno'). A ação deve desencadear **revelação ou tensão**.
 
 ### 3. A FÍSICA DA LUZ E DA SOMBRA
-- **Personalidade da Luz**: A luz tem uma intenção. É 'investigativa e dura', 'gentil e piedosa', 'fragmentada e confusa'?
+- **Personalidade da Luz**: A luz tem uma intenção. É 'investigativa e dura', 'gentil e piedosa', 'fragmentada e confusa', 'acusatória', 'mentirosa'? A luz deve **julgar**, **esconder**, ou **traí-lo**.
 - **Interação com a Matéria**: Descreva em detalhe como a luz se comporta. **Sempre** inclua pelo menos um destes:
-  - **Partículas no Ar**: 'Poeira dourada suspensa em um feixe de sol', 'vapor da respiração se cristalizando no ar frio'.
-  - **Fenômenos Ópticos**: 'Reflexos especulares em poças d'água', 'cáusticos tremeluzentes no fundo de um copo', 'aberração cromática nas bordas de uma lente barata'.
-  - **A Vida das Sombras**: 'Sombras que se esticam e se deformam conforme a fonte de luz se move', 'sombras de contorno suaves que esculpem o rosto'.
+  - **Partículas no Ar**: 'Poeira dourada suspensa em um feixe de sol, dançando como esporos de memória', 'vapor da respiração se cristalizando no ar frio, evaporando como pensamentos fugidios'.
+  - **Fenômenos Ópticos**: 'Reflexos especulares em poças d'água que distorcem rostos como espelhos de circo', 'cáusticos tremeluzentes no fundo de um copo, como rios de mercúrio em movimento', 'aberração cromática nas bordas de uma lente barata, tingindo a realidade de azul e vermelho'.
+  - **A Vida das Sombras**: 'Sombras que se esticam e se deformam conforme a fonte de luz se move, como se tentassem agarrar algo', 'sombras de contorno suaves que esculpem o rosto, mas escondem os olhos, os verdadeiros portais da alma'.
+- A luz não ilumina — ela **interroga**.
 
 ### 4. O MICROCOSMO DO DETALHE
-- **Linguagem Corporal e Micro-expressões**: Vá além da postura. Descreva 'a contração de um músculo na mandíbula', 'o piscar lento de olhos cansados', 'a forma como os dedos tamborilam nervosamente'.
-- **Texturas e sua História**: Descreva a sensação tátil de um objeto e o que essa textura revela. (ex: 'a superfície lisa e fria do mármore, indiferente ao drama', 'a madeira áspera e cheia de farpas de uma porta velha, que resistiu ao tempo').
-- **✅ O Detalhe Ativo (Punctum em Movimento)**: Em vez de um objeto estático, torne o detalhe simbólico uma ação. (ex: 'uma única pétala de flor se desprende e cai lentamente', 'uma gota de condensação escorre pela garrafa, como uma lágrima', 'a chama de uma vela treme violentamente, ameaçando se apagar').
+- **Linguagem Corporal e Micro-expressões**: Vá além da postura. Descreva 'a contração de um músculo na mandíbula, como um relógio interno prestes a explodir', 'o piscar lento de olhos cansados, cada batida uma rendição parcial', 'a forma como os dedos tamborilam nervosamente, um código Morse de ansiedade'. O corpo deve falar mais alto que as palavras.
+- **Texturas e sua História**: Descreva a sensação tátil de um objeto e o que essa textura revela. (ex: 'a superfície lisa e fria do mármore, indiferente ao drama', 'a madeira áspera e cheia de farpas de uma porta velha, que resistiu ao tempo mas não à dor'). A textura deve contar uma **história não contada**.
+- **✅ O Detalhe Ativo (Punctum em Movimento)**: Em vez de um objeto estático, torne o detalhe simbólico uma ação. (ex: 'uma única pétala de flor se desprende e cai lentamente, como um adeus não dito', 'uma gota de condensação escorre pela garrafa, como uma lágrima que ninguém viu', 'a chama de uma vela treme violentamente, ameaçando se apagar, como a esperança no fim da noite'). O detalhe não deve apenas simbolizar — deve **provocar**.
 
 ## DIRETRIZES DE EXECUÇÃO
 
-- **Seja um autor, não um catalogador**: Teça os detalhes em uma narrativa coesa, não em uma lista.
-- **Mantenha consistência sensorial e simbólica** entre as cenas.
+- **Seja um autor, não um catalogador**: Teça os detalhes em uma narrativa coesa, não em uma lista. Cada frase deve fluir como um plano sequência. O ritmo da escrita deve espelhar o ritmo da cena.
+- **Mantenha consistência sensorial e simbólica** entre as cenas. Se o cheiro de mofo aparece, ele deve retornar como eco em outra cena, ligando os momentos.
 - Para "estimated_duration", use valores inteiros entre ${durationRange}, baseando-se na densidade narrativa e no ritmo emocional.
-- **Em caso de ambiguidade, escolha sempre o detalhe que evoca a sensação mais forte e o significado mais profundo**.
+- **Em caso de ambiguidade, escolha sempre o detalhe que evoca a sensação mais forte e o significado mais profundo**. Não escolha o óbvio — escolha o **inevitável**.
 
 ## ENTRADA DE DADOS
 
@@ -4362,8 +4369,10 @@ ${batchText}
 
 ## INSTRUÇÃO FINAL
 
-Analise cada parágrafo como um romancista visual. Gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration". Cada descrição deve ser uma peça de prosa imersiva, uma cápsula de tempo e sensação. O leitor deve ser transportado para dentro da cena.  
-**Nada além do array JSON deve ser retornado. Nenhum texto explicativo, nenhum comentário, nenhum acréscimo.**`;
+Analise cada parágrafo como um romancista visual. Gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration". Cada descrição deve ser uma peça de prosa imersiva, uma cápsula de tempo e sensação. O leitor deve ser transportado para dentro da cena, sentir o frio na espinha, o gosto do medo, o peso do silêncio.  
+**Nada além do array JSON deve ser retornado. Nenhum texto explicativo, nenhum comentário, nenhum acréscimo.**
+`;
+
 
 
 
