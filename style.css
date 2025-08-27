@@ -1,835 +1,149 @@
-/* ================================================================= */
-/* =================== ARQUITETURA DE DESIGN (THEME) ================= */
-/* ================================================================= */
 :root {
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --secondary: #8a96a4;
-    --secondary-dark: #64748b;
-    --success: #10b981;
-    --danger: #ef4444;
-    --bg: #f8fafc;
-    --surface: #ffffff;
-    --border: rgba(0,0,0,0.06);
-    --text-header: #1e293b;
-    --text-body: #334155;
-    --text-muted: #64748b;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    --transition: all 0.2s ease-in-out;
-    --glass: rgba(255, 255, 255, 0.6);
+  --bg: #161616;
+  --card: #1e1e1e;
+  --border: #2a2a2a;
+  --text: #f5f5f5;
+  --muted: #9ca3af;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
 }
 
-.dark {
-    --primary: #818cf8;
-    --primary-dark: #6366f1;
-    --secondary: #4b5563;
-    --secondary-dark: #374151;
-    --success: #34d399;
-    --danger: #f87171;
-    --bg: #0f172a;
-    --surface: #1e293b;
-    --border: rgba(255,255,255,0.08);
-    --text-header: #f1f5f9;
-    --text-body: #cbd5e1;
-    --text-muted: #94a3b8;
-    --shadow: 0 8px 30px rgba(2, 6, 23, 0.4);
-    --glass: rgba(10, 14, 20, 0.4);
-}
-
-/* ================================================================= */
-/* ======================= ESTRUTURA DO LAYOUT ======================= */
-/* ================================================================= */
 * { box-sizing: border-box; }
-html, body { height: 100%; }
 body {
-    font-family: 'Roboto', sans-serif;
-    margin: 0;
-    background: var(--bg);
-    color: var(--text-body);
-    -webkit-font-smoothing: antialiased;
-    transition: background 0.3s, color 0.3s;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
 }
 
+h1,h2,h3,h4 { margin: 0; font-weight: 700; }
+p { margin: 0; }
 
-.container { 
-    max-width: 100%; /* << A correção está aqui */
-    margin: 0; 
-    padding: 1.5rem 2rem; /* Ajuste no padding para telas largas */
+header {
+  text-align: center;
+  padding: 3rem 1rem 2rem;
+}
+header h1 { font-size: 2.5rem; }
+header p { margin-top: .5rem; color: var(--muted); font-size: 1.1rem; }
+
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.5rem;
 }
 
+.badge {
+  background: var(--primary);
+  color: white;
+  font-size: .75rem;
+  padding: .3rem .8rem;
+  border-radius: 999px;
+  font-weight: 600;
+  display: inline-block;
+  margin: 1rem 0;
+}
 
-.app { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
-    background: var(--surface);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
+.task-box {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1.5rem;
 }
-.logo { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--primary); font-size: 16px; }
-.version-tag { font-weight: 600; color: var(--text-muted); font-size: 12px; margin-left: 8px; }
-.header-actions { display: flex; gap: 12px; align-items: center; }
-.small-muted { font-size: 13px; color: var(--text-muted); }
-.hidden { display: none !important; }
+textarea {
+  flex: 1;
+  background: #111;
+  border: 1px solid var(--border);
+  border-radius: .5rem;
+  color: var(--text);
+  padding: .75rem;
+  font-size: .9rem;
+  resize: vertical;
+}
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(59,130,246,.4);
+}
+.btn {
+  background: var(--primary);
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: .8rem 1.2rem;
+  border-radius: .5rem;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn:hover { background: var(--primary-hover); }
 
-/* ================================================================= */
-/* ======================= SIDEBAR E PROGRESSO ===================== */
-/* ================================================================= */
-.sidebar {
-    background: linear-gradient(180deg, var(--glass), transparent);
-    padding: 16px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(6px);
-    border: 1px solid var(--border);
-    position: sticky;
-    top: 22px;
-}
-.sidebar-title { font-weight: 700; color: var(--text-header); margin-bottom: 10px; }
-.sidebar-title.small { font-size: 13px; color: var(--text-muted); }
-.sidebar-divider { margin: 16px 0; border: none; border-top: 1px solid var(--border); }
-.step {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: var(--transition);
-    border: 1px solid transparent;
-    margin-bottom: 4px;
-}
-.step:hover { background: color-mix(in srgb, var(--primary) 5%, transparent); }
-.step.active {
-    background: color-mix(in srgb, var(--primary) 10%, transparent);
-    border-color: color-mix(in srgb, var(--primary) 20%, transparent);
-}
-.step .badge {
-    width: 36px; height: 36px;
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center; justify-content: center;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--primary);
-    font-weight: 700;
-    transition: var(--transition);
-}
-.step.completed .badge { background: var(--primary); color: white; }
-.step .step-title { font-weight: 600; color: var(--text-header); font-size: 0.9rem; }
-
-.progress-wrap { margin: 16px 0; }
-.progress-info { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
-.progress-bar { height: 8px; background: color-mix(in srgb, var(--border) 40%, transparent); border-radius: 999px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width .35s ease; border-radius: 999px; }
-
-/* ================================================================= */
-/* ===================== ÁREA DE CONTEÚDO E CARDS ==================== */
-/* ================================================================= */
-.content {
-    background: var(--surface);
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    min-height: 80vh;
-}
-.pane-title { margin: 0 0 4px 0; font-size: 1.1rem; font-weight: 700; color: var(--text-header); }
-.pane-subtitle { margin: 0 0 16px 0; color: var(--text-muted); }
-.section-header { font-size: 1.1rem; font-weight: 600; color: var(--text-header); margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.grid { display: grid; gap: 1.5rem; }
+.cols-3 { grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 1rem; }
 
 .card {
-    background: transparent;
-    border-radius: 10px;
-    padding: 18px;
-    border: 1px solid var(--border);
-    margin-bottom: 16px;
-}
-.grid-2, .grid-cols-1, .grid-cols-2 { display: grid; gap: 16px; }
-.md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.md\:col-span-2 { grid-column: span 2 / span 2; }
-.gap-4 { gap: 1rem; } .gap-6 { gap: 1.5rem; }
-.mt-4 { margin-top: 1rem; } .mt-6 { margin-top: 2rem; }
-.mb-4 { margin-bottom: 1rem; } .mb-6 { margin-bottom: 1.5rem; }
-.p-4 { padding: 1rem; }
-.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
-.text-center { text-align: center; } .text-left { text-align: left; }
-.justify-center { justify-content: center; }
-.flex { display: flex; } .items-center { align-items: center; } .justify-between { justify-content: space-between; }
-.flex-wrap { flex-wrap: wrap; }
-.font-bold { font-weight: 700; } .font-semibold { font-weight: 600; }
-.text-sm { font-size: 0.875rem; } .text-lg { font-size: 1.125rem; } .text-xl { font-size: 1.25rem; }
-.border-b { border-bottom-width: 1px; } .border-t { border-top-width: 1px; }
-.border-gray-200 { border-color: var(--border); }
-.dark .border-gray-700 { border-color: var(--border); }
-.dark .prose-invert { color: var(--text-body); }
-.prose h1, .prose h2, .prose h3 { color: var(--text-header); }
-
-/* ================================================================= */
-/* ======================== FORMULÁRIOS & BOTÕES ===================== */
-/* ================================================================= */
-.input-group { margin-bottom: 16px; }
-.input-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; color: var(--text-header); }
-.input, textarea.input, select.input {
-    width: 100%;
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    font-size: 14px;
-    background: var(--bg);
-    color: var(--text-body);
-    transition: var(--transition);
-}
-.input:focus, textarea.input:focus, select.input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
-}
-textarea.input { min-height: 84px; resize: vertical; }
-
-.btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    transition: var(--transition);
-    white-space: nowrap;
-}
-.btn-primary { background: var(--primary); color: #fff; }
-.btn-primary:hover { background: var(--primary-dark); }
-.btn-secondary { background: var(--secondary); color: var(--text-header); }
-.btn-secondary:hover { background: color-mix(in srgb, var(--secondary) 80%, black); }
-.btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-body); }
-.btn-ghost:hover { background: color-mix(in srgb, var(--border) 50%, transparent); color: var(--text-header); }
-.btn-danger { background-color: var(--danger); color: white; }
-.btn-success { background-color: var(--success); color: white; }
-.btn-small { padding: 6px 12px; font-size: 13px; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn .mr-2 { margin-right: 0.5rem; }
-
-.controls { display: flex; gap: 12px; flex-wrap: wrap; }
-.output-container { margin-top: 16px; }
-.asset-card-placeholder {
-    background: color-mix(in srgb, var(--bg) 50%, transparent);
-    padding: 16px;
-    border-radius: 8px;
-    border: 1px dashed var(--border);
-    font-size: 14px;
-    color: var(--text-muted);
-    min-height: 80px;
-    text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Radio Buttons */
-.radio-label {
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
-    border: 2px solid var(--border);
-    background-color: var(--surface);
-    transition: var(--transition);
-}
-.radio-label:hover { border-color: var(--secondary); }
-.radio-label input[type="radio"] { display: none; }
-.radio-label input[type="radio"]:checked + span { color: var(--primary); font-weight: 600; }
-.radio-label:has(input:checked) {
-    border-color: var(--primary);
-    background-color: color-mix(in srgb, var(--primary) 10%, transparent);
-}
-.opacity-50 { opacity: 0.5; }
-
-/* ================================================================= */
-/* ======================== ABAS (TABS) ============================ */
-/* ================================================================= */
-.tab-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-weight: 500;
-    color: var(--text-muted);
-    border-bottom: 2px solid transparent;
-    transition: var(--transition);
-    border-radius: 6px 6px 0 0;
-}
-.tab-button:hover {
-    color: var(--text-header);
-    background-color: color-mix(in srgb, var(--border) 40%, transparent);
-}
-.tab-active {
-    font-weight: 600;
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-}
-.tab-pane.hidden { display: none; }
-.tab-pane { animation: fadeIn 0.3s ease-in-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ================================================================= */
-/* ========================= COMPONENTES UI ======================== */
-/* ================================================================= */
-/* Spinner */
-.loading-spinner, .spinner {
-    width: 20px; 
-    height: 20px;
-    border: 3px solid var(--border);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-.loading-spinner-large {
-    width: 48px;
-    height: 48px;
-    border-width: 5px;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-spinner-small { width: 16px; height: 16px; border-width: 2px; }
-
-/* Acordeão (para o roteiro) */
-/* Acordeão (para o roteiro) */
-.accordion-item { 
-    border-bottom: 1px solid var(--border); 
-}
-
-.accordion-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.4rem 0.75rem; /* Altura reduzida ainda mais */
-    min-height: 52px; /* Define uma altura mínima para consistência */
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.accordion-header:hover { 
-    background-color: color-mix(in srgb, var(--border) 20%, transparent); 
-}
-
-.header-title-group { 
-    display: flex; 
-    align-items: center; 
-    gap: 0.75rem; 
-    flex-grow: 1; 
-}
-
-.header-title-group h3 { 
-    font-weight: 600; 
-    font-size: 0.9rem; 
-    color: var(--text-header); 
-    margin: 0; /* Remove margem padrão que pode adicionar altura */
-}
-
-.card-placeholder h3 {
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-.header-title-group .text-xs { 
-    color: var(--text-muted); 
-    font-size: 0.75rem; 
-    white-space: nowrap; 
-}
-
-.header-actions-group { 
-    display: flex; 
-    align-items: center; 
-    gap: 0.75rem; /* Espaço entre grupos de botões reduzido */
-}
-
-.header-buttons { 
-    display: flex; 
-    align-items: center; 
-    gap: 0.5rem; /* Espaço entre os ícones reduzido */
-}
-
-.header-buttons button { 
-    background: none; 
-    border: none; 
-    padding: 0.25rem; 
-    color: var(--text-muted); 
-    cursor: pointer; 
-    transition: var(--transition); 
-}
-
-.header-buttons button:hover { 
-    color: var(--primary); 
-}
-
-.accordion-arrow { 
-    transition: transform 0.3s; 
-    transform-origin: center; 
-}
-
-.accordion-arrow.open { 
-    transform: rotate(180deg); 
-}
-
-.accordion-body { 
-    padding: 0 1.5rem 1.5rem 1.5rem; 
-    display: none; 
-}
-
-.accordion-body.open { 
-    display: block; 
-    animation: fadeIn 0.4s ease; 
-}
-
-
-
-/* Tooltip & Popover */
-.help-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background-color: var(--border); color: var(--text-muted); font-size: 11px; font-weight: 700; cursor: help; margin-left: 8px; transition: var(--transition); }
-.help-icon:hover { background-color: var(--primary); color: white; }
-.tooltip-container { position: relative; display: inline-flex; }
-.tooltip-container .tooltip-text { visibility: hidden; opacity: 0; width: 300px; background-color: var(--bg); color: var(--text-header); text-align: left; border-radius: 8px; padding: 1rem; position: absolute; z-index: 1001; bottom: 115%; left: 50%; transform: translateX(-50%); box-shadow: var(--shadow); border: 1px solid var(--border); transition: opacity 0.3s; pointer-events: none; font-size: 1rem; font-weight: 500; line-height: 1.6; }
-.tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
-.tooltip-text strong { font-weight: 700; color: var(--primary); }
-.popover-bg { background-color: var(--dark-bg); }
-
-/* Menu de Edição Contextual */
-#editing-menu { position: absolute; background-color: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); padding: 0.5rem; z-index: 1002; display: flex; gap: 0.25rem; opacity: 0; visibility: hidden; transition: opacity 0.2s, transform 0.2s; transform: translateY(10px); }
-#editing-menu.visible { opacity: 1; visibility: visible; transform: translateY(0); }
-#editing-menu button { display: inline-flex; align-items: center; gap: 0.5rem; background-color: transparent; border: none; color: var(--text-header); padding: 0.5rem 0.75rem; cursor: pointer; border-radius: 6px; font-weight: 500; white-space: nowrap; transition: var(--transition); }
-#editing-menu button:hover { background-color: var(--border); color: var(--primary); }
-
-/* Dialogs/Modals */
-.dialog-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; display: none; }
-.dialog-card { max-width: 500px; width: 90%; background: var(--surface); animation: fadeIn 0.3s ease; }
-#inputDialogSuggestions .btn { white-space: normal; text-align: left; justify-content: start; height: auto; padding-top: 0.75rem; padding-bottom: 0.75rem; }
-
-/* Toast */
-.toast { position: fixed; right: 18px; bottom: 18px; padding: 12px 18px; border-radius: 10px; background: var(--surface); box-shadow: var(--shadow); border-left: 5px solid var(--primary); display: flex; gap: 12px; align-items: center; transform: translateY(24px); opacity: 0; transition: all .25s ease; z-index: 9000; }
-.toast.show { transform: translateY(0); opacity: 1; }
-
-
-
-@keyframes fade-out-highlight {
-  from { background-color: color-mix(in srgb, #f59e0b 25%, transparent); outline: 2px solid #f59e0b; }
-  to { background-color: transparent; outline: 2px solid transparent; }
-}
-.tag { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
-
-
-.tag-emotion { 
-    background-color: color-mix(in srgb, var(--primary) 20%, transparent); 
-    color: var(--primary); 
-}
-
-#emotionalMapContent .card .btn {
-    padding: 6px 10px;
-    line-height: 1;
-}
-
-
-.tag-pace { background-color: color-mix(in srgb, var(--secondary) 20%, transparent); color: var(--secondary-dark); }
-.dark .tag-pace { color: var(--text-muted); }
-
-/* ================================================================= */
-/* ==================== RESPONSIVIDADE E IMPRESSÃO ================= */
-/* ================================================================= */
-@media (max-width: 980px) {
-  .app { grid-template-columns: 1fr; padding: 12px; }
-  .sidebar { order: -1; position: static; margin-bottom: 20px; }
-  .md\:grid-cols-2 { grid-template-columns: 1fr; }
-  .md\:col-span-2 { grid-column: auto; }
-}
-
-@media print {
-    body, .container, .app, .content { background: #fff !important; color: #000 !important; }
-    body > .container > *:not(.app), .app > *:not(.content) { display: none !important; }
-    .app { display: block; }
-    .card, .header, .sidebar { box-shadow: none; border: 1px solid #ccc; }
-    .btn { display: none; }
-    #print-container { display: block !important; }
-    h1, h2, h3, h4, h5, h6 { color: #000 !important; }
-}
-
-/* ================================================================= */
-/* =================== MÓDULO DE ANÁLISE DE RETENÇÃO =============== */
-/* ================================================================= */
-
-/* --- O parágrafo interativo --- */
-.retention-paragraph-live { 
-    position: relative; 
-    padding: 0.5rem; 
-    border-radius: 6px; 
-    transition: background-color 0.3s; 
-    cursor: default; 
-}
-
-/* --- As cores de feedback --- */
-.retention-green { 
-    background-color: color-mix(in srgb, var(--success) 10%, transparent); 
-}
-.retention-yellow { 
-    background-color: color-mix(in srgb, #f59e0b 15%, transparent); 
-}
-.retention-red { 
-    background-color: color-mix(in srgb, var(--danger) 15%, transparent); 
-}
-
-/* --- O Tooltip que contém os botões --- */
-.retention-tooltip { 
-    position: absolute; 
-    bottom: 100%; /* Posiciona acima do parágrafo */
-    left: 0; 
-    margin-bottom: 5px; /* Pequeno espaço entre o parágrafo e o tooltip */
-    background-color: var(--surface); 
-    color: var(--text-body); 
-    padding: 0.75rem; 
-    border-radius: 8px; 
-    box-shadow: var(--shadow);
-    width: 90%; 
-    z-index: 10; 
-    font-size: 0.8rem; 
-    border: 1px solid var(--border); 
-    
-    /* A MÁGICA ESTÁ AQUI: Usamos opacity e visibility para a transição */
-    opacity: 0; 
-    visibility: hidden; 
-    transform: translateY(5px); /* Efeito sutil de subida */
-    transition: opacity 0.2s, transform 0.2s, visibility 0.2s;
-    pointer-events: none; /* Impede interação quando escondido */
-}
-
-/* --- Destaque visual para grupos de parágrafos --- */
-.highlight-group { 
-    outline: 2px solid var(--primary); 
-    outline-offset: 2px; 
-    box-shadow: 0 0 15px color-mix(in srgb, var(--primary) 30%, transparent); 
-}
-
-
-
-
-/* ================================================================= */
-/* ========= ESTILOS ADICIONAIS DA V5.0 (PARA ANÁLISE) ========= */
-/* ================================================================= */
-
-/* --- O parágrafo interativo --- */
-.retention-paragraph-live { 
-    position: relative; 
-    padding: 0.5rem; 
-    border-radius: 6px; 
-    transition: background-color 0.3s; 
-    cursor: default; 
-}
-
-/* --- As cores de feedback --- */
-.retention-green { 
-    background-color: color-mix(in srgb, var(--success) 10%, transparent); 
-}
-.retention-yellow { 
-    background-color: color-mix(in srgb, #f59e0b 15%, transparent); 
-}
-.retention-red { 
-    background-color: color-mix(in srgb, var(--danger) 15%, transparent); 
-}
-
-/* --- O Tooltip que contém os botões --- */
-.retention-tooltip { 
-    position: absolute; 
-    bottom: 95%;
-    left: 0; 
-    transform: translateY(0);
-    background-color: var(--surface); 
-    color: var(--text-body); 
-    padding: 0.75rem; 
-    border-radius: 8px; 
-    box-shadow: var(--shadow);
-    width: 90%; 
-    z-index: 10; 
-    font-size: 0.8rem; 
-    border: 1px solid var(--border); 
-    opacity: 0; 
-    visibility: hidden; 
-    transition: opacity 0.3s, transform 0.3s;
-    pointer-events: none;
-}
-
-
-/* --- Destaque visual para grupos --- */
-.highlight-group { 
-    outline: 2px solid var(--primary); 
-    outline-offset: 2px; 
-    box-shadow: 0 0 15px color-mix(in srgb, var(--primary) 30%, transparent); 
-}
-
-
-
-/* ================================================================= */
-/* ===== ESTILOS PARA CONTEÚDO GERADO (Títulos, Thumbs, Descrição) ===== */
-/* ================================================================= */
-
-.generated-output-box {
-    padding: 1rem;
-    border-radius: 8px;
-    background-color: color-mix(in srgb, var(--border) 20%, transparent);
-}
-
-.output-content-block {
-    margin-bottom: 1.5rem;
-}
-.output-content-block:last-child {
-    margin-bottom: 0;
-}
-
-/* Controla os subtítulos como "Sugestões de Títulos:" e "Ideias de Thumbnail:" */
-.output-subtitle {
-    font-size: 0.8rem; /* << Altere aqui */
-    font-weight: 700;
-    color: var(--text-header);
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px dashed var(--border);
-}
-
-/* Controla a lista de títulos numerados */
-.output-content-block > p {
-    font-size: 0.9rem; /* << Altere aqui */
-    margin-bottom: 0.5rem;
-}
-
-/* Controla o título da ideia de thumbnail (ex: "A Cidade Escondida") */
-.thumbnail-idea h4 {
-    font-size: 0.9rem; /* << Altere aqui */
-    font-weight: 600;
-    color: var(--text-header);
-}
-
-/* Controla a descrição da ideia de thumbnail */
-.thumbnail-idea p {
-    font-size: 0.85rem; /* << Altere aqui */
-    color: var(--text-muted);
-}
-
-/* Espaçamento entre as ideias de thumbnail */
-.thumbnail-idea {
-    margin-top: 1rem;
-}
-
-
-
-/* ================================================================= */
-/* ===== CORES TEMÁTICAS PARA CARDS DE IDEIAS (FERRARI) ===== */
-/* ================================================================= */
-.border-gray-500 { border-left-color: #6b7280 !important; }
-.text-gray-500 { color: #6b7280 !important; }
-
-.border-violet-500 { border-left-color: #8b5cf6 !important; }
-.text-violet-500 { color: #8b5cf6 !important; }
-
-.border-blue-500 { border-left-color: #3b82f6 !important; }
-.text-blue-500 { color: #3b82f6 !important; }
-
-.border-red-500 { border-left-color: #ef4444 !important; }
-.text-red-500 { color: #ef4444 !important; }
-
-.border-purple-500 { border-left-color: #a855f7 !important; }
-.text-purple-500 { color: #a855f7 !important; }
-
-.border-emerald-500 { border-left-color: #10b981 !important; }
-.text-emerald-500 { color: #10b981 !important; }
-
-
-/* ================================================================= */
-/* ============= LAYOUT DOS CARDS DE IDEIAS (CORREÇÃO) ============== */
-/* ================================================================= */
-.idea-card {
-    position: relative; /* Permite posicionar elementos filhos de forma absoluta */
-    display: flex;
-    flex-direction: column; /* Organiza o conteúdo em coluna (título em cima, rodapé em baixo) */
-    padding: 1.25rem; /* Espaçamento interno */
-}
-
-.idea-card-header {
-    /* Adiciona espaço à direita para o título não passar por baixo do botão */
-    padding-right: 70px; 
-}
-
-.idea-card-button {
-    position: absolute; /* Tira o botão do fluxo normal do layout */
-    top: 1.25rem;       /* Distância do topo, igual ao padding */
-    right: 1.25rem;      /* Distância da direita, igual ao padding */
-}
-
-.idea-card-body {
-    flex-grow: 1; /* Faz a descrição ocupar o espaço disponível, empurrando o rodapé para baixo */
-    margin-top: 0.75rem; /* Espaço entre o título e a descrição */
-}
-
-.idea-card-footer {
-    margin-top: 1rem; /* Espaço entre a descrição e o rodapé */
-}
-
-
-/* ================================================================= */
-/* ========= LAYOUT DO POP-UP 'ADICIONAR NOVO CAPÍTULO' =========== */
-/* ================================================================= */
-
-/* Controla o contêiner que agrupa os botões de sugestão */
-#inputDialogSuggestions {
-    display: flex;
-    flex-direction: column; /* Empilha os botões verticalmente */
-    gap: 0.5rem; /* Adiciona um espaço de 8px entre cada botão */
-}
-
-/* Estiliza cada botão de sugestão individualmente */
-#inputDialogSuggestions .btn {
-    font-size: 0.9rem; /* Reduz o tamanho da fonte (14.4px) */
-    font-weight: 500;  /* Deixa a fonte um pouco mais leve */
-    padding-top: 0.6rem;    /* Ajusta o espaçamento vertical */
-    padding-bottom: 0.6rem; /* Ajusta o espaçamento vertical */
-    background-color: var(--secondary-dark); /* Um cinza mais escuro e sutil */
-    color: var(--text-header);
-    border: none; /* Remove a borda padrão */
-}
-
-/* Efeito visual ao passar o mouse sobre um botão de sugestão */
-#inputDialogSuggestions .btn:hover {
-    background-color: var(--primary); /* Destaca com a cor primária */
-    color: #fff;
-}
-
-/* Garante que o rótulo "Ou crie um tema personalizado" tenha um bom espaçamento */
-#inputDialogLabel {
-    display: inline-block; /* Permite aplicar margem */
-    margin-top: 0.5rem;   /* Adiciona um espaço acima do rótulo */
-}
-
-
-/* ================================================================= */
-/* ========= AJUSTE DE ALINHAMENTO DO ESBOÇO ESTRATÉGICO ======== */
-/* ================================================================= */
-
-/* Remove o padding padrão da lista que empurra o conteúdo para a direita */
-#outlineContent ul {
-    padding-left: 0;
-    list-style-position: outside; /* Garante que a bolinha fique fora do texto */
-}
-
-/* Transforma cada item da lista em um container flexível */
-#outlineContent ul li {
-    display: flex;
-    align-items: flex-start; /* Alinha o topo da bolinha com o topo do texto */
-    gap: 0.5rem; /* Adiciona um espaço entre a bolinha e o texto */
-    margin-left: 1.25rem; /* Recria o recuo da lista, mas de forma controlada */
-}
-
-/* Garante que a bolinha (marcador) seja exibida */
-#outlineContent ul li::before {
-    content: "•"; /* O caractere da bolinha */
-    color: var(--primary); /* Usa a cor primária para um toque de estilo */
-    font-weight: bold;
-    display: inline-block;
-}
-
-
-/* ================================================================= */
-/* =========== FEEDBACK VISUAL DE ALTERAÇÃO (VERSÃO ÚNICA) ========== */
-/* ================================================================= */
-
-/* Define a animação de destaque */
-@keyframes fade-out-highlight {
-  from {
-    background-color: color-mix(in srgb, #f59e0b 40%, transparent); /* Amarelo/Laranja inicial */
-    outline: 2px solid #f59e0b;
-  }
-  to {
-    background-color: transparent;
-    outline: 2px solid transparent;
-  }
-}
-
-/* Aplica a animação ao elemento com esta classe */
-.highlight-change {
-  /* <<< MUDE O TEMPO AQUI (ex: 5s, 3.5s, etc.) */
-  animation: fade-out-highlight 9s ease-out forwards; 
-  
-  border-radius: 4px;
-  outline-offset: 2px;
-}
-
-
-.performance-emphasis {
-    font-weight: 700;
-    color: var(--primary);
-    background-color: color-mix(in srgb, var(--primary) 15%, transparent);
-    padding: 0 4px;
-    border-radius: 4px;
-}
-
-/* ================================================================= */
-/* ============= IDENTIDADE VISUAL PARA RELATÓRIOS (NOVO) ========== */
-/* ================================================================= */
-
-/* Define as novas cores temáticas */
-:root {
-    --indigo: #6366f1;
-    --purple: #a855f7;
-    --blue: #3b82f6;
-}
-.dark {
-    --indigo: #818cf8;
-    --purple: #c084fc;
-    --blue: #60a5fa;
-}
-
-/* Base para todos os cards de análise */
-.analysis-card-base {
-    padding: 1rem;
-    border-radius: 8px;
-    background-color: var(--bg);
-    border: 1px solid var(--border);
-    border-left-width: 4px;
-    margin-bottom: 1rem;
-    transition: var(--transition);
-}
-
-.analysis-card__header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--text-header);
-    margin-bottom: 0.5rem;
-}
-
-/* 1. Identidade: Análise Geral (Relatório) */
-.analysis-card--report { border-left-color: var(--indigo); }
-.text-indigo-500 { color: var(--indigo) !important; }
-
-/* 2. Identidade: Caçar Ganchos (Hook) */
-.analysis-card--hook { border-left-color: var(--purple); }
-.text-purple-500 { color: var(--purple) !important; }
-
-/* 3. Identidade: Elementos Virais (Sugestão) */
-.analysis-card--viral { border-left-color: var(--blue); }
-.text-blue-500 { color: var(--blue) !important; }
-
-
-/* ========================================================================= */
-/* >>>>> CORREÇÃO PARA OS ÍCONES DAS ABAS <<<<< */
-/* ========================================================================= */
-.tab-button .fas {
-    font-weight: 900; /* Força o peso correto para ícones sólidos (fas) */
+  background: #1b1b1b;
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+  padding: 1rem;
+}
+.card h4 { font-size: .95rem; font-weight: 600; }
+.card p { font-size: .85rem; color: var(--muted); margin-top: .3rem; }
+.small { font-size: .75rem; color: #6b7280; }
+.primary { color: var(--primary); }
+
+.card-body { margin-top: .5rem; font-size: .85rem; }
+.card-footer {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: .75rem;
+  color: var(--muted);
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+  font-size: .9rem;
+}
+.tab {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding-bottom: .3rem;
+  color: var(--muted);
+  font-weight: 500;
+  transition: color .2s;
+}
+.tab.active {
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary);
+}
+.tab:hover { color: var(--primary); }
+
+.tab-content { display: none; }
+.tab-content.active { display: grid; }
+
+.span-2 { grid-column: span 2 / span 2; }
+
+footer {
+  text-align: center;
+  margin: 1.5rem auto;
+}
+footer button {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: .6rem 1.2rem;
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border .2s, color .2s;
+}
+footer button:hover {
+  border-color: var(--primary);
+  color: var(--text);
 }
