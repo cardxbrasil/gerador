@@ -1872,7 +1872,7 @@ const generateIdeasFromReport = async (button) => {
 
 
 // =========================================================================
-// >>>>> VERSÃO FINAL DO 'strategyMapper' - COMPLETO E INTELIGENTE <<<<<
+// >>>>> 'strategyMapper' COMPLETO E INTELIGENTE (VERSÃO FINAL) <<<<<
 //       Substitua o seu objeto inteiro por este bloco de código.
 // =========================================================================
 const strategyMapper = {
@@ -1891,6 +1891,7 @@ const strategyMapper = {
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => `Como é possível transformar uma experiência de dor e silêncio, como a descrita em "${idea.title}", em uma fonte de força e esperança?`,
         emotionalHook: idea => `A história começa com uma pessoa vivenciando o silêncio e a dor descritos na narrativa. O ponto de virada é a descoberta que a leva a encontrar sua voz. O núcleo emocional é a jornada de '${idea.emotionalCore}'.`,
+        researchData: () => `Buscar dados, estatísticas ou testemunhos que reforcem o contexto social do problema abordado na história.`,
         narrativeVoice: () => "Empática, encorajadora e com uma voz que inspira resiliência.",
         dossier: idea => `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`
     },
@@ -1948,34 +1949,30 @@ const getGenreFromIdea = (idea) => {
 
 
 // =========================================================================
-// >>>>> SUBSTITUA A SUA FUNÇÃO 'selectIdea' POR ESTA VERSÃO UNIVERSAL <<<<<
+// >>>>> FUNÇÃO 'selectIdea' BLINDADA E COMPLETA <<<<<
 // =========================================================================
 const selectIdea = (idea) => {
-    // Identifica o especialista para buscar as regras de mapeamento corretas.
     const genre = getGenreFromIdea(idea);
     AppState.inputs.selectedGenre = genre;
     const mapper = strategyMapper[genre];
 
     // --- ETAPA 1: LIMPEZA INICIAL ---
-    // Limpa os campos de estratégia para garantir que não haja dados de ideias anteriores.
     const fieldsToClear = ['targetAudience', 'narrativeTheme', 'centralQuestion', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook', 'researchData'];
     fieldsToClear.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
 
-    // --- ETAPA 2: MAPEAMENTO DIRETO E GARANTIDO ---
-    // Preenche os campos básicos que são comuns a todas as ideias.
+    // --- ETAPA 2: MAPEAMENTO BÁSICO E HIGIENIZAÇÃO DOS DADOS ---
     document.getElementById('videoTheme').value = idea.title || '';
-    document.getElementById('videoDescription').value = idea.videoDescription || '';
-    if(idea.targetAudience) { // Apenas preenche se a ideia tiver este campo
-        document.getElementById('targetAudience').value = idea.targetAudience;
-    }
+    
+    // >>>>> AQUI ESTÁ A BLINDAGEM CONTRA OS NÚMEROS <<<<<
+    // Limpamos a descrição NO MOMENTO em que a transferimos para o formulário.
+    const cleanedDescription = (idea.videoDescription || '').replace(/\[[\d, ]+\]/g, '');
+    document.getElementById('videoDescription').value = cleanedDescription;
 
     // --- ETAPA 3: PREENCHIMENTO INTELIGENTE COM O 'strategyMapper' ---
-    // Esta é a nova lógica que funciona para TODOS os especialistas.
     if (mapper) {
-        // 3a. Preenche os Dropdowns
         if (mapper.dropdowns) {
             for (const id in mapper.dropdowns) {
                 const element = document.getElementById(id);
@@ -1983,15 +1980,10 @@ const selectIdea = (idea) => {
             }
         }
         
-        // 3b. Preenche os CAMPOS DE TEXTO usando as regras do mapper
-        // Esta é a correção que faltava para "Inspiracional" e outros.
         for (const key in mapper) {
-            // Ignora chaves que não são campos de formulário
             if (key === 'dropdowns' || key === 'dossier') continue;
-
-            const element = document.getElementById(key); // ex: document.getElementById('emotionalHook')
+            const element = document.getElementById(key);
             if (element) {
-                // Executa a função do mapper para gerar o texto (ex: mapper['emotionalHook'](idea))
                 const valueToSet = mapper[key](idea);
                 if (valueToSet) {
                     element.value = valueToSet;
@@ -2000,15 +1992,12 @@ const selectIdea = (idea) => {
         }
     }
     
-    // Dispara as funções para atualizar a UI dos dropdowns.
     updateNarrativeStructureOptions();
     updateMainTooltip();
 
     // --- ETAPA 4: FINALIZAÇÃO ---
     window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
     showPane('strategy');
-    
-    // Clica na aba "Estratégia Narrativa" para que o usuário veja os campos que foram preenchidos.
     document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
 };
 
