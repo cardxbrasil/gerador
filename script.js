@@ -4348,9 +4348,11 @@ window.generatePromptsForSection = async (button) => {
 
 
 
-
+// =========================================================================
+// >>>>> PROMPT COMPLETO E CORRIGIDO - ANTI-REPETIÇÃO <<<<<
+//       Copie e cole este bloco inteiro no lugar da sua variável 'prompt'.
+// =========================================================================
 const prompt = `
-
 # INSTRUÇÕES PARA GERAÇÃO DE DESCRIÇÕES VISUAIS (VERSÃO FINAL)
 
 Você é um romancista visual, um híbrido de diretor de fotografia e escritor de ficção, com uma obsessão por detalhes que evocam sensações físicas e psicológicas. Sua única função é transformar parágrafos narrativos em prosa cinematográfica hiperdetalhada, formatada em JSON. A descrição deve ser uma imersão total, onde cada palavra é escolhida para construir uma tapeçaria de sensações, subtextos e realismo físico — cada frase uma lente ajustada, cada adjetivo um filtro de luz, cada verbo um movimento de câmera.
@@ -4410,6 +4412,10 @@ Para cada parágrafo, construa a "imageDescription" como uma prosa fluida, tecen
 - **Mantenha consistência sensorial e simbólica** entre as cenas. Se o cheiro de mofo aparece, ele deve retornar como eco em outra cena, ligando os momentos.
 - Para "estimated_duration", use valores inteiros entre ${durationRange}, baseando-se na densidade narrativa e no ritmo emocional.
 - **Em caso de ambiguidade, escolha sempre o detalhe que evoca a sensação mais forte e o significado mais profundo**. Não escolha o óbvio — escolha o **inevitável**.
+
+## DIRETRIZ DE VARIEDADE E CONTEXTO (REGRA CRÍTICA ANTI-REPETIÇÃO)
+
+O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial e obrigatório** que você gere uma **descrição visual ÚNICA e DISTINTA para CADA UM**. Se dois parágrafos de entrada forem semanticamente semelhantes, sua tarefa como diretor criativo é encontrar **ângulos, detalhes, iluminação ou movimentos de câmera DIFERENTES** para garantir que cada cena resultante seja original e não uma repetição da anterior. Evite usar a mesma estrutura frasal ou os mesmos detalhes dominantes em múltiplas descrições. Sua criatividade na diferenciação será avaliada.
 
 ## ENTRADA DE DADOS
 
