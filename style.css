@@ -833,20 +833,3 @@ textarea.input { min-height: 84px; resize: vertical; }
 .tab-button .fas {
     font-weight: 900; /* Força o peso correto para ícones sólidos (fas) */
 }
-
-/* ====================== IDEAS CARDS ======================= */
-.cards { display:grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-.card { position: relative; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); display:flex; flex-direction: column; overflow:hidden; }
-.card .header { padding: 16px; background: color-mix(in srgb, var(--primary) 8%, var(--surface)); }
-.card .title { font-weight: 700; font-size: 1rem; color: var(--text-header); margin-bottom: 4px; }
-.card .angle { font-size: 0.85rem; color: var(--text-muted); }
-.card .badge { position:absolute; top:10px; right:10px; background: var(--primary); color:#fff; padding: 4px 8px; border-radius: 999px; font-size: .8rem; font-weight: 700; }
-.card .tags { display:flex; flex-wrap: wrap; gap:6px; padding: 0 16px; margin: 8px 0; }
-.card .tag { background: color-mix(in srgb, var(--bg) 70%, var(--surface)); border:1px solid var(--border); border-radius: 999px; padding: 4px 8px; font-size: .75rem; color: var(--text-muted); }
-.card .body { padding: 0 16px 8px; }
-.card .desc { font-size: 0.9rem; color: var(--text-body); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow:hidden; }
-.card .desc.expanded { -webkit-line-clamp: unset; }
-.card .footer { display:flex; justify-content: space-between; align-items:center; padding: 8px 16px 16px; gap:12px; }
-.card button.link { border:none; background:none; color: var(--primary); font-weight:600; cursor:pointer; }
-.card button.ghost { border:1px solid var(--border); background:transparent; padding:6px 10px; border-radius:8px; cursor:pointer; font-size:0.85rem; font-weight:600; color:var(--text-header); }
-.card button.ghost:hover { background: color-mix(in srgb, var(--bg) 50%, var(--surface)); }
