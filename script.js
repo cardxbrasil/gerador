@@ -1099,66 +1099,47 @@ const fixJsonWithAI = async (brokenJsonText) => {
 // >>>>> FILTRO JSON <<<<<
 // =========================================================================
 const getRobustJson = async (text) => {
-    if (!text) {
+    if (!text || text.trim() === '') {
         throw new Error("A IA retornou uma resposta vazia.");
     }
 
-    // Mantém sua limpeza de metadados original.
-    let jsonString = text.replace(/```json\n|```/g, '').replace(/assistant<\|end_header_id\|>|Continuação da resposta:|Aqui está a resposta em JSON:|Aqui está a minha resposta:/gi, '').trim();
+    // ETAPA 1: LIMPEZA INICIAL
+    let jsonString = text.replace(/```json\n|```/g, '').replace(/assistant<\|end_header_id\|>|Continuação da resposta:|Aqui está a resposta em JSON:|Aqui está a minha resposta:|Here is the corrected JSON:/gi, '').trim();
 
-    // Mantém sua lógica de extração do bloco JSON original.
+    // ETAPA 2: EXTRAÇÃO PRECISA
     const firstBrace = jsonString.indexOf('{');
     const firstBracket = jsonString.indexOf('[');
     
     if (firstBrace === -1 && firstBracket === -1) {
-        // Se não encontrar nada, tenta uma última vez com a IA de correção.
-        jsonString = await fixJsonWithAI(jsonString);
-    } else {
-        const startIndex = (firstBrace === -1) ? firstBracket : (firstBracket === -1) ? firstBrace : Math.min(firstBrace, firstBracket);
-        const endIndex = Math.max(jsonString.lastIndexOf('}'), jsonString.lastIndexOf(']'));
-        if (endIndex === -1 || endIndex < startIndex) {
-            jsonString = await fixJsonWithAI(jsonString);
-        } else {
-            jsonString = jsonString.substring(startIndex, endIndex + 1);
-        }
+        throw new Error("A resposta da IA não contém um bloco JSON válido que possa ser extraído.");
+    }
+    
+    const startIndex = (firstBrace === -1) ? firstBracket : (firstBracket === -1) ? firstBrace : Math.min(firstBrace, firstBracket);
+    const endIndex = (jsonString[startIndex] === '[') ? jsonString.lastIndexOf(']') : jsonString.lastIndexOf('}');
+
+    if (endIndex === -1 || endIndex < startIndex) {
+        throw new Error("Não foi possível encontrar o final do bloco JSON na resposta da IA.");
     }
 
-    // >>>>> EVOLUÇÃO 1: NOVA BLINDAGEM DE LIMPEZA PROATIVA <<<<<
-    // Remove quebras de linha literais de dentro das strings, que causam "Bad control character".
-    jsonString = jsonString.replace(/\n/g, "\\n");
-    // Corrige barras invertidas mal escapadas que a IA às vezes produz.
-    jsonString = jsonString.replace(/\\"/g, '\\\\"');
+    jsonString = jsonString.substring(startIndex, endIndex + 1);
 
+    // ETAPA 3: TENTATIVA DE PARSE DIRETO
     try {
-        // TENTATIVA 1: O método rápido com a string já limpa.
+        // A chave aqui é que o JSON.parse pode falhar por muitos motivos.
+        // Em vez de tentarmos adivinhar todos, passamos a responsabilidade para o reparador.
         return JSON.parse(jsonString);
     } catch (error) {
-        console.warn("Falha no parse rápido mesmo após a limpeza. Tentando conserto completo com IA...", error.message);
+        console.warn("Falha no parse rápido. O JSON provavelmente tem erros de sintaxe internos. Tentando conserto com IA...", error.message);
         
-        // TENTATIVA 2: O resgate com IA, mantendo sua lógica.
-        const fixedJsonByAI = await fixJsonWithAI(jsonString);
+        // ETAPA 4: RESGATE COM A IA DE CORREÇÃO
+        // Esta é a nossa rede de segurança mais forte.
         try {
-            let finalJson = JSON.parse(fixedJsonByAI);
-            
-            // >>>>> EVOLUÇÃO 2: NOVA BLINDAGEM PARA "DESEMBRULHAR" O JSON <<<<<
-            // Verifica se a IA retornou um array com uma única string que é o JSON.
-            // Exemplo: ["{...}"]
-            if (Array.isArray(finalJson) && finalJson.length === 1 && typeof finalJson[0] === 'string') {
-                console.log("Detectado JSON 'embrulhado' em um array. Tentando desembrulhar...");
-                try {
-                    // Tenta fazer o parse do conteúdo da string interna.
-                    return JSON.parse(finalJson[0]);
-                } catch (innerError) {
-                    console.error("Erro ao tentar desembrulhar o JSON interno:", innerError);
-                    // Se falhar, é mais seguro retornar o array como está.
-                    return finalJson;
-                }
-            }
-            
-            return finalJson; // Retorna o JSON corrigido se não estiver "embrulhado".
+            const fixedJsonByAI = await fixJsonWithAI(jsonString); // A função fixJsonWithAI já é projetada para limpar e corrigir
+            return JSON.parse(fixedJsonByAI);
         } catch (finalError) {
-            console.error("Falha final ao analisar JSON, mesmo após conserto da IA:", fixedJsonByAI);
-            throw new Error(`A IA retornou um JSON estruturalmente inválido que não pôde ser consertado. Detalhe: ${finalError.message}`);
+            console.error("Falha final ao analisar JSON, mesmo após conserto da IA:", finalError);
+            console.error("JSON problemático enviado para reparo:", jsonString); 
+            throw new Error(`A IA retornou um JSON com erros internos que não puderam ser consertados. Detalhe: ${finalError.message}`);
         }
     }
 };
