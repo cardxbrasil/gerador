@@ -865,3 +865,36 @@ textarea.input { min-height: 84px; resize: vertical; }
 /* Validation */
 .input-error{border-color:var(--danger)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--danger) 12%,transparent);}
 .field-error{color:var(--danger);font-size:12px;margin-top:4px;}
+
+
+/* ===== UX PRO V2 ===== */
+
+/* Modal base */
+.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.45);z-index:11000;padding:20px;}
+.modal.hidden{display:none;}
+.modal-content{background:var(--surface);padding:18px;border-radius:12px;max-width:820px;width:100%;box-shadow:var(--shadow);}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
+
+/* Presets grid */
+.presets-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:12px;}
+.preset-card{padding:12px;border-radius:10px;border:1px solid var(--border);cursor:pointer;transition:transform .18s;}
+.preset-card:hover{transform:translateY(-4px);box-shadow:var(--shadow);}
+
+/* Thumbnail previews */
+.thumb-previews{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.thumb-preview{width:160px;height:90px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-muted);}
+
+/* Explainability body */
+#explainBody{max-height:50vh;overflow:auto;padding:8px;border:1px dashed var(--border);border-radius:8px;background:color-mix(in srgb,var(--bg) 85%, var(--surface));}
+
+/* Shortcut hint */
+.shortcut-hint{position:fixed;left:16px;bottom:18px;z-index:9999;background:var(--surface);padding:8px 10px;border-radius:999px;border:1px solid var(--border);box-shadow:var(--shadow);}
+
+/* Virality meter (circular) */
+.virality-meter{width:44px;height:44px;border-radius:50%;display:inline-grid;place-items:center;font-weight:700;color:#fff;}
+.virality-high{background:linear-gradient(90deg,#16a34a,#84cc16);} /* green */
+.virality-mid{background:linear-gradient(90deg,#f59e0b,#f97316);} /* orange */
+.virality-low{background:linear-gradient(90deg,#ef4444,#f43f5e);} /* red */
+
+/* keyboard key */
+kbd{background:color-mix(in srgb,var(--bg) 70%, var(--surface));border:1px solid var(--border);padding:3px 6px;border-radius:6px;font-weight:700;font-size:12px;}

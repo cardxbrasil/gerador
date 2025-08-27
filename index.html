@@ -44,6 +44,7 @@
                 </button>
             </div>
         </header>
+<div id="shortcutHint" class="shortcut-hint muted">Atalhos: <kbd>Ctrl/Cmd+S</kbd> salvar • <kbd>G</kbd> gerar ideias</div>
 
         <!-- BARRA DE PROGRESSO -->
         <div class="progress-wrap">
@@ -339,6 +340,24 @@
                     </section>
                 </div>
             </main>
+        
+        <!-- Onboarding Modal -->
+        <div id="onboardingModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+          <div class="modal-content">
+            <h2 id="onboardingTitle">Bem-vindo ao Gerador — Tour rápido</h2>
+            <p class="muted">Em 3 passos você aprende o fluxo: Investigar → Gerar → Adotar.</p>
+            <ol>
+              <li><strong>Investigar:</strong> Pesquise o tema e gere o relatório.</li>
+              <li><strong>Gerar ideias:</strong> Clique em <em>Gerar Prompt de Ideias</em> para ver cards prontos.</li>
+              <li><strong>Adotar:</strong> Abra os detalhes e adote a ideia no projeto.</li>
+            </ol>
+            <div class="modal-actions">
+              <button id="skipOnboarding" class="btn btn-ghost">Pular</button>
+              <button id="startOnboarding" class="btn btn-primary">Começar Tour</button>
+            </div>
+          </div>
+        </div>
+    
         <div id="toastContainer" aria-live="polite" class="toast-container"></div>
         </div>
     </div>
@@ -421,5 +440,36 @@
 
     <script type="module" src="script.js"></script>
 <aside id="ideaDetailsPanel" class="idea-details-panel" aria-hidden="true"></aside>
+
+<!-- Presets Modal -->
+<div id="presetsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="presetsTitle">
+  <div class="modal-content">
+    <h3 id="presetsTitle">Presets & Personas</h3>
+    <p class="muted">Escolha uma persona para predefinir tom, ritmo e estrutura.</p>
+    <div class="presets-grid" id="presetsGrid"></div>
+    <div class="modal-actions"><button id="closePresets" class="btn btn-ghost">Fechar</button></div>
+  </div>
+</div>
+
+<!-- Thumbnail Editor Modal -->
+<div id="thumbEditorModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="thumbEditorTitle">
+  <div class="modal-content">
+    <h3 id="thumbEditorTitle">Editor Rápido de Thumbnail</h3>
+    <p class="muted">Ajuste prompt e visualize três variações.</p>
+    <textarea id="thumbPrompt" class="input" rows="4" placeholder="Prompt para gerar thumbnails..."></textarea>
+    <div class="thumb-previews" id="thumbPreviews"></div>
+    <div class="modal-actions"><button id="generateThumbs" class="btn btn-primary">Gerar 3 Variações</button><button id="closeThumbEditor" class="btn btn-ghost">Fechar</button></div>
+  </div>
+</div>
+
+<!-- Explainability Modal -->
+<div id="explainModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="explainTitle">
+  <div class="modal-content">
+    <h3 id="explainTitle">Como a IA chegou a essa ideia</h3>
+    <div id="explainBody"></div>
+    <div class="modal-actions"><button id="closeExplain" class="btn btn-ghost">Fechar</button></div>
+  </div>
+</div>
+
 </body>
 </html>

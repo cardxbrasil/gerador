@@ -5332,3 +5332,81 @@ function closeIdeaDetails(){const p=document.getElementById('ideaDetailsPanel');
 document.addEventListener('DOMContentLoaded',()=>{
   const g=document.getElementById('generateIdeasBtn');if(g)g.addEventListener('click',()=>{if(!validateRequiredFields()){showToast('Preencha os campos obrigatórios.','error');return;}if(AppState.generated.ideas&&AppState.generated.ideas.length){renderIdeas(AppState.generated.ideas);showToast('Ideias carregadas.','success');}else{showToast('Nenhuma ideia disponível.','error');}});
 });
+
+
+
+// ===== UX PRO V2 Logic =====
+
+// ONBOARDING
+function hasSeenOnboarding(){ try{ return localStorage.getItem('seen_onboarding')==='1'; }catch(e){return true;} }
+function showOnboarding(){ const m=document.getElementById('onboardingModal'); if(!m) return; m.classList.remove('hidden'); }
+function hideOnboarding(){ const m=document.getElementById('onboardingModal'); if(!m) return; m.classList.add('hidden'); localStorage.setItem('seen_onboarding','1'); }
+document.addEventListener('DOMContentLoaded', ()=>{ if(!hasSeenOnboarding()) showOnboarding(); document.getElementById('startOnboarding')?.addEventListener('click', ()=>{ hideOnboarding(); showToast('Tour iniciado — siga as dicas na tela.','info'); }); document.getElementById('skipOnboarding')?.addEventListener('click', hideOnboarding); });
+
+// PRESETS (example personas)
+const PRESETS = [
+  { id:'invest', name:'Investigador', desc:'Tom investigativo, foco em dados e entrevistas', settings:{narrativeGoal:'storytelling', visualPacing:'normal'} },
+  { id:'inspire', name:'Inspiracional', desc:'Tom emotivo e transformador', settings:{narrativeGoal:'storytelling', visualPacing:'contemplativo'} },
+  { id:'shortform', name:'Short Viral', desc:'Ritmo rápido, hooks fortes (1-2 min)', settings:{narrativeGoal:'storyselling', visualPacing:'dinamico'} }
+];
+function openPresets(){ const m=document.getElementById('presetsModal'); if(!m) return; const grid=document.getElementById('presetsGrid'); grid.innerHTML=''; PRESETS.forEach(p=>{ const el=document.createElement('div'); el.className='preset-card'; el.innerHTML=`<strong>${p.name}</strong><div class="muted">${p.desc}</div>`; el.onclick=()=>{ applyPreset(p); m.classList.add('hidden'); showToast(p.name+' aplicado.','success'); }; grid.appendChild(el); }); m.classList.remove('hidden'); }
+function applyPreset(p){ if(!p||!p.settings) return; Object.keys(p.settings).forEach(k=>{ const el=document.getElementById(k); if(el) el.value=p.settings[k]; AppState.inputs[k]=p.settings[k]; }); }
+
+document.addEventListener('DOMContentLoaded', ()=>{ document.getElementById('openPresetsBtn')?.addEventListener('click', openPresets); document.getElementById('closePresets')?.addEventListener('click', ()=>document.getElementById('presetsModal').classList.add('hidden')); });
+
+// THUMBNAIL QUICK GENERATOR (stubbed - replace integration to image API)
+function generateThumbnailsFromPrompt(prompt){ // returns 3 placeholder "images" (data urls or text)
+  return [ 'Preview 1', 'Preview 2', 'Preview 3' ];
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('generateThumbs')?.addEventListener('click', ()=>{
+    const prompt = document.getElementById('thumbPrompt')?.value || '';
+    const previews = generateThumbnailsFromPrompt(prompt);
+    const container = document.getElementById('thumbPreviews'); if(!container) return; container.innerHTML = '';
+    previews.forEach(p=>{ const el=document.createElement('div'); el.className='thumb-preview'; el.textContent = p; container.appendChild(el); });
+    showToast('Variações geradas (placeholder). Integre sua API de imagens para resultados reais.','info');
+  });
+  document.getElementById('closeThumbEditor')?.addEventListener('click', ()=>document.getElementById('thumbEditorModal').classList.add('hidden'));
+  document.getElementById('thumbEditorModal')?.addEventListener('click', (e)=>{ if(e.target===document.getElementById('thumbEditorModal')) document.getElementById('thumbEditorModal').classList.add('hidden'); });
+});
+
+// EXPLAINABILITY: open modal with prompt and evidence
+function openExplainabilityFor(index){ const it = AppState.generated?.ideas?.[index]; const m=document.getElementById('explainModal'); const body=document.getElementById('explainBody'); if(!it||!m||!body) return; body.innerHTML = '<h4>'+ (it.title||'Sem título') +'</h4><p class="muted">Prompt usado:</p><pre>'+ (it._promptFinal || it.prompt || 'N/A') +'</pre><p class="muted">Trechos do relatório:</p><pre>'+ (it._evidence ? JSON.stringify(it._evidence,null,2) : 'Sem evidência salva') +'</pre>'; m.classList.remove('hidden'); }
+document.getElementById('closeExplain')?.addEventListener('click', ()=>document.getElementById('explainModal')?.classList.add('hidden'));
+
+// KEYBOARD SHORTCUTS
+document.addEventListener('keydown', (e)=>{
+  // Ctrl/Cmd+S export
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); if(typeof exportProjectJSON==='function') exportProjectJSON(); showToast('Exportando projeto...','info'); }
+  // G to generate ideas
+  if(!e.ctrlKey && !e.metaKey && e.key.toLowerCase()==='g'){ const gen = document.getElementById('generateIdeasBtn'); if(gen) gen.click(); }
+});
+
+// VIRALITY METER: map score to class
+function viralityClassFor(n){
+  if(n>=8) return 'virality-high';
+  if(n>=5) return 'virality-mid';
+  return 'virality-low';
+}
+
+// Enhance renderIdeas to include virality meter and explain button if present
+if(typeof renderIdeas==='function'){
+  const originalRender = renderIdeas;
+  renderIdeas = function(ideas){
+    originalRender(ideas); // base render
+    // update badges to include meter class and explain button
+    document.querySelectorAll('#ideasCards .card').forEach(card=>{
+      const idx = parseInt(card.dataset.index,10);
+      const idea = ideas[idx]||{};
+      const sc = idea.viralityScore || 0;
+      const badge = card.querySelector('.badge');
+      if(badge){
+        const wrapper = document.createElement('div'); wrapper.style.display='flex'; wrapper.style.alignItems='center'; wrapper.style.gap='8px';
+        const meter = document.createElement('div'); meter.className='virality-meter '+viralityClassFor(sc); meter.textContent = sc;
+        const explainBtn = document.createElement('button'); explainBtn.className='ghost'; explainBtn.textContent='Como?'; explainBtn.addEventListener('click', ()=>openExplainabilityFor(idx));
+        wrapper.appendChild(meter); wrapper.appendChild(explainBtn);
+        badge.replaceWith(wrapper);
+      }
+    });
+  };
+}
