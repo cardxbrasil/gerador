@@ -35,7 +35,8 @@
     <div class="container">
         <!-- CABEÇALHO -->
         <header class="header">
-            <div class="logo"><i class="fas fa-video"></i> Gerador de Roteiros Virais <span class="version-tag">v6.0</span></div>\n            <button id="hamburgerBtn" class="btn btn-ghost mobile-only" title="Menu"><i class="fas fa-bars"></i></button>
+            <div class="logo"><i class="fas fa-video"></i> Gerador de Roteiros Virais <span class="version-tag">v6.0</span></div>
+            <button id="hamburgerBtn" class="btn btn-ghost mobile-only" aria-label="Abrir menu"><i class="fas fa-bars"></i></button>
             <div class="header-actions">
                 <button id="darkModeToggle" class="btn btn-ghost" title="Alternar tema">
                     <i id="sunIcon" class="fas fa-sun hidden"></i>
@@ -58,7 +59,7 @@
         <!-- ESTRUTURA PRINCIPAL DO APP -->
         <div class="app" id="appRoot">
             <!-- SIDEBAR DE NAVEGAÇÃO -->
-            <aside class="sidebar" id="sidebar">\n                <div class="mobile-sidebar-top mobile-only" style="display:none;align-items:center;justify-content:space-between;margin-bottom:8px;">\n                    <div style="font-weight:700;color:var(--text-header)">Navegar</div>\n                    <button id="mobileCloseSidebar" class="btn btn-ghost">✕</button>\n                </div>
+            <aside class="sidebar" id="sidebar">
                 <div class="sidebar-title">Etapas do Projeto</div>
 
                 <div class="step" data-step="investigate" id="step-investigate">
@@ -102,6 +103,7 @@
                     <button class="btn btn-danger" data-action="resetProject"><i class="fas fa-sync-alt"></i> Resetar</button>
                 </div>
             </aside>
+        <div id="drawerOverlay" class="drawer-overlay" aria-hidden="true"></div>
 
             <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
             <main class="content" id="contentArea">
@@ -177,8 +179,8 @@
                         <!-- Aba 1: Básico -->
                         <div class="tab-pane active-pane p-4" id="input-tab-basico">
                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="input-group"><label for="channelName">Nome do Canal:</label><input class="input" id="channelName" type="text" value="The Biblical Unveiling" data-required="true"/></div>
-                                <div class="input-group"><label for="videoTheme">Tema do Vídeo:</label><input class="input" id="videoTheme" placeholder="Ex: A Arca da Aliança Foi Encontrada?" data-required="true" type="text"/></div>
+                                <div class="input-group"><label for="channelName">Nome do Canal:</label><input class="input" id="channelName" type="text" value="The Biblical Unveiling"/></div>
+                                <div class="input-group"><label for="videoTheme">Tema do Vídeo:</label><input class="input" id="videoTheme" placeholder="Ex: A Arca da Aliança Foi Encontrada?" type="text"/></div>
                                 <div class="input-group"><label for="videoDuration">Duração Desejada:</label><select class="input" id="videoDuration"><option value="">-- Selecione --</option><option value="short">Curto (~1-3 min)</option><option value="medium">Médio (~4-7 min)</option><option value="long">Longo (~8-12 min)</option><option value="extra_long">Extra Longo (~13-20 min)</option><option value="epic">Épico (~21-30 min)</option></select></div>
                                 <div class="input-group"><label for="visualPacing">Ritmo Visual (Cenas):</label><select class="input" id="visualPacing"><option selected value="">-- Selecione --</option><option value="dinamico">Dinâmico (3-8s)</option><option value="normal">Normal (8-15s)</option><option value="contemplativo">Contemplativo (15-25s)</option></select></div>
                                 <div class="input-group md:col-span-2"><label for="videoDescription">Descrição do Vídeo (para inspiração):</label><textarea class="input" id="videoDescription" placeholder="Cole uma breve descrição do vídeo aqui..." rows="4"></textarea></div>
@@ -336,7 +338,8 @@
                         </div>
                     </section>
                 </div>
-            </main>\n        <!-- Toast container -->\n        <div id="toastContainer" aria-live="polite" style="position:fixed;right:16px;bottom:16px;z-index:9999;pointer-events:none;"></div>
+            </main>
+        <div id="toastContainer" aria-live="polite" class="toast-container"></div>
         </div>
     </div>
 
@@ -417,5 +420,6 @@
 
 
     <script type="module" src="script.js"></script>
+<aside id="ideaDetailsPanel" class="idea-details-panel" aria-hidden="true"></aside>
 </body>
 </html>
