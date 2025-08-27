@@ -1935,61 +1935,67 @@ const getGenreFromIdea = (idea) => {
 
 
 // =========================================================================
-// >>>>> SUBSTITUA SUA FUNÇÃO 'selectIdea' INTEIRA POR ESTA VERSÃO FINAL <<<<<
+// >>>>> SUBSTITUA A SUA FUNÇÃO 'selectIdea' POR ESTA VERSÃO UNIVERSAL <<<<<
 // =========================================================================
 const selectIdea = (idea) => {
-    // Identifica o gênero/especialista para buscar as regras de mapeamento corretas.
+    // Identifica o especialista para buscar as regras de mapeamento corretas.
     const genre = getGenreFromIdea(idea);
     AppState.inputs.selectedGenre = genre;
     const mapper = strategyMapper[genre];
 
-    // --- ETAPA 1: MAPEAMENTO DIRETO E GARANTIDO (O que já funcionava) ---
-    // Mapeia os campos que têm o mesmo nome na ideia e no formulário.
+    // --- ETAPA 1: LIMPEZA INICIAL ---
+    // Limpa os campos de estratégia para garantir que não haja dados de ideias anteriores.
+    const fieldsToClear = ['targetAudience', 'narrativeTheme', 'centralQuestion', 'emotionalHook', 'narrativeVoice', 'shockingEndingHook', 'researchData'];
+    fieldsToClear.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+
+    // --- ETAPA 2: MAPEAMENTO DIRETO E GARANTIDO ---
+    // Preenche os campos básicos que são comuns a todas as ideias.
     document.getElementById('videoTheme').value = idea.title || '';
     document.getElementById('videoDescription').value = idea.videoDescription || '';
-    document.getElementById('targetAudience').value = idea.targetAudience || '';
+    if(idea.targetAudience) { // Apenas preenche se a ideia tiver este campo
+        document.getElementById('targetAudience').value = idea.targetAudience;
+    }
 
-    // --- ETAPA 2: PREENCHIMENTO DOS MENUS DE SELEÇÃO (DROPDOWNS) ---
-    // Usa o 'strategyMapper' para definir os valores corretos nos dropdowns.
-    if (mapper && mapper.dropdowns) {
-        for (const id in mapper.dropdowns) {
-            const element = document.getElementById(id);
+    // --- ETAPA 3: PREENCHIMENTO INTELIGENTE COM O 'strategyMapper' ---
+    // Esta é a nova lógica que funciona para TODOS os especialistas.
+    if (mapper) {
+        // 3a. Preenche os Dropdowns
+        if (mapper.dropdowns) {
+            for (const id in mapper.dropdowns) {
+                const element = document.getElementById(id);
+                if (element) element.value = mapper.dropdowns[id];
+            }
+        }
+        
+        // 3b. Preenche os CAMPOS DE TEXTO usando as regras do mapper
+        // Esta é a correção que faltava para "Inspiracional" e outros.
+        for (const key in mapper) {
+            // Ignora chaves que não são campos de formulário
+            if (key === 'dropdowns' || key === 'dossier') continue;
+
+            const element = document.getElementById(key); // ex: document.getElementById('emotionalHook')
             if (element) {
-                element.value = mapper.dropdowns[id];
+                // Executa a função do mapper para gerar o texto (ex: mapper['emotionalHook'](idea))
+                const valueToSet = mapper[key](idea);
+                if (valueToSet) {
+                    element.value = valueToSet;
+                }
             }
         }
     }
-    // Dispara as funções para atualizar a UI dos dropdowns após a seleção.
+    
+    // Dispara as funções para atualizar a UI dos dropdowns.
     updateNarrativeStructureOptions();
     updateMainTooltip();
 
-    // --- ETAPA 3: MAPEAMENTO COMPLEXO E CORRIGIDO (AQUI ESTÁ A SOLUÇÃO) ---
-    // Mapeia os campos da ideia para os campos do formulário que têm nomes diferentes.
-    // Esta lógica agora é explícita para garantir que os dados sejam transferidos.
-    
-    // Para o especialista 'enigmas' (e outros que tiverem esses campos)
-    if (idea.angle) {
-        document.getElementById('narrativeTheme').value = idea.angle;
-    }
-    if (idea.discussionQuestions && idea.discussionQuestions.length > 0) {
-        // Pega a PRIMEIRA pergunta de diálogo e a usa como Pergunta Central.
-        document.getElementById('centralQuestion').value = idea.discussionQuestions[0];
-    }
-    if (idea.scripturalFoundation && idea.scripturalFoundation.length > 0) {
-        // Pega as referências bíblicas, junta-as e coloca no campo de Fontes.
-        document.getElementById('researchData').value = `Citar as seguintes passagens: ${idea.scripturalFoundation.join('; ')}.`;
-    }
-    
-    // Limpa campos que não são preenchidos pela ideia para evitar confusão.
-    document.getElementById('emotionalHook').value = '';
-    document.getElementById('shockingEndingHook').value = '';
-
-
     // --- ETAPA 4: FINALIZAÇÃO ---
     window.showToast("Ideia selecionada! Estratégia pré-preenchida.", 'success');
-    showPane('strategy'); // Muda para a tela de estratégia
+    showPane('strategy');
     
-    // Clica na aba "Estratégia Narrativa" para que o usuário veja os campos mais importantes.
+    // Clica na aba "Estratégia Narrativa" para que o usuário veja os campos que foram preenchidos.
     document.querySelector('[data-tab="input-tab-estrategia"]')?.click();
 };
 
