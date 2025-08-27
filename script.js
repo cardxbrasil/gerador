@@ -4300,65 +4300,71 @@ window.generatePromptsForSection = async (button) => {
 
 
 
+
+
+
 const prompt = `
 # INSTRUÇÕES PARA GERAÇÃO DE DESCRIÇÕES VISUAIS
 
-Você é um especialista em roteirização visual e direção de arte com um olhar obsessivo por detalhes. Sua única função é transformar parágrafos narrativos em descrições visuais cinematográficas hiperdetalhadas, formatadas em JSON, capturando a essência emocional, sensorial e física da cena.
+Você é um especialista em roteirização visual e direção de arte, com um olhar obsessivo por detalhes quase microscópicos. Sua única função é transformar parágrafos narrativos em descrições visuais cinematográficas hiperdetalhadas, formatadas em JSON, capturando não só a aparência, mas também a essência emocional, sensorial e física da cena.  
+A descrição deve ser tão rica que o leitor consiga sentir o frio na pele, ouvir o eco no ambiente, cheirar a ferrugem ou a madeira molhada, perceber a textura dos objetos e notar até os menores sinais de desgaste.
 
 ## REGRAS ABSOLUTAS DE FORMATO
 
-1.  **RESPONDA APENAS COM UM ARRAY JSON VÁLIDO**: Comece com [ e termine com ]
-2.  **USE APENAS ASPAS DUPLAS (")**: Em todas as chaves e valores de texto
-3.  **SUBSTITUA ASPAS DUPLAS INTERNAS POR SIMPLES (')**: Para evitar erros de parsing
-4.  **ESTRUTURA IMUTÁVEL POR OBJETO**:
-   - "imageDescription": string descritiva, rica em detalhes visuais, sensoriais e atmosféricos
+1. **RESPONDA APENAS COM UM ARRAY JSON VÁLIDO**: Comece com [ e termine com ]
+2. **USE APENAS ASPAS DUPLAS (")**: Em todas as chaves e valores de texto
+3. **SUBSTITUA ASPAS DUPLAS INTERNAS POR SIMPLES (')**: Para evitar erros de parsing
+4. **ESTRUTURA IMUTÁVEL POR OBJETO**:
+   - "imageDescription": string descritiva, rica em camadas sensoriais, narrativas e visuais
    - "estimated_duration": número inteiro (2 a 10)
 
 ## FORMATO DE SAÍDA CORRETO (EXEMPLO)
 
 [
   {
-    "imageDescription": "Um homem solitário caminha por uma rua deserta à noite, com passos que ecoam contra as fachadas apagadas. O ar frio e úmido gruda na pele, trazendo o cheiro de pedra molhada e ferrugem das grades enferrujadas das janelas. A luz amarelada e trêmula dos postes projeta sombras alongadas que dançam entre as poças, criando reflexos fragmentados como vidros quebrados. No primeiro plano, folhas encharcadas coladas ao asfalto brilham sob a chuva fina; no plano intermediário, o homem, curvado e cansado, carrega um casaco pesado que pinga incessantemente; ao fundo, vitrines abandonadas revelam letreiros descascados e estilhaços de vidro. O silêncio é cortado apenas pelo tilintar distante de uma lata rolando no vento. O detalhe que prende o olhar é uma antiga placa de neon, ainda pulsando em vermelho, piscando de forma irregular como um coração moribundo.",
+    "imageDescription": "Um homem solitário caminha lentamente por uma rua de paralelepípedos molhados em uma madrugada deserta. A atmosfera é carregada de melancolia, marcada pelo som distante de um trem e pelo eco metálico de seus passos contra as pedras úmidas. O frio da noite parece cortar a pele, e o ar traz o cheiro de ferrugem misturado ao odor de terra molhada. A câmera em plano médio captura sua silhueta cansada, com ombros curvados sob um sobretudo encharcado, enquanto gotículas de chuva escorrem pela aba de seu chapéu gasto. No primeiro plano, poças d’água refletem as luzes amareladas e trêmulas dos postes, distorcendo sua figura em fragmentos quebrados de luz. Ao fundo, vitrines empoeiradas e fechadas, algumas com vidro trincado, sugerem abandono e silêncio. No plano intermediário, fios de eletricidade cruzam a rua como linhas tensas contra o céu turvo, onde a névoa encobre parcialmente a lua. Uma rajada de vento levanta jornais úmidos e folhas mortas que dançam brevemente antes de se colarem ao chão brilhante. O contraste visual é forte: manchas de sombra se dissolvem em áreas iluminadas, criando um jogo dramático de claro-escuro que intensifica a sensação de isolamento. O som quase imperceptível de água pingando das calhas se mistura ao zumbido elétrico da iluminação pública. A cena transmite solidão opressora, como se o próprio espaço urbano respirasse cansaço e abandono.",
     "estimated_duration": 7
-  },
-  {
-    "imageDescription": "Mãos trêmulas seguram uma carta antiga manchada pelo tempo. A textura áspera do papel amarelado contrasta com a pele fina, marcada por veias salientes. A luz suave da manhã atravessa cortinas esgarçadas, criando feixes dourados que iluminam partículas de poeira suspensas no ar. O ambiente traz cheiro de madeira velha misturado ao aroma levemente ácido de papel envelhecido. No primeiro plano, a carta treme nas mãos; ao fundo, uma cadeira vazia com estofado rasgado repousa diante de uma parede com pintura descascada, onde um retrato emoldurado caiu, o vidro estilhaçado espalhado pelo chão. O som distante da chuva tamborila no telhado, enquanto gotas deslizam pela janela em trilhas irregulares. O detalhe revelador é uma lágrima que escorre sobre a caligrafia borrada, como se misturasse presente e passado em um mesmo traço.",
-    "estimated_duration": 6
   }
 ]
 
 ## PROCEDIMENTO DE ANÁLISE VISUAL (CHECKLIST DE DETALHE EXTREMO)
 
-Para cada parágrafo, gere uma cena visual respondendo com precisão a:
+Para cada parágrafo, gere uma cena visual aplicando o checklist abaixo com obsessão pelo detalhe:
 
 ### 1. O CORAÇÃO DA CENA: EMOÇÃO E ATMOSFERA
-- **Sentimento Central**: Defina a emoção primária (ex: melancolia, tensão, admiração).
-- **Atmosfera Sensorial Completa**: Descreva o que se pode **sentir na pele, cheirar no ar e ouvir ao redor**: o frio que arrepia, o calor sufocante, o aroma de fumaça, maresia ou ferrugem, o som do vento, da chuva, de vozes abafadas ou de silêncios pesados.
-- **Paleta Emocional e Estilo Visual**: Defina cores dominantes e um estilo visual coerente (ex: 'Estilo film noir com alto contraste', 'Estilo documental com cores dessaturadas', 'Realismo mágico em tons pastéis vibrantes').
+- **Sentimento Central**: Nomeie e traduza a emoção dominante (ex: tensão sufocante, melancolia nostálgica, esperança delicada, desespero silencioso).
+- **Atmosfera Sensorial Total**: Sempre descreva o que se pode **sentir na pele (frio, calor, vento, umidade), cheirar no ar (fumaça, maresia, mofo, terra molhada, sangue), ouvir ao redor (silêncios pesados, goteiras, vento, insetos, passos distantes, vidro estalando)**.
+- **Paleta Emocional e Estilo Visual**: Defina cores dominantes (tons quentes, frios, metálicos, pastéis) e um estilo visual narrativo (film noir, realismo mágico, minimalista desbotado, hiper-realista com contraste marcante).
 
 ### 2. O PALCO: CENÁRIO E COMPOSIÇÃO
-- **Narrativa do Ambiente**: O que o espaço conta? Descreva o estado dos objetos e lugares (ex: 'móveis cobertos por lençóis brancos', 'paredes marcadas por infiltração').
-- **Composição Focada**: Explique como os elementos estão dispostos (ex: 'figura isolada no terço esquerdo', 'corredor estreito guiando o olhar para uma porta iluminada').
-- **Profundidade e Camadas**: Sempre descreva o que aparece em primeiro plano, plano intermediário e fundo.
-- **✅ Micro-geografia do Cenário**: Inclua detalhes quase invisíveis que carregam narrativa: 'pegadas frescas no barro', 'copos com marcas de lábios esquecidos sobre a mesa', 'teias de aranha no canto de um espelho rachado', 'ervas daninhas atravessando rachaduras no concreto'.
+- **Narrativa do Ambiente**: O que o espaço conta sobre sua história? Descreva desgaste, abandono, cuidado excessivo, sujeira, ordem ou caos.
+- **Composição Visual**: Como os elementos se distribuem (centralizados, deslocados, amontoados, isolados)? 
+- **Profundidade e Camadas**: Sempre detalhe o primeiro plano, o plano intermediário e o fundo — cada um com pelo menos um elemento específico.
+- **✅ Micro-geografia do Cenário**: Inclua pelo menos 3 detalhes narrativos minuciosos:  
+  - objetos esquecidos ou deslocados (um brinquedo caído, uma xícara quebrada, um sapato sem par),  
+  - sinais de uso e passagem do tempo (fios soltos, marcas de dedos, manchas, ferrugem, trincas, pó acumulado),  
+  - pequenos elementos vivos (erva daninha surgindo no concreto, inseto pousando em vidro empoeirado, vela quase apagada).
 
 ### 3. A LUZ COMO PERSONAGEM: ILUMINAÇÃO
-- **Qualidade e Textura da Luz**: É dura, suave, difusa, trêmula, cortante?
-- **Direção e Intenção**: De onde vem a luz e o que ela revela ou oculta? (ex: 'uma réstia dourada atravessando a cortina', 'um brilho frio vindo de uma tela').
-- **Fonte Explícita**: Nomeie a origem: sol, vela, lampião, néon, relâmpago, fogo, refletores.
-- **✅ Física da Luz e Sombra**: Descreva a interação física: 'raios iluminando poeira suspensa', 'reflexos tremeluzindo em uma poça d’água', 'sombras alongadas engolindo parte da parede', 'luz filtrada por vitrais criando padrões coloridos no chão'.
+- **Qualidade e Textura da Luz**: Diga se é suave, dura, difusa, trêmula, cortante, pulsante, fosca, ofuscante.
+- **Direção e Intenção**: Explique de onde vem e como age sobre a cena (revela, esconde, distorce, amplifica).
+- **Fonte Explícita**: Nomeie a origem concreta: poste, fogo, tela de celular, janela, lua, raio, lâmpada trêmula.
+- **✅ Física da Luz e Sombra**: Descreva a interação sempre em detalhe:  
+  - partículas iluminadas no ar (poeira suspensa, fumaça, vapor),  
+  - reflexos em superfícies (vidro, água, metal, pele suada),  
+  - sombras (longas, recortadas, difusas, multiplicadas).
 
 ### 4. O FOCO DA HISTÓRIA: SUJEITO E DETALHES
-- **Linguagem Corporal**: Traduza emoções em postura e gestos (ex: 'ombros curvados', 'mãos crispadas').
-- **Texturas Táteis**: Dê a sensação de toque: 'a frieza do ferro', 'a aspereza da lã', 'a umidade grudando no tecido'.
-- **O Detalhe Revelador (Punctum)**: Sempre inclua um detalhe marcante que condensa a história em uma imagem poderosa (ex: 'um brinquedo esquecido em meio ao entulho', 'um relógio parado no tempo', 'uma pétala murcha caída sobre uma carta').
+- **Linguagem Corporal**: Descreva gestos, postura, ritmo dos movimentos e o que eles revelam.
+- **Texturas Táteis**: Sempre inclua sensações físicas: aspereza, maciez, frieza, viscosidade, rigidez, calor, peso.
+- **O Detalhe Revelador (Punctum)**: Adicione um detalhe pequeno, mas narrativamente poderoso, que condensa a cena em uma imagem simbólica (uma gota de sangue na neve, uma fotografia rasgada no lixo, uma vela que apaga, um brinquedo esquecido).
 
 ## DIRETRIZES DE EXECUÇÃO
 
-- **Traduza, não invente**: Extraia a essência emocional e visual do parágrafo original e amplifique-a com riqueza sensorial e narrativa.
-- **Consistência estética**: mantenha coerência entre cenas consecutivas (paleta, atmosfera, tom).
-- Para "estimated_duration", use valores inteiros entre ${durationRange} segundos, baseando-se na complexidade e no peso emocional da cena.
-- **Em caso de ambiguidade, decida com coerência emocional**: priorize o tom dominante (drama, tensão, nostalgia, esperança).
+- **Traduza, não invente**: Extraia a essência emocional e visual do parágrafo e amplifique-a em detalhes sensoriais, físicos e narrativos.
+- **Mantenha consistência estética** entre cenas consecutivas (paleta, atmosfera, estilo visual).
+- Para "estimated_duration", use valores inteiros entre ${durationRange}, sempre considerando densidade de elementos e peso emocional.
+- **Em caso de ambiguidade, decida pelo tom dominante**: drama, tensão, lirismo, nostalgia, esperança, angústia.
 
 ## ENTRADA DE DADOS
 
@@ -4368,14 +4374,9 @@ ${batchText}
 
 ## INSTRUÇÃO FINAL
 
-Analise cada parágrafo, aplique o checklist de detalhe extremo com rigor cinematográfico, e gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration".  
-A descrição deve ser uma tapeçaria rica de atmosferas, sensações e microdetalhes narrativos.  
+Analise cada parágrafo, aplique o checklist de detalhe extremo com obsessão cinematográfica, e gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration".  
+Cada descrição deve ser uma tapeçaria rica de sensações, atmosferas e detalhes minuciosos — o leitor deve quase sentir estar dentro da cena.  
 **Nada além do array JSON deve ser retornado. Nenhum texto explicativo, nenhum comentário, nenhum acréscimo.**`;
-
-
-
-
-
 
 
 
