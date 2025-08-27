@@ -1878,39 +1878,45 @@ const generateIdeasFromReport = async (button) => {
 // =========================================================================
 const strategyMapper = {
     'documentario': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' }, // <<< CORRIGIDO AQUI
-        narrativeTheme: idea => idea.angle,
-        centralQuestion: idea => `O que os fatos sobre "${idea.title}" realmente revelam?`,
-        researchData: idea => `Abordagem Investigativa: ${idea.investigativeApproach}`,
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
+        targetAudience: idea => idea.targetAudience, // Mapeamento direto
+        narrativeTheme: idea => idea.angle, // Mapeamento direto do ângulo para o tema
+        centralQuestion: idea => `O que as evidências sobre "${idea.title}" realmente significam e qual o seu impacto?`, // Pergunta mais forte
+        researchData: idea => `Focar na abordagem investigativa de "${idea.investigativeApproach}". Consultar fontes primárias relacionadas ao relatório.`, // Mais direto
         dossier: idea => `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`
     },
     'inspiracional': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'heroes_journey', narrativeTone: 'inspirador', videoObjective: 'emocionar', languageStyle: 'inspirador', speakingPace: 'slow' }, // <<< CORRIGIDO AQUI
-        narrativeTheme: idea => idea.angle,
-        emotionalHook: idea => `A história deve girar em torno do núcleo emocional de '${idea.emotionalCore}', mostrando a transformação de um desafio em uma lição universal.`,
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'heroes_journey', narrativeTone: 'inspirador', videoObjective: 'emocionar', languageStyle: 'inspirador', speakingPace: 'slow' },
+        targetAudience: idea => idea.targetAudience, // Mapeamento direto
+        narrativeTheme: idea => idea.angle, // Mapeamento direto do arco narrativo para o tema
+        emotionalHook: idea => `A história começa com uma pessoa vivenciando o silêncio e a dor descritos na narrativa. O ponto de virada é a descoberta que a leva a encontrar sua voz. O núcleo emocional é a jornada de '${idea.emotionalCore}'.`, // Muito mais específico
         dossier: idea => `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`
     },
     'scifi': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' }, // <<< CORRIGIDO AQUI
-        centralQuestion: idea => idea.angle,
-        narrativeTheme: idea => `Explorar as consequências do dilema de '${idea.coreDilemma}'.`,
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
+        targetAudience: idea => idea.targetAudience,
+        centralQuestion: idea => idea.angle, // Mapeamento direto da premissa para a pergunta
+        narrativeTheme: idea => `Explorar as consequências éticas e humanas do dilema central de '${idea.coreDilemma}'.`, // Mais direto
         dossier: idea => `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`
     },
     'terror': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'twist', narrativeTone: 'serio', videoObjective: 'emocionar', languageStyle: 'formal', speakingPace: 'slow' }, // <<< CORRIGIDO AQUI
-        narrativeTheme: idea => `Construir a tensão usando o mecanismo de '${idea.horrorMechanism}'.`,
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'twist', narrativeTone: 'serio', videoObjective: 'emocionar', languageStyle: 'formal', speakingPace: 'slow' },
+        targetAudience: idea => idea.targetAudience,
+        narrativeTheme: `A quebra da normalidade e a descida à loucura, usando o mecanismo de '${idea.horrorMechanism}'.`, // Mais direto
         centralQuestion: idea => idea.angle,
         dossier: idea => `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`
     },
     'enigmas': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' }, // <<< CORRIGIDO AQUI
-        narrativeTheme: idea => idea.angle,
-        centralQuestion: idea => idea.discussionQuestions[0] || '',
-        researchData: idea => `Base Bíblica: ${(idea.scripturalFoundation || []).join('; ')}`,
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
+        targetAudience: idea => idea.targetAudience,
+        narrativeTheme: idea => idea.angle, // Mapeamento do enigma para o tema
+        centralQuestion: idea => idea.discussionQuestions[0] || '', // Pega a primeira pergunta para diálogo
+        researchData: idea => `A investigação deve se basear nestas passagens bíblicas: ${(idea.scripturalFoundation || []).join('; ')}.`, // Mais específico
         dossier: idea => `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${(idea.scripturalFoundation || []).join('; ')}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`
     },
     'geral': {
-        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'pixar_spine', narrativeTone: 'inspirador', videoObjective: 'informar', languageStyle: 'inspirador', speakingPace: 'moderate' }, // <<< CORRIGIDO AQUI
+        dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'pixar_spine', narrativeTone: 'inspirador', videoObjective: 'informar', languageStyle: 'inspirador', speakingPace: 'moderate' },
+        targetAudience: idea => idea.targetAudience,
         narrativeTheme: idea => idea.angle,
         dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
     }
