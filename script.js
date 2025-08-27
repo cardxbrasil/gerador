@@ -1955,7 +1955,7 @@ const getGenreFromIdea = (idea) => {
 
 
 // =========================================================================
-// >>>>> VERSÃO FINAL E BLINDADA DA FUNÇÃO 'selectIdea' <<<<<
+// >>>>> VERSÃO FINAL DA FUNÇÃO 'selectIdea' - CORRIGE O BUG DE ESTADO <<<<<
 //       Substitua sua função inteira por este bloco de código.
 // =========================================================================
 const selectIdea = (idea) => {
@@ -1972,22 +1972,33 @@ const selectIdea = (idea) => {
 
     // --- ETAPA 2: MAPEAMENTO BÁSICO E HIGIENIZAÇÃO DOS DADOS ---
     document.getElementById('videoTheme').value = idea.title || '';
-    
-    // >>>>> AQUI ESTÁ A CORREÇÃO CRÍTICA QUE FALTAVA <<<<<
-    // Limpamos a descrição NO MOMENTO em que a transferimos para o formulário.
-    // Isso garante que os números [1] e [17] sejam removidos.
     const cleanedDescription = (idea.videoDescription || '').replace(/\[[\d, ]+\]/g, '');
     document.getElementById('videoDescription').value = cleanedDescription;
 
-    // --- ETAPA 3: PREENCHIMENTO INTELIGENTE COM O 'strategyMapper' ---
+    // --- ETAPA 3: PREENCHIMENTO INTELIGENTE E CONTROLADO ---
     if (mapper) {
+        // 3a. PREENCHE OS DROPDOWNS PRINCIPAIS PRIMEIRO
+        // A ordem aqui é CRÍTICA. Primeiro definimos o 'Objetivo' (pai).
+        if (mapper.dropdowns && mapper.dropdowns.narrativeGoal) {
+            document.getElementById('narrativeGoal').value = mapper.dropdowns.narrativeGoal;
+        }
+        
+        // 3b. ATUALIZA A UI DEPENDENTE
+        // Agora que o 'Objetivo' está certo, atualizamos a lista de 'Estruturas' (filho).
+        updateNarrativeStructureOptions();
+        
+        // 3c. AGORA SIM, PREENCHE O RESTO, INCLUINDO A ESTRUTURA CORRETA
+        // Com a lista de opções já atualizada, selecionamos o valor correto.
         if (mapper.dropdowns) {
             for (const id in mapper.dropdowns) {
+                // Pulamos o que já foi feito para não causar conflito.
+                if (id === 'narrativeGoal') continue;
                 const element = document.getElementById(id);
                 if (element) element.value = mapper.dropdowns[id];
             }
         }
         
+        // 3d. Preenche todos os campos de texto com as regras do mapper.
         for (const key in mapper) {
             if (key === 'dropdowns' || key === 'dossier') continue;
             const element = document.getElementById(key);
@@ -2000,7 +2011,7 @@ const selectIdea = (idea) => {
         }
     }
     
-    updateNarrativeStructureOptions();
+    // Atualiza o tooltip da estrutura específica, que agora estará correta.
     updateMainTooltip();
 
     // --- ETAPA 4: FINALIZAÇÃO ---
