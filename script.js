@@ -154,6 +154,53 @@ You are generating an image that must be **indistinguishable from a real photogr
 
 --no bright, evenly lit, fill light, modern, digital, sharp, cgi, 3d render, video game, lens flare, clean, new, futuristic, blue tones, cool colors, happy, vibrant`
     }
+    'pixar': {
+        name: 'Animação 3D Emocional (Estilo "PIXAR")',
+        block: `
+
+#Masterful 3D animated scene in the signature style of Pixar Animation Studios, art direction by Pete Docter. Characters have appealing, slightly exaggerated features with extremely expressive, soulful eyes and subtle, nuanced body language that tells a story. Textures are deeply tactile and detailed, but stylized for clarity and appeal: soft, fuzzy fabric on a sweater, a perfectly polished wooden floor reflecting warm light, fluffy, volumetric clouds. The lighting is painterly and sophisticated, using soft key lights, extensive bounce light, and colored rim lights to sculpt characters and create a deep sense of atmosphere. Composition follows classic cinematic principles, using depth of field to guide the eye and frame the emotional core of the scene. The world feels lived-in, charming, and meticulously designed down to the smallest prop.
+
+--no photorealistic, realistic human, uncanny valley, creepy, horror, dark, gritty, low-poly, messy, chaotic, flat lighting, simple textures, video game render, cgi look`
+
+    }
+    'disney': {
+        name: 'Conto de Fadas Moderno (Estilo "Disney Animation / Tangled")',
+        block: `
+
+#Lush, vibrant 3D animation in the style of modern Disney, reminiscent of 'Tangled' or 'Frozen', art direction by Glen Keane. Characters have large, impossibly expressive eyes that sparkle with life, and their movements are fluid, graceful, and almost balletic. Environments are rich and painterly, an idealized, romantic version of reality with glowing flora, sun-drenched forests, and towering, elegant architecture. The lighting is overtly magical and dramatic, featuring volumetric god rays, sparkling particle effects, and deep, saturated-colored shadows. Textures are detailed but immaculately clean and beautiful. The overall feeling is one of breathtaking wonder, epic romance, and high adventure, a perfect, storybook world.
+
+--no photorealistic, gritty, dark, dull colors, mundane, ugly, horror, sci-fi, cyberpunk, realistic human proportions, messy, dirty, sad, depressing`
+
+    }
+    'anime': {
+        name: 'Anime Épico e Cinematográfico (Estilo "Studio Ghibli / Makoto Shinkai")',
+        block: `
+
+#A breathtaking 2D anime scene, a cinematic masterpiece in the combined style of Studio Ghibli and Makoto Shinkai. Directed by Hayao Miyazaki. The aesthetic is proudly hand-drawn, with incredibly detailed, lush, watercolor-style backgrounds that feel like standalone paintings. Characters are simply designed but animated with subtle, realistic gestures that convey deep emotion. There is a meticulous, almost reverent, attention to the details of nature: individual leaves rustling in the wind, the shimmer of light on a river's surface, magnificent, towering cloud formations. Lighting is soft, natural, and deeply atmospheric, often featuring dramatic, volumetric 'god rays' breaking through clouds or trees. The food depicted looks impossibly delicious and comforting. A profound feeling of nostalgia, gentle melancholy, and a deep respect for the quiet moments of life.
+
+--no 3d, cgi, realistic, photorealistic, ugly, dark, horror, violent, robotic, low quality, generic anime, moe, fan art, sharp digital lines`
+
+    }
+    'comic': {
+        name: 'Ação e Estilo "Comic Book" (Estilo "Spider-Man: Into the Spider-Verse")',
+        block: `
+
+#Dynamic, groundbreaking stylized 3D animation in the revolutionary style of 'Spider-Man: Into the Spider-Verse'. A visual explosion of mixed media. Characters are cel-shaded with visible, expressive ink line work, misaligned CMYK color channels, and textured with halftone dots (Ben-Day dots). Onomatopoeia text effects and action lines are integrated diegetically into the scene. The animation deliberately uses a lowered frame rate ('on twos') to mimic the feel of 2D, creating a snappy, kinetic energy. Compositions are bold and graphic, using extreme angles and a vibrant, saturated, graffiti-inspired color palette. A masterful fusion of cinematic depth of field with the raw, tactile energy of a printed comic book, street art, and pop art.
+
+--no photorealistic, realistic, smooth, fluid animation, high frame rate, conventional, boring, dull colors, simple, classic, disney, pixar, elegant, quiet, calm`
+
+    }
+    'comic': {
+        name: 'Fantasia Sombria e Elegante (Estilo "Guillermo del Toro / Laika Studios")',
+        block: `
+
+#A masterful stop-motion animation aesthetic in the combined style of Laika Studios and Guillermo del Toro. Characters are exquisitely detailed puppets with elongated, stylized features, soulful, glassy eyes, and a tangible, handmade quality. The world is a gothic fairytale, filled with twisted, organic architecture and a dark, deeply desaturated color palette, dramatically accented by a single, vibrant color (blood red, ethereal blue). Lighting is low-key, theatrical, and dramatic, using hard spotlights and deep shadows to create long, distorted, German Expressionist-style silhouettes. Textures are hyper-detailed and tactile: rough, splintered wood, decaying, moth-eaten fabric, cold, moss-covered stone. A beautiful, melancholic, and elegantly creepy atmosphere.
+
+--no bright, happy, colorful, cute, pixar, disney, realistic, photorealistic, cgi, smooth, clean, modern, minimalist, simple, funny`
+
+    }
+
+
 
 
 };
