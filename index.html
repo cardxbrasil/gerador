@@ -5,103 +5,81 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agente Neo</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Fonte Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- HEADER -->
-  <header>
-    <h1>Agente Neo</h1>
-    <p>O mundo precisa do que só você pode criar</p>
-  </header>
+  <!-- SIDEBAR -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+      <h2>⚡ Neo</h2>
+      <button id="closeSidebar">×</button>
+    </div>
+    <nav>
+      <a href="#">Início</a>
+      <a href="#">Agente</a>
+      <a href="#">Ferramentas</a>
+      <a href="#">Configurações</a>
+    </nav>
+  </aside>
+
+  <!-- BOTÃO ABRIR SIDEBAR -->
+  <button id="openSidebar" class="open-sidebar">☰</button>
 
   <!-- MAIN -->
-  <main>
-    <p>Dê uma tarefa ao Neo, deixe-o planejar, chamar ferramentas e executar para você na nuvem...</p>
-    <div class="badge">AGENT MODE ON</div>
+  <div class="main">
+    <header>
+      <h1>Agente Neo</h1>
+      <p>O mundo precisa do que só você pode criar</p>
+    </header>
 
-    <div class="task-box">
-      <textarea id="taskInput" rows="2" placeholder="Digite sua tarefa aqui..."></textarea>
-      <button class="btn" id="startBtn">começar</button>
-    </div>
+    <main>
+      <p>Dê uma tarefa ao Neo, deixe-o planejar, chamar ferramentas e executar para você na nuvem...</p>
+      <div class="badge">AGENT MODE ON</div>
 
-    <div class="grid cols-3">
-      <!-- Card Agente -->
-      <div class="card">
-        <h4 class="primary">Agente NEO</h4>
-        <p class="small">Lançado em 19 de maio de 2025</p>
-        <div class="card-body">
-          <p><strong>⚡ Superracional Replanejamento</strong></p>
-          <p>Replaneie durante a execução. Neo pode ajustar o plano para alcançar a meta final.</p>
-        </div>
-        <div class="card-footer">
-          <span>Ativo</span>
-          <span>Tempo de Execução <b class="primary">98%</b></span>
-        </div>
+      <div class="task-box">
+        <textarea id="taskInput" rows="2" placeholder="Digite sua tarefa aqui..."></textarea>
+        <button class="btn" id="startBtn">começar</button>
       </div>
 
-      <!-- Tabs + Cards -->
-      <div class="card span-2">
-        <!-- Tabs -->
-        <div class="tabs">
-          <button class="tab active" data-tab="pesquisa">Pesquisa</button>
-          <button class="tab" data-tab="criacao">Criação</button>
-          <button class="tab" data-tab="interacao">Interação</button>
-        </div>
-
-        <!-- Conteúdo das abas -->
-        <div id="pesquisa" class="tab-content active grid-2">
-          <div class="card">
-            <h4>🔍 Pesquisa online</h4>
-            <p>Realiza uma pesquisa online inteligente e analisa as instruções.</p>
-            <p class="small">Capacidade: 50 | Uso: 80</p>
+      <div class="grid cols-3">
+        <div class="card">
+          <h4 class="primary">Agente NEO</h4>
+          <p class="small">Lançado em 19 de maio de 2025</p>
+          <div class="card-body">
+            <p><strong>⚡ Superracional Replanejamento</strong></p>
+            <p>Replaneie durante a execução. Neo pode ajustar o plano para alcançar a meta final.</p>
           </div>
-          <div class="card">
-            <h4>🖼️ Pesquisa de imagens</h4>
-            <p>Busca imagens no Google Images com títulos e links relevantes.</p>
-            <p class="small">Capacidade: 30 | Uso: 90</p>
-          </div>
-          <div class="card">
-            <h4>🐦 Pesquisa no Twitter</h4>
-            <p>Extrai tweets no Twitter usando palavras-chave específicas.</p>
-            <p class="small">Capacidade: 40 | Uso: 90</p>
-          </div>
-          <div class="card">
-            <h4>🌐 Usar navegador</h4>
-            <p>Permite navegar na web para buscar informações em tempo real.</p>
-            <p class="small">Capacidade: 60 | Uso: 300</p>
+          <div class="card-footer">
+            <span>Ativo</span>
+            <span>Tempo de Execução <b class="primary">98%</b></span>
           </div>
         </div>
 
-        <div id="criacao" class="tab-content grid-2">
-          <div class="card">
-            <h4>✍️ Gerar roteiro</h4>
-            <p>Cria roteiros estruturados prontos para serem usados em vídeos.</p>
+        <div class="card span-2">
+          <div class="tabs">
+            <button class="tab active" data-tab="pesquisa">Pesquisa</button>
+            <button class="tab" data-tab="criacao">Criação</button>
+            <button class="tab" data-tab="interacao">Interação</button>
           </div>
-          <div class="card">
-            <h4>🎶 Criar narração</h4>
-            <p>Transforma o roteiro em narração de voz sintética.</p>
-          </div>
-        </div>
 
-        <div id="interacao" class="tab-content grid-2">
-          <div class="card">
-            <h4>🤖 Chat avançado</h4>
-            <p>Permite conversar em tempo real com o agente.</p>
+          <div id="pesquisa" class="tab-content active grid-2">
+            <div class="card"><h4>🔍 Pesquisa online</h4><p>Pesquisa online inteligente.</p></div>
+            <div class="card"><h4>🖼️ Pesquisa de imagens</h4><p>Busca imagens no Google.</p></div>
           </div>
-          <div class="card">
-            <h4>📊 Painel de insights</h4>
-            <p>Mostra métricas e insights em tempo real.</p>
+          <div id="criacao" class="tab-content grid-2">
+            <div class="card"><h4>✍️ Gerar roteiro</h4><p>Cria roteiros estruturados.</p></div>
+          </div>
+          <div id="interacao" class="tab-content grid-2">
+            <div class="card"><h4>🤖 Chat avançado</h4><p>Converse em tempo real.</p></div>
           </div>
         </div>
       </div>
-    </div>
-  </main>
+    </main>
 
-  <!-- Footer -->
-  <footer>
-    <button>Explore agent mode cases ▼</button>
-  </footer>
+    <footer>
+      <button>Explore agent mode cases ▼</button>
+    </footer>
+  </div>
 
   <script src="script.js"></script>
 </body>
