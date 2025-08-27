@@ -4066,14 +4066,9 @@ const getDominantValue = (arr, defaultValue = 'Indefinido') => {
 
 
 // =========================================================================
-// >>>>> FIM DA VERSÃO BLINDADA DE 'addDevelopmentChapter' <<<<<
+// >>>>> VERSÃO FINAL E BLINDADA DA FUNÇÃO 'suggestPerformance' <<<<<
+//       Impede a repetição e reescrita do texto original.
 // =========================================================================
-
-// VERSÃO DEFINITIVA de suggestPerformance (Resiliente e com Idioma Correto)
-// SUBSTITUA A SUA FUNÇÃO window.suggestPerformance INTEIRA POR ESTA VERSÃO FINAL
-
-// SUBSTITUA A SUA FUNÇÃO window.suggestPerformance INTEIRA POR ESTA VERSÃO FINAL
-
 window.suggestPerformance = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -4098,18 +4093,24 @@ window.suggestPerformance = async (button) => {
 
         const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
 
-        const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração claras e impactantes, retornando um array JSON.
+        // O PROMPT FOI REFORÇADO COM NOVAS REGRAS
+        const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração, retornando um array JSON.
 
-**IDIOMA OBRIGATÓRIO:** Todas as anotações geradas (como "[Pausa dramática]") DEVEM estar em ${languageName}. Esta é a regra mais importante.
+**IDIOMA OBRIGATÁRIO:** Todas as anotações geradas (como "[Pausa dramática]") DEVEM estar em ${languageName}.
 
 **ROTEIRO PARA ANÁLISE:**
 ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')}
 
 **MANUAL DE ANOTAÇÃO (REGRAS CRÍTICAS):**
-1.  **Para "general_annotation":**
+
+// >>>>> AQUI ESTÁ A MUDANÇA CRÍTICA: A REGRA DE OURO <<<<<
+**1. REGRA DE OURO - FIDELIDADE AO ORIGINAL:** Sua tarefa é *anotar*, não *reescrever*. É **ESTRITAMENTE PROIBIDO** repetir, reordenar, resumir ou alterar as frases do roteiro original. O texto de cada parágrafo deve ser mantido 100% intacto. Sua função é apenas adicionar anotações.
+
+**2. Para "general_annotation":**
     *   A anotação DEVE ser uma instrução curta para o narrador (ex: "[Tom mais sério e grave]", "[Pausa dramática]", "[Falar com urgência]").
     *   Se nenhuma instrução for necessária, deixe a string VAZIA ("").
-2.  **Para "emphasis_words":**
+
+**3. Para "emphasis_words":**
     *   Identifique a ÚNICA palavra ou pequena frase (1-3 palavras) que deve receber mais ênfase.
     *   Se nenhuma ênfase for necessária, deixe o array VAZIO ([]).
 
@@ -4118,7 +4119,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 2.  Cada objeto DEVE ter DUAS chaves: "general_annotation" (string) e "emphasis_words" (array de strings).
 3.  Use aspas duplas ("") para todas as chaves e valores.
 
-**AÇÃO FINAL:** Analise CADA parágrafo e retorne o array JSON completo com suas anotações de DIRETOR no idioma correto.`;
+**AÇÃO FINAL:** Analise CADA parágrafo, **preservando 100% do texto original** e apenas adicionando suas anotações de performance. Retorne o array JSON completo.`;
         
         const brokenJsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000);
         const annotations = await getRobustJson(brokenJsonResponse);
@@ -4140,19 +4141,20 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
                 if (word && typeof word === 'string' && word.trim() !== '') {
                     const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `[ênfase em '$1'] $1`);
+                    // A anotação agora é injetada DENTRO do texto original, não o substituindo
+                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `<span class="performance-emphasis">$1</span>`);
                 }
             }
             
-            const finalParagraph = `${annotationData.general_annotation || ''} ${annotatedParagraph}`;
-            annotatedParagraphs.push(finalParagraph.trim());
+            // Adiciona a anotação geral ANTES do parágrafo original intacto
+            const annotationHtml = annotationData.general_annotation ? `<span class="performance-emphasis">${DOMPurify.sanitize(annotationData.general_annotation)}</span> ` : '';
+            annotatedParagraphs.push(annotationHtml + annotatedParagraph);
         });
         
-        const finalAnnotatedText = annotatedParagraphs.join('\n\n');
+        // Juntamos os parágrafos anotados em um único bloco de HTML para exibição
+        const finalAnnotatedHtml = annotatedParagraphs.join('<br><br>');
         
-        const highlightedText = finalAnnotatedText.replace(/(\[.*?\])/g, '<span style="color: var(--primary); font-weight: 600; font-style: italic;">$1</span>');
-
-        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><p class="whitespace-pre-wrap">${highlightedText}</p></div>`;
+        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><p class="whitespace-pre-wrap">${finalAnnotatedHtml}</p></div>`;
             
     } catch (error) {
         outputContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">Falha ao sugerir performance: ${error.message}</p>`;
@@ -4161,7 +4163,6 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
         hideButtonLoading(button);
     }
 };
-
 
 
 
