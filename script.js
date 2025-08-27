@@ -1066,17 +1066,17 @@ const fixJsonWithAI = async (brokenJsonText) => {
 
 
 // =========================================================================
-// >>>>> SUBSTITUA SUA FUNÇÃO 'getRobustJson' INTEIRA POR ESTA VERSÃO BLINDADA <<<<<
+// >>>>> FILTRO JSON <<<<<
 // =========================================================================
 const getRobustJson = async (text) => {
     if (!text) {
         throw new Error("A IA retornou uma resposta vazia.");
     }
 
-    // Limpa metadados comuns da IA no início.
+    // Mantém sua limpeza de metadados original.
     let jsonString = text.replace(/```json\n|```/g, '').replace(/assistant<\|end_header_id\|>|Continuação da resposta:|Aqui está a resposta em JSON:|Aqui está a minha resposta:/gi, '').trim();
 
-    // Encontra o início e o fim do bloco JSON.
+    // Mantém sua lógica de extração do bloco JSON original.
     const firstBrace = jsonString.indexOf('{');
     const firstBracket = jsonString.indexOf('[');
     
@@ -1093,8 +1093,8 @@ const getRobustJson = async (text) => {
         }
     }
 
-    // --- NOVA BLINDAGEM (ETAPA 1): CORRIGIR QUEBRAS DE LINHA E ESCAPES ---
-    // Remove quebras de linha literais de dentro das strings.
+    // >>>>> EVOLUÇÃO 1: NOVA BLINDAGEM DE LIMPEZA PROATIVA <<<<<
+    // Remove quebras de linha literais de dentro das strings, que causam "Bad control character".
     jsonString = jsonString.replace(/\n/g, "\\n");
     // Corrige barras invertidas mal escapadas que a IA às vezes produz.
     jsonString = jsonString.replace(/\\"/g, '\\\\"');
@@ -1105,25 +1105,27 @@ const getRobustJson = async (text) => {
     } catch (error) {
         console.warn("Falha no parse rápido mesmo após a limpeza. Tentando conserto completo com IA...", error.message);
         
-        // TENTATIVA 2: O resgate com IA (como último recurso).
+        // TENTATIVA 2: O resgate com IA, mantendo sua lógica.
         const fixedJsonByAI = await fixJsonWithAI(jsonString);
         try {
             let finalJson = JSON.parse(fixedJsonByAI);
             
-            // --- NOVA BLINDAGEM (ETAPA 2): "DESEMBRULHAR" O JSON ---
+            // >>>>> EVOLUÇÃO 2: NOVA BLINDAGEM PARA "DESEMBRULHAR" O JSON <<<<<
             // Verifica se a IA retornou um array com uma única string que é o JSON.
+            // Exemplo: ["{...}"]
             if (Array.isArray(finalJson) && finalJson.length === 1 && typeof finalJson[0] === 'string') {
+                console.log("Detectado JSON 'embrulhado' em um array. Tentando desembrulhar...");
                 try {
-                    // Tenta fazer o parse do conteúdo da string.
+                    // Tenta fazer o parse do conteúdo da string interna.
                     return JSON.parse(finalJson[0]);
                 } catch (innerError) {
                     console.error("Erro ao tentar desembrulhar o JSON interno:", innerError);
-                    // Se falhar, pelo menos retorna o JSON corrigido pela IA.
+                    // Se falhar, é mais seguro retornar o array como está.
                     return finalJson;
                 }
             }
             
-            return finalJson;
+            return finalJson; // Retorna o JSON corrigido se não estiver "embrulhado".
         } catch (finalError) {
             console.error("Falha final ao analisar JSON, mesmo após conserto da IA:", fixedJsonByAI);
             throw new Error(`A IA retornou um JSON estruturalmente inválido que não pôde ser consertado. Detalhe: ${finalError.message}`);
