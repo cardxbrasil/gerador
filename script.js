@@ -1872,50 +1872,51 @@ const generateIdeasFromReport = async (button) => {
 
 
 // =========================================================================
-// >>>>> MAPEADOR DE ESTRATÉGIA FINAL E COMPLETO (VERSÃO CORRIGIDA) <<<<<
-// Define a configuração de partida ideal para cada especialista, incluindo
-// TODOS os dropdowns das abas "Estratégia Narrativa" e "Detalhes Técnicos".
+// >>>>> VERSÃO FINAL E CORRIGIDA DO 'strategyMapper' <<<<<
+//       Substitua o seu objeto inteiro por este bloco de código.
 // =========================================================================
 const strategyMapper = {
     'documentario': {
         dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'documentary', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
-        targetAudience: idea => idea.targetAudience, // Mapeamento direto
-        narrativeTheme: idea => idea.angle, // Mapeamento direto do ângulo para o tema
-        centralQuestion: idea => `O que as evidências sobre "${idea.title}" realmente significam e qual o seu impacto?`, // Pergunta mais forte
-        researchData: idea => `Focar na abordagem investigativa de "${idea.investigativeApproach}". Consultar fontes primárias relacionadas ao relatório.`, // Mais direto
+        targetAudience: idea => idea.targetAudience,
+        narrativeTheme: idea => idea.angle,
+        centralQuestion: idea => `O que as evidências sobre "${idea.title}" realmente significam e qual o seu impacto?`,
+        researchData: idea => `Focar na abordagem investigativa de "${idea.investigativeApproach}". Consultar fontes primárias relacionadas ao relatório.`,
         dossier: idea => `- Tese Central: ${idea.angle}\n- Abordagem: ${idea.investigativeApproach}\n- Público: ${idea.targetAudience}`
     },
     'inspiracional': {
         dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'heroes_journey', narrativeTone: 'inspirador', videoObjective: 'emocionar', languageStyle: 'inspirador', speakingPace: 'slow' },
-        targetAudience: idea => idea.targetAudience, // Mapeamento direto
-        narrativeTheme: idea => idea.angle, // Mapeamento direto do arco narrativo para o tema
-        emotionalHook: idea => `A história começa com uma pessoa vivenciando o silêncio e a dor descritos na narrativa. O ponto de virada é a descoberta que a leva a encontrar sua voz. O núcleo emocional é a jornada de '${idea.emotionalCore}'.`, // Muito mais específico
+        targetAudience: idea => idea.targetAudience,
+        narrativeTheme: idea => idea.angle,
+        emotionalHook: idea => `A história começa com uma pessoa vivenciando o silêncio e a dor descritos na narrativa. O ponto de virada é a descoberta que a leva a encontrar sua voz. O núcleo emocional é a jornada de '${idea.emotionalCore}'.`,
         dossier: idea => `- Arco Narrativo: ${idea.angle}\n- Núcleo Emocional: ${idea.emotionalCore}`
     },
     'scifi': {
         dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
         targetAudience: idea => idea.targetAudience,
-        centralQuestion: idea => idea.angle, // Mapeamento direto da premissa para a pergunta
-        narrativeTheme: idea => `Explorar as consequências éticas e humanas do dilema central de '${idea.coreDilemma}'.`, // Mais direto
+        centralQuestion: idea => idea.angle,
+        narrativeTheme: idea => `Explorar as consequências éticas e humanas do dilema central de '${idea.coreDilemma}'.`,
         dossier: idea => `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`
     },
     'terror': {
         dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'twist', narrativeTone: 'serio', videoObjective: 'emocionar', languageStyle: 'formal', speakingPace: 'slow' },
         targetAudience: idea => idea.targetAudience,
-        narrativeTheme: `A quebra da normalidade e a descida à loucura, usando o mecanismo de '${idea.horrorMechanism}'.`, // Mais direto
+        // CORRIGIDO AQUI: A regra agora é uma função
+        narrativeTheme: idea => `A quebra da normalidade e a descida à loucura, usando o mecanismo de '${idea.horrorMechanism}'.`,
         centralQuestion: idea => idea.angle,
         dossier: idea => `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`
     },
     'enigmas': {
         dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'mystery_loop', narrativeTone: 'serio', videoObjective: 'informar', languageStyle: 'formal', speakingPace: 'moderate' },
         targetAudience: idea => idea.targetAudience,
-        narrativeTheme: idea => idea.angle, // Mapeamento do enigma para o tema
-        centralQuestion: idea => idea.discussionQuestions[0] || '', // Pega a primeira pergunta para diálogo
-        researchData: idea => `A investigação deve se basear nestas passagens bíblicas: ${(idea.scripturalFoundation || []).join('; ')}.`, // Mais específico
+        narrativeTheme: idea => idea.angle,
+        centralQuestion: idea => (idea.discussionQuestions && idea.discussionQuestions.length > 0) ? idea.discussionQuestions[0] : '',
+        researchData: idea => `A investigação deve se basear nestas passagens bíblicas: ${(idea.scripturalFoundation || []).join('; ')}.`,
         dossier: idea => `- Tese Principal: ${idea.angle}\n- Fundamentação Bíblica: ${(idea.scripturalFoundation || []).join('; ')}\n- Questões para Diálogo:\n${(idea.discussionQuestions || []).map(q => `  - ${q}`).join('\n')}`
     },
     'geral': {
         dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'pixar_spine', narrativeTone: 'inspirador', videoObjective: 'informar', languageStyle: 'inspirador', speakingPace: 'moderate' },
+        // CORRIGIDO AQUI: As regras agora são funções
         targetAudience: idea => idea.targetAudience,
         narrativeTheme: idea => idea.angle,
         dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
