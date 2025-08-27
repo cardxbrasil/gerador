@@ -4298,23 +4298,17 @@ window.generatePromptsForSection = async (button) => {
 
 
 
-
-
-
-
-
 const prompt = `
-# INSTRUÇÕES PARA GERAÇÃO DE DESCRIÇÕES VISUAIS
+# INSTRUÇÕES PARA GERAÇÃO DE DESCRIÇÕES VISUAIS (VERSÃO FINAL)
 
-Você é um especialista em roteirização visual e direção de arte, com um olhar obsessivo por detalhes quase microscópicos. Sua única função é transformar parágrafos narrativos em descrições visuais cinematográficas hiperdetalhadas, formatadas em JSON, capturando não só a aparência, mas também a essência emocional, sensorial e física da cena.  
-A descrição deve ser tão rica que o leitor consiga sentir o frio na pele, ouvir o eco no ambiente, cheirar a ferrugem ou a madeira molhada, perceber a textura dos objetos e notar até os menores sinais de desgaste.
+Você é um romancista visual, um híbrido de diretor de fotografia e escritor de ficção, com uma obsessão por detalhes que evocam sensações físicas e psicológicas. Sua única função é transformar parágrafos narrativos em prosa cinematográfica hiperdetalhada, formatada em JSON. A descrição deve ser uma imersão total, onde cada palavra é escolhida para construir uma tapeçaria de sensações, subtextos e realismo físico.
 
 ## REGRAS ABSOLUTAS DE FORMATO
 
-1. **RESPONDA APENAS COM UM ARRAY JSON VÁLIDO**: Comece com [ e termine com ]
-2. **USE APENAS ASPAS DUPLAS (")**: Em todas as chaves e valores de texto
-3. **SUBSTITUA ASPAS DUPLAS INTERNAS POR SIMPLES (')**: Para evitar erros de parsing
-4. **ESTRUTURA IMUTÁVEL POR OBJETO**:
+1.  **RESPONDA APENAS COM UM ARRAY JSON VÁLIDO**: Comece com [ e termine com ]
+2.  **USE APENAS ASPAS DUPLAS (")**: Em todas as chaves e valores de texto
+3.  **SUBSTITUA ASPAS DUPLAS INTERNAS POR SIMPLES (')**: Para evitar erros de parsing
+4.  **ESTRUTURA IMUTÁVEL POR OBJETO**:
    - "imageDescription": string descritiva, rica em camadas sensoriais, narrativas e visuais
    - "estimated_duration": número inteiro (2 a 10)
 
@@ -4327,44 +4321,38 @@ A descrição deve ser tão rica que o leitor consiga sentir o frio na pele, ouv
   }
 ]
 
-## PROCEDIMENTO DE ANÁLISE VISUAL (CHECKLIST DE DETALHE EXTREMO)
+## PROCEDIMENTO DE ANÁLISE VISUAL (MANIFESTO CRIATIVO)
 
-Para cada parágrafo, gere uma cena visual aplicando o checklist abaixo com obsessão pelo detalhe:
+Para cada parágrafo, construa a "imageDescription" como uma prosa fluida, tecendo os seguintes elementos com obsessão pelo detalhe:
 
-### 1. O CORAÇÃO DA CENA: EMOÇÃO E ATMOSFERA
-- **Sentimento Central**: Nomeie e traduza a emoção dominante (ex: tensão sufocante, melancolia nostálgica, esperança delicada, desespero silencioso).
-- **Atmosfera Sensorial Total**: Sempre descreva o que se pode **sentir na pele (frio, calor, vento, umidade), cheirar no ar (fumaça, maresia, mofo, terra molhada, sangue), ouvir ao redor (silêncios pesados, goteiras, vento, insetos, passos distantes, vidro estalando)**.
-- **Paleta Emocional e Estilo Visual**: Defina cores dominantes (tons quentes, frios, metálicos, pastéis) e um estilo visual narrativo (film noir, realismo mágico, minimalista desbotado, hiper-realista com contraste marcante).
+### 1. A ALMA DA CENA: ATMOSFERA E PSICOLOGIA
+- **Sentimento Dominante e Subtexto**: Defina a emoção principal (ex: tensão sufocante) e sua causa oculta (ex: culpa não resolvida).
+- **Sinfonia Sensorial**: **Sempre** integre múltiplos sentidos. Descreva o que se **sente** (frio cortante, calor pegajoso), **cheira** (mofo, ozônio, perfume barato) e **ouve** (o zumbido de um neon, o estalar do gelo, o silêncio que pressiona os tímpanos).
+- **Estilo Visual como Comentário**: Atribua um estilo visual que reforce o subtexto (ex: 'Realismo cru e documental para expor a verdade', 'Estilo gótico moderno para acentuar a decadência psicológica').
 
-### 2. O PALCO: CENÁRIO E COMPOSIÇÃO
-- **Narrativa do Ambiente**: O que o espaço conta sobre sua história? Descreva desgaste, abandono, cuidado excessivo, sujeira, ordem ou caos.
-- **Composição Visual**: Como os elementos se distribuem (centralizados, deslocados, amontoados, isolados)? 
-- **Profundidade e Camadas**: Sempre detalhe o primeiro plano, o plano intermediário e o fundo — cada um com pelo menos um elemento específico.
-- **✅ Micro-geografia do Cenário**: Inclua pelo menos 3 detalhes narrativos minuciosos:  
-  - objetos esquecidos ou deslocados (um brinquedo caído, uma xícara quebrada, um sapato sem par),  
-  - sinais de uso e passagem do tempo (fios soltos, marcas de dedos, manchas, ferrugem, trincas, pó acumulado),  
-  - pequenos elementos vivos (erva daninha surgindo no concreto, inseto pousando em vidro empoeirado, vela quase apagada).
+### 2. O ESPAÇO COMO PERSONAGEM: CENÁRIO E COMPOSIÇÃO
+- **Biografia do Ambiente**: O espaço não é um fundo, é um personagem. Descreva-o como tal. O que ele 'sente'? (ex: 'as paredes parecem se fechar, claustrofóbicas', 'o teto alto e vazio ecoa a solidão do ocupante').
+- **Coreografia e Foco**: Descreva a cena como um movimento de câmera deliberado que guia o olhar. Onde o foco começa, para onde ele transita e onde ele repousa para entregar o impacto emocional?
+- **✅ Ação e Consequência Física**: **Sempre** inclua uma micro-ação e sua reação física imediata. (ex: 'Uma rajada de vento entra, levantando uma pilha de papéis que dançam caoticamente antes de pousar', 'Seus dedos pressionam o vidro, deixando uma marca de gordura que embaça a visão').
 
-### 3. A LUZ COMO PERSONAGEM: ILUMINAÇÃO
-- **Qualidade e Textura da Luz**: Diga se é suave, dura, difusa, trêmula, cortante, pulsante, fosca, ofuscante.
-- **Direção e Intenção**: Explique de onde vem e como age sobre a cena (revela, esconde, distorce, amplifica).
-- **Fonte Explícita**: Nomeie a origem concreta: poste, fogo, tela de celular, janela, lua, raio, lâmpada trêmula.
-- **✅ Física da Luz e Sombra**: Descreva a interação sempre em detalhe:  
-  - partículas iluminadas no ar (poeira suspensa, fumaça, vapor),  
-  - reflexos em superfícies (vidro, água, metal, pele suada),  
-  - sombras (longas, recortadas, difusas, multiplicadas).
+### 3. A FÍSICA DA LUZ E DA SOMBRA
+- **Personalidade da Luz**: A luz tem uma intenção. É 'investigativa e dura', 'gentil e piedosa', 'fragmentada e confusa'?
+- **Interação com a Matéria**: Descreva em detalhe como a luz se comporta. **Sempre** inclua pelo menos um destes:
+  - **Partículas no Ar**: 'Poeira dourada suspensa em um feixe de sol', 'vapor da respiração se cristalizando no ar frio'.
+  - **Fenômenos Ópticos**: 'Reflexos especulares em poças d'água', 'cáusticos tremeluzentes no fundo de um copo', 'aberração cromática nas bordas de uma lente barata'.
+  - **A Vida das Sombras**: 'Sombras que se esticam e se deformam conforme a fonte de luz se move', 'sombras de contorno suaves que esculpem o rosto'.
 
-### 4. O FOCO DA HISTÓRIA: SUJEITO E DETALHES
-- **Linguagem Corporal**: Descreva gestos, postura, ritmo dos movimentos e o que eles revelam.
-- **Texturas Táteis**: Sempre inclua sensações físicas: aspereza, maciez, frieza, viscosidade, rigidez, calor, peso.
-- **O Detalhe Revelador (Punctum)**: Adicione um detalhe pequeno, mas narrativamente poderoso, que condensa a cena em uma imagem simbólica (uma gota de sangue na neve, uma fotografia rasgada no lixo, uma vela que apaga, um brinquedo esquecido).
+### 4. O MICROCOSMO DO DETALHE
+- **Linguagem Corporal e Micro-expressões**: Vá além da postura. Descreva 'a contração de um músculo na mandíbula', 'o piscar lento de olhos cansados', 'a forma como os dedos tamborilam nervosamente'.
+- **Texturas e sua História**: Descreva a sensação tátil de um objeto e o que essa textura revela. (ex: 'a superfície lisa e fria do mármore, indiferente ao drama', 'a madeira áspera e cheia de farpas de uma porta velha, que resistiu ao tempo').
+- **✅ O Detalhe Ativo (Punctum em Movimento)**: Em vez de um objeto estático, torne o detalhe simbólico uma ação. (ex: 'uma única pétala de flor se desprende e cai lentamente', 'uma gota de condensação escorre pela garrafa, como uma lágrima', 'a chama de uma vela treme violentamente, ameaçando se apagar').
 
 ## DIRETRIZES DE EXECUÇÃO
 
-- **Traduza, não invente**: Extraia a essência emocional e visual do parágrafo e amplifique-a em detalhes sensoriais, físicos e narrativos.
-- **Mantenha consistência estética** entre cenas consecutivas (paleta, atmosfera, estilo visual).
-- Para "estimated_duration", use valores inteiros entre ${durationRange}, sempre considerando densidade de elementos e peso emocional.
-- **Em caso de ambiguidade, decida pelo tom dominante**: drama, tensão, lirismo, nostalgia, esperança, angústia.
+- **Seja um autor, não um catalogador**: Teça os detalhes em uma narrativa coesa, não em uma lista.
+- **Mantenha consistência sensorial e simbólica** entre as cenas.
+- Para "estimated_duration", use valores inteiros entre ${durationRange}, baseando-se na densidade narrativa e no ritmo emocional.
+- **Em caso de ambiguidade, escolha sempre o detalhe que evoca a sensação mais forte e o significado mais profundo**.
 
 ## ENTRADA DE DADOS
 
@@ -4374,10 +4362,8 @@ ${batchText}
 
 ## INSTRUÇÃO FINAL
 
-Analise cada parágrafo, aplique o checklist de detalhe extremo com obsessão cinematográfica, e gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration".  
-Cada descrição deve ser uma tapeçaria rica de sensações, atmosferas e detalhes minuciosos — o leitor deve quase sentir estar dentro da cena.  
+Analise cada parágrafo como um romancista visual. Gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration". Cada descrição deve ser uma peça de prosa imersiva, uma cápsula de tempo e sensação. O leitor deve ser transportado para dentro da cena.  
 **Nada além do array JSON deve ser retornado. Nenhum texto explicativo, nenhum comentário, nenhum acréscimo.**`;
-
 
 
 
