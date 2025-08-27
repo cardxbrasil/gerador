@@ -827,3 +827,9 @@ textarea.input { min-height: 84px; resize: vertical; }
 .text-blue-500 { color: var(--blue) !important; }
 
 
+/* ========================================================================= */
+/* >>>>> CORREÇÃO PARA OS ÍCONES DAS ABAS <<<<< */
+/* ========================================================================= */
+.tab-button .fas {
+    font-weight: 900; /* Força o peso correto para ícones sólidos (fas) */
+}
