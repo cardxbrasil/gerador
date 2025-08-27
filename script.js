@@ -1872,7 +1872,7 @@ const generateIdeasFromReport = async (button) => {
 
 
 // =========================================================================
-// >>>>> 'strategyMapper' FINAL E COMPLETO - COM HOOKS INTELIGENTES <<<<<
+// >>>>> VERSÃO FINAL E COMPLETA DO 'strategyMapper' - SEM CAMPOS VAZIOS <<<<<
 //       Substitua o seu objeto inteiro por este bloco de código.
 // =========================================================================
 const strategyMapper = {
@@ -1881,6 +1881,7 @@ const strategyMapper = {
         targetAudience: idea => idea.targetAudience || `Pessoas com interesse acadêmico e curiosos sobre os fatos por trás de "${idea.title}".`,
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => `O que as evidências sobre "${idea.title}" realmente revelam e qual o seu verdadeiro impacto?`,
+        emotionalHook: () => `Começar com a história pessoal de alguém diretamente impactado pelo tema, para dar um rosto humano aos dados.`,
         researchData: idea => `Focar na abordagem investigativa de "${idea.investigativeApproach}". Consultar fontes primárias mencionadas no relatório de pesquisa inicial.`,
         narrativeVoice: () => "Investigativo, factual e com autoridade no assunto.",
         shockingEndingHook: idea => `...e a parte mais chocante é que as evidências para "${idea.title}" sempre estiveram lá, esperando para serem conectadas.`,
@@ -1902,6 +1903,8 @@ const strategyMapper = {
         targetAudience: idea => idea.targetAudience || "Fãs de ficção científica especulativa (high-concept) e interessados nas implicações éticas da tecnologia.",
         centralQuestion: idea => idea.angle,
         narrativeTheme: idea => `Explorar as consequências éticas e humanas do dilema central de '${idea.coreDilemma}'.`,
+        emotionalHook: () => `Apresentar um personagem que inicialmente abraça a tecnologia, mostrando seus benefícios, antes de revelar a falha que o afeta pessoalmente.`,
+        researchData: () => `Citar 1-2 artigos ou tecnologias reais que sirvam de base para a extrapolação da ficção.`,
         narrativeVoice: () => "Intrigante, cerebral e levemente distópico.",
         shockingEndingHook: () => `...percebendo tarde demais que a tecnologia não era uma ferramenta, mas um espelho que refletia o pior de nós.`,
         dossier: idea => `- Premissa "E Se?": ${idea.angle}\n- Dilema Central: ${idea.coreDilemma}`
@@ -1911,6 +1914,8 @@ const strategyMapper = {
         targetAudience: idea => idea.targetAudience || "Fãs de terror psicológico e horror cósmico que apreciam uma construção lenta de tensão.",
         narrativeTheme: idea => `A quebra da normalidade e a descida à loucura, usando o mecanismo de '${idea.horrorMechanism}'.`,
         centralQuestion: idea => idea.angle,
+        emotionalHook: () => `A história começa em um cenário de normalidade absoluta, focando em um detalhe cotidiano que, lentamente, se revela perturbador.`,
+        researchData: () => `Pesquisar sobre folclore, psicologia ou fenômenos reais que possam dar uma base de verossimilhança ao horror.`,
         narrativeVoice: () => "Sussurrado, opressivo e que instiga paranoia.",
         shockingEndingHook: () => `...e o verdadeiro horror não era a escuridão lá fora, mas a que ele descobriu dentro de si mesmo.`,
         dossier: idea => `- Premissa Inquietante: ${idea.angle}\n- Mecanismo de Terror: ${idea.horrorMechanism}`
@@ -1920,6 +1925,7 @@ const strategyMapper = {
         targetAudience: idea => idea.targetAudience || "Estudantes de teologia, líderes religiosos e leigos interessados em interpretações bíblicas aprofundadas.",
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => (idea.discussionQuestions && idea.discussionQuestions.length > 0) ? idea.discussionQuestions[0] : `Qual é a verdade teológica oculta por trás de "${idea.title}"?`,
+        emotionalHook: () => `Iniciar com a história de um personagem bíblico ou figura histórica que enfrentou o dilema central do tema, antes de expandir a análise.`,
         researchData: idea => `A investigação deve se basear nestas passagens bíblicas: ${(idea.scripturalFoundation || []).join('; ')}.`,
         narrativeVoice: () => "Acadêmico, reverente e investigativo.",
         shockingEndingHook: () => `...revelando que a resposta para o enigma não estava no que foi escrito, mas no silêncio entre as palavras.`,
@@ -1930,6 +1936,8 @@ const strategyMapper = {
         targetAudience: idea => idea.targetAudience || "Público geral curioso e que gosta de aprender coisas novas de forma rápida e engajante.",
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => `Qual é a revelação surpreendente por trás do tema "${idea.title}"?`,
+        emotionalHook: () => `Conectar uma das curiosidades a uma pequena história humana ou uma anedota surpreendente de seu impacto inicial.`, // REGRA ADICIONADA
+        researchData: () => `Buscar 1-2 estatísticas ou datas-chave que reforcem o 'momento uau' do vídeo (ex: o custo original da tecnologia, o número de usuários hoje).`, // REGRA ADICIONADA
         narrativeVoice: () => "Dinâmico, claro e entusiasmado.",
         shockingEndingHook: () => `...e foi assim que uma simples pergunta mudou completamente a forma como vemos o mundo.`,
         dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
