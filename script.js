@@ -4957,13 +4957,19 @@ document.addEventListener('selectionchange', () => {
 
 
 
-// ==========================================================
-// ===== GERENTE DE CLIQUES v7.0 (OBJETO 'actions') =========
-// ==========================================================
+// =========================================================================
+// >>>>> VERSÃO FINAL DO GERENTE DE CLIQUES (OBJETO 'actions') <<<<<
+//       Substitua o seu objeto 'actions' inteiro por este.
+// =========================================================================
 const actions = {
-    // --- FLUXO v7.0 ---
+    // --- AÇÕES DO MENU DE EDIÇÃO (QUE ESTAVAM FALTANDO) ---
+    'expand': () => handleEditingAction('expand'),
+    'summarize': () => handleEditingAction('summarize'),
+    'correct': () => handleEditingAction('correct'),
+
+    // --- FLUXO PRINCIPAL v7.0 ---
     'investigate': (btn) => handleInvestigate(btn),
-    'generateIdeasFromReport': (btn) => orchestrateIdeaGeneration(btn),
+    'generateIdeasFromReport': (btn) => generateIdeasFromReport(btn),
     'select-idea': (btn) => { const ideaString = btn.dataset.idea; if (ideaString) selectIdea(JSON.parse(ideaString.replace(/&quot;/g, '"'))); },
     'suggestStrategy': (btn) => suggestStrategy(btn),
     'buildPromptAndContinue': (btn) => buildPromptAndContinue(),
@@ -4973,11 +4979,8 @@ const actions = {
         window.showCopyFeedback(btn);
     },
     'processPastedScript': (btn) => processPastedScript(btn),
-    
-    // Ação 'copyIdeaPrompt' não é necessária aqui, pois é gerenciada dentro da função showIdeaPromptDialog
 
-    // --- AÇÕES DO PAINEL DE FINALIZAÇÃO (Permanecem as mesmas) ---
-    'suggestFinalStrategy': (btn) => suggestFinalStrategy(btn),
+    // --- AÇÕES DO PAINEL DE FINALIZAÇÃO ---
     'goToFinalize': (btn) => goToFinalize(btn),
     'analyzeScript': (btn) => analyzeFullScript(btn),
     'analyzeHooks': (btn) => analyzeRetentionHooks(btn),
@@ -4987,16 +4990,14 @@ const actions = {
     'generateSoundtrack': (btn) => generateSoundtrack(btn),
     'mapEmotions': (btn) => mapEmotionsAndPacing(btn),
 
-    // --- AÇÕES DE GERENCIAMENTO E UTILITÁRIOS (Permanecem as mesmas) ---
+    // --- AÇÕES DE GERENCIAMENTO E UTILITÁRIOS ---
     'exportProject': () => exportProject(),
-    'exportPdf': () => downloadPdf(),
-    'exportTranscript': () => handleCopyAndDownloadTranscript(),
     'resetProject': async () => {
         const confirmed = await showConfirmationDialog("Começar um Novo Projeto?", "Isso limpará todos os campos e o trabalho realizado. Esta ação não pode ser desfeita. Deseja continuar?");
         if (confirmed) resetApplicationState();
     },
 
-    // --- AÇÕES DE EDIÇÃO DENTRO DOS ACORDEÕES (Permanecem as mesmas) ---
+    // --- AÇÕES DE EDIÇÃO DENTRO DOS ACORDEÕES ---
     'regenerate': (btn) => window.regenerateSection(btn.dataset.sectionId),
     'copy': (btn) => { const content = btn.closest('.accordion-item')?.querySelector('.generated-content-wrapper'); if (content) { window.copyTextToClipboard(content.textContent); window.showCopyFeedback(btn); } },
     'analyzeRetention': (btn) => window.analyzeSectionRetention(btn),
@@ -5005,7 +5006,7 @@ const actions = {
     'suggestPerformance': (btn) => window.suggestPerformance(btn),
     'addDevelopmentChapter': (btn) => window.addDevelopmentChapter(btn),
     'generate-prompts': (btn) => window.generatePromptsForSection(btn),
-    'optimizeGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.optimizeGroup(btn, text); },
+    'optimizeGroup': (btn) => window.optimizeGroup(btn), // CORREÇÃO: Passa o botão inteiro
     'deleteParagraphGroup': (btn) => { const text = btn.dataset.suggestionText; if (text) window.deleteParagraphGroup(btn, text); },
     'applySuggestion': (btn) => applySuggestion(btn),
     'applyAllSuggestions': (btn) => applyAllSuggestions(btn),
