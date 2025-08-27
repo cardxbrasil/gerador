@@ -4738,24 +4738,26 @@ const LOCAL_STORAGE_KEY = 'viralScriptGeneratorProject_v6';
 const getProjectStateForExport = () => {
     const stateToExport = JSON.parse(JSON.stringify(AppState));
     
-    // Zera o objeto de inputs para garantir que estamos salvando o estado atual do DOM
-    stateToExport.inputs = {};
+    // NÃO ZERAMOS MAIS O OBJETO DE INPUTS. Em vez disso, nós o ATUALIZAMOS.
+    // A linha "stateToExport.inputs = {};" foi REMOVIDA.
 
-    // Salva todos os inputs, selects e textareas que possuem um ID
+    // Salva/Atualiza todos os inputs, selects e textareas que possuem um ID
     const formElements = document.querySelectorAll('#appRoot input[id], #appRoot select[id], #appRoot textarea[id]');
     formElements.forEach(el => {
         if (el.type !== 'file' && el.type !== 'radio') {
+            // Isso irá adicionar ou sobrescrever o valor no objeto inputs,
+            // mas preservará outras chaves como 'selectedGenre'.
             stateToExport.inputs[el.id] = el.value;
         }
     });
     
-    // Salva o estado do radio button de 'conclusionType'
+    // A lógica para salvar o radio button permanece a mesma.
     const checkedConclusionType = document.querySelector('input[name="conclusionType"]:checked');
     if (checkedConclusionType) {
         stateToExport.inputs['conclusionType'] = checkedConclusionType.value;
     }
 
-    // Salva o HTML gerado para os painéis de resultado e análise
+    // A lógica para salvar o HTML dos painéis permanece a mesma.
     stateToExport.generated.emotionalMapHTML = document.getElementById('emotionalMapContent')?.innerHTML;
     stateToExport.generated.soundtrackHTML = document.getElementById('soundtrackContent')?.innerHTML;
     stateToExport.generated.titlesAndThumbnailsHTML = document.getElementById('titlesThumbnailsContent')?.innerHTML;
@@ -4766,6 +4768,8 @@ const getProjectStateForExport = () => {
 
     return stateToExport;
 };
+
+
 
 const saveStateToLocalStorage = () => {
     try {
