@@ -1933,12 +1933,12 @@ const strategyMapper = {
     },
     'geral': {
         dropdowns: { narrativeGoal: 'storytelling', narrativeStructure: 'pixar_spine', narrativeTone: 'inspirador', videoObjective: 'informar', languageStyle: 'inspirador', speakingPace: 'moderate' },
-        targetAudience: idea => idea.targetAudience || "Público geral curioso e que gosta de aprender coisas novas de forma rápida e engajante.",
+        // >>>>> REGRA APRIMORADA AQUI <<<<<
+        targetAudience: idea => idea.targetAudience || `Jovens de 18 a 30 anos, curiosos sobre tecnologia e história (público de canais como 'Manual do Mundo' ou 'Nerdologia'), que consomem conteúdo de curiosidades rápidas.`,
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => `Qual é a revelação surpreendente por trás do tema "${idea.title}"?`,
         emotionalHook: () => `Conectar uma das curiosidades a uma pequena história humana ou uma anedota surpreendente de seu impacto inicial.`,
         researchData: () => `Buscar 1-2 estatísticas ou datas-chave que reforcem o 'momento uau' do vídeo (ex: o custo original da tecnologia, o número de usuários hoje).`,
-        // >>>>> CORREÇÃO APLICADA AQUI <<<<<
         narrativeVoice: idea => `Dinâmico e claro, com um tom de revelação sobre como "${idea.title}" afeta nosso dia a dia.`,
         shockingEndingHook: idea => `...e no final, percebemos que a resposta para "${idea.title}" não estava nos livros de história, mas nos objetos que usamos todos os dias.`,
         dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
@@ -1964,8 +1964,7 @@ const getGenreFromIdea = (idea) => {
 
 
 // =========================================================================
-// >>>>> VERSÃO FINAL DA FUNÇÃO 'selectIdea' - CORRIGE O BUG DE ESTADO <<<<<
-//       Substitua sua função inteira por este bloco de código.
+// >>>>> VERSÃO FINAL E SIMPLIFICADA DA FUNÇÃO 'selectIdea' <<<<<
 // =========================================================================
 const selectIdea = (idea) => {
     const genre = getGenreFromIdea(idea);
@@ -1979,35 +1978,27 @@ const selectIdea = (idea) => {
         if (el) el.value = '';
     });
 
-    // --- ETAPA 2: MAPEAMENTO BÁSICO E HIGIENIZAÇÃO DOS DADOS ---
+    // --- ETAPA 2: MAPEAMENTO BÁSICO E HIGIENIZAÇÃO ---
     document.getElementById('videoTheme').value = idea.title || '';
     const cleanedDescription = (idea.videoDescription || '').replace(/\[[\d, ]+\]/g, '');
     document.getElementById('videoDescription').value = cleanedDescription;
 
-    // --- ETAPA 3: PREENCHIMENTO INTELIGENTE E CONTROLADO ---
+    // --- ETAPA 3: PREENCHIMENTO COMPLETO USANDO O MAPPER COMO ÚNICA FONTE DA VERDADE ---
     if (mapper) {
-        // 3a. PREENCHE OS DROPDOWNS PRINCIPAIS PRIMEIRO
-        // A ordem aqui é CRÍTICA. Primeiro definimos o 'Objetivo' (pai).
-        if (mapper.dropdowns && mapper.dropdowns.narrativeGoal) {
-            document.getElementById('narrativeGoal').value = mapper.dropdowns.narrativeGoal;
-        }
-        
-        // 3b. ATUALIZA A UI DEPENDENTE
-        // Agora que o 'Objetivo' está certo, atualizamos a lista de 'Estruturas' (filho).
-        updateNarrativeStructureOptions();
-        
-        // 3c. AGORA SIM, PREENCHE O RESTO, INCLUINDO A ESTRUTURA CORRETA
-        // Com a lista de opções já atualizada, selecionamos o valor correto.
+        // 3a. Lógica de preenchimento dos dropdowns (controlando a ordem)
         if (mapper.dropdowns) {
+            if (mapper.dropdowns.narrativeGoal) {
+                document.getElementById('narrativeGoal').value = mapper.dropdowns.narrativeGoal;
+            }
+            updateNarrativeStructureOptions(); // Atualiza a lista de estruturas
             for (const id in mapper.dropdowns) {
-                // Pulamos o que já foi feito para não causar conflito.
                 if (id === 'narrativeGoal') continue;
                 const element = document.getElementById(id);
                 if (element) element.value = mapper.dropdowns[id];
             }
         }
         
-        // 3d. Preenche todos os campos de texto com as regras do mapper.
+        // 3b. Preenche TODOS os campos de texto com as regras do mapper
         for (const key in mapper) {
             if (key === 'dropdowns' || key === 'dossier') continue;
             const element = document.getElementById(key);
@@ -2020,7 +2011,6 @@ const selectIdea = (idea) => {
         }
     }
     
-    // Atualiza o tooltip da estrutura específica, que agora estará correta.
     updateMainTooltip();
 
     // --- ETAPA 4: FINALIZAÇÃO ---
