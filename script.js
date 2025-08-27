@@ -1872,7 +1872,7 @@ const generateIdeasFromReport = async (button) => {
 
 
 // =========================================================================
-// >>>>> VERSÃO FINAL E COMPLETA DO 'strategyMapper' - SEM CAMPOS VAZIOS <<<<<
+// >>>>> VERSÃO FINAL DO 'strategyMapper' - COM SUGESTÕES DINÂMICAS <<<<<
 //       Substitua o seu objeto inteiro por este bloco de código.
 // =========================================================================
 const strategyMapper = {
@@ -1936,10 +1936,11 @@ const strategyMapper = {
         targetAudience: idea => idea.targetAudience || "Público geral curioso e que gosta de aprender coisas novas de forma rápida e engajante.",
         narrativeTheme: idea => idea.angle,
         centralQuestion: idea => `Qual é a revelação surpreendente por trás do tema "${idea.title}"?`,
-        emotionalHook: () => `Conectar uma das curiosidades a uma pequena história humana ou uma anedota surpreendente de seu impacto inicial.`, // REGRA ADICIONADA
-        researchData: () => `Buscar 1-2 estatísticas ou datas-chave que reforcem o 'momento uau' do vídeo (ex: o custo original da tecnologia, o número de usuários hoje).`, // REGRA ADICIONADA
-        narrativeVoice: () => "Dinâmico, claro e entusiasmado.",
-        shockingEndingHook: () => `...e foi assim que uma simples pergunta mudou completamente a forma como vemos o mundo.`,
+        emotionalHook: () => `Conectar uma das curiosidades a uma pequena história humana ou uma anedota surpreendente de seu impacto inicial.`,
+        researchData: () => `Buscar 1-2 estatísticas ou datas-chave que reforcem o 'momento uau' do vídeo (ex: o custo original da tecnologia, o número de usuários hoje).`,
+        // >>>>> CORREÇÃO APLICADA AQUI <<<<<
+        narrativeVoice: idea => `Dinâmico e claro, com um tom de revelação sobre como "${idea.title}" afeta nosso dia a dia.`,
+        shockingEndingHook: idea => `...e no final, percebemos que a resposta para "${idea.title}" não estava nos livros de história, mas nos objetos que usamos todos os dias.`,
         dossier: idea => `- Ângulo Único: ${idea.angle || 'N/A'}\n- Gatilhos: ${idea.shareTriggers || 'N/A'}`
     }
 };
