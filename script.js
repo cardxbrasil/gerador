@@ -1038,6 +1038,10 @@ const resetApplicationState = () => {
 
 
 
+// =========================================================================
+// >>>>> 'fixJsonWithAI' VERSÃO BLINDADA - COM LIMPEZA DE SAÍDA <<<<<
+//       Substitua sua função inteira por esta.
+// =========================================================================
 const fixJsonWithAI = async (brokenJsonText) => {
     if (!brokenJsonText || brokenJsonText.trim() === '') return "{}";
 
@@ -1056,8 +1060,34 @@ const fixJsonWithAI = async (brokenJsonText) => {
 
     Return ONLY the corrected JSON.`;
 
-    const fixedJsonText = await callGroqAPI(prompt, 8000);
-    return fixedJsonText.replace(/```json\n/g, '').replace(/```/g, '').trim();
+    // A chamada à API permanece a mesma.
+    const rawResponse = await callGroqAPI(prompt, 8000);
+
+    // >>>>> AQUI ESTÁ A CORREÇÃO CRÍTICA <<<<<
+    // Nós limpamos e extraímos o JSON da resposta do reparador,
+    // em vez de confiar que ele retornará um texto puro.
+    
+    // 1. Limpa texto introdutório comum.
+    let cleanedResponse = rawResponse.replace(/Here is the corrected JSON:/gi, '').trim();
+
+    // 2. Encontra o início e o fim do bloco JSON.
+    const firstBrace = cleanedResponse.indexOf('{');
+    const firstBracket = cleanedResponse.indexOf('[');
+    
+    // Se não encontrar nada, retorna um JSON vazio para evitar quebrar o resto do código.
+    if (firstBrace === -1 && firstBracket === -1) {
+        return "{}"; 
+    }
+    
+    const startIndex = (firstBrace === -1) ? firstBracket : (firstBracket === -1) ? firstBrace : Math.min(firstBrace, firstBracket);
+    const endIndex = Math.max(cleanedResponse.lastIndexOf('}'), cleanedResponse.lastIndexOf(']'));
+
+    if (endIndex === -1 || endIndex < startIndex) {
+        return "{}";
+    }
+
+    // 3. Retorna APENAS a fatia que contém o JSON.
+    return cleanedResponse.substring(startIndex, endIndex + 1);
 };
 
 
