@@ -4066,8 +4066,8 @@ const getDominantValue = (arr, defaultValue = 'Indefinido') => {
 
 
 // =========================================================================
-// >>>>> VERSÃO FINAL E BLINDADA DA FUNÇÃO 'suggestPerformance' <<<<<
-//       Impede a repetição e reescrita do texto original.
+// >>>>> VERSÃO FINAL CORRIGIDA DA FUNÇÃO 'suggestPerformance' <<<<<
+//       Corrige o problema de renderização do HTML.
 // =========================================================================
 window.suggestPerformance = async (button) => {
     const sectionId = button.dataset.sectionId;
@@ -4093,7 +4093,6 @@ window.suggestPerformance = async (button) => {
 
         const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
 
-        // O PROMPT FOI REFORÇADO COM NOVAS REGRAS
         const prompt = `Você é um DIRETOR DE VOZ E PERFORMANCE de elite. Sua única função é ANOTAR um roteiro com instruções de narração, retornando um array JSON.
 
 **IDIOMA OBRIGATÁRIO:** Todas as anotações geradas (como "[Pausa dramática]") DEVEM estar em ${languageName}.
@@ -4103,7 +4102,6 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 **MANUAL DE ANOTAÇÃO (REGRAS CRÍTICAS):**
 
-// >>>>> AQUI ESTÁ A MUDANÇA CRÍTICA: A REGRA DE OURO <<<<<
 **1. REGRA DE OURO - FIDELIDADE AO ORIGINAL:** Sua tarefa é *anotar*, não *reescrever*. É **ESTRITAMENTE PROIBIDO** repetir, reordenar, resumir ou alterar as frases do roteiro original. O texto de cada parágrafo deve ser mantido 100% intacto. Sua função é apenas adicionar anotações.
 
 **2. Para "general_annotation":**
@@ -4131,30 +4129,31 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
             console.warn(`Discrepância na performance: ${originalParagraphs.length} parágrafos enviados, ${annotations.length} anotações recebidas. O restante será ignorado.`);
         }
         
-        let annotatedParagraphs = [];
+        let annotatedHtml = ''; // Usaremos uma string para construir o HTML final
         originalParagraphs.forEach((p, index) => {
             const annotationData = annotations[index] || { general_annotation: '', emphasis_words: [] };
-            let annotatedParagraph = p.text;
+            let paragraphText = p.text; // Começamos com o texto original limpo
 
+            // Aplica a ênfase nas palavras, se houver
             if (annotationData.emphasis_words && annotationData.emphasis_words.length > 0) {
                 const word = annotationData.emphasis_words[0];
                 if (word && typeof word === 'string' && word.trim() !== '') {
                     const escapedWord = word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
                     const wordRegex = new RegExp(`\\b(${escapedWord})\\b`, 'gi');
-                    // A anotação agora é injetada DENTRO do texto original, não o substituindo
-                    annotatedParagraph = annotatedParagraph.replace(wordRegex, `<span class="performance-emphasis">$1</span>`);
+                    paragraphText = paragraphText.replace(wordRegex, `<span class="performance-emphasis">$1</span>`);
                 }
             }
             
-            // Adiciona a anotação geral ANTES do parágrafo original intacto
-            const annotationHtml = annotationData.general_annotation ? `<span class="performance-emphasis">${DOMPurify.sanitize(annotationData.general_annotation)}</span> ` : '';
-            annotatedParagraphs.push(annotationHtml + annotatedParagraph);
+            // Adiciona a anotação geral ANTES do parágrafo, se houver
+            const generalAnnotation = annotationData.general_annotation ? `<span class="performance-emphasis">${DOMPurify.sanitize(annotationData.general_annotation)}</span> ` : '';
+            
+            // >>>>> AQUI ESTÁ A CORREÇÃO <<<<<
+            // Construímos um parágrafo <p> para cada item, garantindo o espaçamento correto.
+            annotatedHtml += `<p>${generalAnnotation}${paragraphText}</p>`;
         });
         
-        // Juntamos os parágrafos anotados em um único bloco de HTML para exibição
-        const finalAnnotatedHtml = annotatedParagraphs.join('<br><br>');
-        
-        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><p class="whitespace-pre-wrap">${finalAnnotatedHtml}</p></div>`;
+        // Injetamos o HTML final, agora corretamente estruturado com parágrafos.
+        outputContainer.innerHTML = `<div class="card" style="background: var(--bg);"><h5 class="output-subtitle" style="font-size: 1rem; font-weight: 700; color: var(--text-header); margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed var(--border);">Sugestão de Performance:</h5><div class="space-y-4">${annotatedHtml}</div></div>`;
             
     } catch (error) {
         outputContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">Falha ao sugerir performance: ${error.message}</p>`;
@@ -4163,6 +4162,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
         hideButtonLoading(button);
     }
 };
+
 
 
 
