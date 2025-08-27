@@ -1955,7 +1955,8 @@ const getGenreFromIdea = (idea) => {
 
 
 // =========================================================================
-// >>>>> FUNÇÃO 'selectIdea' BLINDADA E COMPLETA <<<<<
+// >>>>> VERSÃO FINAL E BLINDADA DA FUNÇÃO 'selectIdea' <<<<<
+//       Substitua sua função inteira por este bloco de código.
 // =========================================================================
 const selectIdea = (idea) => {
     const genre = getGenreFromIdea(idea);
@@ -1972,8 +1973,9 @@ const selectIdea = (idea) => {
     // --- ETAPA 2: MAPEAMENTO BÁSICO E HIGIENIZAÇÃO DOS DADOS ---
     document.getElementById('videoTheme').value = idea.title || '';
     
-    // >>>>> AQUI ESTÁ A BLINDAGEM CONTRA OS NÚMEROS <<<<<
+    // >>>>> AQUI ESTÁ A CORREÇÃO CRÍTICA QUE FALTAVA <<<<<
     // Limpamos a descrição NO MOMENTO em que a transferimos para o formulário.
+    // Isso garante que os números [1] e [17] sejam removidos.
     const cleanedDescription = (idea.videoDescription || '').replace(/\[[\d, ]+\]/g, '');
     document.getElementById('videoDescription').value = cleanedDescription;
 
