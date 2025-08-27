@@ -5271,142 +5271,93 @@ if (button && actions[button.dataset.action]) {
     showPane(AppState.ui.currentPane || 'investigate');
 });
 
+// ===== Pro V3 UI glue =====
 
-// ===== UX PRO V1 =====
-
-// Toast
-function showToast(message,type='info',duration=3500,action=null){
-  const c=document.getElementById('toastContainer');if(!c)return;
-  const d=document.createElement('div');
-  d.className='toast-item '+type;d.textContent=message;
-  if(action){const btn=document.createElement('button');btn.textContent=action.label;btn.style.marginLeft='8px';btn.onclick=()=>{action.fn();d.remove();};d.appendChild(btn);}
-  c.appendChild(d);requestAnimationFrame(()=>d.classList.add('show'));
-  setTimeout(()=>{d.classList.remove('show');setTimeout(()=>d.remove(),250);},duration);
+// Toast utility
+function showToastV3(msg,type='info',dur=3000,action=null){
+  const c=document.getElementById('toastContainer'); if(!c) return;
+  const el=document.createElement('div'); el.className='toast-item '+type; el.textContent=msg;
+  if(action){ const b=document.createElement('button'); b.textContent=action.label; b.style.marginLeft='8px'; b.onclick=()=>{ action.fn(); el.remove(); }; el.appendChild(b); }
+  c.appendChild(el); requestAnimationFrame(()=> el.classList.add('show')); setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=> el.remove(),250); }, dur);
 }
 
-// Sidebar toggle
-function toggleSidebar(open){const sb=document.getElementById('sidebar');if(!sb)return;if(open)sb.classList.add('open');else sb.classList.remove('open');}
-
-// Drawer overlay
-document.addEventListener('DOMContentLoaded',()=>{
-  const hb=document.getElementById('hamburgerBtn');const ov=document.getElementById('drawerOverlay');
-  if(hb)hb.addEventListener('click',()=>toggleSidebar(true));
-  if(ov)ov.addEventListener('click',()=>toggleSidebar(false));
-});
-
-// Validation
-function validateRequiredFields(){
-  let ok=true;document.querySelectorAll('[data-required="true"]').forEach(el=>{
-    const val=(el.value||'').trim();const next=el.nextElementSibling;if(next&&next.classList.contains('field-error'))next.remove();el.classList.remove('input-error');
-    if(!val){el.classList.add('input-error');const span=document.createElement('span');span.className='field-error';span.textContent='⚠️ Este campo é obrigatório.';el.insertAdjacentElement('afterend',span);ok=false;}
-  });return ok;
-}
-
-// Render Ideas
-function renderIdeas(ideas){
-  const c=document.getElementById('ideasCards');if(!c)return;
-  if(!Array.isArray(ideas)||!ideas.length){c.innerHTML='<div class="asset-card-placeholder">Nenhuma ideia</div>';return;}
-  c.innerHTML=ideas.map((it,i)=>{
-    const t=it.title||'Sem título';const d=it.videoDescription||'';const sc=it.viralityScore??'—';const ta=it.targetAudience||'';
-    return `<article class="card" data-index="${i}">
-      <span class="badge">${sc}/10</span>
-      <div class="title">${t}</div>
-      <div class="tags">${ta?`<span class="tag">👥 ${ta}</span>`:''}</div>
-      <p class="desc">${d}</p>
-      <div class="footer"><button class="link" data-action="toggle">Ler mais</button><button class="ghost" data-action="details">Detalhes</button></div>
-    </article>`;
-  }).join('');
-  c.querySelectorAll('[data-action="toggle"]').forEach(b=>b.addEventListener('click',e=>{const card=e.target.closest('.card');const p=card.querySelector('.desc');p.classList.toggle('expanded');e.target.textContent=p.classList.contains('expanded')?'Mostrar menos':'Ler mais';}));
-  c.querySelectorAll('[data-action="details"]').forEach(b=>b.addEventListener('click',e=>{const idx=e.target.closest('.card').dataset.index;openIdeaDetails(idx);}));
-}
-
-// Idea details panel
-function openIdeaDetails(idx){
-  const it=AppState.generated.ideas[idx];const p=document.getElementById('ideaDetailsPanel');if(!p)return;
-  p.innerHTML=`<h2>${it.title||'Sem título'}</h2><p>${it.videoDescription||''}</p><hr><pre>${JSON.stringify(it,null,2)}</pre><button onclick="closeIdeaDetails()">Fechar</button>`;
-  p.classList.add('open');
-}
-function closeIdeaDetails(){const p=document.getElementById('ideaDetailsPanel');if(p)p.classList.remove('open');}
-
-// Generate Ideas button handler
-document.addEventListener('DOMContentLoaded',()=>{
-  const g=document.getElementById('generateIdeasBtn');if(g)g.addEventListener('click',()=>{if(!validateRequiredFields()){showToast('Preencha os campos obrigatórios.','error');return;}if(AppState.generated.ideas&&AppState.generated.ideas.length){renderIdeas(AppState.generated.ideas);showToast('Ideias carregadas.','success');}else{showToast('Nenhuma ideia disponível.','error');}});
-});
-
-
-
-// ===== UX PRO V2 Logic =====
-
-// ONBOARDING
-function hasSeenOnboarding(){ try{ return localStorage.getItem('seen_onboarding')==='1'; }catch(e){return true;} }
-function showOnboarding(){ const m=document.getElementById('onboardingModal'); if(!m) return; m.classList.remove('hidden'); }
-function hideOnboarding(){ const m=document.getElementById('onboardingModal'); if(!m) return; m.classList.add('hidden'); localStorage.setItem('seen_onboarding','1'); }
-document.addEventListener('DOMContentLoaded', ()=>{ if(!hasSeenOnboarding()) showOnboarding(); document.getElementById('startOnboarding')?.addEventListener('click', ()=>{ hideOnboarding(); showToast('Tour iniciado — siga as dicas na tela.','info'); }); document.getElementById('skipOnboarding')?.addEventListener('click', hideOnboarding); });
-
-// PRESETS (example personas)
-const PRESETS = [
-  { id:'invest', name:'Investigador', desc:'Tom investigativo, foco em dados e entrevistas', settings:{narrativeGoal:'storytelling', visualPacing:'normal'} },
-  { id:'inspire', name:'Inspiracional', desc:'Tom emotivo e transformador', settings:{narrativeGoal:'storytelling', visualPacing:'contemplativo'} },
-  { id:'shortform', name:'Short Viral', desc:'Ritmo rápido, hooks fortes (1-2 min)', settings:{narrativeGoal:'storyselling', visualPacing:'dinamico'} }
-];
-function openPresets(){ const m=document.getElementById('presetsModal'); if(!m) return; const grid=document.getElementById('presetsGrid'); grid.innerHTML=''; PRESETS.forEach(p=>{ const el=document.createElement('div'); el.className='preset-card'; el.innerHTML=`<strong>${p.name}</strong><div class="muted">${p.desc}</div>`; el.onclick=()=>{ applyPreset(p); m.classList.add('hidden'); showToast(p.name+' aplicado.','success'); }; grid.appendChild(el); }); m.classList.remove('hidden'); }
-function applyPreset(p){ if(!p||!p.settings) return; Object.keys(p.settings).forEach(k=>{ const el=document.getElementById(k); if(el) el.value=p.settings[k]; AppState.inputs[k]=p.settings[k]; }); }
-
-document.addEventListener('DOMContentLoaded', ()=>{ document.getElementById('openPresetsBtn')?.addEventListener('click', openPresets); document.getElementById('closePresets')?.addEventListener('click', ()=>document.getElementById('presetsModal').classList.add('hidden')); });
-
-// THUMBNAIL QUICK GENERATOR (stubbed - replace integration to image API)
-function generateThumbnailsFromPrompt(prompt){ // returns 3 placeholder "images" (data urls or text)
-  return [ 'Preview 1', 'Preview 2', 'Preview 3' ];
-}
+// Dock interactions & pane switching
 document.addEventListener('DOMContentLoaded', ()=>{
-  document.getElementById('generateThumbs')?.addEventListener('click', ()=>{
-    const prompt = document.getElementById('thumbPrompt')?.value || '';
-    const previews = generateThumbnailsFromPrompt(prompt);
-    const container = document.getElementById('thumbPreviews'); if(!container) return; container.innerHTML = '';
-    previews.forEach(p=>{ const el=document.createElement('div'); el.className='thumb-preview'; el.textContent = p; container.appendChild(el); });
-    showToast('Variações geradas (placeholder). Integre sua API de imagens para resultados reais.','info');
+  document.querySelectorAll('#v3-dock li').forEach(li=>{
+    li.addEventListener('click', ()=>{
+      document.querySelectorAll('#v3-dock li').forEach(x=>x.classList.remove('active')); li.classList.add('active');
+      const pane = li.dataset.pane;
+      document.querySelectorAll('.v3-stage').forEach(s=> s.classList.add('hidden'));
+      const target = document.getElementById('stage-'+pane);
+      if(target) target.classList.remove('hidden');
+    });
   });
-  document.getElementById('closeThumbEditor')?.addEventListener('click', ()=>document.getElementById('thumbEditorModal').classList.add('hidden'));
-  document.getElementById('thumbEditorModal')?.addEventListener('click', (e)=>{ if(e.target===document.getElementById('thumbEditorModal')) document.getElementById('thumbEditorModal').classList.add('hidden'); });
+
+  // keyboard shortcuts: G = generate ideas, Ctrl/Cmd+S = export
+  document.addEventListener('keydown',(e)=>{
+    if((e.ctrlKey||e.metaKey)&& e.key.toLowerCase()==='s'){ e.preventDefault(); exportProject(); showToastV3('Exportando projeto...','info'); }
+    if(!e.ctrlKey && !e.metaKey && e.key.toLowerCase()==='g'){ const btn=document.getElementById('generateIdeasBtn'); if(btn) btn.click(); }
+  });
+
+  // quick actions
+  document.getElementById('exportBtn')?.addEventListener('click', exportProject);
+  document.getElementById('importBtn')?.addEventListener('click', ()=> document.getElementById('importFileInput').click());
+  document.getElementById('importFileInput')?.addEventListener('change', async (ev)=>{
+    const f = ev.target.files && ev.target.files[0]; if(!f){ showToastV3('Nenhum arquivo selecionado','error'); return; }
+    try{ const txt=await f.text(); const obj=JSON.parse(txt); AppState.inputs = obj.inputs || AppState.inputs; AppState.generated = obj.generated || AppState.generated; showToastV3('Projeto importado.','success'); if(Array.isArray(AppState.generated.ideas)) renderIdeas(AppState.generated.ideas); } catch(err){ console.error(err); showToastV3('Erro ao importar: JSON inválido','error'); }
+    ev.target.value='';
+  });
+
+  // Show presets chips
+  const pc = document.getElementById('presetsChips');
+  (['Investigador','Inspiracional','Short Viral']).forEach(p=>{ const el=document.createElement('div'); el.className='preset-chip'; el.textContent=p; el.onclick=()=> showToastV3(p+' aplicado','success'); pc.appendChild(el); });
+
+  // generate ideas handler wired to existing renderIdeas if present
+  document.getElementById('generateIdeasBtn')?.addEventListener('click', ()=>{
+    // validate required
+    const req = document.querySelectorAll('[data-required="true"]'); let ok=true; req.forEach(r=>{ if(!(r.value||'').trim()){ r.classList.add('input-error'); ok=false; } else r.classList.remove('input-error'); });
+    if(!ok){ showToastV3('Preencha os campos obrigatórios.','error'); return; }
+    // show skeletons
+    const cards = document.getElementById('ideasCards'); if(cards){ cards.innerHTML = '<div class="skeleton" style="height:120px;border-radius:12px;background:linear-gradient(90deg,#eee,#f5f5f5,#eee);animation: shimmer 1.2s infinite;min-height:120px"></div>'.repeat(6); }
+    setTimeout(()=>{
+      if(AppState.generated && Array.isArray(AppState.generated.ideas) && AppState.generated.ideas.length){ renderIdeas(AppState.generated.ideas); showToastV3('Ideias carregadas','success'); }
+      else { showToastV3('Nenhuma ideia gerada ainda. Execute Investigação.','error'); if(cards) cards.innerHTML=''; }
+    }, 800);
+  });
+
+  // idea details panel close when clicked outside
+  document.getElementById('ideaDetailsPanel')?.addEventListener('click', (e)=>{ if(e.target.id==='ideaDetailsPanel') closeIdeaDetails(); });
 });
 
-// EXPLAINABILITY: open modal with prompt and evidence
-function openExplainabilityFor(index){ const it = AppState.generated?.ideas?.[index]; const m=document.getElementById('explainModal'); const body=document.getElementById('explainBody'); if(!it||!m||!body) return; body.innerHTML = '<h4>'+ (it.title||'Sem título') +'</h4><p class="muted">Prompt usado:</p><pre>'+ (it._promptFinal || it.prompt || 'N/A') +'</pre><p class="muted">Trechos do relatório:</p><pre>'+ (it._evidence ? JSON.stringify(it._evidence,null,2) : 'Sem evidência salva') +'</pre>'; m.classList.remove('hidden'); }
-document.getElementById('closeExplain')?.addEventListener('click', ()=>document.getElementById('explainModal')?.classList.add('hidden'));
+// export project helper
+function exportProject(){ try{ const payload=JSON.stringify({inputs:AppState.inputs,generated:AppState.generated},null,2); const blob=new Blob([payload],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='project_export.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); showToastV3('Projeto exportado.','success'); }catch(e){ console.error(e); showToastV3('Erro ao exportar','error'); } }
 
-// KEYBOARD SHORTCUTS
-document.addEventListener('keydown', (e)=>{
-  // Ctrl/Cmd+S export
-  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); if(typeof exportProjectJSON==='function') exportProjectJSON(); showToast('Exportando projeto...','info'); }
-  // G to generate ideas
-  if(!e.ctrlKey && !e.metaKey && e.key.toLowerCase()==='g'){ const gen = document.getElementById('generateIdeasBtn'); if(gen) gen.click(); }
-});
-
-// VIRALITY METER: map score to class
-function viralityClassFor(n){
-  if(n>=8) return 'virality-high';
-  if(n>=5) return 'virality-mid';
-  return 'virality-low';
-}
-
-// Enhance renderIdeas to include virality meter and explain button if present
+// enhance renderIdeas if exists to create modern card layout
 if(typeof renderIdeas==='function'){
-  const originalRender = renderIdeas;
+  const baseRender = renderIdeas;
   renderIdeas = function(ideas){
-    originalRender(ideas); // base render
-    // update badges to include meter class and explain button
-    document.querySelectorAll('#ideasCards .card').forEach(card=>{
-      const idx = parseInt(card.dataset.index,10);
-      const idea = ideas[idx]||{};
-      const sc = idea.viralityScore || 0;
-      const badge = card.querySelector('.badge');
-      if(badge){
-        const wrapper = document.createElement('div'); wrapper.style.display='flex'; wrapper.style.alignItems='center'; wrapper.style.gap='8px';
-        const meter = document.createElement('div'); meter.className='virality-meter '+viralityClassFor(sc); meter.textContent = sc;
-        const explainBtn = document.createElement('button'); explainBtn.className='ghost'; explainBtn.textContent='Como?'; explainBtn.addEventListener('click', ()=>openExplainabilityFor(idx));
-        wrapper.appendChild(meter); wrapper.appendChild(explainBtn);
-        badge.replaceWith(wrapper);
-      }
+    const container = document.getElementById('ideasCards'); if(!container) return;
+    container.innerHTML = '';
+    ideas.forEach((it, idx)=>{
+      const card = document.createElement('article'); card.className='card'; card.dataset.index=idx;
+      const badge = document.createElement('div'); badge.className='badge'; badge.textContent=(it.viralityScore||'—') + '/10';
+      const title = document.createElement('div'); title.className='title'; title.textContent = it.title || 'Sem título';
+      const tags = document.createElement('div'); tags.className='tags'; if(it.targetAudience) tags.innerHTML = '<span class="tag">👥 '+it.targetAudience+'</span>';
+      const desc = document.createElement('p'); desc.className='desc'; desc.textContent = it.videoDescription||'';
+      const footer = document.createElement('div'); footer.className='footer';
+      const more = document.createElement('button'); more.className='link'; more.textContent='Ler mais'; more.addEventListener('click', ()=>{ desc.classList.toggle('expanded'); more.textContent = desc.classList.contains('expanded') ? 'Mostrar menos' : 'Ler mais'; });
+      const det = document.createElement('button'); det.className='ghost'; det.textContent='Detalhes'; det.addEventListener('click', ()=> openIdeaDetails(idx));
+      footer.appendChild(more); footer.appendChild(det);
+      card.appendChild(badge); card.appendChild(title); card.appendChild(tags); card.appendChild(desc); card.appendChild(footer);
+      container.appendChild(card);
     });
   };
 }
+
+// idea details (reuse functions if exist)
+function openIdeaDetails(idx){
+  const it = AppState.generated?.ideas?.[idx]; const panel = document.getElementById('ideaDetailsPanel'); if(!panel) return;
+  panel.innerHTML = '<button class="ghost" onclick="closeIdeaDetails()">Fechar</button><h3>'+ (it.title||'Sem título') +'</h3><p class="muted">'+(it.videoDescription||'')+'</p><pre style="white-space:pre-wrap;background:color-mix(in srgb,var(--bg) 80%, var(--surface));padding:8px;border-radius:8px;border:1px solid var(--border);">'+JSON.stringify(it,null,2)+'</pre>';
+  panel.classList.add('open');
+}
+function closeIdeaDetails(){ const p=document.getElementById('ideaDetailsPanel'); if(p) p.classList.remove('open'); }
