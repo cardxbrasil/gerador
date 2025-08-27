@@ -1965,11 +1965,12 @@ const strategyMapper = {
 
 
 const getGenreFromIdea = (idea) => {
-    if (idea.investigativeApproach) return 'documentario';
+    // A ordem aqui é importante para evitar falsos positivos.
+    if (idea.scripturalFoundation) return 'enigmas';
     if (idea.emotionalCore) return 'inspiracional';
     if (idea.coreDilemma) return 'scifi';
     if (idea.horrorMechanism) return 'terror';
-    if (idea.scripturalFoundation) return 'enigmas';
+    if (idea.investigativeApproach) return 'documentario';
     return 'geral';
 };
 
@@ -2203,30 +2204,27 @@ ${labels.coreDetails}
 // ===== CONSTRUTOR DE PROMPT MESTRE (v9.1 - RESPEITANDO OS TEMPLATES) =====
 // ==========================================================
 const buildMasterPrompt = () => {
-    // 1. Coleta TODOS os dados da UI da Etapa 2 (sem mudanças aqui)
+    // >>>>> A CORREÇÃO CRÍTICA ESTÁ AQUI <<<<<
+    // A fonte da verdade AGORA é o que salvamos no AppState.
+    // Isso garante que o especialista selecionado no Passo 1 seja usado aqui.
     const genre = AppState.inputs.selectedGenre || 'geral';
+    
     const durationKey = document.getElementById('videoDuration').value;
     const languageName = document.getElementById('languageSelect').value === 'pt-br' ? 'Português (Brasil)' : 'English';
-    
 
-    // 2. Monta o `baseContext` que será injetado no placeholder
+    // O resto da função permanece o mesmo
     let baseContext = getBasePromptContext({ includeHeavyContext: true });
-    
-    // ==========================================================
-    // >>>>> A CORREÇÃO MÁGICA ESTÁ AQUI <<<<<
-    // Remove anotações numéricas como [1], [5], [15] do contexto
-    // para evitar que a IA as copie para o roteiro final.
-    baseContext = baseContext.replace(/\[\d+\]/g, ''); 
-    // ==========================================================
+    baseContext = baseContext.replace(/\[[\d, ]+\]/g, ''); 
     
     const fullContextForAI = `${baseContext}`;
     
-    // 3. Pega o template bruto (sem mudanças aqui)
     let masterPrompt = PromptManager.getScriptPrompt(genre, durationKey);
 
-    // 4. Substitui os placeholders (sem mudanças aqui)
     masterPrompt = masterPrompt.replace(/__BASE_CONTEXT__/g, fullContextForAI);
     masterPrompt = masterPrompt.replace(/__LANGUAGE_NAME__/g, languageName);
+
+    // Adiciona um log para depuração final
+    console.log(`Construindo prompt para o especialista: ${genre.toUpperCase()}`);
 
     return masterPrompt;
 };
