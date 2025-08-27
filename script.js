@@ -1984,8 +1984,15 @@ const getGenreFromIdea = (idea) => {
 // >>>>> VERSÃO FINAL E SIMPLIFICADA DA FUNÇÃO 'selectIdea' <<<<<
 // =========================================================================
 const selectIdea = (idea) => {
-    const genre = getGenreFromIdea(idea);
+    // >>>>> A CORREÇÃO CRÍTICA ESTÁ AQUI <<<<<
+    // Em vez de auto-detectar o gênero do JSON, nós lemos qual aba está
+    // ativa na interface. Esta é agora a nossa ÚNICA fonte da verdade.
+    const genre = document.querySelector('#genreTabs .tab-button.tab-active')?.dataset.genre || 'geral';
+    
+    // Salvamos a escolha do usuário no estado da aplicação para ser usada depois.
     AppState.inputs.selectedGenre = genre;
+    
+    // O resto da função continua, mas agora usando o 'genre' que o USUÁRIO escolheu.
     const mapper = strategyMapper[genre];
 
     // --- ETAPA 1: LIMPEZA INICIAL ---
@@ -2000,7 +2007,7 @@ const selectIdea = (idea) => {
     const cleanedDescription = (idea.videoDescription || '').replace(/\[[\d, ]+\]/g, '');
     document.getElementById('videoDescription').value = cleanedDescription;
 
-    // --- ETAPA 3: PREENCHIMENTO COMPLETO USANDO O MAPPER COMO ÚNICA FONTE DA VERDADE ---
+    // --- ETAPA 3: PREENCHIMENTO COMPLETO USANDO O MAPPER ---
     if (mapper) {
         // 3a. Lógica de preenchimento dos dropdowns (controlando a ordem)
         if (mapper.dropdowns) {
