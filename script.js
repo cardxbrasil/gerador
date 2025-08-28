@@ -4377,7 +4377,7 @@ Você é um romancista visual, um híbrido de diretor de fotografia e escritor d
    - "imageDescription": string descritiva, rica em camadas sensoriais, narrativas e visuais
    - "estimated_duration": número inteiro (2 a 10)
 
-## FORMATO DE SAÍDA CORRETO (EXEMPLO)
+## EXEMPLOS DE FORMATOS DE SAÍDA CORRETO
 
 [
   {
