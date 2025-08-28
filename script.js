@@ -4326,7 +4326,6 @@ window.generatePromptsForSection = async (button) => {
             
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando frase ${i + 1} de ${phrases.length}...</p>`;
             
-            // Pausa estratégica agressiva para proteger a API
             if (i > 0) { await new Promise(resolve => setTimeout(resolve, 1500)); }
 
             const visualPacing = document.getElementById('visualPacing').value;
@@ -4439,15 +4438,17 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
 
 
             try {
-                console.log(`Enviando frase ${i + 1} para a API...`);
-                // Como a entrada é pequena, a IA tem menos chance de se confundir e retornar algo que não seja um array.
+                console.log(`Enviando frase ${i + 1} ("${singlePhrase.substring(0, 30)}...") para a API...`);
                 const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
                 
                 if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
-                    // Adicionamos a frase original ao primeiro objeto retornado, garantindo a sincronia.
                     const promptData = jsonResponse[0];
-                    promptData.original_phrase = singlePhrase;
-                    allGeneratedPrompts.push(promptData);
+                    // O vínculo agora é feito aqui, garantindo 100% de sincronia.
+                    allGeneratedPrompts.push({
+                        scriptPhrase: singlePhrase,
+                        imageDescription: promptData.imageDescription,
+                        estimated_duration: promptData.estimated_duration
+                    });
                     console.log(`Frase ${i + 1} processada com sucesso.`);
                 } else {
                     console.warn(`A IA não retornou um prompt válido para a frase ${i + 1}. Pulando.`);
@@ -4461,13 +4462,9 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
         if (allGeneratedPrompts.length === 0) {
             throw new Error("A IA não conseguiu gerar prompts válidos para nenhuma frase.");
         }
-
-        const curatedPrompts = allGeneratedPrompts.map(p => ({
-            scriptPhrase: p.original_phrase,
-            imageDescription: p.imageDescription,
-            estimated_duration: p.estimated_duration || 5
-        }));
-
+        
+        // A variável 'curatedPrompts' agora é a lista final e correta.
+        const curatedPrompts = allGeneratedPrompts;
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
         AppState.ui.promptPaginationState[sectionId] = 0;
