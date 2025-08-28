@@ -4309,25 +4309,45 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando roteiro frase a frase...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Preparando lotes de frases...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
         const phrases = fullText.replace(/([.?!])\s*(?=[A-ZÀ-Ú])/g, "$1|").split("|").filter(p => p.trim());
         if (phrases.length === 0) { throw new Error("Não foram encontradas frases para analisar."); }
 
-        console.log(`Roteiro dividido em ${phrases.length} frases para processamento individual.`);
+        const batches = [];
+        const MAX_WORDS_PER_BATCH = 200;
+        let currentBatchText = [];
+        let currentWordCount = 0;
+        for (const phrase of phrases) {
+            const wordCount = phrase.split(/\s+/).length;
+            if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatchText.length > 0) {
+                batches.push(currentBatchText.join(' '));
+                currentBatchText = [phrase];
+                currentWordCount = wordCount;
+            } else {
+                currentBatchText.push(phrase);
+                currentWordCount += wordCount;
+            }
+        }
+        if (currentBatchText.length > 0) {
+            batches.push(currentBatchText.join(' '));
+        }
+        
+        // >>>>> LOG RESTAURADO <<<<<
+        console.log(`Roteiro dividido em ${phrases.length} frases, agrupadas em ${batches.length} lotes para processamento.`);
         
         let allGeneratedPrompts = [];
-        let failedPhrases = 0;
         
-        // LOOP INDIVIDUAL PARA CADA FRASE
-        for (let i = 0; i < phrases.length; i++) {
-            const singlePhrase = phrases[i];
-            
-            promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Gerando cena ${i + 1} de ${phrases.length}...</p>`;
-            
-            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 2000)); }
+        for (let i = 0; i < batches.length; i++) {
+            const batchText = batches[i];
+            promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
+            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 3000)); }
+
+            const visualPacing = document.getElementById('visualPacing').value;
+            const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
+
 
 
 
@@ -4413,15 +4433,13 @@ Para cada parágrafo, construa a "imageDescription" como uma prosa fluida, tecen
 - Para "estimated_duration", use valores inteiros entre ${durationRange}, baseando-se na densidade narrativa e no ritmo emocional.
 - **Em caso de ambiguidade, escolha sempre o detalhe que evoca a sensação mais forte e o significado mais profundo**. Não escolha o óbvio — escolha o **inevitável**.
 
-## DIRETRIZES DE EXECUÇÃO
-// ...
-- Para "estimated_duration", use valores inteiros entre ${durationRange}, baseando-se na densidade narrativa.
-// ...
+## DIRETRIZ DE VARIEDADE E CONTEXTO (REGRA CRÍTICA ANTI-REPETIÇÃO)
+O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial e obrigatório** que você gere uma **descrição visual ÚNICA e DISTINTA para CADA UM**.
 
 ## ENTRADA DE DADOS
 
 ---
-${singlePhrase}
+${batchText}
 ---
 
 ## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
@@ -4435,52 +4453,49 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
 
 
 
-            let success = false;
-            let attempts = 0;
-            const MAX_ATTEMPTS = 2;
 
-            while (!success && attempts < MAX_ATTEMPTS) {
-                attempts++;
-                try {
-                    console.log(`Tentativa ${attempts} para a frase ${i + 1}...`);
-                    const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
-                    
-                    if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
-                        const promptData = jsonResponse[0];
-                        allGeneratedPrompts.push({
-                            scriptPhrase: singlePhrase,
-                            imageDescription: promptData.imageDescription,
-                            estimated_duration: promptData.estimated_duration
-                        });
-                        success = true;
-                    } else {
-                        throw new Error("A IA retornou um array vazio ou inválido.");
-                    }
-                } catch (error) {
-                    console.warn(`Tentativa ${attempts} para a frase ${i + 1} falhou:`, error.message);
-                    if (attempts >= MAX_ATTEMPTS) {
-                        console.error(`A FRASE ${i + 1} FALHOU APÓS ${MAX_ATTEMPTS} TENTATIVAS.`);
-                        failedPhrases++;
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 2500));
-                    }
+            try {
+                // >>>>> LOG RESTAURADO <<<<<
+                console.log(`Enviando lote ${i + 1} para a API...`);
+                
+                const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+                
+                if (Array.isArray(jsonResponse)) {
+                    // >>>>> LOG RESTAURADO <<<<<
+                    console.log(`Lote ${i + 1} processado com sucesso. Recebido(s) ${jsonResponse.length} prompt(s).`);
+                    allGeneratedPrompts = allGeneratedPrompts.concat(jsonResponse);
+                } else {
+                    console.warn(`Lote ${i + 1} retornou um formato não-array e foi ignorado.`);
                 }
+            } catch (error) {
+                console.error(`O LOTE ${i + 1} FALHOU completamente:`, error.message);
+                window.showToast(`O processamento do lote ${i + 1} falhou.`, 'error');
             }
         }
 
-        if (failedPhrases > 0) {
-            window.showToast(`${failedPhrases} de ${phrases.length} cenas não puderam ser geradas.`, 'error');
+        if (allGeneratedPrompts.length === 0) {
+            throw new Error("A IA não conseguiu gerar prompts válidos para nenhuma seção.");
         }
 
-        if (allGeneratedPrompts.length === 0) {
-            throw new Error("A IA não conseguiu gerar prompts válidos para nenhuma frase.");
+        const curatedPrompts = allGeneratedPrompts
+            .filter(p => p && p.original_phrase && p.imageDescription)
+            .map(p => ({
+                scriptPhrase: p.original_phrase,
+                imageDescription: p.imageDescription,
+                estimated_duration: p.estimated_duration || 5
+            }));
+
+        if (curatedPrompts.length === 0) {
+            throw new Error("A IA retornou respostas, mas nenhuma no formato correto com a chave 'original_phrase'.");
         }
-        
-        const curatedPrompts = allGeneratedPrompts;
+
+        // >>>>> LOG RESTAURADO <<<<<
+        console.log(`Processamento concluído. Total de ${curatedPrompts.length} prompts gerados a partir de ${batches.length} lotes.`);
+
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
         AppState.ui.promptPaginationState[sectionId] = 0;
-        promptContainer.innerHTML = `<div class="prompt-pagination-wrapper space-y-4">...</div>`;
+        promptContainer.innerHTML = `<div class="prompt-pagination-wrapper space-y-4"><div class="prompt-nav-container flex items-center justify-center gap-4"></div><div class="prompt-items-container space-y-4"></div></div>`;
         renderPaginatedPrompts(sectionId);
 
     } catch (error) {
@@ -4490,6 +4505,7 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
         hideButtonLoading(button);
     }
 };
+
 
 
 
