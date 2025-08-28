@@ -694,190 +694,9 @@ ${fullTranscript}
 
 
 
-getScriptPrompt: (genre, durationKey) => {
-    // Busca as contagens de palavras específicas para a duração escolhida
-    const counts = wordCountMap[durationKey] || {};
-    const totalWords = Object.values(counts).reduce((a, b) => a + b, 0);
-
-    const scriptTemplates = {
-        'documentario': `
-### IDENTIDADE DO ROTEIRISTA ###
-Você é um Roteirista-Chefe e Diretor de Documentários Investigativos, com o rigor jornalístico da BBC e a habilidade narrativa da Netflix. Sua missão é transformar o briefing em uma narrativa factual, lógica e emocionalmente convincente.
-
-### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
-1.  **Abertura com Evidência Chocante:** Comece a **introducao** com o dado ou evento mais impactante do briefing.
-2.  **Construção Lógica:** No **desenvolvimento**, organize os fatos, apresente o contexto e construa a tensão. Use a "Âncora Narrativa" para dar um rosto humano aos dados.
-3.  **A Virada da Investigação:** O **climax** deve ser o momento "eureca", onde as peças se encaixam e resolvem a "Pergunta Central".
-4.  **Implicações e Consequências:** Na **conclusao**, discuta o impacto da verdade revelada. Seja concreto.
-5.  **Chamado ao Conhecimento:** O **cta** deve ser um convite natural para o espectador aprender mais ou questionar o status quo.
-
-### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
-__BASE_CONTEXT__
-
-### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
-- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
-  - **"introducao":** ~__INTRO_WORDS__ palavras
-  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
-  - **"climax":** ~__CLIMAX_WORDS__ palavras
-  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
-  - **"cta":** ~50 palavras
-- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
-- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
-- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
-
-### AÇÃO FINAL ###
-Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
-        'inspiracional': `
-### IDENTIDADE DO ROTEIRISTA ###
-Você é um Mestre em Storytelling Emocional, uma fusão entre um roteirista da Pixar e um palestrante de TED Talk. Sua especialidade é encontrar a jornada do herói nos fatos.
-
-### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
-1.  **O Mundo Comum:** Na **introducao**, apresente o protagonista em seu estado inicial de dor ou desafio. Crie empatia.
-2.  **O Chamado à Aventura:** O **desenvolvimento** mostra os obstáculos, as pequenas vitórias e as derrotas dolorosas. A jornada deve ser crível.
-3.  **A Provação Suprema:** O **climax** é o momento da decisão mais difícil, a morte do "velho eu".
-4.  **O Retorno com o Elixir:** Na **conclusao**, mostre o resultado da transformação e a lição universal aprendida.
-5.  **O Convite à Sua Própria Jornada:** O **cta** convida o espectador a aplicar a lição em sua própria vida.
-
-### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
-__BASE_CONTEXT__
-
-### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
-- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
-  - **"introducao":** ~__INTRO_WORDS__ palavras
-  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
-  - **"climax":** ~__CLIMAX_WORDS__ palavras
-  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
-  - **"cta":** ~50 palavras
-- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
-- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
-- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
-
-### AÇÃO FINAL ###
-Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
-       
-        'scifi': `
-### IDENTIDADE DO ROTEIRISTA ###
-Você é um futurista especulativo e roteirista-chefe da série "Black Mirror". Você escreve sobre as consequências existenciais de uma ideia tecnológica levada ao seu limite.
-
-### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
-1.  **A Apresentação da Tecnologia:** Na **introducao**, mostre a tecnologia de forma positiva, quase utópica.
-2.  **A Fissura na Realidade:** O **desenvolvimento** introduz sutilmente a falha ou o efeito colateral da tecnologia. Aumente a paranoia.
-3.  **A Revelação Horripilante:** O **climax** é a revelação da verdadeira natureza ou do custo humano da tecnologia.
-4.  **O Novo Paradigma Sombrio:** A **conclusao** não oferece solução. Ela mostra a sociedade presa na nova realidade sombria.
-5.  **A Pergunta ao Espectador:** O **cta** deve ser uma pergunta filosófica que conecta a ficção à realidade do espectador.
-
-### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
-__BASE_CONTEXT__
-
-### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
-- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
-  - **"introducao":** ~__INTRO_WORDS__ palavras
-  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
-  - **"climax":** ~__CLIMAX_WORDS__ palavras
-  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
-  - **"cta":** ~50 palavras
-- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
-- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
-- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
-
-### AÇÃO FINAL ###
-Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
-        'terror': `
-### IDENTIDADE DO ROTEIRISTA ###
-Você é um autor de horror psicológico, herdeiro de H.P. Lovecraft e Ari Aster. Seu ritmo é lento, sua atmosfera é densa, e seu foco é minar a sanidade do espectador.
-
-### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
-1.  **A Normalidade Perturbadora:** A **introducao** estabelece uma cena mundana, mas com um único detalhe "fora do lugar".
-2.  **A Escalada da Anomalia:** No **desenvolvimento**, o detalhe estranho se repete e se intensifica. Não explique nada, apenas mostre.
-3.  **A Confrontação com o Inominável:** O **climax** não é uma luta, é uma revelação. A verdade é o verdadeiro monstro.
-4.  **O Silêncio Pós-Revelação:** A **conclusao** é quieta e desoladora. A ameaça não foi vencida; ela sempre esteve lá.
-5.  **O Eco do Medo:** O **cta** deixa uma imagem ou frase que convida o espectador a notar as "fissuras" em sua própria realidade.
-
-### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
-__BASE_CONTEXT__
-
-### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
-- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
-  - **"introducao":** ~__INTRO_WORDS__ palavras
-  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
-  - **"climax":** ~__CLIMAX_WORDS__ palavras
-  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
-  - **"cta":** ~50 palavras
-- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
-- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
-- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
-
-### AÇÃO FINAL ###
-Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
-        'enigmas': `
-### IDENTIDADE DO ROTEIRISTA ###
-Você é um "Coletivo Hermenêutico": uma fusão de um Teólogo Investigativo, um Arqueólogo e um Mestre Comunicador. Você revela novas camadas de significado nas Escrituras.
-
-### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
-1.  **O Mistério Estabelecido:** A **introducao** apresenta o enigma bíblico e a "Pergunta Central".
-2.  **A Trilha de Evidências:** No **desenvolvimento**, guie o espectador pela jornada investigativa, apresentando as evidências (arqueologia, história, etc.).
-3.  **A Síntese Reveladora:** O **climax** é o momento em que você conecta todos os pontos, apontando para uma nova e rica interpretação teológica.
-4.  **A Implicação Teológica:** Na **conclusao**, discuta o significado dessa nova interpretação para a fé hoje.
-5.  **O Convite à Reflexão:** O **cta** convida o espectador a continuar sua própria jornada de estudo e fé.
-
-### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
-__BASE_CONTEXT__
-
-### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
-- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
-  - **"introducao":** ~__INTRO_WORDS__ palavras
-  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
-  - **"climax":** ~__CLIMAX_WORDS__ palavras
-  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
-  - **"cta":** ~50 palavras
-- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
-- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
-- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
-
-### AÇÃO FINAL ###
-Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
-        'geral': `
-### IDENTIDADE DO ROTEIRISTA ###
-Você é um Arquiteto de Viralidade e Estrategista de Conteúdo Digital. Você transforma dados brutos em narrativas irresistíveis que dominam o feed.
-
-### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
-1.  **O Gancho Impossível de Ignorar:** A **introducao** deve começar com um dado ou pergunta tão impactante que o espectador pare o scroll.
-2.  **A Jornada do Valor Revelado:** No **desenvolvimento**, construa uma narrativa com progressão, apresentando fatos conectados a um benefício prático ou emocional.
-3.  **O Pico de Viralidade:** O **climax** é o ponto de virada — a revelação mais surpreendente ou o insight mais útil.
-4.  **A Conclusão com Impacto:** Na **conclusao**, recapitule a grande ideia com força, reforçando por que ela é importante.
-5.  **O Convite ao Compartilhamento:** O **cta** deve ser um convite natural para o espectador compartilhar com alguém que "precisa ver isso".
-
-### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
-__BASE_CONTEXT__
-
-### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
-- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
-  - **"introducao":** ~__INTRO_WORDS__ palavras
-  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
-  - **"climax":** ~__CLIMAX_WORDS__ palavras
-  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
-  - **"cta":** ~50 palavras
-- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
-- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
-- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
-
-### AÇÃO FINAL ###
-Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
-    };
-
-    const specialistFramework = scriptTemplates[genre] || scriptTemplates['geral'];
-
-    // Preenche apenas as contagens de palavras, que são universais para o template
-    return specialistFramework
-        .replace(/__TOTAL_WORDS__/g, totalWords)
-        .replace(/__INTRO_WORDS__/g, counts.intro || 100)
-        .replace(/__DEV_WORDS__/g, counts.development || 500)
-        .replace(/__CLIMAX_WORDS__/g, counts.climax || 200)
-        .replace(/__CONCLUSION_WORDS__/g, counts.conclusion || 150);
-},
 
 
-};
+
 
 
 
@@ -1078,6 +897,205 @@ const callGroqAPI = async (prompt, maxTokens) => {
         }
     }
 };
+
+
+
+
+
+
+
+
+
+
+
+getScriptPrompt: (genre, durationKey) => {
+    // Busca as contagens de palavras específicas para a duração escolhida
+    const counts = wordCountMap[durationKey] || {};
+    const totalWords = Object.values(counts).reduce((a, b) => a + b, 0);
+
+    const scriptTemplates = {
+        'documentario': `
+### IDENTIDADE DO ROTEIRISTA ###
+Você é um Roteirista-Chefe e Diretor de Documentários Investigativos, com o rigor jornalístico da BBC e a habilidade narrativa da Netflix. Sua missão é transformar o briefing em uma narrativa factual, lógica e emocionalmente convincente.
+
+### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
+1.  **Abertura com Evidência Chocante:** Comece a **introducao** com o dado ou evento mais impactante do briefing.
+2.  **Construção Lógica:** No **desenvolvimento**, organize os fatos, apresente o contexto e construa a tensão. Use a "Âncora Narrativa" para dar um rosto humano aos dados.
+3.  **A Virada da Investigação:** O **climax** deve ser o momento "eureca", onde as peças se encaixam e resolvem a "Pergunta Central".
+4.  **Implicações e Consequências:** Na **conclusao**, discuta o impacto da verdade revelada. Seja concreto.
+5.  **Chamado ao Conhecimento:** O **cta** deve ser um convite natural para o espectador aprender mais ou questionar o status quo.
+
+### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
+__BASE_CONTEXT__
+
+### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
+- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
+  - **"introducao":** ~__INTRO_WORDS__ palavras
+  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
+  - **"climax":** ~__CLIMAX_WORDS__ palavras
+  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
+  - **"cta":** ~50 palavras
+- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
+- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
+- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
+
+### AÇÃO FINAL ###
+Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
+        'inspiracional': `
+### IDENTIDADE DO ROTEIRISTA ###
+Você é um Mestre em Storytelling Emocional, uma fusão entre um roteirista da Pixar e um palestrante de TED Talk. Sua especialidade é encontrar a jornada do herói nos fatos.
+
+### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
+1.  **O Mundo Comum:** Na **introducao**, apresente o protagonista em seu estado inicial de dor ou desafio. Crie empatia.
+2.  **O Chamado à Aventura:** O **desenvolvimento** mostra os obstáculos, as pequenas vitórias e as derrotas dolorosas. A jornada deve ser crível.
+3.  **A Provação Suprema:** O **climax** é o momento da decisão mais difícil, a morte do "velho eu".
+4.  **O Retorno com o Elixir:** Na **conclusao**, mostre o resultado da transformação e a lição universal aprendida.
+5.  **O Convite à Sua Própria Jornada:** O **cta** convida o espectador a aplicar a lição em sua própria vida.
+
+### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
+__BASE_CONTEXT__
+
+### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
+- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
+  - **"introducao":** ~__INTRO_WORDS__ palavras
+  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
+  - **"climax":** ~__CLIMAX_WORDS__ palavras
+  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
+  - **"cta":** ~50 palavras
+- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
+- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
+- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
+
+### AÇÃO FINAL ###
+Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
+       
+        'scifi': `
+### IDENTIDADE DO ROTEIRISTA ###
+Você é um futurista especulativo e roteirista-chefe da série "Black Mirror". Você escreve sobre as consequências existenciais de uma ideia tecnológica levada ao seu limite.
+
+### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
+1.  **A Apresentação da Tecnologia:** Na **introducao**, mostre a tecnologia de forma positiva, quase utópica.
+2.  **A Fissura na Realidade:** O **desenvolvimento** introduz sutilmente a falha ou o efeito colateral da tecnologia. Aumente a paranoia.
+3.  **A Revelação Horripilante:** O **climax** é a revelação da verdadeira natureza ou do custo humano da tecnologia.
+4.  **O Novo Paradigma Sombrio:** A **conclusao** não oferece solução. Ela mostra a sociedade presa na nova realidade sombria.
+5.  **A Pergunta ao Espectador:** O **cta** deve ser uma pergunta filosófica que conecta a ficção à realidade do espectador.
+
+### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
+__BASE_CONTEXT__
+
+### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
+- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
+  - **"introducao":** ~__INTRO_WORDS__ palavras
+  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
+  - **"climax":** ~__CLIMAX_WORDS__ palavras
+  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
+  - **"cta":** ~50 palavras
+- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
+- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
+- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
+
+### AÇÃO FINAL ###
+Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
+        'terror': `
+### IDENTIDADE DO ROTEIRISTA ###
+Você é um autor de horror psicológico, herdeiro de H.P. Lovecraft e Ari Aster. Seu ritmo é lento, sua atmosfera é densa, e seu foco é minar a sanidade do espectador.
+
+### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
+1.  **A Normalidade Perturbadora:** A **introducao** estabelece uma cena mundana, mas com um único detalhe "fora do lugar".
+2.  **A Escalada da Anomalia:** No **desenvolvimento**, o detalhe estranho se repete e se intensifica. Não explique nada, apenas mostre.
+3.  **A Confrontação com o Inominável:** O **climax** não é uma luta, é uma revelação. A verdade é o verdadeiro monstro.
+4.  **O Silêncio Pós-Revelação:** A **conclusao** é quieta e desoladora. A ameaça não foi vencida; ela sempre esteve lá.
+5.  **O Eco do Medo:** O **cta** deixa uma imagem ou frase que convida o espectador a notar as "fissuras" em sua própria realidade.
+
+### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
+__BASE_CONTEXT__
+
+### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
+- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
+  - **"introducao":** ~__INTRO_WORDS__ palavras
+  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
+  - **"climax":** ~__CLIMAX_WORDS__ palavras
+  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
+  - **"cta":** ~50 palavras
+- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
+- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
+- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
+
+### AÇÃO FINAL ###
+Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
+        'enigmas': `
+### IDENTIDADE DO ROTEIRISTA ###
+Você é um "Coletivo Hermenêutico": uma fusão de um Teólogo Investigativo, um Arqueólogo e um Mestre Comunicador. Você revela novas camadas de significado nas Escrituras.
+
+### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
+1.  **O Mistério Estabelecido:** A **introducao** apresenta o enigma bíblico e a "Pergunta Central".
+2.  **A Trilha de Evidências:** No **desenvolvimento**, guie o espectador pela jornada investigativa, apresentando as evidências (arqueologia, história, etc.).
+3.  **A Síntese Reveladora:** O **climax** é o momento em que você conecta todos os pontos, apontando para uma nova e rica interpretação teológica.
+4.  **A Implicação Teológica:** Na **conclusao**, discuta o significado dessa nova interpretação para a fé hoje.
+5.  **O Convite à Reflexão:** O **cta** convida o espectador a continuar sua própria jornada de estudo e fé.
+
+### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
+__BASE_CONTEXT__
+
+### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
+- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
+  - **"introducao":** ~__INTRO_WORDS__ palavras
+  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
+  - **"climax":** ~__CLIMAX_WORDS__ palavras
+  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
+  - **"cta":** ~50 palavras
+- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
+- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
+- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
+
+### AÇÃO FINAL ###
+Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
+        'geral': `
+### IDENTIDADE DO ROTEIRISTA ###
+Você é um Arquiteto de Viralidade e Estrategista de Conteúdo Digital. Você transforma dados brutos em narrativas irresistíveis que dominam o feed.
+
+### FRAMEWORK NARRATIVO OBRIGATÓRIO ###
+1.  **O Gancho Impossível de Ignorar:** A **introducao** deve começar com um dado ou pergunta tão impactante que o espectador pare o scroll.
+2.  **A Jornada do Valor Revelado:** No **desenvolvimento**, construa uma narrativa com progressão, apresentando fatos conectados a um benefício prático ou emocional.
+3.  **O Pico de Viralidade:** O **climax** é o ponto de virada — a revelação mais surpreendente ou o insight mais útil.
+4.  **A Conclusão com Impacto:** Na **conclusao**, recapitule a grande ideia com força, reforçando por que ela é importante.
+5.  **O Convite ao Compartilhamento:** O **cta** deve ser um convite natural para o espectador compartilhar com alguém que "precisa ver isso".
+
+### BRIEFING DO PROJETO (SUA FONTE DA VERDADE) ###
+__BASE_CONTEXT__
+
+### DIRETRIZES TÉCNICAS (OBRIGATÓRIAS) ###
+- **FOCO NO TAMANHO:** Gere um roteiro com aproximadamente **__TOTAL_WORDS__ palavras**, distribuídas assim:
+  - **"introducao":** ~__INTRO_WORDS__ palavras
+  - **"desenvolvimento":** ~__DEV_WORDS__ palavras
+  - **"climax":** ~__CLIMAX_WORDS__ palavras
+  - **"conclusao":** ~__CONCLUSION_WORDS__ palavras
+  - **"cta":** ~50 palavras
+- **PROIBIÇÃO DE ELEMENTOS VISUAIS:** Sua resposta deve ser apenas a narração pura, sem anotações como "(CENA: ...)" ou "[IMAGEM: ...]".
+- **FORMATO JSON PURO:** Sua resposta final DEVE ser um único objeto JSON com 5 chaves: "introducao", "desenvolvimento", "climax", "conclusao", "cta". Use "\\n\\n" para separar parágrafos dentro de cada seção.
+- **IDIOMA OBRIGATÓRIO:** Todo o texto deve estar em **__LANGUAGE_NAME__**.
+
+### AÇÃO FINAL ###
+Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro completo e retorne-o como um objeto JSON perfeito.`,
+    };
+
+    const specialistFramework = scriptTemplates[genre] || scriptTemplates['geral'];
+
+    // Preenche apenas as contagens de palavras, que são universais para o template
+    return specialistFramework
+        .replace(/__TOTAL_WORDS__/g, totalWords)
+        .replace(/__INTRO_WORDS__/g, counts.intro || 100)
+        .replace(/__DEV_WORDS__/g, counts.development || 500)
+        .replace(/__CLIMAX_WORDS__/g, counts.climax || 200)
+        .replace(/__CONCLUSION_WORDS__/g, counts.conclusion || 150);
+},
+
+
+};
+
+
+
+
 
 
 
