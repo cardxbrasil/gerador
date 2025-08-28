@@ -4529,29 +4529,23 @@ const renderPaginatedPrompts = (sectionElementId) => {
     if (!promptItemsContainer || !navContainer) return;
     promptItemsContainer.innerHTML = '';
     
-    // >>> MUDANÇA CRÍTICA: LÓGICA DE CÁLCULO DE OFFSET REFORÇADA <<<
     let cumulativeSeconds = 0;
     let globalSceneCounter = 1;
     const sectionOrder = ['introSection', 'developmentSection', 'climaxSection', 'conclusionSection', 'ctaSection'];
     const currentSectionIndex = sectionOrder.indexOf(sectionElementId);
 
-    // Itera por TODAS as seções ANTERIORES à atual
     for (let i = 0; i < currentSectionIndex; i++) {
         const previousSectionId = sectionOrder[i];
         const prevPrompts = AppState.generated.imagePrompts[previousSectionId] || [];
         
-        // Acumula a duração e o número de cenas das seções passadas
         prevPrompts.forEach(p => {
             cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0;
         });
         globalSceneCounter += prevPrompts.length;
     }
-    // >>> FIM DA MUDANÇA CRÍTICA <<<
     
     const startIndex = currentPage * itemsPerPage;
-    // Acumula o tempo das páginas anteriores DENTRO da seção atual
     prompts.slice(0, startIndex).forEach(p => { cumulativeSeconds += parseInt(p.estimated_duration, 10) || 0; });
-    // Ajusta o contador de cena para o início da página atual
     globalSceneCounter += startIndex;
 
     const promptsToShow = prompts.slice(startIndex, startIndex + itemsPerPage);
@@ -4569,6 +4563,11 @@ const renderPaginatedPrompts = (sectionElementId) => {
             styleOptionsHtml += `<option value="${key}" ${isSelected}>${imageStyleLibrary[key].name}</option>`;
         }
         
+        // >>>>> AQUI ESTÁ A CORREÇÃO <<<<<
+        // A linha que limitava a 100 caracteres foi removida.
+        // Agora, usamos a 'scriptPhrase' completa.
+        const fullScriptPhraseHtml = `<p class="paragraph-preview" style="font-size: 0.85rem; font-style: italic; color: var(--text-muted); margin-bottom: 0.5rem;">"${DOMPurify.sanitize(promptData.scriptPhrase)}"</p>`;
+        
         const promptHtml = `
             <div class="card !p-3 animate-fade-in" style="background: var(--bg);">
                 <div class="prompt-header" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -4580,7 +4579,7 @@ const renderPaginatedPrompts = (sectionElementId) => {
                         <i class="fas fa-copy"></i>
                     </button>
                 </div>
-                <p class="paragraph-preview" style="font-size: 0.85rem; font-style: italic; color: var(--text-muted); margin-bottom: 0.5rem;">"${DOMPurify.sanitize(promptData.scriptPhrase.substring(0, 100))}..."</p>
+                ${fullScriptPhraseHtml}
                 <p>${sanitizedDescription}</p>
                 <div class="mt-3">
                     <select id="style-select-${sceneNumber}" class="input input-small w-full">
@@ -4590,7 +4589,6 @@ const renderPaginatedPrompts = (sectionElementId) => {
             </div>
         `;
         promptItemsContainer.innerHTML += promptHtml;
-        // Acumula o tempo para a PRÓXIMA cena na mesma página
         cumulativeSeconds += parseInt(promptData.estimated_duration, 10) || 0;
     });
     
@@ -4604,7 +4602,6 @@ const renderPaginatedPrompts = (sectionElementId) => {
         navContainer.innerHTML = '';
     }
 };
-
 
 
 
