@@ -4327,7 +4327,7 @@ window.generatePromptsForSection = async (button) => {
             
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Gerando cena ${i + 1} de ${phrases.length}...</p>`;
             
-            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 2000)); }
+            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 1500)); }
 
             const visualPacing = document.getElementById('visualPacing').value;
             const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
@@ -4433,7 +4433,6 @@ Os exemplos na seção "EXEMPLOS DE FORMATOS DE SAÍDA CORRETO" são **APENAS pa
 
 Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um objeto JSON correspondente com as chaves "original_phrase", "imageDescription" e "estimated_duration". O resultado final DEVE ser um **único array JSON válido**. Não inclua nenhum texto ou explicação fora do array.
 `;
-
 
 
 
