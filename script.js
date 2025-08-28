@@ -4377,7 +4377,28 @@ Você é um romancista visual, um híbrido de diretor de fotografia e escritor d
    - "imageDescription": string descritiva, rica em camadas sensoriais, narrativas e visuais
    - "estimated_duration": número inteiro (2 a 10)
 
+## EXEMPLOS DE FORMATOS DE SAÍDA CORRETO
 
+[
+  {
+    "original_phrase": "A cidade acordava lentamente sob o céu cinzento.",
+    "imageDescription": "Plano aberto lento sobre uma avenida urbana ao amanhecer, onde a cidade não acorda — apenas suspira, pesada, sob um céu de chumbo. A emoção dominante é uma melancolia existencial, nascida da repetição de dias iguais, da promessa quebrada do novo. O ar é úmido e pesado, carregando o cheiro de asfalto molhado, exaustão de ônibus diesel e o aroma distante, quase ilusório, de café fresco de uma padaria com luz ainda acesa. Gotículas de chuva fina começam a cair, estalando suavemente no para-brisa de um táxi parado, cada impacto um tic-tac no relógio do tempo. A luz pálida e difusa do dia que não nasceu inteiro se reflete em poças d'água irregulares, criando reflexos especulares distorcidos de letreiros apagados e postes de luz tremeluzentes. Um único carro passa, seus faróis dianteiros lançando feixes que se desfazem na névoa como esperanças esvaídas. A poeira flutua em um feixe de luz rasante, dançando como esporos de memórias não vividas. A câmera começa em um close na poça, segue o reflexo do carro até o horizonte borrado, e termina em um close nas janelas escuras de um prédio onde uma única luz permanece acesa — um testemunho solitário. O estilo é realismo urbano em alta definição, com paleta dessaturada de cinzas, azuis profundos e toques de amarelo doentio, como se a cor tivesse sido julgada e condenada. Como detalhe ativo, uma folha de jornal velho é empurrada pelo vento, rola até um bueiro e gira em espiral antes de desaparecer — um segredo sem dono sendo engolido pelo esquecimento.",
+    "estimated_duration": 8
+  },
+  {
+    "original_phrase": "Ela olhou para a foto antiga em suas mãos.",
+    "imageDescription": "Close-up extremo em uma fotografia amarelada, segurada por mãos de mulher envelhecidas, mas ainda elegantes. A textura do papel é vívida: bordas gastas pelo tempo, pequenas rachaduras como rios secos, uma mancha de umidade no canto inferior esquerdo, como uma lágrima fossilizada. A imagem mostra um casal sorrindo em uma praia ensolarada, mas o foco da câmera não está neles — está na mão que segura a foto. Um anel de ouro simples brilha sob a luz suave de um abajur, mas o dedo anular está vazio agora, a pele marcada por um círculo mais clara, a ausência escrita no corpo. A poeira dança no feixe de luz que atravessa a cortina semiaberta, como partículas de tempo suspenso. A emoção é uma saudade silenciosa, não pelo amor perdido, mas pela pessoa que ela foi naquela foto — uma estranha sorridente em um mundo que já não existe. O som é o tique-taque distante de um relógio de parede, mas em câmera lenta, como se o tempo se arrastasse em protesto. A luz é gentil, mas falsa — uma piedade artificial que não cura. A câmera começa no reflexo do rosto da mulher na moldura de vidro, desfocado, depois foca na mão, depois na foto, e finalmente na gota que se forma na ponta do nariz, hesita, e cai sobre a imagem, espalhando a tinta da memória. O estilo é realismo mágico cinematográfico, onde cada objeto respira passado. O detalhe ativo é a gota: não é só uma lágrima — é um dilúvio em miniatura, inundando um mundo inteiro.",
+    "estimated_duration": 10
+  },
+  {
+    "original_phrase": "O peso da decisão era evidente em seu rosto.",
+    "imageDescription": "Câmera em perfil extremo, colada ao rosto de um homem contra uma janela escura onde a chuva escorre em linhas verticais, como grades invisíveis. A emoção é exaustão moral, não pelo esforço, mas pela consciência de que qualquer escolha será uma traição — a si mesmo ou aos outros. A luz lateral, dura e fria, vem de um letreiro de neon azul do outro lado da rua, esculpindo cada linha de tensão na testa, cada sulco ao redor da boca, como se o rosto fosse uma paisagem de guerra. Não vemos os olhos — apenas o reflexo distorcido da cidade noturna no vidro, onde carros se movem como vermes luminosos. A profundidade de campo é mínima: o mundo ao redor é um borrão de luzes, mas o maxilar está nítido, contraindo-se em espasmos quase imperceptíveis, um relógio interno prestes a quebrar. Ouve-se o som abafado de uma sirene ao longe, mas também o estalo sutil de um dente rangendo — um som que só ele ouve. A câmera começa no reflexo da cidade, depois desliza para o maxilar, depois para a mão que pressiona o peito, onde um envelope dobrado lateja no bolso do casaco. Como detalhe ativo, uma gota de chuva desce pela janela, encontra uma trinca no vidro, e se divide em dois caminhos — um simbolismo silencioso da escolha inevitável. O estilo é noir psicológico em 4K, onde cada sombra é uma acusação e cada reflexo, um julgamento. A luz não ilumina — ela investiga. O espaço prende. O tempo pesa.",
+    "estimated_duration": 9
+  }
+]
+
+## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
+Os exemplos na seção "EXEMPLOS DE FORMATOS DE SAÍDA CORRETO" são **APENAS para referência de estilo, formato e nível de detalhe**. É **ESTRITAMENTE PROIBIDO** copiar, adaptar ou usar qualquer elemento temático ou narrativo desses exemplos na sua resposta. Sua resposta DEVE se basear **única e exclusivamente** no texto fornecido na seção "ENTRADA DE DADOS".
 
 ## PROCEDIMENTO DE ANÁLISE VISUAL (MANIFESTO CRIATIVO)
 
@@ -4422,8 +4443,6 @@ O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial 
 ${batchText}
 ---
 
-## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
-Os exemplos na seção "FORMATO DE SAÍDA CORRETO (EXEMPLO)" são **APENAS para referência de estilo, formato e nível de detalhe**. É **ESTRITAMENTE PROIBIDO** copiar, adaptar ou usar qualquer elemento temático ou narrativo desses exemplos na sua resposta. Sua resposta DEVE se basear **única e exclusivamente** no texto fornecido na seção "ENTRADA DE DADOS".
 
 ## INSTRUÇÃO FINAL E INQUEBRÁVEL
 
