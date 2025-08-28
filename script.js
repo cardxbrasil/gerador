@@ -4313,12 +4313,9 @@ window.generatePromptsForSection = async (button) => {
 
     try {
         const fullText = contentWrapper.textContent.trim();
-        
-        // ETAPA 1: DIVISÃO POR FRASES PARA ALTA GRANULARIDADE
         const phrases = fullText.replace(/([.?!])\s*(?=[A-ZÀ-Ú])/g, "$1|").split("|").filter(p => p.trim());
         if (phrases.length === 0) { throw new Error("Não foram encontradas frases para analisar."); }
 
-        // ETAPA 2: AGRUPAMENTO DE FRASES EM LOTES PARA EVITAR TIMEOUT
         const batches = [];
         const MAX_WORDS_PER_BATCH = 200;
         let currentBatch = [];
@@ -4341,7 +4338,6 @@ window.generatePromptsForSection = async (button) => {
         
         console.log(`Roteiro dividido em ${phrases.length} frases, agrupadas em ${batches.length} lotes.`);
 
-        // ETAPA 3: PROCESSAR CADA LOTE COM O SEU PROMPT MESTRE
         let allGeneratedPrompts = [];
         
         for (let i = 0; i < batches.length; i++) {
@@ -4351,6 +4347,7 @@ window.generatePromptsForSection = async (button) => {
             const visualPacing = document.getElementById('visualPacing').value;
             const durationMap = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' };
             const durationRange = durationMap[visualPacing] || '8 a 15';
+
 
 
 
@@ -4452,18 +4449,45 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
 
 
 
-            const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
-            
-            if (Array.isArray(jsonResponse)) {
+            let success = false;
+            let attempts = 0;
+            const MAX_ATTEMPTS = 3; // Tenta até 3 vezes por lote
+            let jsonResponse;
+
+            while (!success && attempts < MAX_ATTEMPTS) {
+                attempts++;
+                try {
+                    console.log(`Tentativa ${attempts} para o lote ${i + 1}...`);
+                    // Usamos nossa função de reparo robusta em cada tentativa
+                    jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+                    
+                    // Se chegar aqui sem erro, a tentativa foi bem-sucedida
+                    if (Array.isArray(jsonResponse)) {
+                        success = true;
+                    } else {
+                        throw new Error("A resposta não é um array JSON válido.");
+                    }
+                } catch (error) {
+                    console.warn(`Tentativa ${attempts} falhou para o lote ${i + 1}:`, error.message);
+                    if (attempts >= MAX_ATTEMPTS) {
+                        // Se todas as tentativas falharem, joga o erro para o usuário.
+                        throw new Error(`A IA falhou em processar um lote de texto após ${MAX_ATTEMPTS} tentativas. Tente novamente.`);
+                    }
+                    // Espera um pouco antes de tentar de novo
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            if (success && Array.isArray(jsonResponse)) {
                 allGeneratedPrompts = allGeneratedPrompts.concat(jsonResponse);
             }
         }
         
         if (allGeneratedPrompts.length === 0) {
-            throw new Error("A IA não retornou nenhum prompt válido. O texto pode ser muito curto ou a resposta da API falhou em todos os lotes.");
+            throw new Error("A IA falhou em gerar prompts válidos para todas as seções.");
         }
         
-        // ETAPA 4: RENDERIZAR O RESULTADO COMPLETO
+        // O resto da função para renderizar continua igual...
         const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
             scriptPhrase: phrases[index] || "Trecho do roteiro",
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
@@ -4486,13 +4510,12 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
         renderPaginatedPrompts(sectionId);
 
     } catch (error) {
-        console.error("Erro detalhado na geração de prompts em lote por frases:", error);
+        console.error("Erro detalhado na geração de prompts em lote:", error);
         promptContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
     }
 };
-
 
 
 
