@@ -4309,7 +4309,7 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando roteiro...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando roteiro frase a frase...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
@@ -4327,8 +4327,7 @@ window.generatePromptsForSection = async (button) => {
             
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Gerando cena ${i + 1} de ${phrases.length}...</p>`;
             
-            // Pausa estratégica AGRESSIVA para proteger a API.
-            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 2000)); } // 2 SEGUNDOS DE PAUSA
+            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 2000)); }
 
             const visualPacing = document.getElementById('visualPacing').value;
             const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
@@ -4456,7 +4455,7 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
                             imageDescription: promptData.imageDescription,
                             estimated_duration: promptData.estimated_duration
                         });
-                        success = true; // Marca como sucesso para sair do loop de tentativas
+                        success = true;
                     } else {
                         throw new Error("A IA retornou um array vazio ou inválido.");
                     }
@@ -4464,16 +4463,16 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
                     console.warn(`Tentativa ${attempts} para a frase ${i + 1} falhou:`, error.message);
                     if (attempts >= MAX_ATTEMPTS) {
                         console.error(`A FRASE ${i + 1} FALHOU APÓS ${MAX_ATTEMPTS} TENTATIVAS.`);
-                        failedPhrases++; // Contabiliza a falha
+                        failedPhrases++;
                     } else {
-                        await new Promise(resolve => setTimeout(resolve, 2500)); // Espera mais antes de tentar de novo
+                        await new Promise(resolve => setTimeout(resolve, 2500));
                     }
                 }
             }
         }
 
         if (failedPhrases > 0) {
-            window.showToast(`${failedPhrases} de ${phrases.length} cenas não puderam ser geradas devido a erros de API.`, 'error');
+            window.showToast(`${failedPhrases} de ${phrases.length} cenas não puderam ser geradas.`, 'error');
         }
 
         if (allGeneratedPrompts.length === 0) {
@@ -4484,7 +4483,7 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
         AppState.ui.promptPaginationState[sectionId] = 0;
-        promptContainer.innerHTML = `<div class="prompt-pagination-wrapper space-y-4">...</div>`; // Placeholder
+        promptContainer.innerHTML = `<div class="prompt-pagination-wrapper space-y-4">...</div>`;
         renderPaginatedPrompts(sectionId);
 
     } catch (error) {
