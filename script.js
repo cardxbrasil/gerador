@@ -4335,6 +4335,9 @@ window.generatePromptsForSection = async (button) => {
             batches.push(currentBatchText.join(' '));
         }
         
+        // >>>>> LOG RESTAURADO <<<<<
+        console.log(`Roteiro dividido em ${phrases.length} frases, agrupadas em ${batches.length} lotes para processamento.`);
+        
         let allGeneratedPrompts = [];
         
         for (let i = 0; i < batches.length; i++) {
@@ -4443,13 +4446,20 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
 
 
             try {
-                // A verificação de sucesso agora é feita DEPOIS de filtrar
+                // >>>>> LOG RESTAURADO <<<<<
+                console.log(`Enviando lote ${i + 1} para a API...`);
+                
                 const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+                
                 if (Array.isArray(jsonResponse)) {
+                    // >>>>> LOG RESTAURADO <<<<<
+                    console.log(`Lote ${i + 1} processado com sucesso. Recebido(s) ${jsonResponse.length} prompt(s).`);
                     allGeneratedPrompts = allGeneratedPrompts.concat(jsonResponse);
+                } else {
+                    console.warn(`Lote ${i + 1} retornou um formato não-array e foi ignorado.`);
                 }
             } catch (error) {
-                console.error(`O LOTE ${i + 1} FALHOU:`, error.message);
+                console.error(`O LOTE ${i + 1} FALHOU completamente:`, error.message);
                 window.showToast(`O processamento do lote ${i + 1} falhou.`, 'error');
             }
         }
@@ -4458,10 +4468,8 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
             throw new Error("A IA não conseguiu gerar prompts válidos para nenhuma seção.");
         }
 
-        // >>>>> A MÁGICA FINAL (AGORA CORRETA) <<<<<
-        // Filtra e mapeia os prompts válidos que a IA retornou.
         const curatedPrompts = allGeneratedPrompts
-            .filter(p => p && p.original_phrase && p.imageDescription) // A chave existe porque o prompt a exigiu.
+            .filter(p => p && p.original_phrase && p.imageDescription)
             .map(p => ({
                 scriptPhrase: p.original_phrase,
                 imageDescription: p.imageDescription,
@@ -4471,6 +4479,9 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
         if (curatedPrompts.length === 0) {
             throw new Error("A IA retornou respostas, mas nenhuma no formato correto com a chave 'original_phrase'.");
         }
+
+        // >>>>> LOG RESTAURADO <<<<<
+        console.log(`Processamento concluído. Total de ${curatedPrompts.length} prompts gerados a partir de ${batches.length} lotes.`);
 
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
