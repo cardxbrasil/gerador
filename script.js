@@ -4309,7 +4309,7 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando roteiro frase a frase...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando roteiro...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
@@ -4319,16 +4319,16 @@ window.generatePromptsForSection = async (button) => {
         console.log(`Roteiro dividido em ${phrases.length} frases para processamento individual.`);
         
         let allGeneratedPrompts = [];
+        let failedPhrases = 0;
         
         // LOOP INDIVIDUAL PARA CADA FRASE
         for (let i = 0; i < phrases.length; i++) {
             const singlePhrase = phrases[i];
             
-            // Mensagem de progresso amigável
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Gerando cena ${i + 1} de ${phrases.length}...</p>`;
             
-            // Pausa estratégica para proteger a API
-            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 1500)); }
+            // Pausa estratégica AGRESSIVA para proteger a API.
+            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 2000)); } // 2 SEGUNDOS DE PAUSA
 
             const visualPacing = document.getElementById('visualPacing').value;
             const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
@@ -4424,35 +4424,56 @@ O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial 
 ## ENTRADA DE DADOS
 
 ---
-${singlePhrase}
+${batchText}
 ---
 
 ## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
 Os exemplos na seção "EXEMPLOS DE FORMATOS DE SAÍDA CORRETO" são **APENAS para referência de estilo e formato**. É **ESTRITAMENTE PROIBIDO** copiar o conteúdo desses exemplos. Sua resposta DEVE se basear **única e exclusivamente** no texto da "ENTRADA DE DADOS".
 
 ## INSTRUÇÃO FINAL E INQUEBRÁVEL
-Analise a FRASE na "ENTRADA DE DADOS" e gere um objeto JSON para ela. O resultado final DEVE ser um **único array JSON válido contendo apenas UM objeto**.
+
+Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um objeto JSON correspondente com as chaves "original_phrase", "imageDescription" e "estimated_duration". O resultado final DEVE ser um **único array JSON válido**. Não inclua nenhum texto ou explicação fora do array.
 `;
 
-            try {
-                console.log(`Enviando frase ${i + 1} ("${singlePhrase.substring(0, 30)}...") para a API...`);
-                const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
-                
-                if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
-                    const promptData = jsonResponse[0];
-                    allGeneratedPrompts.push({
-                        scriptPhrase: singlePhrase,
-                        imageDescription: promptData.imageDescription,
-                        estimated_duration: promptData.estimated_duration
-                    });
-                    console.log(`Frase ${i + 1} processada com sucesso.`);
-                } else {
-                    console.warn(`A IA não retornou um prompt válido para a frase ${i + 1}. Pulando.`);
+
+
+
+
+            let success = false;
+            let attempts = 0;
+            const MAX_ATTEMPTS = 2;
+
+            while (!success && attempts < MAX_ATTEMPTS) {
+                attempts++;
+                try {
+                    console.log(`Tentativa ${attempts} para a frase ${i + 1}...`);
+                    const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+                    
+                    if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
+                        const promptData = jsonResponse[0];
+                        allGeneratedPrompts.push({
+                            scriptPhrase: singlePhrase,
+                            imageDescription: promptData.imageDescription,
+                            estimated_duration: promptData.estimated_duration
+                        });
+                        success = true; // Marca como sucesso para sair do loop de tentativas
+                    } else {
+                        throw new Error("A IA retornou um array vazio ou inválido.");
+                    }
+                } catch (error) {
+                    console.warn(`Tentativa ${attempts} para a frase ${i + 1} falhou:`, error.message);
+                    if (attempts >= MAX_ATTEMPTS) {
+                        console.error(`A FRASE ${i + 1} FALHOU APÓS ${MAX_ATTEMPTS} TENTATIVAS.`);
+                        failedPhrases++; // Contabiliza a falha
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 2500)); // Espera mais antes de tentar de novo
+                    }
                 }
-            } catch (error) {
-                console.error(`A FRASE ${i + 1} FALHOU completamente:`, error.message);
-                window.showToast(`O processamento da frase ${i + 1} falhou.`, 'error');
             }
+        }
+
+        if (failedPhrases > 0) {
+            window.showToast(`${failedPhrases} de ${phrases.length} cenas não puderam ser geradas devido a erros de API.`, 'error');
         }
 
         if (allGeneratedPrompts.length === 0) {
@@ -4463,7 +4484,7 @@ Analise a FRASE na "ENTRADA DE DADOS" e gere um objeto JSON para ela. O resultad
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
         AppState.ui.promptPaginationState[sectionId] = 0;
-        promptContainer.innerHTML = `<div class="prompt-pagination-wrapper space-y-4"><div class="prompt-nav-container flex items-center justify-center gap-4"></div><div class="prompt-items-container space-y-4"></div></div>`;
+        promptContainer.innerHTML = `<div class="prompt-pagination-wrapper space-y-4">...</div>`; // Placeholder
         renderPaginatedPrompts(sectionId);
 
     } catch (error) {
