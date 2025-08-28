@@ -4327,7 +4327,8 @@ window.generatePromptsForSection = async (button) => {
             
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Gerando cena ${i + 1} de ${phrases.length}...</p>`;
             
-            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 1500)); }
+            // Pausa estratégica AGRESSIVA para proteger a API.
+            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 2500)); } // 2.5 SEGUNDOS DE PAUSA
 
             const visualPacing = document.getElementById('visualPacing').value;
             const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
@@ -4447,16 +4448,16 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
                     console.log(`Tentativa ${attempts} para a frase ${i + 1}...`);
                     const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
                     
-                    if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
+                    if (Array.isArray(jsonResponse) && jsonResponse.length > 0 && jsonResponse[0].original_phrase) {
                         const promptData = jsonResponse[0];
                         allGeneratedPrompts.push({
-                            scriptPhrase: singlePhrase,
+                            scriptPhrase: promptData.original_phrase, // Usamos o vínculo da IA
                             imageDescription: promptData.imageDescription,
                             estimated_duration: promptData.estimated_duration
                         });
                         success = true;
                     } else {
-                        throw new Error("A IA retornou um array vazio ou inválido.");
+                        throw new Error("A IA retornou um JSON inválido ou sem a chave 'original_phrase'.");
                     }
                 } catch (error) {
                     console.warn(`Tentativa ${attempts} para a frase ${i + 1} falhou:`, error.message);
@@ -4464,7 +4465,7 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
                         console.error(`A FRASE ${i + 1} FALHOU APÓS ${MAX_ATTEMPTS} TENTATIVAS.`);
                         failedPhrases++;
                     } else {
-                        await new Promise(resolve => setTimeout(resolve, 2500));
+                        await new Promise(resolve => setTimeout(resolve, 3000)); // Espera mais antes de tentar de novo
                     }
                 }
             }
