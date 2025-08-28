@@ -4344,10 +4344,15 @@ window.generatePromptsForSection = async (button) => {
             const batchText = batches[i];
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
 
+            // >>>>> AQUI ESTÁ A PAUSA ESTRATÉGICA <<<<<
+            // Se não for o primeiro lote, espera um pouco para não sobrecarregar a API.
+            if (i > 0) {
+                await new Promise(resolve => setTimeout(resolve, 500)); // Pausa de 500ms
+            }
+
             const visualPacing = document.getElementById('visualPacing').value;
             const durationMap = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' };
             const durationRange = durationMap[visualPacing] || '8 a 15';
-
 
 
 
@@ -4451,17 +4456,15 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
 
             let success = false;
             let attempts = 0;
-            const MAX_ATTEMPTS = 3; // Tenta até 3 vezes por lote
+            const MAX_ATTEMPTS = 3;
             let jsonResponse;
 
             while (!success && attempts < MAX_ATTEMPTS) {
                 attempts++;
                 try {
                     console.log(`Tentativa ${attempts} para o lote ${i + 1}...`);
-                    // Usamos nossa função de reparo robusta em cada tentativa
                     jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
                     
-                    // Se chegar aqui sem erro, a tentativa foi bem-sucedida
                     if (Array.isArray(jsonResponse)) {
                         success = true;
                     } else {
@@ -4470,11 +4473,9 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
                 } catch (error) {
                     console.warn(`Tentativa ${attempts} falhou para o lote ${i + 1}:`, error.message);
                     if (attempts >= MAX_ATTEMPTS) {
-                        // Se todas as tentativas falharem, joga o erro para o usuário.
-                        throw new Error(`A IA falhou em processar um lote de texto após ${MAX_ATTEMPTS} tentativas. Tente novamente.`);
+                        throw new Error(`A IA falhou em processar um lote de texto após ${MAX_ATTEMPTS} tentativas. O erro foi: ${error.message}`);
                     }
-                    // Espera um pouco antes de tentar de novo
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Espera 1s antes de tentar de novo
                 }
             }
 
@@ -4487,7 +4488,6 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
             throw new Error("A IA falhou em gerar prompts válidos para todas as seções.");
         }
         
-        // O resto da função para renderizar continua igual...
         const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
             scriptPhrase: phrases[index] || "Trecho do roteiro",
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
