@@ -4343,7 +4343,7 @@ window.generatePromptsForSection = async (button) => {
         for (let i = 0; i < batches.length; i++) {
             const batchText = batches[i];
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
-            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 1200)); }
+            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 3000)); }
 
             const visualPacing = document.getElementById('visualPacing').value;
             const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
