@@ -4309,7 +4309,7 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Dividindo roteiro em unidades visuais...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Dividindo roteiro e preparando lotes...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
@@ -4320,7 +4320,6 @@ window.generatePromptsForSection = async (button) => {
         const MAX_WORDS_PER_BATCH = 200;
         let currentBatch = [];
         let currentWordCount = 0;
-
         for (const phrase of phrases) {
             const wordCount = phrase.split(/\s+/).length;
             if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatch.length > 0) {
@@ -4337,20 +4336,16 @@ window.generatePromptsForSection = async (button) => {
         }
         
         console.log(`Roteiro dividido em ${phrases.length} frases, agrupadas em ${batches.length} lotes.`);
-
         let allGeneratedPrompts = [];
         let failedBatches = 0;
-        
+
         for (let i = 0; i < batches.length; i++) {
             const batchText = batches[i];
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
-
-            // PAUSA MAIOR E INCONDICIONAL para respeitar o "rate limit" da API.
-            await new Promise(resolve => setTimeout(resolve, 1200)); // Pausa de 1.2 segundos
+            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 1200)); }
 
             const visualPacing = document.getElementById('visualPacing').value;
-            const durationMap = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' };
-            const durationRange = durationMap[visualPacing] || '8 a 15';
+            const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
 
 
 
@@ -4454,28 +4449,25 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
 
             let success = false;
             let attempts = 0;
-            const MAX_ATTEMPTS = 2; // Reduzimos para 2 para ser mais rápido
+            const MAX_ATTEMPTS = 2;
             let jsonResponse;
-
             while (!success && attempts < MAX_ATTEMPTS) {
                 attempts++;
                 try {
                     console.log(`Tentativa ${attempts} para o lote ${i + 1}...`);
                     jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
-                    
-                    if (Array.isArray(jsonResponse)) {
+                    if (Array.isArray(jsonResponse) && (jsonResponse.length === 0 || jsonResponse[0].original_phrase)) {
                         success = true;
                     } else {
-                        throw new Error("A resposta não é um array JSON válido.");
+                        throw new Error("A resposta não é um array JSON válido com a chave 'original_phrase'.");
                     }
                 } catch (error) {
                     console.warn(`Tentativa ${attempts} falhou para o lote ${i + 1}:`, error.message);
                     if (attempts >= MAX_ATTEMPTS) {
-                        // >>>>> LÓGICA DE RESILIÊNCIA APRIMORADA <<<<<
                         console.error(`O LOTE ${i + 1} FALHOU APÓS ${MAX_ATTEMPTS} TENTATIVAS. Pulando para o próximo.`);
-                        failedBatches++; // Contabiliza a falha
+                        failedBatches++;
                     } else {
-                        await new Promise(resolve => setTimeout(resolve, 1500)); // Espera mais antes de tentar de novo
+                        await new Promise(resolve => setTimeout(resolve, 1500));
                     }
                 }
             }
@@ -4484,38 +4476,30 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
                 allGeneratedPrompts = allGeneratedPrompts.concat(jsonResponse);
             }
         }
-        
-        // Avisa o usuário se algum lote falhou.
+
         if (failedBatches > 0) {
             window.showToast(`${failedBatches} de ${batches.length} lotes falharam, mas o resultado dos outros está aqui.`, 'error');
         }
-
         if (allGeneratedPrompts.length === 0) {
-            throw new Error("A IA falhou em gerar prompts válidos para todos os lotes.");
+            throw new Error("A IA não conseguiu gerar prompts válidos para nenhuma seção.");
         }
-        
-        // O resto da função para renderizar continua igual...
-        const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
-            scriptPhrase: phrases[index] || "Trecho do roteiro",
+
+        // >>>>> A CORREÇÃO FINAL ESTÁ AQUI <<<<<
+        // Nós não dependemos mais do 'index'. Usamos a 'original_phrase' do próprio objeto.
+        const curatedPrompts = allGeneratedPrompts.map(promptData => ({
+            scriptPhrase: promptData.original_phrase || "Frase original não encontrada.",
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
             estimated_duration: promptData.estimated_duration || 5
         }));
 
         const defaultStyleKey = 'cinematic';
-        AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({
-            ...p, selectedStyle: defaultStyleKey
-        }));
-        
+        AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
         AppState.ui.promptPaginationState[sectionId] = 0;
-        
-        promptContainer.innerHTML = `
-            <div class="prompt-pagination-wrapper space-y-4">
-                <div class="prompt-nav-container flex items-center justify-center gap-4"></div>
-                <div class="prompt-items-container space-y-4"></div>
-            </div>
-        `;
+        promptContainer.innerHTML = `<div class="prompt-pagination-wrapper space-y-4">
+                                         <div class="prompt-nav-container flex items-center justify-center gap-4"></div>
+                                         <div class="prompt-items-container space-y-4"></div>
+                                     </div>`;
         renderPaginatedPrompts(sectionId);
-
     } catch (error) {
         console.error("Erro detalhado na geração de prompts em lote:", error);
         promptContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">${error.message}</p>`;
@@ -4523,7 +4507,6 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
         hideButtonLoading(button);
     }
 };
-
 
 
 
