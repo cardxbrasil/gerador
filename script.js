@@ -4309,45 +4309,30 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Preparando lotes de frases...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando roteiro frase a frase...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
         const phrases = fullText.replace(/([.?!])\s*(?=[A-ZÀ-Ú])/g, "$1|").split("|").filter(p => p.trim());
         if (phrases.length === 0) { throw new Error("Não foram encontradas frases para analisar."); }
 
-        // A lógica de lotes permanece, mas agora a usaremos para o feedback
-        const batches = [];
-        const MAX_WORDS_PER_BATCH = 200;
-        let currentBatchText = [];
-        for (const phrase of phrases) {
-            currentBatchText.push(phrase);
-            // Agrupamos por palavras para o envio, mas a lógica de loop será por frase
-            if (currentBatchText.join(' ').split(/\s+/).length > MAX_WORDS_PER_BATCH) {
-                batches.push(currentBatchText);
-                currentBatchText = [];
-            }
-        }
-        if (currentBatchText.length > 0) {
-            batches.push(currentBatchText);
-        }
-        
-        console.log(`Roteiro dividido em ${phrases.length} frases, agrupadas em ${batches.length} lotes para processamento.`);
+        console.log(`Roteiro dividido em ${phrases.length} frases para processamento individual.`);
         
         let allGeneratedPrompts = [];
         
-        // LOOP INDIVIDUAL PARA CADA FRASE, como na versão anterior
+        // LOOP INDIVIDUAL PARA CADA FRASE
         for (let i = 0; i < phrases.length; i++) {
             const singlePhrase = phrases[i];
             
-            // >>>>> AQUI ESTÁ A CORREÇÃO DA MENSAGEM <<<<<
-            // Mostra o progresso por frase, mas de uma forma mais amigável
+            // Mensagem de progresso amigável
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Gerando cena ${i + 1} de ${phrases.length}...</p>`;
             
+            // Pausa estratégica para proteger a API
             if (i > 0) { await new Promise(resolve => setTimeout(resolve, 1500)); }
 
             const visualPacing = document.getElementById('visualPacing').value;
             const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
+
 
 
 
@@ -4439,23 +4424,18 @@ O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial 
 ## ENTRADA DE DADOS
 
 ---
-${batchText}
+${singlePhrase}
 ---
 
 ## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
 Os exemplos na seção "EXEMPLOS DE FORMATOS DE SAÍDA CORRETO" são **APENAS para referência de estilo e formato**. É **ESTRITAMENTE PROIBIDO** copiar o conteúdo desses exemplos. Sua resposta DEVE se basear **única e exclusivamente** no texto da "ENTRADA DE DADOS".
 
 ## INSTRUÇÃO FINAL E INQUEBRÁVEL
-
-Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um objeto JSON correspondente com as chaves "original_phrase", "imageDescription" e "estimated_duration". O resultado final DEVE ser um **único array JSON válido**. Não inclua nenhum texto ou explicação fora do array.
+Analise a FRASE na "ENTRADA DE DADOS" e gere um objeto JSON para ela. O resultado final DEVE ser um **único array JSON válido contendo apenas UM objeto**.
 `;
 
-
-
-
-
             try {
-                console.log(`Enviando frase ${i + 1} para a API...`);
+                console.log(`Enviando frase ${i + 1} ("${singlePhrase.substring(0, 30)}...") para a API...`);
                 const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
                 
                 if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
@@ -4465,11 +4445,12 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
                         imageDescription: promptData.imageDescription,
                         estimated_duration: promptData.estimated_duration
                     });
+                    console.log(`Frase ${i + 1} processada com sucesso.`);
                 } else {
                     console.warn(`A IA não retornou um prompt válido para a frase ${i + 1}. Pulando.`);
                 }
             } catch (error) {
-                console.error(`A FRASE ${i + 1} FALHOU:`, error.message);
+                console.error(`A FRASE ${i + 1} FALHOU completamente:`, error.message);
                 window.showToast(`O processamento da frase ${i + 1} falhou.`, 'error');
             }
         }
@@ -4492,6 +4473,7 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
         hideButtonLoading(button);
     }
 };
+
 
 
 
