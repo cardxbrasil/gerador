@@ -4323,7 +4323,7 @@ window.generatePromptsForSection = async (button) => {
         for (const phrase of phrases) {
             const wordCount = phrase.split(/\s+/).length;
             if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatchPhrases.length > 0) {
-                batches.push([...currentBatchPhrases]); // Adiciona uma cópia do array
+                batches.push([...currentBatchPhrases]);
                 currentBatchPhrases = [phrase];
                 currentWordCount = wordCount;
             } else {
@@ -4339,8 +4339,8 @@ window.generatePromptsForSection = async (button) => {
         let allGeneratedPrompts = [];
         
         for (let i = 0; i < batches.length; i++) {
-            const batchPhrases = batches[i]; // O array de frases originais do lote
-            const batchText = batchPhrases.join(' '); // O texto para enviar à IA
+            const batchPhrases = batches[i];
+            const batchText = batchPhrases.join(' ');
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
             
             if (i > 0) { await new Promise(resolve => setTimeout(resolve, 1000)); }
@@ -4429,13 +4429,15 @@ Para cada parágrafo, construa a "imageDescription" como uma prosa fluida, tecen
 - Para "estimated_duration", use valores inteiros entre ${durationRange}, baseando-se na densidade narrativa e no ritmo emocional.
 - **Em caso de ambiguidade, escolha sempre o detalhe que evoca a sensação mais forte e o significado mais profundo**. Não escolha o óbvio — escolha o **inevitável**.
 
-## DIRETRIZ DE VARIEDADE E CONTEXTO (REGRA CRÍTICA ANTI-REPETIÇÃO)
-O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial e obrigatório** que você gere uma **descrição visual ÚNICA e DISTINTA para CADA UM**.
+## DIRETRIZES DE EXECUÇÃO
+// ...
+- Para "estimated_duration", use valores inteiros entre ${durationRange}, baseando-se na densidade narrativa.
+// ...
 
 ## ENTRADA DE DADOS
 
 ---
-${singlePhrase}
+${batchText}
 ---
 
 ## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
@@ -4456,12 +4458,12 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
                 if (Array.isArray(jsonResponse)) {
                     console.log(`Lote ${i + 1} processado. Recebido(s) ${jsonResponse.length} prompt(s).`);
                     if (jsonResponse.length !== batchPhrases.length) {
-                        console.warn(`Discrepância no lote ${i+1}: Esperado ${batchPhrases.length}, recebido ${jsonResponse.length}. A sincronia pode ser afetada.`);
+                        console.warn(`Discrepância no lote ${i+1}: Esperado ${batchPhrases.length}, recebido ${jsonResponse.length}.`);
                     }
                     // O MAESTRO FAZENDO A JUNÇÃO:
                     jsonResponse.slice(0, batchPhrases.length).forEach((data, index) => {
                         allGeneratedPrompts.push({
-                            scriptPhrase: batchPhrases[index], // Pega a frase original que o código guardou
+                            scriptPhrase: batchPhrases[index],
                             imageDescription: data.imageDescription,
                             estimated_duration: data.estimated_duration
                         });
@@ -4491,7 +4493,6 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
         hideButtonLoading(button);
     }
 };
-
 
 
 
