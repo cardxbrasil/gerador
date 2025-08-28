@@ -4374,6 +4374,7 @@ Você é um romancista visual, um híbrido de diretor de fotografia e escritor d
 2.  **USE APENAS ASPAS DUPLAS (")**: Em todas as chaves e valores de texto
 3.  **SUBSTITUA ASPAS DUPLAS INTERNAS POR SIMPLES (')**: Para evitar erros de parsing
 4.  **ESTRUTURA IMUTÁVEL POR OBJETO**:
+   - "original_phrase": A cópia EXATA da frase do roteiro que você está descrevendo.
    - "imageDescription": string descritiva, rica em camadas sensoriais, narrativas e visuais
    - "estimated_duration": número inteiro (2 a 10)
 
@@ -4397,8 +4398,6 @@ Você é um romancista visual, um híbrido de diretor de fotografia e escritor d
   }
 ]
 
-## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
-Os exemplos na seção "EXEMPLOS DE FORMATOS DE SAÍDA CORRETO" são **APENAS para referência de estilo, formato e nível de detalhe**. É **ESTRITAMENTE PROIBIDO** copiar, adaptar ou usar qualquer elemento temático ou narrativo desses exemplos na sua resposta. Sua resposta DEVE se basear **única e exclusivamente** no texto fornecido na seção "ENTRADA DE DADOS".
 
 ## PROCEDIMENTO DE ANÁLISE VISUAL (MANIFESTO CRIATIVO)
 
@@ -4412,7 +4411,7 @@ Para cada parágrafo, construa a "imageDescription" como uma prosa fluida, tecen
 ### 2. O ESPAÇO COMO PERSONAGEM: CENÁRIO E COMPOSIÇÃO
 - **Biografia do Ambiente**: O espaço não é um fundo, é um personagem. Descreva-o como tal. O que ele 'sente'? (ex: 'as paredes parecem se fechar, claustrofóbicas, como se absorvessem os sussurros do passado', 'o teto alto e vazio ecoa a solidão do ocupante, cada passo um lamento'). O ambiente deve **reter memória**, com marcas de uso, tempo, violência ou abandono.
 - **Coreografia e Foco**: Descreva a cena como um movimento de câmera deliberado que guia o olhar. Onde o foco começa (ex: uma mão trêmula), para onde ele transita (ex: um objeto simbólico) e onde ele repousa para entregar o impacto emocional (ex: um olhar vazio no espelho). O movimento deve ter **intenção dramática**, não apenas técnica.
-- **✅ Ação e Consequência Física**: **Sempre** inclua uma micro-ação e sua reação física imediata. (ex: 'Uma rajada de vento entra, levantando uma pilha de papéis que dançam caoticamente antes de pousar, um deles revelando uma foto escondida', 'Seus dedos pressionam o vidro, deixando uma marca de gordura que embaça a visão, distorcendo o reflexo do céu noturno'). A ação deve desencadear **revelação ou tensão**.
+- **Ação e Consequência Física**: **Sempre** inclua uma micro-ação e sua reação física imediata. (ex: 'Uma rajada de vento entra, levantando uma pilha de papéis que dançam caoticamente antes de pousar, um deles revelando uma foto escondida', 'Seus dedos pressionam o vidro, deixando uma marca de gordura que embaça a visão, distorcendo o reflexo do céu noturno'). A ação deve desencadear **revelação ou tensão**.
 
 ### 3. A FÍSICA DA LUZ E DA SOMBRA
 - **Personalidade da Luz**: A luz tem uma intenção. É 'investigativa e dura', 'gentil e piedosa', 'fragmentada e confusa', 'acusatória', 'mentirosa'? A luz deve **julgar**, **esconder**, ou **traí-lo**.
@@ -4425,7 +4424,7 @@ Para cada parágrafo, construa a "imageDescription" como uma prosa fluida, tecen
 ### 4. O MICROCOSMO DO DETALHE
 - **Linguagem Corporal e Micro-expressões**: Vá além da postura. Descreva 'a contração de um músculo na mandíbula, como um relógio interno prestes a explodir', 'o piscar lento de olhos cansados, cada batida uma rendição parcial', 'a forma como os dedos tamborilam nervosamente, um código Morse de ansiedade'. O corpo deve falar mais alto que as palavras.
 - **Texturas e sua História**: Descreva a sensação tátil de um objeto e o que essa textura revela. (ex: 'a superfície lisa e fria do mármore, indiferente ao drama', 'a madeira áspera e cheia de farpas de uma porta velha, que resistiu ao tempo mas não à dor'). A textura deve contar uma **história não contada**.
-- **✅ O Detalhe Ativo (Punctum em Movimento)**: Em vez de um objeto estático, torne o detalhe simbólico uma ação. (ex: 'uma única pétala de flor se desprende e cai lentamente, como um adeus não dito', 'uma gota de condensação escorre pela garrafa, como uma lágrima que ninguém viu', 'a chama de uma vela treme violentamente, ameaçando se apagar, como a esperança no fim da noite'). O detalhe não deve apenas simbolizar — deve **provocar**.
+- **O Detalhe Ativo (Punctum em Movimento)**: Em vez de um objeto estático, torne o detalhe simbólico uma ação. (ex: 'uma única pétala de flor se desprende e cai lentamente, como um adeus não dito', 'uma gota de condensação escorre pela garrafa, como uma lágrima que ninguém viu', 'a chama de uma vela treme violentamente, ameaçando se apagar, como a esperança no fim da noite'). O detalhe não deve apenas simbolizar — deve **provocar**.
 
 ## DIRETRIZES DE EXECUÇÃO
 
@@ -4435,7 +4434,7 @@ Para cada parágrafo, construa a "imageDescription" como uma prosa fluida, tecen
 - **Em caso de ambiguidade, escolha sempre o detalhe que evoca a sensação mais forte e o significado mais profundo**. Não escolha o óbvio — escolha o **inevitável**.
 
 ## DIRETRIZ DE VARIEDADE E CONTEXTO (REGRA CRÍTICA ANTI-REPETIÇÃO)
-O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial e obrigatório** que você gere uma **descrição visual ÚNICA e DISTINTA para CADA UM**. Se dois parágrafos de entrada forem semanticamente semelhantes, sua tarefa como diretor criativo é encontrar **ângulos, detalhes, iluminação ou movimentos de câmera DIFERENTES** para garantir que cada cena resultante seja original.
+O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial e obrigatório** que você gere uma **descrição visual ÚNICA e DISTINTA para CADA UM**.
 
 ## ENTRADA DE DADOS
 
@@ -4443,6 +4442,8 @@ O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial 
 ${batchText}
 ---
 
+## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
+Os exemplos na seção "EXEMPLOS DE FORMATOS DE SAÍDA CORRETO" são **APENAS para referência de estilo e formato**. É **ESTRITAMENTE PROIBIDO** copiar o conteúdo desses exemplos. Sua resposta DEVE se basear **única e exclusivamente** no texto da "ENTRADA DE DADOS".
 
 ## INSTRUÇÃO FINAL E INQUEBRÁVEL
 
