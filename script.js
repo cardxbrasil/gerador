@@ -1068,10 +1068,13 @@ const callGroqAPI = async (prompt, maxTokens) => {
             const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido do servidor.' }));
             throw new Error(`Erro da API: ${errorData.error || response.statusText}`);
         }
-        const result = await response.json();
-        const rawContent = result.choices?.[0]?.message?.content;
-        if (rawContent) {
-            return rawContent;
+const result = await response.json();
+
+// >>>>> LINHA DE DEPURAÇÃO ADICIONADA <<<<<
+console.log("RESPOSTA COMPLETA DA API:", JSON.stringify(result, null, 2));
+
+const rawContent = result.choices?.[0]?.message?.content;
+if (rawContent) {
         } else {
             throw new Error("Resposta inesperada da API.");
         }
