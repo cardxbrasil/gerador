@@ -4414,8 +4414,7 @@ Para cada parágrafo, construa a "imageDescription" como uma prosa fluida, tecen
 - **Em caso de ambiguidade, escolha sempre o detalhe que evoca a sensação mais forte e o significado mais profundo**. Não escolha o óbvio — escolha o **inevitável**.
 
 ## DIRETRIZ DE VARIEDADE E CONTEXTO (REGRA CRÍTICA ANTI-REPETIÇÃO)
-
-O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial e obrigatório** que você gere uma **descrição visual ÚNICA e DISTINTA para CADA UM**. Se dois parágrafos de entrada forem semanticamente semelhantes, sua tarefa como diretor criativo é encontrar **ângulos, detalhes, iluminação ou movimentos de câmera DIFERENTES** para garantir que cada cena resultante seja original e não uma repetição da anterior. Evite usar a mesma estrutura frasal ou os mesmos detalhes dominantes em múltiplas descrições. Sua criatividade na diferenciação será avaliada.
+O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial e obrigatório** que você gere uma **descrição visual ÚNICA e DISTINTA para CADA UM**. Se dois parágrafos de entrada forem semanticamente semelhantes, sua tarefa como diretor criativo é encontrar **ângulos, detalhes, iluminação ou movimentos de câmera DIFERENTES** para garantir que cada cena resultante seja original.
 
 ## ENTRADA DE DADOS
 
@@ -4423,12 +4422,14 @@ O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial 
 ${batchText}
 ---
 
+## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
+Os exemplos na seção "FORMATO DE SAÍDA CORRETO (EXEMPLO)" são **APENAS para referência de estilo, formato e nível de detalhe**. É **ESTRITAMENTE PROIBIDO** copiar, adaptar ou usar qualquer elemento temático ou narrativo desses exemplos na sua resposta. Sua resposta DEVE se basear **única e exclusivamente** no texto fornecido na seção "ENTRADA DE DADOS".
+
 ## INSTRUÇÃO FINAL
 
-Analise cada parágrafo como um romancista visual. Gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration". Cada descrição deve ser uma peça de prosa imersiva, uma cápsula de tempo e sensação. O leitor deve ser transportado para dentro da cena, sentir o frio na espinha, o gosto do medo, o peso do silêncio.  
-**Nada além do array JSON deve ser retornado. Nenhum texto explicativo, nenhum comentário, nenhum acréscimo.**
+Analise cada parágrafo como um romancista visual. Gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration". Cada descrição deve ser uma peça de prosa imersiva, uma cápsula de tempo e sensação. O leitor deve ser transportado para dentro da cena.
+**Nada além do array JSON deve ser retornado.**
 `;
-
 
 
 
