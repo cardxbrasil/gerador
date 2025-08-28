@@ -697,10 +697,6 @@ ${fullTranscript}
 
 
 
-
-
-
-
 // Adicione esta nova função dentro do objeto PromptManager em script.js
 getImageStoryboardPrompt: (sectionText, durationRange = '8 a 15') => {
     // Aqui está o prompt unificado que combina a tarefa e o seu manual de estilo.
@@ -818,89 +814,6 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
 `;
     return fullPrompt;
 },
-
-
-
-// ==========================================================
-// ==== FUNÇÕES UTILITÁRIAS (Completas da v5.0) =============
-// ==========================================================
-window.showToast = (message, type = 'info') => {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toastMessage');
-    if (!toast || !toastMessage) return;
-    let borderColor = 'var(--primary)';
-    if (type === 'success') borderColor = 'var(--success)';
-    if (type === 'error') borderColor = 'var(--danger)';
-    toast.style.borderLeftColor = borderColor;
-    toastMessage.textContent = message;
-    toast.classList.add('show');
-    setTimeout(() => { toast.classList.remove('show'); }, 4000);
-};
-
-const showButtonLoading = (button) => {
-    if (!button) return;
-    button.setAttribute('data-original-html', button.innerHTML);
-    button.disabled = true;
-    button.innerHTML = '<div class="loading-spinner"></div>';
-};
-
-const hideButtonLoading = (button) => {
-    if (!button) return;
-    if (button.hasAttribute('data-original-html')) {
-        button.innerHTML = button.getAttribute('data-original-html');
-        button.removeAttribute('data-original-html');
-    }
-    button.disabled = false;
-};
-
-
-
-
-
-// =========================================================================
-// >>>>> SUBSTITUA A FUNÇÃO callGroqAPI PELA VERSÃO SIMPLES E DIRETA <<<<<
-// =========================================================================
-const callGroqAPI = async (prompt, maxTokens) => {
-    // >>> COLE A URL DO SEU WORKER AQUI <<<
-    const workerUrl = "https://royal-bird-81cb.david-souzan.workers.dev/"; 
-
-    const payload = { prompt, maxTokens };
-    const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    };
-
-    try {
-        const response = await fetch(workerUrl, requestOptions);
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido do servidor.' }));
-            throw new Error(`Erro da API: ${errorData.error || response.statusText}`);
-        }
-        const result = await response.json();
-        const rawContent = result.choices?.[0]?.message?.content;
-        if (rawContent) {
-            return rawContent;
-        } else {
-            throw new Error("Resposta inesperada da API.");
-        }
-    } catch (error) {
-        console.error("Falha na chamada à API via Worker:", error);
-        // --- LÓGICA INTELIGENTE AQUI ---
-        if (error.message && error.message.toLowerCase().includes('fault filter abort')) {
-            const customError = new Error("O tema ou texto que você forneceu foi bloqueado pelo filtro de segurança da IA. Por favor, tente reformular com outras palavras.");
-            window.showToast(customError.message, 'error');
-            throw customError;
-        } else {
-            window.showToast(`Falha na API: ${error.message}`, 'error');
-            throw error;
-        }
-    }
-};
-
-
-
-
 
 
 
@@ -1096,6 +1009,85 @@ Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro
 
 
 
+
+
+
+// ==========================================================
+// ==== FUNÇÕES UTILITÁRIAS (Completas da v5.0) =============
+// ==========================================================
+window.showToast = (message, type = 'info') => {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+    if (!toast || !toastMessage) return;
+    let borderColor = 'var(--primary)';
+    if (type === 'success') borderColor = 'var(--success)';
+    if (type === 'error') borderColor = 'var(--danger)';
+    toast.style.borderLeftColor = borderColor;
+    toastMessage.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => { toast.classList.remove('show'); }, 4000);
+};
+
+const showButtonLoading = (button) => {
+    if (!button) return;
+    button.setAttribute('data-original-html', button.innerHTML);
+    button.disabled = true;
+    button.innerHTML = '<div class="loading-spinner"></div>';
+};
+
+const hideButtonLoading = (button) => {
+    if (!button) return;
+    if (button.hasAttribute('data-original-html')) {
+        button.innerHTML = button.getAttribute('data-original-html');
+        button.removeAttribute('data-original-html');
+    }
+    button.disabled = false;
+};
+
+
+
+
+
+// =========================================================================
+// >>>>> SUBSTITUA A FUNÇÃO callGroqAPI PELA VERSÃO SIMPLES E DIRETA <<<<<
+// =========================================================================
+const callGroqAPI = async (prompt, maxTokens) => {
+    // >>> COLE A URL DO SEU WORKER AQUI <<<
+    const workerUrl = "https://royal-bird-81cb.david-souzan.workers.dev/"; 
+
+    const payload = { prompt, maxTokens };
+    const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    };
+
+    try {
+        const response = await fetch(workerUrl, requestOptions);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido do servidor.' }));
+            throw new Error(`Erro da API: ${errorData.error || response.statusText}`);
+        }
+        const result = await response.json();
+        const rawContent = result.choices?.[0]?.message?.content;
+        if (rawContent) {
+            return rawContent;
+        } else {
+            throw new Error("Resposta inesperada da API.");
+        }
+    } catch (error) {
+        console.error("Falha na chamada à API via Worker:", error);
+        // --- LÓGICA INTELIGENTE AQUI ---
+        if (error.message && error.message.toLowerCase().includes('fault filter abort')) {
+            const customError = new Error("O tema ou texto que você forneceu foi bloqueado pelo filtro de segurança da IA. Por favor, tente reformular com outras palavras.");
+            window.showToast(customError.message, 'error');
+            throw customError;
+        } else {
+            window.showToast(`Falha na API: ${error.message}`, 'error');
+            throw error;
+        }
+    }
+};
 
 
 
