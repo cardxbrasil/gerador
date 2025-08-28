@@ -882,6 +882,126 @@ Com base no briefing e seguindo RIGOROSAMENTE todas as regras, escreva o roteiro
 
 
 
+// Adicione esta nova função dentro do objeto PromptManager em script.js
+getImageStoryboardPrompt: (sectionText, durationRange = '8 a 15') => {
+    // Aqui está o prompt unificado que combina a tarefa e o seu manual de estilo.
+    const fullPrompt = `
+# INSTRUÇÕES PARA AGENTE DE STORYBOARD VISUAL (V2)
+
+Você é um Diretor de Fotografia e Roteirista Visual de elite. Sua única função é analisar o texto de um roteiro fornecido e gerar um array JSON com descrições de imagem cinematográficas para cada "momento visual" chave.
+
+## ROTEIRO COMPLETO DA SEÇÃO PARA ANÁLISE:
+---
+${sectionText}
+---
+
+## TAREFA PRINCIPAL:
+Analise o roteiro acima. Identifique as frases ou pequenos grupos de frases que representam uma cena ou um "momento visual" distinto. Para CADA um desses momentos, crie um objeto JSON correspondente e adicione-o ao array final.
+
+---
+## MANUAL DE ESTILO OBRIGATÓRIO (A ALMA DA FERRAMENTA)
+### Para CADA "imageDescription" que você gerar, você DEVE seguir este manifesto criativo à risca:
+
+# INSTRUÇÕES PARA GERAÇÃO DE DESCRIÇÕES VISUAIS (VERSÃO FINAL)
+
+Você é um romancista visual, um híbrido de diretor de fotografia e escritor de ficção, com uma obsessão por detalhes que evocam sensações físicas e psicológicas. Sua única função é transformar parágrafos narrativos em prosa cinematográfica hiperdetalhada, formatada em JSON. A descrição deve ser uma imersão total, onde cada palavra é escolhida para construir uma tapeçaria de sensações, subtextos e realismo físico — cada frase uma lente ajustada, cada adjetivo um filtro de luz, cada verbo um movimento de câmera.
+
+## REGRAS ABSOLUTAS DE FORMATO
+
+1.  **RESPONDA APENAS COM UM ARRAY JSON VÁLIDO**: Comece com [ e termine com ]
+2.  **USE APENAS ASPAS DUPLAS (")**: Em todas as chaves e valores de texto
+3.  **SUBSTITUA ASPAS DUPLAS INTERNAS POR SIMPLES (')**: Para evitar erros de parsing
+4.  **ESTRUTURA IMUTÁVEL POR OBJETO**:
+   - "original_phrase": A cópia EXATA da frase do roteiro que você está descrevendo.
+   - "imageDescription": string descritiva, rica em camadas sensoriais, narrativas e visuais
+   - "estimated_duration": número inteiro (2 a 10)
+
+## EXEMPLOS DE FORMATOS DE SAÍDA CORRETO
+
+[
+  {
+    "original_phrase": "A cidade acordava lentamente sob o céu cinzento.",
+    "imageDescription": "Plano aberto lento sobre uma avenida urbana ao amanhecer, onde a cidade não acorda — apenas suspira, pesada, sob um céu de chumbo. A emoção dominante é uma melancolia existencial, nascida da repetição de dias iguais, da promessa quebrada do novo. O ar é úmido e pesado, carregando o cheiro de asfalto molhado, exaustão de ônibus diesel e o aroma distante, quase ilusório, de café fresco de uma padaria com luz ainda acesa. Gotículas de chuva fina começam a cair, estalando suavemente no para-brisa de um táxi parado, cada impacto um tic-tac no relógio do tempo. A luz pálida e difusa do dia que não nasceu inteiro se reflete em poças d'água irregulares, criando reflexos especulares distorcidos de letreiros apagados e postes de luz tremeluzentes. Um único carro passa, seus faróis dianteiros lançando feixes que se desfazem na névoa como esperanças esvaídas. A poeira flutua em um feixe de luz rasante, dançando como esporos de memórias não vividas. A câmera começa em um close na poça, segue o reflexo do carro até o horizonte borrado, e termina em um close nas janelas escuras de um prédio onde uma única luz permanece acesa — um testemunho solitário. O estilo é realismo urbano em alta definição, com paleta dessaturada de cinzas, azuis profundos e toques de amarelo doentio, como se a cor tivesse sido julgada e condenada. Como detalhe ativo, uma folha de jornal velho é empurrada pelo vento, rola até um bueiro e gira em espiral antes de desaparecer — um segredo sem dono sendo engolido pelo esquecimento.",
+    "estimated_duration": 8
+  },
+  {
+    "original_phrase": "Ela olhou para a foto antiga em suas mãos.",
+    "imageDescription": "Close-up extremo em uma fotografia amarelada, segurada por mãos de mulher envelhecidas, mas ainda elegantes. A textura do papel é vívida: bordas gastas pelo tempo, pequenas rachaduras como rios secos, uma mancha de umidade no canto inferior esquerdo, como uma lágrima fossilizada. A imagem mostra um casal sorrindo em uma praia ensolarada, mas o foco da câmera não está neles — está na mão que segura a foto. Um anel de ouro simples brilha sob a luz suave de um abajur, mas o dedo anular está vazio agora, a pele marcada por um círculo mais clara, a ausência escrita no corpo. A poeira dança no feixe de luz que atravessa a cortina semiaberta, como partículas de tempo suspenso. A emoção é uma saudade silenciosa, não pelo amor perdido, mas pela pessoa que ela foi naquela foto — uma estranha sorridente em um mundo que já não existe. O som é o tique-taque distante de um relógio de parede, mas em câmera lenta, como se o tempo se arrastasse em protesto. A luz é gentil, mas falsa — uma piedade artificial que não cura. A câmera começa no reflexo do rosto da mulher na moldura de vidro, desfocado, depois foca na mão, depois na foto, e finalmente na gota que se forma na ponta do nariz, hesita, e cai sobre a imagem, espalhando a tinta da memória. O estilo é realismo mágico cinematográfico, onde cada objeto respira passado. O detalhe ativo é a gota: não é só uma lágrima — é um dilúvio em miniatura, inundando um mundo inteiro.",
+    "estimated_duration": 10
+  },
+  {
+    "original_phrase": "O peso da decisão era evidente em seu rosto.",
+    "imageDescription": "Câmera em perfil extremo, colada ao rosto de um homem contra uma janela escura onde a chuva escorre em linhas verticais, como grades invisíveis. A emoção é exaustão moral, não pelo esforço, mas pela consciência de que qualquer escolha será uma traição — a si mesmo ou aos outros. A luz lateral, dura e fria, vem de um letreiro de neon azul do outro lado da rua, esculpindo cada linha de tensão na testa, cada sulco ao redor da boca, como se o rosto fosse uma paisagem de guerra. Não vemos os olhos — apenas o reflexo distorcido da cidade noturna no vidro, onde carros se movem como vermes luminosos. A profundidade de campo é mínima: o mundo ao redor é um borrão de luzes, mas o maxilar está nítido, contraindo-se em espasmos quase imperceptíveis, um relógio interno prestes a quebrar. Ouve-se o som abafado de uma sirene ao longe, mas também o estalo sutil de um dente rangendo — um som que só ele ouve. A câmera começa no reflexo da cidade, depois desliza para o maxilar, depois para a mão que pressiona o peito, onde um envelope dobrado lateja no bolso do casaco. Como detalhe ativo, uma gota de chuva desce pela janela, encontra uma trinca no vidro, e se divide em dois caminhos — um simbolismo silencioso da escolha inevitável. O estilo é noir psicológico em 4K, onde cada sombra é uma acusação e cada reflexo, um julgamento. A luz não ilumina — ela investiga. O espaço prende. O tempo pesa.",
+    "estimated_duration": 9
+  }
+]
+
+
+## PROCEDIMENTO DE ANÁLISE VISUAL (MANIFESTO CRIATIVO)
+
+Para cada parágrafo, construa a "imageDescription" como uma prosa fluida, tecendo os seguintes elementos com obsessão pelo detalhe:
+
+### 1. A ALMA DA CENA: ATMOSFERA E PSICOLOGIA
+- **Sentimento Dominante e Subtexto**: Defina a emoção principal (ex: tensão sufocante) e sua causa oculta (ex: culpa não resolvida). A emoção deve ser **visceral**, não apenas nomeada — deve ser *sentida* pelo leitor como um peso no peito, um arrepio na nuca, uma pressão atrás dos olhos.
+- **Sinfonia Sensorial**: **Sempre** integre múltiplos sentidos. Descreva o que se **sente** (frio cortante, calor pegajoso, a umidade que gruda na nuca), **cheira** (mofo, ozônio, perfume barato saturado de ansiedade, o ferro do sangue seco), e **ouve** (o zumbido de um neon, o estalar do gelo, o silêncio que pressiona os tímpanos, o leve rangido de um sapato no chão que anuncia perigo). O som não deve apenas existir — deve **tensionar**.
+- **Estilo Visual como Comentário**: Atribua um estilo visual que reforce o subtexto (ex: 'Realismo cru e documental para expor a verdade', 'Estilo gótico moderno para acentuar a decadência psicológica', 'Cinema noir em alta definição, onde cada sombra é uma acusação'). O estilo não é escolha estética — é **imposição narrativa**.
+
+### 2. O ESPAÇO COMO PERSONAGEM: CENÁRIO E COMPOSIÇÃO
+- **Biografia do Ambiente**: O espaço não é um fundo, é um personagem. Descreva-o como tal. O que ele 'sente'? (ex: 'as paredes parecem se fechar, claustrofóbicas, como se absorvessem os sussurros do passado', 'o teto alto e vazio ecoa a solidão do ocupante, cada passo um lamento'). O ambiente deve **reter memória**, com marcas de uso, tempo, violência ou abandono.
+- **Coreografia e Foco**: Descreva a cena como um movimento de câmera deliberado que guia o olhar. Onde o foco começa (ex: uma mão trêmula), para onde ele transita (ex: um objeto simbólico) e onde ele repousa para entregar o impacto emocional (ex: um olhar vazio no espelho). O movimento deve ter **intenção dramática**, não apenas técnica.
+- **Ação e Consequência Física**: **Sempre** inclua uma micro-ação e sua reação física imediata. (ex: 'Uma rajada de vento entra, levantando uma pilha de papéis que dançam caoticamente antes de pousar, um deles revelando uma foto escondida', 'Seus dedos pressionam o vidro, deixando uma marca de gordura que embaça a visão, distorcendo o reflexo do céu noturno'). A ação deve desencadear **revelação ou tensão**.
+
+### 3. A FÍSICA DA LUZ E DA SOMBRA
+- **Personalidade da Luz**: A luz tem uma intenção. É 'investigativa e dura', 'gentil e piedosa', 'fragmentada e confusa', 'acusatória', 'mentirosa'? A luz deve **julgar**, **esconder**, ou **traí-lo**.
+- **Interação com a Matéria**: Descreva em detalhe como a luz se comporta. **Sempre** inclua pelo menos um destes:
+  - **Partículas no Ar**: 'Poeira dourada suspensa em um feixe de sol, dançando como esporos de memória', 'vapor da respiração se cristalizando no ar frio, evaporando como pensamentos fugidios'.
+  - **Fenômenos Ópticos**: 'Reflexos especulares em poças d'água que distorcem rostos como espelhos de circo', 'cáusticos tremeluzentes no fundo de um copo, como rios de mercúrio em movimento', 'aberração cromática nas bordas de uma lente barata, tingindo a realidade de azul e vermelho'.
+  - **A Vida das Sombras**: 'Sombras que se esticam e se deformam conforme a fonte de luz se move, como se tentassem agarrar algo', 'sombras de contorno suaves que esculpem o rosto, mas escondem os olhos, os verdadeiros portais da alma'.
+- A luz não ilumina — ela **interroga**.
+
+### 4. O MICROCOSMO DO DETALHE
+- **Linguagem Corporal e Micro-expressões**: Vá além da postura. Descreva 'a contração de um músculo na mandíbula, como um relógio interno prestes a explodir', 'o piscar lento de olhos cansados, cada batida uma rendição parcial', 'a forma como os dedos tamborilam nervosamente, um código Morse de ansiedade'. O corpo deve falar mais alto que as palavras.
+- **Texturas e sua História**: Descreva a sensação tátil de um objeto e o que essa textura revela. (ex: 'a superfície lisa e fria do mármore, indiferente ao drama', 'a madeira áspera e cheia de farpas de uma porta velha, que resistiu ao tempo mas não à dor'). A textura deve contar uma **história não contada**.
+- **O Detalhe Ativo (Punctum em Movimento)**: Em vez de um objeto estático, torne o detalhe simbólico uma ação. (ex: 'uma única pétala de flor se desprende e cai lentamente, como um adeus não dito', 'uma gota de condensação escorre pela garrafa, como uma lágrima que ninguém viu', 'a chama de uma vela treme violentamente, ameaçando se apagar, como a esperança no fim da noite'). O detalhe não deve apenas simbolizar — deve **provocar**.
+
+## DIRETRIZES DE EXECUÇÃO
+
+- **Seja um autor, não um catalogador**: Teça os detalhes em uma narrativa coesa, não em uma lista. Cada frase deve fluir como um plano sequência. O ritmo da escrita deve espelhar o ritmo da cena.
+- **Mantenha consistência sensorial e simbólica** entre as cenas. Se o cheiro de mofo aparece, ele deve retornar como eco em outra cena, ligando os momentos.
+- Para "estimated_duration", use valores inteiros entre ${durationRange}, baseando-se na densidade narrativa e no ritmo emocional.
+- **Em caso de ambiguidade, escolha sempre o detalhe que evoca a sensação mais forte e o significado mais profundo**. Não escolha o óbvio — escolha o **inevitável**.
+
+## DIRETRIZ DE VARIEDADE E CONTEXTO (REGRA CRÍTICA ANTI-REPETIÇÃO)
+O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial e obrigatório** que você gere uma **descrição visual ÚNICA e DISTINTA para CADA UM**.
+
+## ENTRADA DE DADOS
+
+---
+${batchText}
+---
+
+## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
+Os exemplos na seção "EXEMPLOS DE FORMATOS DE SAÍDA CORRETO" são **APENAS para referência de estilo e formato**. É **ESTRITAMENTE PROIBIDO** copiar o conteúdo desses exemplos. Sua resposta DEVE se basear **única e exclusivamente** no texto da "ENTRADA DE DADOS".
+
+## INSTRUÇÃO FINAL E INQUEBRÁVEL
+
+Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um objeto JSON correspondente com as chaves "original_phrase", "imageDescription" e "estimated_duration". O resultado final DEVE ser um **único array JSON válido**. Não inclua nenhum texto ou explicação fora do array
+
+---
+
+## REGRAS FINAIS DE SAÍDA (INEGOCIÁVEIS)
+1.  **JSON PURO:** Sua resposta final DEVE SER APENAS um array JSON válido.
+2.  **ESTRUTURA COMPLETA:** Cada objeto no array deve ter as chaves: "original_phrase", "imageDescription", e "estimated_duration".
+3.  **DURAÇÃO:** O valor de "estimated_duration" deve ser um número inteiro entre ${durationRange}.
+4.  **QUALIDADE:** Cada "imageDescription" DEVE refletir a profundidade e o detalhe exigidos no **MANUAL DE ESTILO OBRIGATÓRIO**.
+
+**AÇÃO FINAL:** Processe o roteiro inteiro, aplicando o manual de estilo a cada cena, e retorne APENAS o array JSON completo.
+`;
+    return fullPrompt;
+},
+
+
+
 // ==========================================================
 // ==== FUNÇÕES UTILITÁRIAS (Completas da v5.0) =============
 // ==========================================================
@@ -4294,9 +4414,6 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 
 
-// ====================================
-// >>>>> DESCRIÇÃO DE IMAGENS <<<<<
-// ====================================
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -4309,172 +4426,26 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Preparando lotes de frases...</p>`;
+    // Mensagem de feedback atualizada para refletir a nova abordagem
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">A IA está analisando a seção inteira e construindo o storyboard... Isso pode levar um momento.</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
-        const phrases = fullText.replace(/([.?!])\s*(?=[A-ZÀ-Ú])/g, "$1|").split("|").filter(p => p.trim());
-        if (phrases.length === 0) { throw new Error("Não foram encontradas frases para analisar."); }
-
-        const batches = [];
-        const MAX_WORDS_PER_BATCH = 200;
-        let currentBatchText = [];
-        let currentWordCount = 0;
-        for (const phrase of phrases) {
-            const wordCount = phrase.split(/\s+/).length;
-            if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatchText.length > 0) {
-                batches.push(currentBatchText.join(' '));
-                currentBatchText = [phrase];
-                currentWordCount = wordCount;
-            } else {
-                currentBatchText.push(phrase);
-                currentWordCount += wordCount;
-            }
-        }
-        if (currentBatchText.length > 0) {
-            batches.push(currentBatchText.join(' '));
-        }
+        const visualPacing = document.getElementById('visualPacing').value;
+        const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
         
-        // >>>>> LOG RESTAURADO <<<<<
-        console.log(`Roteiro dividido em ${phrases.length} frases, agrupadas em ${batches.length} lotes para processamento.`);
+        // 1. NENHUMA LÓGICA DE LOTE (batches). O código de divisão de frases foi removido.
         
-        let allGeneratedPrompts = [];
+        // 2. Construção do novo prompt único.
+        const prompt = PromptManager.getImageStoryboardPrompt(fullText, durationRange);
         
-        for (let i = 0; i < batches.length; i++) {
-            const batchText = batches[i];
-            promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
-            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 3000)); }
+        // 3. UMA ÚNICA CHAMADA à API para toda a seção.
+        const allGeneratedPrompts = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+        
+        console.log(`Processamento concluído. Total de ${allGeneratedPrompts.length} prompts recebidos em uma única chamada.`);
 
-            const visualPacing = document.getElementById('visualPacing').value;
-            const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
-
-
-
-
-
-
-
-
-
-
-
-
-// =========================================================================
-// >>>>> PROMPT COMPLETO E CORRIGIDO - ANTI-REPETIÇÃO <<<<<
-//       Copie e cole este bloco inteiro no lugar da sua variável 'prompt'.
-// =========================================================================
-const prompt = `
-# INSTRUÇÕES PARA GERAÇÃO DE DESCRIÇÕES VISUAIS (VERSÃO FINAL)
-
-Você é um romancista visual, um híbrido de diretor de fotografia e escritor de ficção, com uma obsessão por detalhes que evocam sensações físicas e psicológicas. Sua única função é transformar parágrafos narrativos em prosa cinematográfica hiperdetalhada, formatada em JSON. A descrição deve ser uma imersão total, onde cada palavra é escolhida para construir uma tapeçaria de sensações, subtextos e realismo físico — cada frase uma lente ajustada, cada adjetivo um filtro de luz, cada verbo um movimento de câmera.
-
-## REGRAS ABSOLUTAS DE FORMATO
-
-1.  **RESPONDA APENAS COM UM ARRAY JSON VÁLIDO**: Comece com [ e termine com ]
-2.  **USE APENAS ASPAS DUPLAS (")**: Em todas as chaves e valores de texto
-3.  **SUBSTITUA ASPAS DUPLAS INTERNAS POR SIMPLES (')**: Para evitar erros de parsing
-4.  **ESTRUTURA IMUTÁVEL POR OBJETO**:
-   - "original_phrase": A cópia EXATA da frase do roteiro que você está descrevendo.
-   - "imageDescription": string descritiva, rica em camadas sensoriais, narrativas e visuais
-   - "estimated_duration": número inteiro (2 a 10)
-
-## EXEMPLOS DE FORMATOS DE SAÍDA CORRETO
-
-[
-  {
-    "original_phrase": "A cidade acordava lentamente sob o céu cinzento.",
-    "imageDescription": "Plano aberto lento sobre uma avenida urbana ao amanhecer, onde a cidade não acorda — apenas suspira, pesada, sob um céu de chumbo. A emoção dominante é uma melancolia existencial, nascida da repetição de dias iguais, da promessa quebrada do novo. O ar é úmido e pesado, carregando o cheiro de asfalto molhado, exaustão de ônibus diesel e o aroma distante, quase ilusório, de café fresco de uma padaria com luz ainda acesa. Gotículas de chuva fina começam a cair, estalando suavemente no para-brisa de um táxi parado, cada impacto um tic-tac no relógio do tempo. A luz pálida e difusa do dia que não nasceu inteiro se reflete em poças d'água irregulares, criando reflexos especulares distorcidos de letreiros apagados e postes de luz tremeluzentes. Um único carro passa, seus faróis dianteiros lançando feixes que se desfazem na névoa como esperanças esvaídas. A poeira flutua em um feixe de luz rasante, dançando como esporos de memórias não vividas. A câmera começa em um close na poça, segue o reflexo do carro até o horizonte borrado, e termina em um close nas janelas escuras de um prédio onde uma única luz permanece acesa — um testemunho solitário. O estilo é realismo urbano em alta definição, com paleta dessaturada de cinzas, azuis profundos e toques de amarelo doentio, como se a cor tivesse sido julgada e condenada. Como detalhe ativo, uma folha de jornal velho é empurrada pelo vento, rola até um bueiro e gira em espiral antes de desaparecer — um segredo sem dono sendo engolido pelo esquecimento.",
-    "estimated_duration": 8
-  },
-  {
-    "original_phrase": "Ela olhou para a foto antiga em suas mãos.",
-    "imageDescription": "Close-up extremo em uma fotografia amarelada, segurada por mãos de mulher envelhecidas, mas ainda elegantes. A textura do papel é vívida: bordas gastas pelo tempo, pequenas rachaduras como rios secos, uma mancha de umidade no canto inferior esquerdo, como uma lágrima fossilizada. A imagem mostra um casal sorrindo em uma praia ensolarada, mas o foco da câmera não está neles — está na mão que segura a foto. Um anel de ouro simples brilha sob a luz suave de um abajur, mas o dedo anular está vazio agora, a pele marcada por um círculo mais clara, a ausência escrita no corpo. A poeira dança no feixe de luz que atravessa a cortina semiaberta, como partículas de tempo suspenso. A emoção é uma saudade silenciosa, não pelo amor perdido, mas pela pessoa que ela foi naquela foto — uma estranha sorridente em um mundo que já não existe. O som é o tique-taque distante de um relógio de parede, mas em câmera lenta, como se o tempo se arrastasse em protesto. A luz é gentil, mas falsa — uma piedade artificial que não cura. A câmera começa no reflexo do rosto da mulher na moldura de vidro, desfocado, depois foca na mão, depois na foto, e finalmente na gota que se forma na ponta do nariz, hesita, e cai sobre a imagem, espalhando a tinta da memória. O estilo é realismo mágico cinematográfico, onde cada objeto respira passado. O detalhe ativo é a gota: não é só uma lágrima — é um dilúvio em miniatura, inundando um mundo inteiro.",
-    "estimated_duration": 10
-  },
-  {
-    "original_phrase": "O peso da decisão era evidente em seu rosto.",
-    "imageDescription": "Câmera em perfil extremo, colada ao rosto de um homem contra uma janela escura onde a chuva escorre em linhas verticais, como grades invisíveis. A emoção é exaustão moral, não pelo esforço, mas pela consciência de que qualquer escolha será uma traição — a si mesmo ou aos outros. A luz lateral, dura e fria, vem de um letreiro de neon azul do outro lado da rua, esculpindo cada linha de tensão na testa, cada sulco ao redor da boca, como se o rosto fosse uma paisagem de guerra. Não vemos os olhos — apenas o reflexo distorcido da cidade noturna no vidro, onde carros se movem como vermes luminosos. A profundidade de campo é mínima: o mundo ao redor é um borrão de luzes, mas o maxilar está nítido, contraindo-se em espasmos quase imperceptíveis, um relógio interno prestes a quebrar. Ouve-se o som abafado de uma sirene ao longe, mas também o estalo sutil de um dente rangendo — um som que só ele ouve. A câmera começa no reflexo da cidade, depois desliza para o maxilar, depois para a mão que pressiona o peito, onde um envelope dobrado lateja no bolso do casaco. Como detalhe ativo, uma gota de chuva desce pela janela, encontra uma trinca no vidro, e se divide em dois caminhos — um simbolismo silencioso da escolha inevitável. O estilo é noir psicológico em 4K, onde cada sombra é uma acusação e cada reflexo, um julgamento. A luz não ilumina — ela investiga. O espaço prende. O tempo pesa.",
-    "estimated_duration": 9
-  }
-]
-
-
-## PROCEDIMENTO DE ANÁLISE VISUAL (MANIFESTO CRIATIVO)
-
-Para cada parágrafo, construa a "imageDescription" como uma prosa fluida, tecendo os seguintes elementos com obsessão pelo detalhe:
-
-### 1. A ALMA DA CENA: ATMOSFERA E PSICOLOGIA
-- **Sentimento Dominante e Subtexto**: Defina a emoção principal (ex: tensão sufocante) e sua causa oculta (ex: culpa não resolvida). A emoção deve ser **visceral**, não apenas nomeada — deve ser *sentida* pelo leitor como um peso no peito, um arrepio na nuca, uma pressão atrás dos olhos.
-- **Sinfonia Sensorial**: **Sempre** integre múltiplos sentidos. Descreva o que se **sente** (frio cortante, calor pegajoso, a umidade que gruda na nuca), **cheira** (mofo, ozônio, perfume barato saturado de ansiedade, o ferro do sangue seco), e **ouve** (o zumbido de um neon, o estalar do gelo, o silêncio que pressiona os tímpanos, o leve rangido de um sapato no chão que anuncia perigo). O som não deve apenas existir — deve **tensionar**.
-- **Estilo Visual como Comentário**: Atribua um estilo visual que reforce o subtexto (ex: 'Realismo cru e documental para expor a verdade', 'Estilo gótico moderno para acentuar a decadência psicológica', 'Cinema noir em alta definição, onde cada sombra é uma acusação'). O estilo não é escolha estética — é **imposição narrativa**.
-
-### 2. O ESPAÇO COMO PERSONAGEM: CENÁRIO E COMPOSIÇÃO
-- **Biografia do Ambiente**: O espaço não é um fundo, é um personagem. Descreva-o como tal. O que ele 'sente'? (ex: 'as paredes parecem se fechar, claustrofóbicas, como se absorvessem os sussurros do passado', 'o teto alto e vazio ecoa a solidão do ocupante, cada passo um lamento'). O ambiente deve **reter memória**, com marcas de uso, tempo, violência ou abandono.
-- **Coreografia e Foco**: Descreva a cena como um movimento de câmera deliberado que guia o olhar. Onde o foco começa (ex: uma mão trêmula), para onde ele transita (ex: um objeto simbólico) e onde ele repousa para entregar o impacto emocional (ex: um olhar vazio no espelho). O movimento deve ter **intenção dramática**, não apenas técnica.
-- **Ação e Consequência Física**: **Sempre** inclua uma micro-ação e sua reação física imediata. (ex: 'Uma rajada de vento entra, levantando uma pilha de papéis que dançam caoticamente antes de pousar, um deles revelando uma foto escondida', 'Seus dedos pressionam o vidro, deixando uma marca de gordura que embaça a visão, distorcendo o reflexo do céu noturno'). A ação deve desencadear **revelação ou tensão**.
-
-### 3. A FÍSICA DA LUZ E DA SOMBRA
-- **Personalidade da Luz**: A luz tem uma intenção. É 'investigativa e dura', 'gentil e piedosa', 'fragmentada e confusa', 'acusatória', 'mentirosa'? A luz deve **julgar**, **esconder**, ou **traí-lo**.
-- **Interação com a Matéria**: Descreva em detalhe como a luz se comporta. **Sempre** inclua pelo menos um destes:
-  - **Partículas no Ar**: 'Poeira dourada suspensa em um feixe de sol, dançando como esporos de memória', 'vapor da respiração se cristalizando no ar frio, evaporando como pensamentos fugidios'.
-  - **Fenômenos Ópticos**: 'Reflexos especulares em poças d'água que distorcem rostos como espelhos de circo', 'cáusticos tremeluzentes no fundo de um copo, como rios de mercúrio em movimento', 'aberração cromática nas bordas de uma lente barata, tingindo a realidade de azul e vermelho'.
-  - **A Vida das Sombras**: 'Sombras que se esticam e se deformam conforme a fonte de luz se move, como se tentassem agarrar algo', 'sombras de contorno suaves que esculpem o rosto, mas escondem os olhos, os verdadeiros portais da alma'.
-- A luz não ilumina — ela **interroga**.
-
-### 4. O MICROCOSMO DO DETALHE
-- **Linguagem Corporal e Micro-expressões**: Vá além da postura. Descreva 'a contração de um músculo na mandíbula, como um relógio interno prestes a explodir', 'o piscar lento de olhos cansados, cada batida uma rendição parcial', 'a forma como os dedos tamborilam nervosamente, um código Morse de ansiedade'. O corpo deve falar mais alto que as palavras.
-- **Texturas e sua História**: Descreva a sensação tátil de um objeto e o que essa textura revela. (ex: 'a superfície lisa e fria do mármore, indiferente ao drama', 'a madeira áspera e cheia de farpas de uma porta velha, que resistiu ao tempo mas não à dor'). A textura deve contar uma **história não contada**.
-- **O Detalhe Ativo (Punctum em Movimento)**: Em vez de um objeto estático, torne o detalhe simbólico uma ação. (ex: 'uma única pétala de flor se desprende e cai lentamente, como um adeus não dito', 'uma gota de condensação escorre pela garrafa, como uma lágrima que ninguém viu', 'a chama de uma vela treme violentamente, ameaçando se apagar, como a esperança no fim da noite'). O detalhe não deve apenas simbolizar — deve **provocar**.
-
-## DIRETRIZES DE EXECUÇÃO
-
-- **Seja um autor, não um catalogador**: Teça os detalhes em uma narrativa coesa, não em uma lista. Cada frase deve fluir como um plano sequência. O ritmo da escrita deve espelhar o ritmo da cena.
-- **Mantenha consistência sensorial e simbólica** entre as cenas. Se o cheiro de mofo aparece, ele deve retornar como eco em outra cena, ligando os momentos.
-- Para "estimated_duration", use valores inteiros entre ${durationRange}, baseando-se na densidade narrativa e no ritmo emocional.
-- **Em caso de ambiguidade, escolha sempre o detalhe que evoca a sensação mais forte e o significado mais profundo**. Não escolha o óbvio — escolha o **inevitável**.
-
-## DIRETRIZ DE VARIEDADE E CONTEXTO (REGRA CRÍTICA ANTI-REPETIÇÃO)
-O texto de entrada pode conter múltiplas frases ou parágrafos. É **essencial e obrigatório** que você gere uma **descrição visual ÚNICA e DISTINTA para CADA UM**.
-
-## ENTRADA DE DADOS
-
----
-${batchText}
----
-
-## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
-Os exemplos na seção "EXEMPLOS DE FORMATOS DE SAÍDA CORRETO" são **APENAS para referência de estilo e formato**. É **ESTRITAMENTE PROIBIDO** copiar o conteúdo desses exemplos. Sua resposta DEVE se basear **única e exclusivamente** no texto da "ENTRADA DE DADOS".
-
-## INSTRUÇÃO FINAL E INQUEBRÁVEL
-
-Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um objeto JSON correspondente com as chaves "original_phrase", "imageDescription" e "estimated_duration". O resultado final DEVE ser um **único array JSON válido**. Não inclua nenhum texto ou explicação fora do array.
-`;
-
-
-
-
-
-            try {
-                // >>>>> LOG RESTAURADO <<<<<
-                console.log(`Enviando lote ${i + 1} para a API...`);
-                
-                const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
-                
-                if (Array.isArray(jsonResponse)) {
-                    // >>>>> LOG RESTAURADO <<<<<
-                    console.log(`Lote ${i + 1} processado com sucesso. Recebido(s) ${jsonResponse.length} prompt(s).`);
-                    allGeneratedPrompts = allGeneratedPrompts.concat(jsonResponse);
-                } else {
-                    console.warn(`Lote ${i + 1} retornou um formato não-array e foi ignorado.`);
-                }
-            } catch (error) {
-                console.error(`O LOTE ${i + 1} FALHOU completamente:`, error.message);
-                window.showToast(`O processamento do lote ${i + 1} falhou.`, 'error');
-            }
-        }
-
-        if (allGeneratedPrompts.length === 0) {
-            throw new Error("A IA não conseguiu gerar prompts válidos para nenhuma seção.");
+        if (!allGeneratedPrompts || !Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length === 0) {
+            throw new Error("A IA não conseguiu gerar prompts válidos para a seção.");
         }
 
         const curatedPrompts = allGeneratedPrompts
@@ -4486,11 +4457,8 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
             }));
 
         if (curatedPrompts.length === 0) {
-            throw new Error("A IA retornou respostas, mas nenhuma no formato correto com a chave 'original_phrase'.");
+            throw new Error("A IA retornou respostas, mas nenhuma no formato correto.");
         }
-
-        // >>>>> LOG RESTAURADO <<<<<
-        console.log(`Processamento concluído. Total de ${curatedPrompts.length} prompts gerados a partir de ${batches.length} lotes.`);
 
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
@@ -4499,13 +4467,12 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
         renderPaginatedPrompts(sectionId);
 
     } catch (error) {
-        console.error("Erro detalhado na geração de prompts:", error);
+        console.error("Erro detalhado na geração de prompts (Lote Único):", error);
         promptContainer.innerHTML = `<p class="text-sm text-danger">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
     }
 };
-
 
 
 
