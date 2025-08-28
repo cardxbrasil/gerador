@@ -4309,30 +4309,41 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Analisando roteiro frase a frase...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Preparando lotes de frases...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
         const phrases = fullText.replace(/([.?!])\s*(?=[A-ZÀ-Ú])/g, "$1|").split("|").filter(p => p.trim());
         if (phrases.length === 0) { throw new Error("Não foram encontradas frases para analisar."); }
 
-        console.log(`Roteiro dividido em ${phrases.length} frases para processamento individual.`);
+        const batches = [];
+        const MAX_WORDS_PER_BATCH = 250;
+        let currentBatchPhrases = [];
+        let currentWordCount = 0;
+        for (const phrase of phrases) {
+            const wordCount = phrase.split(/\s+/).length;
+            if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatchPhrases.length > 0) {
+                batches.push([...currentBatchPhrases]); // Adiciona uma cópia do array
+                currentBatchPhrases = [phrase];
+                currentWordCount = wordCount;
+            } else {
+                currentBatchPhrases.push(phrase);
+                currentWordCount += wordCount;
+            }
+        }
+        if (currentBatchPhrases.length > 0) {
+            batches.push([...currentBatchPhrases]);
+        }
         
+        console.log(`Roteiro dividido em ${phrases.length} frases, agrupadas em ${batches.length} lotes.`);
         let allGeneratedPrompts = [];
-        let failedPhrases = 0;
         
-        // LOOP INDIVIDUAL PARA CADA FRASE
-        for (let i = 0; i < phrases.length; i++) {
-            const singlePhrase = phrases[i];
+        for (let i = 0; i < batches.length; i++) {
+            const batchPhrases = batches[i]; // O array de frases originais do lote
+            const batchText = batchPhrases.join(' '); // O texto para enviar à IA
+            promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
             
-            promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Gerando cena ${i + 1} de ${phrases.length}...</p>`;
-            
-            // Pausa estratégica AGRESSIVA para proteger a API.
-            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 3000)); } // 3 SEGUNDOS DE PAUSA
-
-            const visualPacing = document.getElementById('visualPacing').value;
-            const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
-
+            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 1000)); }
 
 
 
@@ -4438,45 +4449,32 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
 
 
 
-            let success = false;
-            let attempts = 0;
-            const MAX_ATTEMPTS = 2;
-
-            while (!success && attempts < MAX_ATTEMPTS) {
-                attempts++;
-                try {
-                    console.log(`Tentativa ${attempts} para a frase ${i + 1}...`);
-                    const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
-                    
-                    if (Array.isArray(jsonResponse) && jsonResponse.length > 0 && jsonResponse[0].original_phrase) {
-                        const promptData = jsonResponse[0];
+            try {
+                console.log(`Enviando lote ${i + 1} com ${batchPhrases.length} frases para a API...`);
+                const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+                
+                if (Array.isArray(jsonResponse)) {
+                    console.log(`Lote ${i + 1} processado. Recebido(s) ${jsonResponse.length} prompt(s).`);
+                    if (jsonResponse.length !== batchPhrases.length) {
+                        console.warn(`Discrepância no lote ${i+1}: Esperado ${batchPhrases.length}, recebido ${jsonResponse.length}. A sincronia pode ser afetada.`);
+                    }
+                    // O MAESTRO FAZENDO A JUNÇÃO:
+                    jsonResponse.slice(0, batchPhrases.length).forEach((data, index) => {
                         allGeneratedPrompts.push({
-                            scriptPhrase: promptData.original_phrase, // Usamos o vínculo da IA
-                            imageDescription: promptData.imageDescription,
-                            estimated_duration: promptData.estimated_duration
+                            scriptPhrase: batchPhrases[index], // Pega a frase original que o código guardou
+                            imageDescription: data.imageDescription,
+                            estimated_duration: data.estimated_duration
                         });
-                        success = true;
-                    } else {
-                        throw new Error("A IA retornou um JSON inválido ou sem a chave 'original_phrase'.");
-                    }
-                } catch (error) {
-                    console.warn(`Tentativa ${attempts} para a frase ${i + 1} falhou:`, error.message);
-                    if (attempts >= MAX_ATTEMPTS) {
-                        console.error(`A FRASE ${i + 1} FALHOU APÓS ${MAX_ATTEMPTS} TENTATIVAS.`);
-                        failedPhrases++;
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 3000)); // Espera mais antes de tentar de novo
-                    }
+                    });
                 }
+            } catch (error) {
+                console.error(`O LOTE ${i + 1} FALHOU:`, error.message);
+                window.showToast(`O processamento do lote ${i + 1} falhou.`, 'error');
             }
         }
 
-        if (failedPhrases > 0) {
-            window.showToast(`${failedPhrases} de ${phrases.length} cenas não puderam ser geradas.`, 'error');
-        }
-
         if (allGeneratedPrompts.length === 0) {
-            throw new Error("A IA não conseguiu gerar prompts válidos para nenhuma frase.");
+            throw new Error("A IA não conseguiu gerar prompts válidos para nenhuma seção.");
         }
         
         const curatedPrompts = allGeneratedPrompts;
