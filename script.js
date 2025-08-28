@@ -4318,28 +4318,27 @@ window.generatePromptsForSection = async (button) => {
 
         const batches = [];
         const MAX_WORDS_PER_BATCH = 200;
-        let currentBatch = [];
+        let currentBatchText = [];
         let currentWordCount = 0;
         for (const phrase of phrases) {
             const wordCount = phrase.split(/\s+/).length;
-            if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatch.length > 0) {
-                batches.push(currentBatch);
-                currentBatch = [phrase];
+            if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatchText.length > 0) {
+                batches.push(currentBatchText.join(' '));
+                currentBatchText = [phrase];
                 currentWordCount = wordCount;
             } else {
-                currentBatch.push(phrase);
+                currentBatchText.push(phrase);
                 currentWordCount += wordCount;
             }
         }
-        if (currentBatch.length > 0) {
-            batches.push(currentBatch);
+        if (currentBatchText.length > 0) {
+            batches.push(currentBatchText.join(' '));
         }
         
         let allGeneratedPrompts = [];
         
         for (let i = 0; i < batches.length; i++) {
-            const batchPhrases = batches[i];
-            const batchText = batchPhrases.join(' ');
+            const batchText = batches[i];
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
             if (i > 0) { await new Promise(resolve => setTimeout(resolve, 1200)); }
 
@@ -4434,34 +4433,21 @@ ${batchText}
 ## REGRA FINAL ANTI-PLÁGIO (INEGOCIÁVEL)
 Os exemplos na seção "FORMATO DE SAÍDA CORRETO (EXEMPLO)" são **APENAS para referência de estilo, formato e nível de detalhe**. É **ESTRITAMENTE PROIBIDO** copiar, adaptar ou usar qualquer elemento temático ou narrativo desses exemplos na sua resposta. Sua resposta DEVE se basear **única e exclusivamente** no texto fornecido na seção "ENTRADA DE DADOS".
 
-## INSTRUÇÃO FINAL
+## INSTRUÇÃO FINAL E INQUEBRÁVEL
 
-Analise cada parágrafo como um romancista visual. Gere **um único array JSON válido**, contendo apenas objetos com "imageDescription" e "estimated_duration". Cada descrição deve ser uma peça de prosa imersiva, uma cápsula de tempo e sensação. O leitor deve ser transportado para dentro da cena.
-**Nada além do array JSON deve ser retornado.**
+Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um objeto JSON correspondente com as chaves "original_phrase", "imageDescription" e "estimated_duration". O resultado final DEVE ser um **único array JSON válido**. Não inclua nenhum texto ou explicação fora do array.
 `;
 
 
 
 
 
-
-
-            let jsonResponse;
             try {
-                jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
-                if (!Array.isArray(jsonResponse) || jsonResponse.length !== batchPhrases.length) {
-                     console.warn(`Discrepância no lote ${i+1}: Esperado ${batchPhrases.length} prompts, recebido ${jsonResponse.length}. Sincronia pode ser perdida.`);
+                // A verificação de sucesso agora é feita DEPOIS de filtrar
+                const jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+                if (Array.isArray(jsonResponse)) {
+                    allGeneratedPrompts = allGeneratedPrompts.concat(jsonResponse);
                 }
-                
-                // >>>>> AQUI ESTÁ A "JUNÇÃO" INTELIGENTE <<<<<
-                jsonResponse.forEach((data, index) => {
-                    allGeneratedPrompts.push({
-                        scriptPhrase: batchPhrases[index] || "Frase original não disponível.",
-                        imageDescription: data.imageDescription,
-                        estimated_duration: data.estimated_duration
-                    });
-                });
-
             } catch (error) {
                 console.error(`O LOTE ${i + 1} FALHOU:`, error.message);
                 window.showToast(`O processamento do lote ${i + 1} falhou.`, 'error');
@@ -4472,12 +4458,24 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
             throw new Error("A IA não conseguiu gerar prompts válidos para nenhuma seção.");
         }
 
-        // A renderização agora usa a lista já montada e sincronizada
-        const curatedPrompts = allGeneratedPrompts;
+        // >>>>> A MÁGICA FINAL (AGORA CORRETA) <<<<<
+        // Filtra e mapeia os prompts válidos que a IA retornou.
+        const curatedPrompts = allGeneratedPrompts
+            .filter(p => p && p.original_phrase && p.imageDescription) // A chave existe porque o prompt a exigiu.
+            .map(p => ({
+                scriptPhrase: p.original_phrase,
+                imageDescription: p.imageDescription,
+                estimated_duration: p.estimated_duration || 5
+            }));
+
+        if (curatedPrompts.length === 0) {
+            throw new Error("A IA retornou respostas, mas nenhuma no formato correto com a chave 'original_phrase'.");
+        }
+
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
         AppState.ui.promptPaginationState[sectionId] = 0;
-        promptContainer.innerHTML = `<div class="prompt-pagination-wrapper">...</div>`;
+        promptContainer.innerHTML = `<div class="prompt-pagination-wrapper space-y-4"><div class="prompt-nav-container flex items-center justify-center gap-4"></div><div class="prompt-items-container space-y-4"></div></div>`;
         renderPaginatedPrompts(sectionId);
 
     } catch (error) {
@@ -4487,8 +4485,6 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
         hideButtonLoading(button);
     }
 };
-
-
 
 
 
