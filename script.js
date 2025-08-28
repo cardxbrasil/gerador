@@ -4441,13 +4441,16 @@ window.generatePromptsForSection = async (button) => {
 
     try {
         const fullText = contentWrapper.textContent.trim();
+
+        const firstSentence = fullText.split('.')[0] + '.'; // Pega apenas o texto até o primeiro ponto.
+
         const visualPacing = document.getElementById('visualPacing').value;
         const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
         
         // 1. NENHUMA LÓGICA DE LOTE (batches). O código de divisão de frases foi removido.
         
         // 2. Construção do novo prompt único.
-        const prompt = PromptManager.getImageStoryboardPrompt(fullText, durationRange);
+        const prompt = PromptManager.getImageStoryboardPrompt(firstSentence, durationRange);
         
         // 3. UMA ÚNICA CHAMADA à API para toda a seção.
         const allGeneratedPrompts = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
