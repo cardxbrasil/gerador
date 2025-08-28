@@ -4328,7 +4328,7 @@ window.generatePromptsForSection = async (button) => {
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Gerando cena ${i + 1} de ${phrases.length}...</p>`;
             
             // Pausa estratégica AGRESSIVA para proteger a API.
-            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 2500)); } // 2.5 SEGUNDOS DE PAUSA
+            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 3000)); } // 3 SEGUNDOS DE PAUSA
 
             const visualPacing = document.getElementById('visualPacing').value;
             const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
