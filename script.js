@@ -4309,7 +4309,7 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Dividindo roteiro e preparando lotes...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Preparando lotes de frases...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
@@ -4323,7 +4323,7 @@ window.generatePromptsForSection = async (button) => {
         for (const phrase of phrases) {
             const wordCount = phrase.split(/\s+/).length;
             if (currentWordCount + wordCount > MAX_WORDS_PER_BATCH && currentBatch.length > 0) {
-                batches.push(currentBatch.join(' '));
+                batches.push(currentBatch);
                 currentBatch = [phrase];
                 currentWordCount = wordCount;
             } else {
@@ -4332,15 +4332,14 @@ window.generatePromptsForSection = async (button) => {
             }
         }
         if (currentBatch.length > 0) {
-            batches.push(currentBatch.join(' '));
+            batches.push(currentBatch);
         }
         
-        console.log(`Roteiro dividido em ${phrases.length} frases, agrupadas em ${batches.length} lotes.`);
         let allGeneratedPrompts = [];
-        let failedBatches = 0;
-
+        
         for (let i = 0; i < batches.length; i++) {
-            const batchText = batches[i];
+            const batchPhrases = batches[i];
+            const batchText = batchPhrases.join(' ');
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
             if (i > 0) { await new Promise(resolve => setTimeout(resolve, 1200)); }
 
@@ -4447,62 +4446,43 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
 
 
 
-            let success = false;
-            let attempts = 0;
-            const MAX_ATTEMPTS = 2;
             let jsonResponse;
-            while (!success && attempts < MAX_ATTEMPTS) {
-                attempts++;
-                try {
-                    console.log(`Tentativa ${attempts} para o lote ${i + 1}...`);
-                    jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
-                    if (Array.isArray(jsonResponse) && (jsonResponse.length === 0 || jsonResponse[0].original_phrase)) {
-                        success = true;
-                    } else {
-                        throw new Error("A resposta não é um array JSON válido com a chave 'original_phrase'.");
-                    }
-                } catch (error) {
-                    console.warn(`Tentativa ${attempts} falhou para o lote ${i + 1}:`, error.message);
-                    if (attempts >= MAX_ATTEMPTS) {
-                        console.error(`O LOTE ${i + 1} FALHOU APÓS ${MAX_ATTEMPTS} TENTATIVAS. Pulando para o próximo.`);
-                        failedBatches++;
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                    }
+            try {
+                jsonResponse = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+                if (!Array.isArray(jsonResponse) || jsonResponse.length !== batchPhrases.length) {
+                     console.warn(`Discrepância no lote ${i+1}: Esperado ${batchPhrases.length} prompts, recebido ${jsonResponse.length}. Sincronia pode ser perdida.`);
                 }
-            }
+                
+                // >>>>> AQUI ESTÁ A "JUNÇÃO" INTELIGENTE <<<<<
+                jsonResponse.forEach((data, index) => {
+                    allGeneratedPrompts.push({
+                        scriptPhrase: batchPhrases[index] || "Frase original não disponível.",
+                        imageDescription: data.imageDescription,
+                        estimated_duration: data.estimated_duration
+                    });
+                });
 
-            if (success && Array.isArray(jsonResponse)) {
-                allGeneratedPrompts = allGeneratedPrompts.concat(jsonResponse);
+            } catch (error) {
+                console.error(`O LOTE ${i + 1} FALHOU:`, error.message);
+                window.showToast(`O processamento do lote ${i + 1} falhou.`, 'error');
             }
         }
 
-        if (failedBatches > 0) {
-            window.showToast(`${failedBatches} de ${batches.length} lotes falharam, mas o resultado dos outros está aqui.`, 'error');
-        }
         if (allGeneratedPrompts.length === 0) {
             throw new Error("A IA não conseguiu gerar prompts válidos para nenhuma seção.");
         }
 
-        // >>>>> A CORREÇÃO FINAL ESTÁ AQUI <<<<<
-        // Nós não dependemos mais do 'index'. Usamos a 'original_phrase' do próprio objeto.
-        const curatedPrompts = allGeneratedPrompts.map(promptData => ({
-            scriptPhrase: promptData.original_phrase || "Frase original não encontrada.",
-            imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
-            estimated_duration: promptData.estimated_duration || 5
-        }));
-
+        // A renderização agora usa a lista já montada e sincronizada
+        const curatedPrompts = allGeneratedPrompts;
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
         AppState.ui.promptPaginationState[sectionId] = 0;
-        promptContainer.innerHTML = `<div class="prompt-pagination-wrapper space-y-4">
-                                         <div class="prompt-nav-container flex items-center justify-center gap-4"></div>
-                                         <div class="prompt-items-container space-y-4"></div>
-                                     </div>`;
+        promptContainer.innerHTML = `<div class="prompt-pagination-wrapper">...</div>`;
         renderPaginatedPrompts(sectionId);
+
     } catch (error) {
-        console.error("Erro detalhado na geração de prompts em lote:", error);
-        promptContainer.innerHTML = `<p class="text-sm" style="color: var(--danger);">${error.message}</p>`;
+        console.error("Erro detalhado na geração de prompts:", error);
+        promptContainer.innerHTML = `<p class="text-sm text-danger">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
     }
