@@ -4339,16 +4339,14 @@ window.generatePromptsForSection = async (button) => {
         console.log(`Roteiro dividido em ${phrases.length} frases, agrupadas em ${batches.length} lotes.`);
 
         let allGeneratedPrompts = [];
+        let failedBatches = 0;
         
         for (let i = 0; i < batches.length; i++) {
             const batchText = batches[i];
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
 
-            // >>>>> AQUI ESTÁ A PAUSA ESTRATÉGICA <<<<<
-            // Se não for o primeiro lote, espera um pouco para não sobrecarregar a API.
-            if (i > 0) {
-                await new Promise(resolve => setTimeout(resolve, 500)); // Pausa de 500ms
-            }
+            // PAUSA MAIOR E INCONDICIONAL para respeitar o "rate limit" da API.
+            await new Promise(resolve => setTimeout(resolve, 1200)); // Pausa de 1.2 segundos
 
             const visualPacing = document.getElementById('visualPacing').value;
             const durationMap = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' };
@@ -4456,7 +4454,7 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
 
             let success = false;
             let attempts = 0;
-            const MAX_ATTEMPTS = 3;
+            const MAX_ATTEMPTS = 2; // Reduzimos para 2 para ser mais rápido
             let jsonResponse;
 
             while (!success && attempts < MAX_ATTEMPTS) {
@@ -4473,9 +4471,12 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
                 } catch (error) {
                     console.warn(`Tentativa ${attempts} falhou para o lote ${i + 1}:`, error.message);
                     if (attempts >= MAX_ATTEMPTS) {
-                        throw new Error(`A IA falhou em processar um lote de texto após ${MAX_ATTEMPTS} tentativas. O erro foi: ${error.message}`);
+                        // >>>>> LÓGICA DE RESILIÊNCIA APRIMORADA <<<<<
+                        console.error(`O LOTE ${i + 1} FALHOU APÓS ${MAX_ATTEMPTS} TENTATIVAS. Pulando para o próximo.`);
+                        failedBatches++; // Contabiliza a falha
+                    } else {
+                        await new Promise(resolve => setTimeout(resolve, 1500)); // Espera mais antes de tentar de novo
                     }
-                    await new Promise(resolve => setTimeout(resolve, 1000)); // Espera 1s antes de tentar de novo
                 }
             }
 
@@ -4484,10 +4485,16 @@ Analise cada parágrafo como um romancista visual. Gere **um único array JSON v
             }
         }
         
+        // Avisa o usuário se algum lote falhou.
+        if (failedBatches > 0) {
+            window.showToast(`${failedBatches} de ${batches.length} lotes falharam, mas o resultado dos outros está aqui.`, 'error');
+        }
+
         if (allGeneratedPrompts.length === 0) {
-            throw new Error("A IA falhou em gerar prompts válidos para todas as seções.");
+            throw new Error("A IA falhou em gerar prompts válidos para todos os lotes.");
         }
         
+        // O resto da função para renderizar continua igual...
         const curatedPrompts = allGeneratedPrompts.map((promptData, index) => ({
             scriptPhrase: phrases[index] || "Trecho do roteiro",
             imageDescription: promptData.imageDescription || "Falha ao gerar descrição.",
