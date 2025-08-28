@@ -1153,46 +1153,61 @@ const getRobustJson = async (text) => {
         throw new Error("A IA retornou uma resposta vazia.");
     }
 
-    // ETAPA 1: LIMPEZA INICIAL
-    let jsonString = text.replace(/```json\n|```/g, '').replace(/assistant<\|end_header_id\|>|Continuação da resposta:|Aqui está a resposta em JSON:|Aqui está a minha resposta:|Here is the corrected JSON:/gi, '').trim();
+    let jsonString = text;
 
-    // ETAPA 2: EXTRAÇÃO PRECISA
-    const firstBrace = jsonString.indexOf('{');
-    const firstBracket = jsonString.indexOf('[');
-    
-    if (firstBrace === -1 && firstBracket === -1) {
-        throw new Error("A resposta da IA não contém um bloco JSON válido que possa ser extraído.");
-    }
-    
-    const startIndex = (firstBrace === -1) ? firstBracket : (firstBracket === -1) ? firstBrace : Math.min(firstBrace, firstBracket);
-    const endIndex = (jsonString[startIndex] === '[') ? jsonString.lastIndexOf(']') : jsonString.lastIndexOf('}');
-
-    if (endIndex === -1 || endIndex < startIndex) {
-        throw new Error("Não foi possível encontrar o final do bloco JSON na resposta da IA.");
-    }
-
-    jsonString = jsonString.substring(startIndex, endIndex + 1);
-
-    // ETAPA 3: TENTATIVA DE PARSE DIRETO
+    // TENTATIVA 1: PARSE DIRETO (O cenário ideal)
     try {
-        // A chave aqui é que o JSON.parse pode falhar por muitos motivos.
-        // Em vez de tentarmos adivinhar todos, passamos a responsabilidade para o reparador.
+        // A IA foi perfeita e seguiu as regras.
         return JSON.parse(jsonString);
-    } catch (error) {
-        console.warn("Falha no parse rápido. O JSON provavelmente tem erros de sintaxe internos. Tentando conserto com IA...", error.message);
+    } catch (e) {
+        // Não faz nada, apenas continua para a próxima etapa.
+        console.warn("Tentativa 1 (Parse Direto) falhou. O texto não é um JSON puro. Prosseguindo para a extração.");
+    }
+
+    // TENTATIVA 2: EXTRAÇÃO E PARSE
+    // A IA incluiu texto extra antes ou depois do JSON.
+    try {
+        // Limpa o máximo de lixo possível.
+        let cleanedText = text.replace(/```json\n|```/g, '').replace(/assistant<\|end_header_id\|>|Aqui está a resposta em JSON:|Here is the corrected JSON:/gi, '').trim();
+
+        const firstBrace = cleanedText.indexOf('{');
+        const firstBracket = cleanedText.indexOf('[');
         
-        // ETAPA 4: RESGATE COM A IA DE CORREÇÃO
-        // Esta é a nossa rede de segurança mais forte.
-        try {
-            const fixedJsonByAI = await fixJsonWithAI(jsonString); // A função fixJsonWithAI já é projetada para limpar e corrigir
-            return JSON.parse(fixedJsonByAI);
-        } catch (finalError) {
-            console.error("Falha final ao analisar JSON, mesmo após conserto da IA:", finalError);
-            console.error("JSON problemático enviado para reparo:", jsonString); 
-            throw new Error(`A IA retornou um JSON com erros internos que não puderam ser consertados. Detalhe: ${finalError.message}`);
+        if (firstBrace === -1 && firstBracket === -1) {
+            // Se mesmo após a limpeza não há JSON, pulamos para o reparo.
+            throw new Error("Nenhum JSON encontrado para extração.");
         }
+        
+        const startIndex = (firstBrace === -1) ? firstBracket : (firstBracket === -1) ? firstBrace : Math.min(firstBrace, firstBracket);
+        const endIndex = (cleanedText[startIndex] === '[') ? cleanedText.lastIndexOf(']') : cleanedText.lastIndexOf('}');
+
+        if (endIndex > startIndex) {
+            const extractedJson = cleanedText.substring(startIndex, endIndex + 1);
+            return JSON.parse(extractedJson);
+        } else {
+            throw new Error("Extração de JSON falhou.");
+        }
+    } catch (error) {
+        console.warn(`Tentativa 2 (Extração) falhou: ${error.message}. Prosseguindo para o reparo com IA.`);
+    }
+
+    // TENTATIVA 3: REPARO COMPLETO COM IA (A REDE DE SEGURANÇA FINAL)
+    // A IA falhou em seguir o formato, gerou sintaxe inválida ou respondeu em modo chat.
+    try {
+        console.log("Acionando Agente de Reparo (fixJsonWithAI)...");
+        const fixedJson = await fixJsonWithAI(text); // Passamos o texto original e bruto para o reparador.
+        return JSON.parse(fixedJson);
+    } catch (finalError) {
+        console.error("Falha final: O Agente de Reparo não conseguiu consertar o JSON.", finalError);
+        console.error("Texto problemático original:", text);
+        throw new Error(`A IA retornou um formato completamente inválido que não pôde ser reparado.`);
     }
 };
+
+
+
+
+
 
 
 
