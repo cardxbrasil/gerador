@@ -4429,13 +4429,8 @@ ${batchText}
 Os exemplos na seção "EXEMPLOS DE FORMATOS DE SAÍDA CORRETO" são **APENAS para referência de estilo e formato**. É **ESTRITAMENTE PROIBIDO** copiar o conteúdo desses exemplos. Sua resposta DEVE se basear **única e exclusivamente** no texto da "ENTRADA DE DADOS".
 
 ## INSTRUÇÃO FINAL E INQUEBRÁVEL
-
-Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um objeto JSON correspondente com as chaves "original_phrase", "imageDescription" e "estimated_duration". O resultado final DEVE ser um **único array JSON válido**. Não inclua nenhum texto ou explicação fora do array.
+Analise a FRASE na "ENTRADA DE DADOS" e gere um objeto JSON para ela. O resultado final DEVE ser um **único array JSON válido contendo apenas UM objeto**.
 `;
-
-
-
-
 
             try {
                 console.log(`Enviando frase ${i + 1} ("${singlePhrase.substring(0, 30)}...") para a API...`);
@@ -4443,7 +4438,6 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
                 
                 if (Array.isArray(jsonResponse) && jsonResponse.length > 0) {
                     const promptData = jsonResponse[0];
-                    // O vínculo agora é feito aqui, garantindo 100% de sincronia.
                     allGeneratedPrompts.push({
                         scriptPhrase: singlePhrase,
                         imageDescription: promptData.imageDescription,
@@ -4463,7 +4457,6 @@ Analise **CADA FRASE** contida na **"ENTRADA DE DADOS"**. Para cada uma, gere um
             throw new Error("A IA não conseguiu gerar prompts válidos para nenhuma frase.");
         }
         
-        // A variável 'curatedPrompts' agora é a lista final e correta.
         const curatedPrompts = allGeneratedPrompts;
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
