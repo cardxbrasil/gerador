@@ -4433,7 +4433,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 
 
-// VERSÃO FINAL HÍBRIDA: Lotes Otimizados para equilibrar performance e limites
+// VERSÃO FINAL DE ENGENHARIA: Lotes Dinâmicos + Pausa de Segurança
 
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
@@ -4462,7 +4462,7 @@ window.generatePromptsForSection = async (button) => {
         const availableSpace = MODEL_LIMIT - basePromptTokens - SAFETY_MARGIN;
         
         const maxScriptTokens = Math.floor(availableSpace * 0.15);
-        const maxCompletionTokens = Math.floor(availableSpace * 0.80); // Alterado para 80%
+        const maxCompletionTokens = Math.floor(availableSpace * 0.80);
         const MAX_CHARS_PER_BATCH = Math.floor(maxScriptTokens * 3.5);
 
         console.log(`Tokens do Prompt de Instruções: ~${basePromptTokens}`);
@@ -4489,21 +4489,16 @@ window.generatePromptsForSection = async (button) => {
         let allGeneratedPrompts = [];
         
         for (let i = 0; i < batches.length; i++) {
-            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 5000)); }
+            // --- A PEÇA FINAL: A PAUSA PARA RESPIRAR ---
+            if (i > 0) {
+                await new Promise(resolve => setTimeout(resolve, 5000)); // Pausa de 5 segundos
+            }
 
             const batchText = batches[i];
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
             
             const prompt = PromptManager.getImageStoryboardPrompt(batchText, durationRange);
-
-            console.log(`--- DEBUG LOTE ${i + 1} ---`);
-            console.log(prompt);
-            console.log(`------------------------`);
-
-            const estimatedPromptTokens = Math.ceil(prompt.length / 3.5);
-            
-            // Enviamos o limite de resposta calculado para a API
-            const rawResponseText = await callGroqAPI(prompt, maxCompletionTokens, estimatedPromptTokens);
+            const rawResponseText = await callGroqAPI(prompt, maxCompletionTokens);
             const batchResult = await getRobustJson(rawResponseText);
             
             if (Array.isArray(batchResult)) {
