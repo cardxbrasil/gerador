@@ -3856,7 +3856,7 @@ window.analyzeSectionRetention = async (button) => {
 
 
             if (i > 0) {
-             await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa de 2 segundos
+             await new Promise(resolve => setTimeout(resolve, 5000)); // Pausa de 5 segundos
             }
 
             const batch = batches[i];
