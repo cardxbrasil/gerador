@@ -4503,7 +4503,8 @@ window.generatePromptsForSection = async (button) => {
             const estimatedPromptTokens = Math.ceil(prompt.length / 3.5);
             
             // Enviamos o limite de resposta calculado para a API
-            const batchResult = await callGroqAPI(prompt, maxCompletionTokens, estimatedPromptTokens).then(getRobustJson);
+            const rawResponseText = await callGroqAPI(prompt, maxCompletionTokens, estimatedPromptTokens);
+            const batchResult = await getRobustJson(rawResponseText);
             
             if (Array.isArray(batchResult)) {
                 allGeneratedPrompts = allGeneratedPrompts.concat(batchResult);
