@@ -4427,6 +4427,8 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 
 
+// VERSÃO FINAL HÍBRIDA: Lotes Otimizados para equilibrar performance e limites
+
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
     const sectionElement = document.getElementById(sectionId);
@@ -4439,29 +4441,55 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    // Mensagem de feedback atualizada para refletir a nova abordagem
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">A IA está analisando a seção inteira e construindo o storyboard... Isso pode levar um momento.</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Preparando lotes de texto otimizados...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
-
-
-        
         const visualPacing = document.getElementById('visualPacing').value;
         const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
-        
-        // 1. NENHUMA LÓGICA DE LOTE (batches). O código de divisão de frases foi removido.
-        
-        // 2. Construção do novo prompt único.
-        const prompt = PromptManager.getImageStoryboardPrompt(fullText, durationRange);
-        
-        // 3. UMA ÚNICA CHAMADA à API para toda a seção.
-        const allGeneratedPrompts = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
-        
-        console.log(`Processamento concluído. Total de ${allGeneratedPrompts.length} prompts recebidos em uma única chamada.`);
 
-        if (!allGeneratedPrompts || !Array.isArray(allGeneratedPrompts) || allGeneratedPrompts.length === 0) {
-            throw new Error("A IA não conseguiu gerar prompts válidos para a seção.");
+        // --- LÓGICA DE LOTE OTIMIZADO ---
+        const MAX_CHARS_PER_BATCH = 1800; // Limite seguro de caracteres por lote
+        const batches = [];
+        let remainingText = fullText;
+
+        while (remainingText.length > 0) {
+            let chunk = remainingText.substring(0, MAX_CHARS_PER_BATCH);
+            remainingText = remainingText.substring(MAX_CHARS_PER_BATCH);
+
+            // Tenta não cortar uma palavra ao meio
+            if (remainingText.length > 0) {
+                const lastSpace = chunk.lastIndexOf(' ');
+                if (lastSpace !== -1) {
+                    remainingText = chunk.substring(lastSpace + 1) + remainingText;
+                    chunk = chunk.substring(0, lastSpace);
+                }
+            }
+            batches.push(chunk);
+        }
+        
+        console.log(`Roteiro dividido em ${batches.length} lotes otimizados.`);
+        
+        let allGeneratedPrompts = [];
+        
+        for (let i = 0; i < batches.length; i++) {
+            const batchText = batches[i];
+            promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
+            
+            const prompt = PromptManager.getImageStoryboardPrompt(batchText, durationRange);
+            
+            const batchResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+            
+            if (Array.isArray(batchResult)) {
+                console.log(`Lote ${i + 1} processado. Recebido(s) ${batchResult.length} prompt(s).`);
+                allGeneratedPrompts = allGeneratedPrompts.concat(batchResult);
+            } else {
+                console.warn(`Lote ${i + 1} retornou um formato não-array e foi ignorado.`);
+            }
+        }
+
+        if (allGeneratedPrompts.length === 0) {
+            throw new Error("A IA não conseguiu gerar prompts válidos para nenhum lote.");
         }
 
         const curatedPrompts = allGeneratedPrompts
@@ -4483,12 +4511,13 @@ window.generatePromptsForSection = async (button) => {
         renderPaginatedPrompts(sectionId);
 
     } catch (error) {
-        console.error("Erro detalhado na geração de prompts (Lote Único):", error);
+        console.error("Erro detalhado na geração de prompts (Lotes Otimizados):", error);
         promptContainer.innerHTML = `<p class="text-sm text-danger">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
     }
 };
+
 
 
 
