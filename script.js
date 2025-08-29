@@ -4433,7 +4433,7 @@ ${originalParagraphs.map(p => `Parágrafo ${p.index}: "${p.text}"`).join('\n\n')
 
 
 
-// VERSÃO FINAL DE ENGENHARIA: Lotes Dinâmicos + Pausa de Segurança
+// VERSÃO FINAL DE SEGURANÇA MÁXIMA
 
 window.generatePromptsForSection = async (button) => {
     const sectionId = button.dataset.sectionId;
@@ -4447,27 +4447,16 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Calculando limites e preparando lotes dinâmicos...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Preparando lotes de texto seguros...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
         const visualPacing = document.getElementById('visualPacing').value;
         const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
 
-        // --- LÓGICA DA "BALANÇA DE TOKENS" ---
-        const basePromptForSizing = PromptManager.getImageStoryboardPrompt("", durationRange);
-        const basePromptTokens = Math.ceil(basePromptForSizing.length / 3.5);
-        const MODEL_LIMIT = 8192;
-        const SAFETY_MARGIN = 500;
-        const availableSpace = MODEL_LIMIT - basePromptTokens - SAFETY_MARGIN;
-        
-        const maxScriptTokens = Math.floor(availableSpace * 0.20); // 20% para o script
-        const maxCompletionTokens = Math.floor(availableSpace * 0.80); // 80% para a resposta
-        const MAX_CHARS_PER_BATCH = Math.floor(maxScriptTokens * 3.5);
-
-        console.log(`Tokens do Prompt Base: ~${basePromptTokens}`);
-        console.log(`Limite de Chars por Lote: ${MAX_CHARS_PER_BATCH}`);
-        console.log(`Limite de Tokens para Resposta: ${maxCompletionTokens}`);
+        // --- LÓGICA DE LOTE FIXO E SEGURO ---
+        // Este valor é baixo o suficiente para garantir que o prompt + roteiro nunca estourem o limite.
+        const MAX_CHARS_PER_BATCH = 700; 
 
         const batches = [];
         let remainingText = fullText;
@@ -4484,19 +4473,23 @@ window.generatePromptsForSection = async (button) => {
             batches.push(chunk);
         }
         
-        console.log(`Roteiro dividido em ${batches.length} lotes seguros.`);
+        console.log(`Roteiro dividido em ${batches.length} lotes de segurança.`);
         
         let allGeneratedPrompts = [];
         
         for (let i = 0; i < batches.length; i++) {
-            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 5000)); } // Pausa de 5 segundos
+            // Pausa de 5 segundos para garantir que não haja Rate Limit
+            if (i > 0) {
+                await new Promise(resolve => setTimeout(resolve, 5000)); 
+            }
 
             const batchText = batches[i];
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
             
             const prompt = PromptManager.getImageStoryboardPrompt(batchText, durationRange);
-            // ENVIAMOS O LIMITE CALCULADO
-            const rawResponseText = await callGroqAPI(prompt, maxCompletionTokens);
+            
+            // O Worker usará o max_tokens de 4096, que é mais que suficiente para estes lotes pequenos
+            const rawResponseText = await callGroqAPI(prompt); 
             const batchResult = await getRobustJson(rawResponseText);
             
             if (Array.isArray(batchResult)) {
@@ -4506,7 +4499,7 @@ window.generatePromptsForSection = async (button) => {
             }
         }
 
-        if (allGeneratedPrompts.length === 0) throw new Error("A IA não gerou prompts válidos.");
+        if (allGeneratedPrompts.length === 0) throw new Error("A IA não conseguiu gerar prompts válidos.");
         
         const curatedPrompts = allGeneratedPrompts.filter(p => p && p.original_phrase && p.imageDescription).map(p => ({ scriptPhrase: p.original_phrase, imageDescription: p.imageDescription, estimated_duration: p.estimated_duration || 5 }));
         
