@@ -4447,15 +4447,28 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Preparando lotes de texto otimizados...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Calculando tamanho do prompt e preparando lotes dinâmicos...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
         const visualPacing = document.getElementById('visualPacing').value;
         const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
 
-        // Lógica de Lotes Fixa e Segura
-        const MAX_CHARS_PER_BATCH = 1200; // Um valor conservador para garantir que o prompt caiba
+        // --- LÓGICA DA "BALANÇA DE TOKENS" ---
+        const basePromptForSizing = PromptManager.getImageStoryboardPrompt("", durationRange);
+        const basePromptTokens = Math.ceil(basePromptForSizing.length / 3.5);
+        const MODEL_LIMIT = 8192;
+        const SAFETY_MARGIN = 500;
+        const availableSpace = MODEL_LIMIT - basePromptTokens - SAFETY_MARGIN;
+        
+        const maxScriptTokens = Math.floor(availableSpace * 0.25);
+        const maxCompletionTokens = Math.floor(availableSpace * 0.75);
+        const MAX_CHARS_PER_BATCH = Math.floor(maxScriptTokens * 3.5);
+
+        console.log(`Tokens do Prompt de Instruções: ~${basePromptTokens}`);
+        console.log(`Limite de Chars por Lote de Roteiro: ${MAX_CHARS_PER_BATCH}`);
+        console.log(`Limite de Tokens para Resposta da IA: ${maxCompletionTokens}`);
+
         const batches = [];
         let remainingText = fullText;
         while (remainingText.length > 0) {
@@ -4471,41 +4484,33 @@ window.generatePromptsForSection = async (button) => {
             batches.push(chunk);
         }
         
-        console.log(`Roteiro dividido em ${batches.length} lotes otimizados.`);
+        console.log(`Roteiro dividido em ${batches.length} lotes dinâmicos e seguros.`);
         
         let allGeneratedPrompts = [];
         
         for (let i = 0; i < batches.length; i++) {
-            // Pausa para evitar o Rate Limiting da API
-            if (i > 0) {
-                await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa de 2 segundos
-            }
+            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 2000)); }
 
             const batchText = batches[i];
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
             
             const prompt = PromptManager.getImageStoryboardPrompt(batchText, durationRange);
+            const estimatedPromptTokens = Math.ceil(prompt.length / 3.5);
             
-            // Enviamos o prompt para a API sem passar um maxTokens daqui
-            const batchResult = await callGroqAPI(forceLanguageOnPrompt(prompt)).then(getRobustJson);
+            // Enviamos o limite de resposta calculado para a API
+            const batchResult = await callGroqAPI(prompt, maxCompletionTokens, estimatedPromptTokens).then(getRobustJson);
             
             if (Array.isArray(batchResult)) {
                 allGeneratedPrompts = allGeneratedPrompts.concat(batchResult);
             } else {
-                console.warn(`Lote ${i + 1} retornou um formato não-array e foi ignorado.`);
+                console.warn(`Lote ${i + 1} retornou um formato não-array.`);
             }
         }
 
-        if (allGeneratedPrompts.length === 0) throw new Error("A IA não conseguiu gerar prompts válidos para nenhum lote.");
+        if (allGeneratedPrompts.length === 0) throw new Error("A IA não conseguiu gerar prompts válidos.");
         
-        const curatedPrompts = allGeneratedPrompts
-            .filter(p => p && p.original_phrase && p.imageDescription)
-            .map(p => ({
-                scriptPhrase: p.original_phrase,
-                imageDescription: p.imageDescription,
-                estimated_duration: p.estimated_duration || 5
-            }));
-
+        const curatedPrompts = allGeneratedPrompts.filter(p => p && p.original_phrase && p.imageDescription).map(p => ({ scriptPhrase: p.original_phrase, imageDescription: p.imageDescription, estimated_duration: p.estimated_duration || 5 }));
+        
         if (curatedPrompts.length === 0) throw new Error("A IA retornou respostas, mas nenhuma no formato correto.");
         
         const defaultStyleKey = 'cinematic';
@@ -4521,7 +4526,6 @@ window.generatePromptsForSection = async (button) => {
         hideButtonLoading(button);
     }
 };
-
 
 
 
