@@ -4495,6 +4495,11 @@ window.generatePromptsForSection = async (button) => {
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
             
             const prompt = PromptManager.getImageStoryboardPrompt(batchText, durationRange);
+
+            console.log(`--- DEBUG LOTE ${i + 1} ---`);
+            console.log(prompt);
+            console.log(`------------------------`);
+
             const estimatedPromptTokens = Math.ceil(prompt.length / 3.5);
             
             // Enviamos o limite de resposta calculado para a API
