@@ -4461,8 +4461,8 @@ window.generatePromptsForSection = async (button) => {
         const SAFETY_MARGIN = 500;
         const availableSpace = MODEL_LIMIT - basePromptTokens - SAFETY_MARGIN;
         
-        const maxScriptTokens = Math.floor(availableSpace * 0.25);
-        const maxCompletionTokens = Math.floor(availableSpace * 0.75);
+        const maxScriptTokens = Math.floor(availableSpace * 0.15); // Menos espaço para o roteiro
+        const maxCompletionTokens = Math.floor(availableSpace * 0.85); // Mais espaço para a resposta
         const MAX_CHARS_PER_BATCH = Math.floor(maxScriptTokens * 3.5);
 
         console.log(`Tokens do Prompt de Instruções: ~${basePromptTokens}`);
