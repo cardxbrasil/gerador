@@ -4449,7 +4449,7 @@ window.generatePromptsForSection = async (button) => {
         const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
 
         // --- LÓGICA DE LOTE OTIMIZADO ---
-        const MAX_CHARS_PER_BATCH = 1800; // Limite seguro de caracteres por lote
+        const MAX_CHARS_PER_BATCH = 800;
         const batches = [];
         let remainingText = fullText;
 
