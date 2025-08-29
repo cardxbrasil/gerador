@@ -4447,7 +4447,7 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Calculando tamanho do prompt e preparando lotes dinâmicos...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Calculando limites e preparando lotes dinâmicos...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
@@ -4461,13 +4461,13 @@ window.generatePromptsForSection = async (button) => {
         const SAFETY_MARGIN = 500;
         const availableSpace = MODEL_LIMIT - basePromptTokens - SAFETY_MARGIN;
         
-        const maxScriptTokens = Math.floor(availableSpace * 0.15);
-        const maxCompletionTokens = Math.floor(availableSpace * 0.80);
+        const maxScriptTokens = Math.floor(availableSpace * 0.20); // 20% para o script
+        const maxCompletionTokens = Math.floor(availableSpace * 0.80); // 80% para a resposta
         const MAX_CHARS_PER_BATCH = Math.floor(maxScriptTokens * 3.5);
 
-        console.log(`Tokens do Prompt de Instruções: ~${basePromptTokens}`);
-        console.log(`Limite de Chars por Lote de Roteiro: ${MAX_CHARS_PER_BATCH}`);
-        console.log(`Limite de Tokens para Resposta da IA: ${maxCompletionTokens}`);
+        console.log(`Tokens do Prompt Base: ~${basePromptTokens}`);
+        console.log(`Limite de Chars por Lote: ${MAX_CHARS_PER_BATCH}`);
+        console.log(`Limite de Tokens para Resposta: ${maxCompletionTokens}`);
 
         const batches = [];
         let remainingText = fullText;
@@ -4484,35 +4484,33 @@ window.generatePromptsForSection = async (button) => {
             batches.push(chunk);
         }
         
-        console.log(`Roteiro dividido em ${batches.length} lotes dinâmicos e seguros.`);
+        console.log(`Roteiro dividido em ${batches.length} lotes seguros.`);
         
         let allGeneratedPrompts = [];
         
         for (let i = 0; i < batches.length; i++) {
-            // --- A PEÇA FINAL: A PAUSA PARA RESPIRAR ---
-            if (i > 0) {
-                await new Promise(resolve => setTimeout(resolve, 5000)); // Pausa de 5 segundos
-            }
+            if (i > 0) { await new Promise(resolve => setTimeout(resolve, 5000)); } // Pausa de 5 segundos
 
             const batchText = batches[i];
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
             
             const prompt = PromptManager.getImageStoryboardPrompt(batchText, durationRange);
+            // ENVIAMOS O LIMITE CALCULADO
             const rawResponseText = await callGroqAPI(prompt, maxCompletionTokens);
             const batchResult = await getRobustJson(rawResponseText);
             
             if (Array.isArray(batchResult)) {
                 allGeneratedPrompts = allGeneratedPrompts.concat(batchResult);
             } else {
-                console.warn(`Lote ${i + 1} retornou um formato não-array.`);
+                console.warn(`Lote ${i + 1} retornou formato inválido.`);
             }
         }
 
-        if (allGeneratedPrompts.length === 0) throw new Error("A IA não conseguiu gerar prompts válidos.");
+        if (allGeneratedPrompts.length === 0) throw new Error("A IA não gerou prompts válidos.");
         
         const curatedPrompts = allGeneratedPrompts.filter(p => p && p.original_phrase && p.imageDescription).map(p => ({ scriptPhrase: p.original_phrase, imageDescription: p.imageDescription, estimated_duration: p.estimated_duration || 5 }));
         
-        if (curatedPrompts.length === 0) throw new Error("A IA retornou respostas, mas nenhuma no formato correto.");
+        if (curatedPrompts.length === 0) throw new Error("A IA retornou respostas sem o formato correto.");
         
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
@@ -4521,13 +4519,12 @@ window.generatePromptsForSection = async (button) => {
         renderPaginatedPrompts(sectionId);
 
     } catch (error) {
-        console.error("Erro detalhado na geração de prompts:", error);
+        console.error("Erro na geração de prompts:", error);
         promptContainer.innerHTML = `<p class="text-sm text-danger">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
     }
 };
-
 
 
 
