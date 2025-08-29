@@ -4447,23 +4447,40 @@ window.generatePromptsForSection = async (button) => {
     }
 
     showButtonLoading(button);
-    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Preparando lotes de texto otimizados...</p>`;
+    promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Calculando tamanho do prompt e preparando lotes dinâmicos...</p>`;
 
     try {
         const fullText = contentWrapper.textContent.trim();
         const visualPacing = document.getElementById('visualPacing').value;
         const durationRange = { 'dinamico': '3 a 8', 'normal': '8 a 15', 'contemplativo': '15 a 25' }[visualPacing] || '8 a 15';
 
-        // --- LÓGICA DE LOTE OTIMIZADO ---
-        const MAX_CHARS_PER_BATCH = 800;
+        // --- LÓGICA DE LOTE DINÂMICO ---
+        // 1. Medir o tamanho base do seu prompt de instruções
+        const basePromptForSizing = PromptManager.getImageStoryboardPrompt("", durationRange);
+        const basePromptTokens = Math.ceil(basePromptForSizing.length / 3.5); // Usamos 3.5 para uma estimativa mais segura
+        const MODEL_LIMIT = 8192;
+        const SAFETY_MARGIN = 500; // Margem de segurança para tokens inesperados
+
+        // 2. Calcular o espaço de trabalho disponível
+        const availableSpace = MODEL_LIMIT - basePromptTokens - SAFETY_MARGIN;
+        
+        // 3. Alocar espaço: 30% para o texto do roteiro, 70% para a resposta da IA
+        const maxScriptTokens = Math.floor(availableSpace * 0.30);
+        const maxCompletionTokens = Math.floor(availableSpace * 0.70);
+        
+        // Converter tokens em caracteres para o lote
+        const MAX_CHARS_PER_BATCH = maxScriptTokens * 3.5;
+
+        console.log(`Tamanho do Prompt Base: ~${basePromptTokens} tokens`);
+        console.log(`Limite de Chars por Lote: ${MAX_CHARS_PER_BATCH}`);
+        console.log(`Max Tokens para Resposta: ${maxCompletionTokens}`);
+
+        // O resto da lógica de criação de lotes permanece a mesma, mas agora com o tamanho dinâmico
         const batches = [];
         let remainingText = fullText;
-
         while (remainingText.length > 0) {
             let chunk = remainingText.substring(0, MAX_CHARS_PER_BATCH);
             remainingText = remainingText.substring(MAX_CHARS_PER_BATCH);
-
-            // Tenta não cortar uma palavra ao meio
             if (remainingText.length > 0) {
                 const lastSpace = chunk.lastIndexOf(' ');
                 if (lastSpace !== -1) {
@@ -4474,43 +4491,35 @@ window.generatePromptsForSection = async (button) => {
             batches.push(chunk);
         }
         
-        console.log(`Roteiro dividido em ${batches.length} lotes otimizados.`);
+        console.log(`Roteiro dividido em ${batches.length} lotes dinâmicos.`);
         
         let allGeneratedPrompts = [];
         
         for (let i = 0; i < batches.length; i++) {
+            // ... (o loop e o resto da função permanecem exatamente iguais ao da versão com a "pausa") ...
+            // Adicione a pausa para respeitar o limite de requisições da API
+            if (i > 0) {
+              await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa de 2 segundos
+            }
+
             const batchText = batches[i];
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
             
+            // Passamos o maxCompletionTokens calculado para a API
             const prompt = PromptManager.getImageStoryboardPrompt(batchText, durationRange);
-            const estimatedPromptTokens = Math.ceil(prompt.length / 4);
-            
-            const batchResult = await callGroqAPI(forceLanguageOnPrompt(prompt), null, estimatedPromptTokens).then(getRobustJson);
+            const batchResult = await callGroqAPI(forceLanguageOnPrompt(prompt), maxCompletionTokens).then(getRobustJson);
             
             if (Array.isArray(batchResult)) {
-                console.log(`Lote ${i + 1} processado. Recebido(s) ${batchResult.length} prompt(s).`);
                 allGeneratedPrompts = allGeneratedPrompts.concat(batchResult);
             } else {
                 console.warn(`Lote ${i + 1} retornou um formato não-array e foi ignorado.`);
             }
         }
 
-        if (allGeneratedPrompts.length === 0) {
-            throw new Error("A IA não conseguiu gerar prompts válidos para nenhum lote.");
-        }
-
-        const curatedPrompts = allGeneratedPrompts
-            .filter(p => p && p.original_phrase && p.imageDescription)
-            .map(p => ({
-                scriptPhrase: p.original_phrase,
-                imageDescription: p.imageDescription,
-                estimated_duration: p.estimated_duration || 5
-            }));
-
-        if (curatedPrompts.length === 0) {
-            throw new Error("A IA retornou respostas, mas nenhuma no formato correto.");
-        }
-
+        // ... (o resto da função para renderizar os prompts permanece o mesmo) ...
+        if (allGeneratedPrompts.length === 0) throw new Error("A IA não conseguiu gerar prompts válidos.");
+        const curatedPrompts = allGeneratedPrompts.filter(p => p && p.original_phrase && p.imageDescription).map(p => ({ scriptPhrase: p.original_phrase, imageDescription: p.imageDescription, estimated_duration: p.estimated_duration || 5 }));
+        if (curatedPrompts.length === 0) throw new Error("A IA retornou respostas, mas nenhuma no formato correto.");
         const defaultStyleKey = 'cinematic';
         AppState.generated.imagePrompts[sectionId] = curatedPrompts.map(p => ({ ...p, selectedStyle: defaultStyleKey }));
         AppState.ui.promptPaginationState[sectionId] = 0;
@@ -4518,7 +4527,7 @@ window.generatePromptsForSection = async (button) => {
         renderPaginatedPrompts(sectionId);
 
     } catch (error) {
-        console.error("Erro detalhado na geração de prompts (Lotes Otimizados):", error);
+        console.error("Erro detalhado na geração de prompts (Lotes Dinâmicos):", error);
         promptContainer.innerHTML = `<p class="text-sm text-danger">${error.message}</p>`;
     } finally {
         hideButtonLoading(button);
