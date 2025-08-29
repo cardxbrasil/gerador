@@ -1051,11 +1051,11 @@ const hideButtonLoading = (button) => {
 // =========================================================================
 // >>>>> SUBSTITUA A FUNÇÃO callGroqAPI PELA VERSÃO SIMPLES E DIRETA <<<<<
 // =========================================================================
-const callGroqAPI = async (prompt, maxTokens) => {
+const callGroqAPI = async (prompt, maxTokens, promptTokenCount = 0) => {
     // >>> COLE A URL DO SEU WORKER AQUI <<<
     const workerUrl = "https://royal-bird-81cb.david-souzan.workers.dev/"; 
 
-    const payload = { prompt, maxTokens };
+    const payload = { prompt, maxTokens, promptTokenCount };
     const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -4477,8 +4477,9 @@ window.generatePromptsForSection = async (button) => {
             promptContainer.innerHTML = `<div class="loading-spinner-small mx-auto my-4"></div> <p class="text-center text-sm">Processando lote ${i + 1} de ${batches.length}...</p>`;
             
             const prompt = PromptManager.getImageStoryboardPrompt(batchText, durationRange);
+            const estimatedPromptTokens = Math.ceil(prompt.length / 4);
             
-            const batchResult = await callGroqAPI(forceLanguageOnPrompt(prompt), 8000).then(getRobustJson);
+            const batchResult = await callGroqAPI(forceLanguageOnPrompt(prompt), null, estimatedPromptTokens).then(getRobustJson);
             
             if (Array.isArray(batchResult)) {
                 console.log(`Lote ${i + 1} processado. Recebido(s) ${batchResult.length} prompt(s).`);
