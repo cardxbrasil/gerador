@@ -3853,6 +3853,12 @@ window.analyzeSectionRetention = async (button) => {
         const basePromptContext = getBasePromptContext();
 
         for (let i = 0; i < batches.length; i++) {
+
+
+            if (i > 0) {
+             await new Promise(resolve => setTimeout(resolve, 2000)); // Pausa de 2 segundos
+            }
+
             const batch = batches[i];
             const progressMessage = document.createElement('p');
             progressMessage.className = 'text-sm text-center my-2';
